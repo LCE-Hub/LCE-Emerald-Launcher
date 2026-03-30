@@ -37,8 +37,8 @@ export function useAppConfig() {
       if (config.vfxEnabled !== undefined) setVfxEnabled(config.vfxEnabled);
       if (config.animationsEnabled !== undefined) setAnimationsEnabled(config.animationsEnabled);
       if (config.rpcEnabled !== undefined) setRpcEnabled(config.rpcEnabled);
-      if (config.musicVol !== undefined) setMusicVol(config.musicVol);
-      if (config.sfxVol !== undefined) setSfxVol(config.sfxVol);
+      if (config.musicVol !== undefined && config.musicVol !== null) setMusicVol(config.musicVol);
+      if (config.sfxVol !== undefined && config.sfxVol !== null) setSfxVol(config.sfxVol);
       if (config.legacyMode !== undefined) setLegacyMode(config.legacyMode);
       setIsLoaded(true);
     });
@@ -83,9 +83,9 @@ export function useAppConfig() {
     setAnimationsEnabled,
     rpcEnabled,
     setRpcEnabled,
-    musicVol,
+    musicVol: musicVol ?? 50,
     setMusicVol,
-    sfxVol,
+    sfxVol: sfxVol ?? 100,
     setSfxVol,
     isDayTime,
     setIsDayTime,

@@ -232,16 +232,16 @@ const SettingsView = memo(function SettingsView() {
     } else if (currentSubMenu === "audio") {
       items.push({
         id: "music",
-        label: `Music: ${musicVolume}%`,
+        label: `Music: ${musicVolume ?? 50}%`,
         type: "slider",
-        value: musicVolume,
+        value: musicVolume ?? 50,
         onChange: setMusicVolume,
       });
       items.push({
         id: "sfx",
-        label: `SFX: ${sfxVolume}%`,
+        label: `SFX: ${sfxVolume ?? 100}%`,
         type: "slider",
-        value: sfxVolume,
+        value: sfxVolume ?? 100,
         onChange: setSfxVolume,
       });
       items.push({
