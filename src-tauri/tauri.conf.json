@@ -32,6 +32,11 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "linux": {
+        "appimage": {
+            "bundleMediaFramework": true
+        }
+    },
     "resources": [
       "resources/DLC"
     ],
