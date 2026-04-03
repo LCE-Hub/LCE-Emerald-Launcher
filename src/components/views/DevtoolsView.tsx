@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { TauriService } from "../../services/TauriService";
 import { useUI, useAudio, useConfig } from "../../context/LauncherContext";
 export default function DevtoolsView() {
   const { setActiveView } = useUI();
   const [backHover, setBackHover] = useState(false);
-  const { playBackSound, playClickSound } = useAudio();
-  const [focusIndex, setFocusIndex] = useState<number | null>(null);
+  const { playBackSound } = useAudio();
+  const [focusIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -27,15 +26,6 @@ export default function DevtoolsView() {
       if (el) el.focus();
     }
   }, [focusIndex]);
-
-  const getItemStyle = (index: number) => ({
-    backgroundImage:
-      focusIndex === index
-        ? "url('/images/button_highlighted.png')"
-        : "url('/images/Button_Background.png')",
-    backgroundSize: "100% 100%",
-    imageRendering: "pixelated" as const,
-  });
 
   return (
     <motion.div
