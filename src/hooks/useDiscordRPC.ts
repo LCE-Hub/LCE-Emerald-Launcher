@@ -52,7 +52,7 @@ export function useDiscordRPC({
           versions: "Selecting Version",
           settings: "In Settings",
           devtools: "Developing for LCE",
-          skins: "Browsing Skins",
+          skins: "Changing Skins",
           workshop: "Browsing Workshop",
         };
         details = tabNames[activeView] || "In Menus";

@@ -153,7 +153,7 @@ export default function App() {
           message={updateMessage}
           onClose={clearUpdateMessage}
           onClick={() =>
-            TauriService.openUrl("https://emerald-legacy-launcher.github.io/")
+            TauriService.openUrl("https://lce-hub.github.io/")
           }
           title="Update Available!"
           variant="update"

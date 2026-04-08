@@ -1,6 +1,6 @@
 <div align="center">
-  <img height="150" src="https://raw.githubusercontent.com/Emerald-Legacy-Launcher/Emerald-Legacy-Launcher/refs/heads/main/public/images/icon.png" alt="Emerald Legacy Launcher Logo">
-  <h1>Emerald Legacy Launcher</h1>
+  <img height="150" src="https://raw.githubusercontent.com/Emerald-Legacy-Launcher/Emerald-Legacy-Launcher/refs/heads/main/public/images/icon.png" alt="LCE Emerald Launcher Logo">
+  <h1>LCE Emerald Launcher</h1>
   <p><strong>FOSS cross-platform launcher for Minecraft Legacy Console Edition</strong></p>
   
   <p>
@@ -22,7 +22,7 @@
 ---
 
 > [!IMPORTANT]
-> **Emerald Legacy Launcher is currently in Beta.**
+> **macOS support for LCE Emerald Launcher is currently in Beta.**
 > Expect minor bugs, frequent updates, and features that are still being polished as we work toward a stable release.
 
 ---

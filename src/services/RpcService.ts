@@ -41,7 +41,7 @@ class RPC {
 
     const assets = new Assets();
     assets.setLargeImage("logo");
-    assets.setLargeText("Emerald Legacy");
+    assets.setLargeText("LCE Emerald Launcher");
     assets.setSmallImage("app-icon");
     assets.setSmallText(isPlaying ? "Playing" : "In Menus");
     activity.setAssets(assets);
@@ -49,8 +49,8 @@ class RPC {
     activity.setTimestamps(new Timestamps(this.startTime));
 
     activity.setButton([
-      new Button("Discord", "https://discord.gg/RHGRUwpmVc"),
-      new Button("GitHub", "https://github.com/Emerald-Legacy-Launcher/Emerald-Legacy-Launcher")
+      new Button("Discord", "https://discord.gg/A285mSfkcF"),
+      new Button("GitHub", "https://github.com/LCE-Hub/LCE-Emerald-Launcher")
     ]);
 
     try {

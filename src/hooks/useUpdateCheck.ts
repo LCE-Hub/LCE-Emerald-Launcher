@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import pkg from "../../package.json";
 
 const CURRENT_VERSION = pkg.version;
-const REPO_URL = "https://api.github.com/repos/Emerald-Legacy-Launcher/Emerald-Legacy-Launcher/releases/latest";
+const REPO_URL = "https://api.github.com/repos/LCE-Hub/LCE-Emerald-Launcher/releases/latest";
 
 function isNewerVersion(latest: string, current: string): boolean {
   const latestParts = latest.split('.').map(Number);

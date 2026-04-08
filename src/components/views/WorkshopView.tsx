@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useUI, useAudio, useConfig, GameContext } from '../../context/LauncherContext';
 import { TauriService } from '../../services/TauriService';
 
-const REGISTRY_URL = 'https://raw.githubusercontent.com/Emerald-Legacy-Launcher/Workshop/refs/heads/main/registry.json';
-const RAW_BASE = 'https://raw.githubusercontent.com/Emerald-Legacy-Launcher/Workshop/refs/heads/main';
+const REGISTRY_URL = 'https://raw.githubusercontent.com/LCE-Hub/LCE-Workshop/refs/heads/main/registry.json';
+const RAW_BASE = 'https://raw.githubusercontent.com/LCE-Hub/LCE-Workshop/refs/heads/main';
 
 const CATEGORY_TABS = ['Skin', 'Texture', 'World', 'Mod', 'DLC'] as const;
 const ALL_TABS = [...CATEGORY_TABS, 'Search'] as const;
@@ -171,11 +171,6 @@ const WorkshopView = memo(function WorkshopView() {
       transition={{ duration: config.animationsEnabled ? 0.3 : 0 }}
       className="flex flex-col items-center w-full max-w-5xl relative font-['Mojangles'] text-white select-none outline-none focus:outline-none"
     >
-      {/*<div
-        className="absolute inset-0 -z-10 bg-cover h-screen"
-        style={{ backgroundImage: "url('/images/background.png')", imageRendering: 'pixelated' }}
-      />*/}
-
       <div className="w-[95%] flex flex-col items-center mt-6">
         <div className="w-full flex items-end justify-between">
           <div className="flex items-end gap-0">
