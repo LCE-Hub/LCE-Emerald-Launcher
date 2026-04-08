@@ -1,7 +1,7 @@
 [Desktop Entry]
-Name=LCE Emerald Launcher
+Name=Emerald Legacy Launcher
 Comment=FOSS cross-platform launcher for Minecraft Legacy Console Edition
-Exec=lce-emerald-launcher
-Icon=io.github.LCE_Emerald_Launcher.LCE_Emerald_Launcher
+Exec=emerald-legacy-launcher
+Icon=io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher
 Type=Application
 Categories=Game;

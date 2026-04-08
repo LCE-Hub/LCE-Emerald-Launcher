@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "LCE Emerald Launcher",
+  "productName": "Emerald Legacy Launcher",
   "version": "1.0.1",
-  "identifier": "com.lce.emerald",
+  "identifier": "com.emerald.legacy",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "LCE Emerald Launcher",
+        "title": "Emerald Legacy Launcher",
         "width": 1280,
         "height": 720,
         "minWidth": 1280,
@@ -33,9 +33,9 @@
     "active": true,
     "targets": "all",
     "linux": {
-      "appimage": {
-        "bundleMediaFramework": true
-      }
+        "appimage": {
+            "bundleMediaFramework": true
+        }
     },
     "resources": [
       "resources/DLC"

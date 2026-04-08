@@ -1,0 +1,47 @@
+app-id: io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher
+runtime: org.gnome.Platform
+runtime-version: "48"
+sdk: org.gnome.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.node20
+  - org.freedesktop.Sdk.Extension.rust-stable
+command: emerald-legacy-launcher
+finish-args:
+  - --share=network
+  - --device=input
+  - --socket=x11
+  - --socket=wayland
+  - --device=dri
+  - --filesystem=xdg-data
+  - --socket=pulseaudio
+  - --filesystem=xdg-run/pipewire-0
+
+modules:
+  - shared-modules/libayatana-appindicator/libayatana-appindicator-gtk3.json
+  - name: emerald-legacy-launcher
+    buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/node20/bin:/usr/lib/sdk/rust-stable/bin
+      build-args:
+        - --share=network
+      env:
+        PKG_CONFIG_PATH: /usr/lib/sdk/node20/lib/pkgconfig:/usr/lib/sdk/rust-stable/lib/pkgconfig
+        CARGO_HOME: /run/build/emerald-legacy-launcher/cargo
+        PNPM_HOME: /run/build/emerald-legacy-launcher/pnpm-home
+    build-commands:
+      - . /usr/lib/sdk/rust-stable/enable.sh
+      - mkdir -p /run/build/emerald-legacy-launcher/pnpm-bin
+      - curl -fSL https://github.com/pnpm/pnpm/releases/download/v10.32.1/pnpm-linux-x64 -o /run/build/emerald-legacy-launcher/pnpm-bin/pnpm # yes i hardcode URLs
+      - chmod +x /run/build/emerald-legacy-launcher/pnpm-bin/pnpm
+      - export PATH=/run/build/emerald-legacy-launcher/pnpm-bin:$PATH
+      - CI=true PATH=/run/build/emerald-legacy-launcher/pnpm-bin:$PATH /run/build/emerald-legacy-launcher/pnpm-bin/pnpm install
+      - CI=true PATH=/run/build/emerald-legacy-launcher/pnpm-bin:$PATH /run/build/emerald-legacy-launcher/pnpm-bin/pnpm tauri build --no-bundle
+      - install -Dm755 src-tauri/target/release/emerald-legacy-launcher /app/bin/emerald-legacy-launcher
+      - mkdir -p /app/share/emerald-legacy-launcher/
+      - cp -r dist /app/share/emerald-legacy-launcher/
+      - install -Dm644 flatpak/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.desktop /app/share/applications/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.desktop
+      - install -Dm644 flatpak/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.metainfo.xml /app/share/metainfo/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.metainfo.xml
+      - install -Dm644 public/images/icon.png /app/share/icons/hicolor/512x512/apps/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.png
+    sources:
+      - type: dir
+        path: ..

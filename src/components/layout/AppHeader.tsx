@@ -28,7 +28,7 @@ export const AppHeader = memo(function AppHeader({ playPressSound, uiFade }: App
           style={{ imageRendering: "pixelated" }}
         />
         <span className="text-xs text-gray-300 mc-text-shadow opacity-90 tracking-wide leading-none block pt-[1px]">
-          LCE Emerald Launcher
+          Emerald Legacy Launcher
         </span>
       </div>
       <div className="flex items-center gap-1 pr-2">

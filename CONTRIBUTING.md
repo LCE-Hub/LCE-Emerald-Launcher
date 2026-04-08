@@ -1,4 +1,4 @@
-# Contributing to LCE Emerald Launcher
+# Contributing to Emerald Legacy Launcher
 
 Thank you for considering contributing to Emerald! We appreciate all types of contributions, including bug fixes, new features, and documentation improvements.
 

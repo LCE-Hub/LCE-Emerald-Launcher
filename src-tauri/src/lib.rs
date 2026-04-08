@@ -93,10 +93,16 @@ fn get_app_dir(app: &AppHandle) -> PathBuf {
 
 #[cfg(target_os = "macos")]
 fn get_macos_runtime_dir(app: &AppHandle) -> PathBuf {
-    app.path().app_local_data_dir().unwrap_or_else(|_| {
-        let home = app.path().home_dir().ok().or_else(|| std::env::var("HOME").ok().map(PathBuf::from)).unwrap_or_else(|| PathBuf::from("/"));
-        home.join("Library").join("Application Support").join("com.lce.emerald")
-    }).join("runtime")
+    let home = app
+        .path()
+        .home_dir()
+        .ok()
+        .or_else(|| std::env::var("HOME").ok().map(PathBuf::from))
+        .unwrap_or_else(|| PathBuf::from("/"));
+    home.join("Library")
+        .join("Application Support")
+        .join("com.emerald.legacy")
+        .join("runtime")
 }
 
 #[cfg(target_os = "macos")]
@@ -146,7 +152,7 @@ fn unix_path_to_wine_z_path(unix_path: &PathBuf) -> String {
 }
 
 fn get_config_path(app: &AppHandle) -> PathBuf {
-    get_app_dir(app).join("lce_emerald_config.json")
+    get_app_dir(app).join("emerald_legacy_config.json")
 }
 
 #[tauri::command]
@@ -161,17 +167,8 @@ fn save_config(app: AppHandle, config: AppConfig) {
 #[tauri::command]
 fn load_config(app: AppHandle) -> AppConfig {
     let path = get_config_path(&app);
-    if let Ok(content) = fs::read_to_string(&path) {
+    if let Ok(content) = fs::read_to_string(path) {
         if let Ok(config) = serde_json::from_str(&content) {
-            return config;
-        }
-    }
-
-    let old_json_path = get_app_dir(&app).join("emerald_legacy_config.json");
-    if let Ok(content) = fs::read_to_string(&old_json_path) {
-        if let Ok(config) = serde_json::from_str::<AppConfig>(&content) {
-            let _ = save_config(app.clone(), config.clone());
-            let _ = fs::remove_file(old_json_path);
             return config;
         }
     }
@@ -263,7 +260,7 @@ fn get_available_runners(app: AppHandle) -> Vec<Runner> {
             }
         }
 
-        if let Ok(output) = Command::new("ls").arg("/usr/share/lce-emerald-launcher/wine/bin/wine").output() {
+        if let Ok(output) = Command::new("ls").arg("/usr/share/emerald-legacy-launcher/wine/bin/wine").output() {
             if output.status.success() {
                 let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
                 if !seen_paths.contains(&path) {
@@ -472,7 +469,7 @@ async fn setup_macos_runtime(window: tauri::Window, app: AppHandle) -> Result<()
         let client = reqwest::Client::new();
         let release_text = client
             .get("https://api.github.com/repos/Gcenx/game-porting-toolkit/releases/latest")
-            .header("User-Agent", "LCE-Emerald-Launcher")
+            .header("User-Agent", "Emerald-Legacy-Launcher")
             .send()
             .await
             .map_err(|e| e.to_string())?
@@ -509,7 +506,7 @@ async fn setup_macos_runtime(window: tauri::Window, app: AppHandle) -> Result<()
         let archive_path = runtime_dir.join(format!("gptk_{}", asset.name));
         let response = client
             .get(&asset.browser_download_url)
-            .header("User-Agent", "LCE-Emerald-Launcher")
+            .header("User-Agent", "Emerald-Legacy-Launcher")
             .send()
             .await
             .map_err(|e| e.to_string())?
@@ -956,7 +953,7 @@ async fn workshop_install(app: AppHandle, request: WorkshopInstallRequest) -> Re
         .and_then(|s| serde_json::from_str(&s).ok())
         .unwrap_or_default();
 
-    let raw_base = format!("https://raw.githubusercontent.com/LCE-Hub/Workshop/refs/heads/main/{}", request.package_id);
+    let raw_base = format!("https://raw.githubusercontent.com/Emerald-Legacy-Launcher/Workshop/refs/heads/main/{}", request.package_id);
     let tmp_dir = root.join(format!("workshop_tmp_{}", request.package_id));
     fs::create_dir_all(&tmp_dir).map_err(|e| e.to_string())?;
     for (zip_name, placeholder) in &request.zips {
@@ -1287,35 +1284,9 @@ async fn fetch_skin(username: String) -> Result<(String, String), String> {
     Ok((image_b64.to_string(), name_exact))
 }
 
-fn migrate_data(app: &tauri::App) {
-    let new_data_dir = app.path().app_local_data_dir().unwrap_or_default();
-    if new_data_dir.as_os_str().is_empty() { return; }
-
-    let parent = new_data_dir.parent().unwrap();
-    let old_data_dir = parent.join("com.emerald.legacy");
-
-    if old_data_dir.exists() && !new_data_dir.exists() {
-        println!("Rebranding: Migrating data from {:?} to {:?}", old_data_dir, new_data_dir);
-        let _ = fs::create_dir_all(&new_data_dir);
-        if let Ok(entries) = fs::read_dir(&old_data_dir) {
-            for entry in entries.flatten() {
-                let name = entry.file_name();
-                let dest = new_data_dir.join(name);
-                let _ = fs::rename(entry.path(), dest);
-            }
-        }
-
-        let _ = fs::remove_dir_all(&old_data_dir);
-    }
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .setup(|app| {
-            migrate_data(app);
-            Ok(())
-        })
         .manage(DownloadState { token: Arc::new(Mutex::new(None)) })
         .manage(GameState { child: Arc::new(Mutex::new(None)) })
         .plugin(tauri_plugin_gamepad::init())

@@ -64,15 +64,15 @@ jobs:
           tagName: nightly
           releaseName: 'Emerald Nightly'
           releaseBody: |
-            # LCE Emerald Launcher (Nightly)
+            # Emerald Legacy Launcher (Nightly)
             # What to download?
-            - `LCE.Emerald.Launcher-*.rpm` for GNU/Linux (RHEL)
-            - `LCE.Emerald.Launcher-*.deb` for GNU/Linux (Debian+Ubuntu)
-            - `LCE.Emerald.Launcher-*.AppImage` for GNU/Linux (Universal)
-            - `LCE.Emerald.Launcher-*_x64.dmg` for macOS (Intel)
-            - `LCE.Emerald.Launcher-*_aarch64.dmg` for macOS (M-series)
-            - `LCE.Emerald.Launcher-*.exe` for Windows (Setup)
-            - `LCE.Emerald.Launcher-*.msi` for Windows (Setup)
+            - `Emerald.Legacy.Launcher-*.rpm` for GNU/Linux (RHEL)
+            - `Emerald.Legacy.Launcher-*.deb` for GNU/Linux (Debian+Ubuntu)
+            - `Emerald.Legacy.Launcher-*.AppImage` for GNU/Linux (Universal)
+            - `Emerald.Legacy.Launcher-*_x64.dmg` for macOS (Intel)
+            - `Emerald.Legacy.Launcher-*_aarch64.dmg` for macOS (M-series)
+            - `Emerald.Legacy.Launcher-*.exe` for Windows (Setup)
+            - `Emerald.Legacy.Launcher-*.msi` for Windows (Setup)
             ---
             # Windows SmartScreen
             This software is completely safe. Because the launcher is unsigned, you will see a "Windows protected your PC" window. To proceed:
@@ -101,12 +101,12 @@ jobs:
           submodules: true
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-          bundle: io.github.LCE_Emerald_Launcher.LCE_Emerald_Launcher.flatpak
-          manifest-path: flatpak/io.github.LCE_Emerald_Launcher.LCE_Emerald_Launcher.yml
+          bundle: io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.flatpak
+          manifest-path: flatpak/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.yml
           cache-key: flatpak-builder-${{ github.sha }}
       - uses: softprops/action-gh-release@v2
         with:
-          files: io.github.LCE_Emerald_Launcher.LCE_Emerald_Launcher.flatpak
+          files: io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.flatpak
           tag_name: nightly
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

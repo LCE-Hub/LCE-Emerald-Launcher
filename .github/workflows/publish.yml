@@ -79,31 +79,31 @@ jobs:
           pkgbuild --root "$APP_PATH/.." \
                    --install-location /Applications \
                    --scripts pkg_temp/scripts \
-                   --identifier "com.lce.emerald" \
+                   --identifier "com.emerald.legacy" \
                    --version "1.0.0" \
                    --install-location "/Applications" \
                    --root "$APP_PATH" \
-                   "LCE-Emerald-Launcher.pkg"
+                   "Emerald-Legacy-Launcher.pkg"
           
           # Move PKG to bundle directory
           mkdir -p src-tauri/target/release/bundle/macos/
-          mv "LCE-Emerald-Launcher.pkg" src-tauri/target/release/bundle/macos/
+          mv "Emerald-Legacy-Launcher.pkg" src-tauri/target/release/bundle/macos/
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: v__VERSION__
-          releaseName: 'LCE Emerald v__VERSION__'
+          releaseName: 'Emerald v__VERSION__'
           releaseBody: |
             # What to download?
-            - `LCE.Emerald.Launcher-*.rpm` for GNU/Linux (RHEL)
-            - `LCE.Emerald.Launcher-*.deb` for GNU/Linux (Debian+Ubuntu)
-            - `LCE.Emerald.Launcher-*.AppImage` for GNU/Linux (Universal, Currently Broken)
-            - `LCE.Emerald.Launcher-*_x64.dmg` for macOS (Intel)
-            - `LCE.Emerald.Launcher-*_aarch64.dmg` for macOS (M-series)
-            - `LCE.Emerald.Launcher-*.exe` for Windows (Setup)
-            - `LCE.Emerald.Launcher-*.msi` for Windows (Setup)
-            - `io.github.LCE_Emerald_Launcher.LCE_Emerald_Launcher.flatpak` for GNU/Linux (Flatpak, Recommended)
+            - `Emerald.Legacy.Launcher-*.rpm` for GNU/Linux (RHEL)
+            - `Emerald.Legacy.Launcher-*.deb` for GNU/Linux (Debian+Ubuntu)
+            - `Emerald.Legacy.Launcher-*.AppImage` for GNU/Linux (Universal, Currently Broken)
+            - `Emerald.Legacy.Launcher-*_x64.dmg` for macOS (Intel)
+            - `Emerald.Legacy.Launcher-*_aarch64.dmg` for macOS (M-series)
+            - `Emerald.Legacy.Launcher-*.exe` for Windows (Setup)
+            - `Emerald.Legacy.Launcher-*.msi` for Windows (Setup)
+            - `Emerald.Legacy.Launcher.flatpak` for GNU/Linux (Flatpak, Recommended)
             ---
             # Windows SmartScreen
             This software is completely safe. Because the launcher is unsigned, you will see a "Windows protected your PC" window. To proceed:
@@ -134,12 +134,12 @@ jobs:
         run: sleep 10
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-          bundle: io.github.LCE_Emerald_Launcher.LCE_Emerald_Launcher.flatpak
-          manifest-path: flatpak/io.github.LCE_Emerald_Launcher.LCE_Emerald_Launcher.yml
+          bundle: Emerald.Legacy.Launcher.flatpak
+          manifest-path: flatpak/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.yml
           cache-key: flatpak-builder-${{ github.sha }}
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.get-version.outputs.version }}
-          files: io.github.LCE_Emerald_Launcher.LCE_Emerald_Launcher.flatpak
+          files: Emerald.Legacy.Launcher.flatpak
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

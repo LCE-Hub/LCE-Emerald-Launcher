@@ -5,8 +5,8 @@
 
 set -e
 
-APP_NAME="LCE Emerald Launcher"
-BUNDLE_ID="com.lce.emerald"
+APP_NAME="Emerald Legacy Launcher"
+BUNDLE_ID="com.emerald.legacy"
 BASE_DIR="src-tauri/target"
 
 echo "Running macOS post-build fixes"

@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.LCE_Emerald_Launcher.LCE_Emerald_Launcher</id>
+  <id>io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
-  <name>LCE Emerald Launcher</name>
+  <name>Emerald Legacy Launcher</name>
   <summary>A launcher for Minecraft Legacy Console Edition</summary>
   <description>
     <p>FOSS cross-platform launcher for Minecraft Legacy Console Edition</p>
   </description>
-  <launchable type="desktop-id">io.github.LCE_Emerald_Launcher.LCE_Emerald_Launcher.desktop</launchable>
-  <url type="homepage">https://github.com/LCE-Hub/LCE-Emerald-Launcher</url>
+  <launchable type="desktop-id">io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.desktop</launchable>
+  <url type="homepage">https://github.com</url>
   <developer_name>Emerald Team</developer_name>
   <releases>
     <release version="1.0.0" date="2026-03-19">
       <description>
-        <p>Latest stable release of the LCE Emerald Launcher.</p>
+        <p>Latest stable release of the Emerald Legacy Launcher.</p>
       </description>
     </release>
   </releases>
   <provides>
-    <binary>lce-emerald-launcher</binary>
+    <binary>emerald-legacy-launcher</binary>
   </provides>
 </component>

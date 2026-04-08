@@ -1,6 +1,6 @@
 <div align="center">
-  <img height="150" src="https://raw.githubusercontent.com/LCE-Hub/LCE-Emerald-Launcher/refs/heads/main/public/images/icon.png" alt="LCE Emerald Launcher Logo">
-  <h1>LCE Emerald Launcher</h1>
+  <img height="150" src="https://raw.githubusercontent.com/Emerald-Legacy-Launcher/Emerald-Legacy-Launcher/refs/heads/main/public/images/icon.png" alt="Emerald Legacy Launcher Logo">
+  <h1>Emerald Legacy Launcher</h1>
   <p><strong>FOSS cross-platform launcher for Minecraft Legacy Console Edition</strong></p>
   
   <p>
@@ -14,7 +14,7 @@
   <a href="https://ko-fi.com/kayjann">
     <img src="https://img.shields.io/badge/ko--fi-Donate%20to%20the%20Project-grey?style=for-the-badge&logo=kofi&logoColor=white&labelColor=FF5E5B" alt="Donate to the Project">
   </a>
-  <a href="https://discord.gg/A285mSfkcF">
+  <a href="https://discord.gg/ycYvGjWmhu">
     <img src="https://img.shields.io/badge/discord-Join%20the%20Community-grey?style=for-the-badge&logo=discord&logoColor=white&labelColor=5865F2" alt="Join the Community">
   </a>
 </p>
@@ -22,7 +22,7 @@
 ---
 
 > [!IMPORTANT]
-> MacOs's version of **LCE Emerald Launcher** is currently in beta.
+> **Emerald Legacy Launcher is currently in Beta.**
 > Expect minor bugs, frequent updates, and features that are still being polished as we work toward a stable release.
 
 ---
@@ -47,7 +47,7 @@
 
 ## Overview
 
-LCE Emerald Launcher is a **high-performance, open-source launcher** for Minecraft Legacy Console Edition (LCE). Built to centralize the fragmented LCE scene, it provides a lightweight, unified hub for playing your favorite console versions of Minecraft on PC.
+Emerald Legacy Launcher is a **high-performance, open-source launcher** for Minecraft Legacy Console Edition (LCE). Built to centralize the fragmented LCE scene, it provides a lightweight, unified hub for playing your favorite console versions of Minecraft on PC.
 
 **Why Emerald?** Traditional launchers often rely on bloated frameworks, consuming excessive resources. Emerald utilizes a modern **Rust/Tauri** architecture, using only **~15MB of RAM** — leaving your PC's resources dedicated to the game itself.
 
@@ -80,7 +80,7 @@ The project started as a solo effort and has grown into a collaborative communit
 
 ## Game Versions & Partnerships
 
-LCE Emerald Launcher integrates multiple community-driven builds of Minecraft Legacy Console Edition. Each build brings unique features and improvements to the classic LCE experience.
+Emerald Legacy Launcher integrates multiple community-driven builds of Minecraft Legacy Console Edition. Each build brings unique features and improvements to the classic LCE experience.
 
 ### Available Builds
 
@@ -103,7 +103,7 @@ Stay tuned for updates on this exciting partnership! :)
 
 ## Screenshots
 
-<img width="1680" alt="LCE Emerald Launcher Screenshot" src="https://github.com/user-attachments/assets/a5dd6aa1-2200-4f08-84e5-e75a8052ba79" />
+<img width="1680" alt="Emerald Legacy Launcher Screenshot" src="https://github.com/user-attachments/assets/a5dd6aa1-2200-4f08-84e5-e75a8052ba79" />
 
 ---
 
@@ -111,7 +111,7 @@ Stay tuned for updates on this exciting partnership! :)
 
 ### Windows
 
-Download the latest release from [GitHub Releases](https://github.com/LCE-Hub/LCE-Emerald-Launcher/releases):
+Download the latest release from [GitHub Releases](https://github.com/Emerald-Legacy-Launcher/Emerald-Legacy-Launcher/releases):
 
 | Format | Best For |
 |--------|----------|
@@ -135,7 +135,7 @@ Download the latest release from [GitHub Releases](https://github.com/LCE-Hub/LC
 2. Open the DMG and drag the app to Applications
 3. If you see "app is damaged" error:
    - Right-click the app → **Open** → confirm **Open**
-   - Or run: `xattr -cr "/Applications/LCE Emerald Launcher.app"`
+   - Or run: `xattr -cr "/Applications/Emerald Legacy Launcher.app"`
 
 ### Linux
 
@@ -180,8 +180,8 @@ sudo dnf install webkit2gtk4.1-devel libappindicator-gtk3-devel librsvg2-devel p
 
 ```bash
 # Clone the repository
-git clone https://github.com/LCE-Hub/LCE-Emerald-Launcher.git
-cd LCE-Emerald-Launcher
+git clone https://github.com/Emerald-Legacy-Launcher/Emerald-Legacy-Launcher.git
+cd Emerald-Legacy-Launcher
 
 # Install dependencies
 pnpm install
@@ -236,7 +236,7 @@ sudo apt install --reinstall libwebkit2gtk-4.1-0
 
 ## Roadmap
 
-Track our progress and upcoming features on the [Development Roadmap](https://github.com/orgs/LCE-Hub/projects/2).
+Track our progress and upcoming features on the [Development Roadmap](https://github.com/orgs/Emerald-Legacy-Launcher/projects/2).
 
 ---
 

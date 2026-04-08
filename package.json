@@ -1,12 +1,8 @@
 {
-  "name": "lce-emerald-launcher",
+  "name": "emerald-legacy-launcher",
   "private": true,
   "version": "1.0.1",
   "type": "module",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/LCE-Hub/LCE-Emerald-Launcher.git"
-  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -14,7 +10,7 @@
     "tauri": "tauri",
     "tauri:build": "tauri build && pnpm run post-build:macos",
     "post-build:macos": "sh src-tauri/scripts/post-build-macos.sh",
-    "flatpak": "flatpak-builder --user --install-deps-from=flathub --repo=emerald-repo --force-clean build-flatpak flatpak/io.github.LCE_Emerald_Launcher.LCE_Emerald_Launcher.yml && flatpak build-bundle emerald-repo emerald.flatpak io.github.LCE_Emerald_Launcher.LCE_Emerald_Launcher"
+    "flatpak": "flatpak-builder --user --install-deps-from=flathub --repo=emerald-repo --force-clean build-flatpak flatpak/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.yml && flatpak build-bundle emerald-repo emerald.flatpak io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

@@ -228,7 +228,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
         <div className="absolute top-8 left-1/2 transform -translate-x-1/2">
           <img
             src={titleImage}
-            alt="LCE Emerald"
+            alt="Emerald Legacy"
             className="h-16"
             style={{ imageRendering: "pixelated" }}
           />
@@ -277,7 +277,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                     {currentStep === 0 && (
                       <div className="text-center">
                         <h2 className="text-3xl font-bold mb-6 text-white" style={{ textShadow: "2px 2px 0px rgba(0,0,0,0.8)" }}>
-                          Welcome to LCE Emerald
+                          Welcome to Emerald Legacy
                         </h2>
                         <p className="text-lg mb-8 text-white/80">Let's configure your launcher</p>
 
@@ -306,8 +306,8 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                         </h2>
                         <p className="text-lg mb-6 text-white/80">
                           {runtimeAlreadyInstalled
-                            ? "LCE Emerald compatibility runtime is already installed"
-                            : "LCE Emerald needs compatibility runtime for macOS"
+                            ? "Emerald Legacy compatibility runtime is already installed"
+                            : "Emerald Legacy needs compatibility runtime for macOS"
                           }
                         </p>
 
@@ -413,7 +413,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
 
                         <div className="mt-6 p-4 bg-green-600/20 border-2 border-green-400 rounded-lg">
                           <p className="text-green-400 font-bold mb-2">✓ Windows Native Support</p>
-                          <p className="text-xs text-white/80">LCE Emerald runs natively on Windows without additional requirements.</p>
+                          <p className="text-xs text-white/80">Emerald Legacy runs natively on Windows without additional requirements.</p>
                         </div>
                       </div>
                     )}
@@ -454,7 +454,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                             <div className="flex items-center justify-between">
                               <div className="text-left">
                                 <p className="text-white font-bold">Discord Rich Presence</p>
-                                <p className="text-xs text-white/60">Show your LCE Emerald status on Discord</p>
+                                <p className="text-xs text-white/60">Show your Emerald Legacy status on Discord</p>
                               </div>
                               <button
                                 onClick={() => {
@@ -508,7 +508,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                           </div>
                         </div>
 
-                        <p className="text-white/80">LCE Emerald is now configured and ready to use!</p>
+                        <p className="text-white/80">Emerald Legacy is now configured and ready to use!</p>
                       </div>
                     )}
                   </motion.div>

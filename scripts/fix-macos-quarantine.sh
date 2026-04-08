@@ -6,7 +6,7 @@
 set -e
 
 APP_PATH="$1"
-BUNDLE_ID="com.lce.emerald"
+BUNDLE_ID="com.emerald.legacy"
 
 if [ -z "$APP_PATH" ]; then
     echo "Usage: $0 <path-to-app-bundle>"
