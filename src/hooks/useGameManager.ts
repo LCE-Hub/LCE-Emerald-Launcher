@@ -3,12 +3,13 @@ import { TauriService } from "../services/TauriService";
 
 const BASE_EDITIONS = [
   {
-    id: "legacy_evolved",
-    name: "Legacy Evolved",
+    id: "legacy_evolved", //neo: yes. we're not changing the ID. that will break user data.
+    name: "neoLegacy",
     desc: "Backporting newer title updates back to LCE",
     url: "https://codeberg.org/piebot/LegacyEvolved/releases/download/nightly/LCEWindows64.zip",
-    titleImage: "/images/minecraft_title_LegacyEvolved.png",
+    titleImage: "/images/minecraft_title_neoLegacy.png",
     supportsSlimSkins: true,
+    logo: "/images/legacy_evolved.png"
   },
   {
     id: "revelations",
@@ -25,16 +26,8 @@ const BASE_EDITIONS = [
     url: "https://github.com/BluTac10/360Revived/releases/download/nightly/LCEWindows64.zip",
     titleImage: "/images/minecraft_title_360revived.png",
     supportsSlimSkins: false,
-  },
-  {
-    id: "lmrp",
-    name: "COMING SOON: Legacy Minigames Restoration Project",
-    desc: "Classic LCE mini-games (Battle, Tumble, Glide)",
-    url: "",
-    titleImage: "/images/minecraft_title_lrmp.png",
-    supportsSlimSkins: false,
-    comingSoon: true,
-  },
+    logo: "/images/360_revived.png"
+  }
 ];
 
 const PARTNERSHIP_SERVERS = [

@@ -266,9 +266,9 @@ const VersionsView = memo(function VersionsView() {
                     } ${isComingSoon ? "cursor-not-allowed" : ""}`}
                   >
                     <div className="flex items-center gap-2">
-                      {(edition.id === "legacy_evolved" || edition.id === "360revived" || edition.id === "lmrp") && (
+                      {edition.logo && (
                         <img 
-                          src={edition.id === "legacy_evolved" ? "/images/legacy_evolved.png" : edition.id === "360revived" ? "/images/360_revived.png" : "/images/lmrp.png"}
+                          src={edition.logo}
                           alt=""
                           className="w-5 h-5 object-contain flex-shrink-0"
                           style={{ imageRendering: "pixelated" }}
