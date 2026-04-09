@@ -18,6 +18,8 @@ const HomeView = memo(function HomeView() {
     installs,
     toggleInstall,
     downloadingId,
+    isGameRunning,
+    stopGame,
   } = useGame();
 
   const isFocusedSection = focusSection === "menu";
@@ -33,19 +35,23 @@ const HomeView = memo(function HomeView() {
       {
         label: !hasAnyInstall
           ? "Install a version"
-          : isDownloading
-            ? "Installation in progress..."
-            : isInstalled
-              ? "Play Game"
-              : `Download ${selectedVersionName}`,
+          : isGameRunning
+            ? "Stop Game"
+            : isDownloading
+              ? "Installation in progress..."
+              : isInstalled
+                ? "Play Game"
+                : `Download ${selectedVersionName}`,
         action: !hasAnyInstall
           ? () => setActiveView("versions")
-          : isDownloading
-            ? () => {}
-            : isInstalled
-              ? handleLaunch
-              : () => toggleInstall(profile),
-        isDanger: false,
+          : isGameRunning
+            ? stopGame
+            : isDownloading
+              ? () => {}
+              : isInstalled
+                ? handleLaunch
+                : () => toggleInstall(profile),
+        isDanger: isGameRunning,
         disabled: isDownloading,
       },
       { label: "Help & Options", action: () => setActiveView("settings"), disabled: false },
@@ -62,6 +68,8 @@ const HomeView = memo(function HomeView() {
       toggleInstall,
       profile,
       setActiveView,
+      isGameRunning,
+      stopGame,
     ],
   );
 
