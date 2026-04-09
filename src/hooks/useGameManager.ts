@@ -26,6 +26,15 @@ const BASE_EDITIONS = [
     titleImage: "/images/minecraft_title_360revived.png",
     supportsSlimSkins: false,
   },
+  {
+    id: "lmrp",
+    name: "COMING SOON: Legacy Minigames Restoration Project",
+    desc: "Classic LCE mini-games (Battle, Tumble, Glide)",
+    url: "",
+    titleImage: "/images/minecraft_title_lrmp.png",
+    supportsSlimSkins: false,
+    comingSoon: true,
+  },
 ];
 
 const PARTNERSHIP_SERVERS = [

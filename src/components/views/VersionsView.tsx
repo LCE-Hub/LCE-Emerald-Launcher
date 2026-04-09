@@ -216,18 +216,28 @@ const VersionsView = memo(function VersionsView() {
               const isFocused = focusIndex === i;
               const isCustom = edition.id.startsWith("custom_");
               const isDownloading = downloadingId === edition.id;
+              const isComingSoon = edition.comingSoon;
 
               return (
                 <div
                   key={edition.id}
                   data-index={i}
                   className={`w-[calc(100%-16px)] mx-2 flex items-center gap-3 p-2 rounded-sm ${
-                    isSelected ? "bg-[#404040]/50" : ""
-                  } ${isFocused ? "ring-2 ring-white" : ""}`}
-                  onMouseEnter={() => setFocusIndex(i)}
+                    isSelected && !isComingSoon ? "bg-[#404040]/50" : ""
+                  } ${isFocused && !isComingSoon ? "ring-2 ring-white" : ""} ${
+                    isComingSoon ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                  onMouseEnter={() => !isComingSoon && setFocusIndex(i)}
                 >
                   <div className="w-6 flex items-center justify-center flex-shrink-0">
-                    {isDownloading ? (
+                    {isComingSoon ? (
+                      <img
+                        src="/images/wool_8.png"
+                        alt="Coming Soon"
+                        className="w-4 h-4 object-contain"
+                        style={{ imageRendering: "pixelated" }}
+                      />
+                    ) : isDownloading ? (
                       <span className="text-xs text-gray-400 font-bold">
                         {Math.floor(downloadProgress || 0)}%
                       </span>
@@ -249,15 +259,16 @@ const VersionsView = memo(function VersionsView() {
                   </div>
 
                   <button
-                    onClick={() => handleEditionClick(edition, i)}
+                    onClick={() => !isComingSoon && handleEditionClick(edition, i)}
+                    disabled={isComingSoon}
                     className={`flex-1 text-left min-w-0 outline-none rounded ${
-                      focusIndex === i && focusBtn === 0 ? "ring-2 ring-white" : ""
-                    }`}
+                      focusIndex === i && focusBtn === 0 && !isComingSoon ? "ring-2 ring-white" : ""
+                    } ${isComingSoon ? "cursor-not-allowed" : ""}`}
                   >
                     <div className="flex items-center gap-2">
-                      {(edition.id === "legacy_evolved" || edition.id === "360revived") && (
+                      {(edition.id === "legacy_evolved" || edition.id === "360revived" || edition.id === "lmrp") && (
                         <img 
-                          src={edition.id === "legacy_evolved" ? "/images/legacy_evolved.png" : "/images/360_revived.png"}
+                          src={edition.id === "legacy_evolved" ? "/images/legacy_evolved.png" : edition.id === "360revived" ? "/images/360_revived.png" : "/images/lmrp.png"}
                           alt=""
                           className="w-5 h-5 object-contain flex-shrink-0"
                           style={{ imageRendering: "pixelated" }}
@@ -307,6 +318,8 @@ const VersionsView = memo(function VersionsView() {
                             <path d="M18 6L6 18M6 6l12 12"/>
                           </svg>
                         </button>
+                      ) : edition.comingSoon ? (
+                        <div className="w-8 h-8" />
                       ) : (
                         <button
                           onClick={(e) => {
