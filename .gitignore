@@ -30,3 +30,4 @@ Thumbs.db
 /.flatpak-builder
 /*.flatpak
 /emerald-repo
+/ignore/*
