@@ -1051,9 +1051,13 @@ async fn launch_game(app: AppHandle, state: State<'_, GameState>, instance_id: S
                     let mut c = tokio::process::Command::new(proton_exe);
                     let compat_data = instance_dir.join("proton_prefix");
                     fs::create_dir_all(&compat_data).map_err(|e| e.to_string())?;
-                    c.env("STEAM_COMPAT_CLIENT_INSTALL_PATH", "");
+                    if std::env::var("STEAM_COMPAT_CLIENT_INSTALL_PATH").is_err() {
+                        c.env("STEAM_COMPAT_CLIENT_INSTALL_PATH", "");
+                    }
                     c.env("STEAM_COMPAT_DATA_PATH", compat_data.to_str().unwrap());
-                    c.env("SteamAppId", "480");
+                    if std::env::var("SteamAppId").is_err() {
+                        c.env("SteamAppId", "480");
+                    }
                     c.arg("run");
                     c
                 } else {
@@ -1061,7 +1065,10 @@ async fn launch_game(app: AppHandle, state: State<'_, GameState>, instance_id: S
                 };
 
                 #[cfg(unix)]
-                cmd.process_group(0);
+                {
+                    cmd.process_group(0);
+                    cmd.env_remove("LD_PRELOAD");
+                }
 
                 cmd.arg(&game_exe)
                    .current_dir(&instance_dir);

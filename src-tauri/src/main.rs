@@ -10,9 +10,15 @@ fn main() {
         use std::thread;
         let stage = env::var("EMERALD_LAUNCH_STAGE").unwrap_or_else(|_| "0".to_string());
         if stage == "0" {
-            let mut child = Command::new(env::current_exe().unwrap())
-                .env("EMERALD_LAUNCH_STAGE", "1")
-                .env("LD_PRELOAD", "LD_PRELOAD=/usr/lib64/libwayland-client.so.0") //neo: hacky way to fix appimage on systems like gentoo
+            let mut cmd = Command::new(env::current_exe().unwrap());
+            cmd.env("EMERALD_LAUNCH_STAGE", "1");
+            
+            let wayland_libs = ["/usr/lib/libwayland-client.so.0", "/usr/lib64/libwayland-client.so.0"];
+            if let Some(path) = wayland_libs.iter().find(|p| std::path::Path::new(p).exists()) {
+                cmd.env("LD_PRELOAD", path);
+            }
+
+            let mut child = cmd
                 .stdout(Stdio::piped())
                 .stderr(Stdio::piped())
                 .spawn()
@@ -69,14 +75,17 @@ fn main() {
                 if found_error {
                     println!("Emerald: Automatic recovery triggered for graphics crash/invisible launch.");
                 }
-                
-                let mut retry_child = Command::new(env::current_exe().unwrap())
-                    .env("EMERALD_LAUNCH_STAGE", "2")
+                let mut retry_cmd = Command::new(env::current_exe().unwrap());
+                retry_cmd.env("EMERALD_LAUNCH_STAGE", "2")
+                    .env("GDK_BACKEND", "x11")
                     .env("WEBKIT_DISABLE_DMABUF_RENDERER", "1")
-                    .env("WEBKIT_DISABLE_COMPOSITING_MODE", "1")
-                    .env("LD_PRELOAD", "LD_PRELOAD=/usr/lib64/libwayland-client.so.0") //neo: hacky way to fix appimage on systems like gentoo
-                    .spawn()
-                    .expect("failed to spawn fallback child process");
+                    .env("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+                
+                if let Some(path) = wayland_libs.iter().find(|p| std::path::Path::new(p).exists()) {
+                    retry_cmd.env("LD_PRELOAD", path);
+                }
+
+                let mut retry_child = retry_cmd.spawn().expect("failed to spawn fallback child process");
 
                 let retry_status = retry_child.wait().expect("failed to wait on fallback child process");
                 exit(retry_status.code().unwrap_or(1));
