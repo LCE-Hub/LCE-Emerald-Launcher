@@ -211,16 +211,16 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
 
       if (e.key === 'ArrowRight') {
         if (legacyMode) onNavigateRight();
-        else if (focusIndex === 3) onNavigateRight();
-        else if (focusIndex === 1 || focusIndex === 2) setFocusIndex(prev => prev + 1);
+        else if (focusIndex === 4) onNavigateRight();
+        else if (focusIndex >= 1 && focusIndex < 4) setFocusIndex(prev => prev + 1);
       } else if (e.key === 'ArrowLeft') {
         if (legacyMode) return;
-        if (focusIndex === 2 || focusIndex === 3) setFocusIndex(prev => prev - 1);
+        if (focusIndex > 1 && focusIndex <= 4) setFocusIndex(prev => prev - 1);
       } else if (e.key === 'ArrowDown') {
         if (legacyMode) {
-          return;
+          setFocusIndex(prev => (prev < 4 ? prev + 1 : prev));
         } else {
-          setFocusIndex(prev => (prev < 3 ? prev + 1 : prev));
+          setFocusIndex(prev => (prev < 4 ? prev + 1 : prev));
         }
       } else if (e.key === 'ArrowUp') {
         if (legacyMode) {
@@ -240,6 +240,9 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
         } else if (focusIndex === 3) {
           playPressSound();
           setSkinUrl('/images/Default.png');
+        } else if (focusIndex === 4) {
+          playPressSound();
+          setActiveView('screenshots');
         }
       }
     };
@@ -320,6 +323,16 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
             <img src="/images/Trash_Bin_Icon.png" alt="Delete" className="w-8 h-8 object-contain brightness-200" style={{ imageRendering: 'pixelated' }} />
           </button>
         )}
+        <button
+          data-focus="4" tabIndex={0}
+          onMouseEnter={() => isFocusedSection && setFocusIndex(4)}
+          onClick={() => { playPressSound(); setActiveView('screenshots'); }}
+          className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none transition-all ${isFocusedSection && focusIndex === 4 ? 'scale-110' : ''}`}
+          style={isFocusedSection && focusIndex === 4 ? { backgroundImage: "url('/images/Button_Square_Highlighted.png')" } : {}}
+          title="Screenshots"
+        >
+          <img src="/images/Screenshots_Icon.png" alt="Screenshots" className="w-8 h-8 object-contain" style={{ imageRendering: 'pixelated' }} />
+        </button>
       </div>
     </motion.div>
   );

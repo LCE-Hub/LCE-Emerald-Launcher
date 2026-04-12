@@ -9,6 +9,7 @@ import WorkshopView from "../components/views/WorkshopView";
 import SetupView from "../components/views/SetupView";
 import PckEditorView from "../components/views/PckEditorView";
 import { ArcEditorView } from "../components/views/ArcEditorView";
+import ScreenshotsView from "../components/views/ScreenshotsView";
 import SkinViewer from "../components/common/SkinViewer";
 import TeamModal from "../components/modals/TeamModal";
 import PanoramaBackground from "../components/common/PanoramaBackground";
@@ -348,6 +349,9 @@ export default function App() {
                         <ArcEditorView key="arc-editor-view" />
                       )}
                       {activeView === "skins" && <SkinsView key="skins-view" />}
+                      {activeView === "screenshots" && (
+                        <ScreenshotsView key="screenshots-view" />
+                      )}
                     </AnimatePresence>
                   </div>
                 </div>

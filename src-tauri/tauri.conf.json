@@ -26,7 +26,7 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; img-src 'self' screenshots: asset: https://asset.localhost http://asset.localhost; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://* http://* screenshots: asset:; script-src 'self' 'unsafe-inline' 'unsafe-eval';"
     }
   },
   "bundle": {

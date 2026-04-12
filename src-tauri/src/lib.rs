@@ -73,6 +73,15 @@ pub struct Runner {
     pub r#type: String,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ScreenshotInfo {
+    pub path: String,
+    pub instance_id: String,
+    pub name: String,
+    pub date: u64,
+}
+
 pub struct DownloadState { pub token: Arc<Mutex<Option<CancellationToken>>> }
 pub struct GameState { pub child: Arc<Mutex<Option<tokio::process::Child>>> }
 
@@ -1295,6 +1304,46 @@ async fn fetch_skin(username: String) -> Result<(String, String), String> {
     Ok((image_b64.to_string(), name_exact))
 }
 
+#[tauri::command]
+fn get_screenshots(app: AppHandle) -> Vec<ScreenshotInfo> {
+    let mut screenshots = Vec::new();
+    let instances_dir = get_app_dir(&app).join("instances");
+    let _ = fs::create_dir_all(&instances_dir);
+    if let Ok(entries) = fs::read_dir(instances_dir) {
+        for entry in entries.flatten() {
+            if entry.path().is_dir() {
+                let instance_id = entry.file_name().to_string_lossy().to_string();
+                let screenshots_dir = entry.path().join("screenshots");
+                if let Ok(files) = fs::read_dir(screenshots_dir) {
+                    for file in files.flatten() {
+                        let path = file.path();
+                        if path.extension().and_then(|s| s.to_str()) == Some("png") {
+                            let name = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+                            let date = path.metadata().and_then(|m| m.modified()).ok()
+                                .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                                .map(|d| d.as_secs())
+                                .unwrap_or(0);
+                            screenshots.push(ScreenshotInfo {
+                                path: path.to_string_lossy().to_string(),
+                                instance_id: instance_id.clone(),
+                                name,
+                                date,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    screenshots.sort_by(|a, b| b.date.cmp(&a.date));
+    screenshots
+}
+
+#[tauri::command]
+fn delete_screenshot(path: String) -> Result<(), String> {
+    fs::remove_file(path).map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -1303,7 +1352,28 @@ pub fn run() {
         .plugin(tauri_plugin_gamepad::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_drpc::init())
-        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install])
+        .register_uri_scheme_protocol("screenshots", |_app, request| {
+            let uri = request.uri().path();
+            let decoded_path = percent_encoding::percent_decode_str(uri).decode_utf8_lossy();
+            let path = std::path::Path::new(&*decoded_path);
+            
+            match std::fs::read(path) {
+                Ok(data) => {
+                    tauri::http::Response::builder()
+                        .header("Content-Type", "image/png")
+                        .header("Access-Control-Allow-Origin", "*")
+                        .body(data)
+                        .unwrap()
+                }
+                Err(_) => {
+                    tauri::http::Response::builder()
+                        .status(404)
+                        .body(Vec::new())
+                        .unwrap()
+                }
+            }
+        })
+        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, get_screenshots, delete_screenshot])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -47,7 +47,7 @@ const HomeView = memo(function HomeView() {
           : isGameRunning
             ? stopGame
             : isDownloading
-              ? () => {}
+              ? () => { }
               : isInstalled
                 ? handleLaunch
                 : () => toggleInstall(profile),
@@ -105,35 +105,37 @@ const HomeView = memo(function HomeView() {
       animate={{ opacity: isFocusedSection ? 1 : 0.5, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
       transition={{ duration: useConfig().animationsEnabled ? 0.3 : 0 }}
-      className="w-full max-w-[540px] flex flex-col space-y-3 outline-none"
+      className="relative w-full max-w-[540px] flex flex-col space-y-3 outline-none"
     >
       {buttons.map((btn: any, i: number) => (
-        <button
-          key={i}
-          onMouseEnter={() => isFocusedSection && !btn.disabled && setMenuFocus(i)}
-          onMouseLeave={() => setMenuFocus(null)}
-          onClick={() => {
-            if (isFocusedSection && !btn.disabled) {
-              playPressSound();
-              btn.action();
-            }
-          }}
-          disabled={btn.disabled}
-          className={`w-full h-12 flex items-center justify-center text-2xl mc-text-shadow transition-colors outline-none border-none ${btn.disabled ? "text-gray-400 cursor-not-allowed" : menuFocus === i ? (btn.isDanger ? "text-red-400" : "text-[#FFFF55]") : btn.isDanger ? "text-red-500" : "text-white"}`}
-          style={{
-            backgroundImage: btn.disabled
-              ? "url('/images/Button_Background.png')"
-              : menuFocus === i
-                ? "url('/images/button_highlighted.png')"
-                : "url('/images/Button_Background.png')",
-            backgroundSize: "100% 100%",
-            imageRendering: "pixelated",
-            opacity: btn.disabled ? 0.5 : 1,
-          }}
-        >
-          {btn.label}
-        </button>
+        <div key={i} className="relative w-full group">
+          <button
+            onMouseEnter={() => isFocusedSection && !btn.disabled && setMenuFocus(i)}
+            onMouseLeave={() => setMenuFocus(null)}
+            onClick={() => {
+              if (isFocusedSection && !btn.disabled) {
+                playPressSound();
+                btn.action();
+              }
+            }}
+            disabled={btn.disabled}
+            className={`w-full h-12 flex items-center justify-between px-6 text-2xl mc-text-shadow transition-colors outline-none border-none ${btn.disabled ? "text-gray-400 cursor-not-allowed" : menuFocus === i ? (btn.isDanger ? "text-red-400" : "text-[#FFFF55]") : btn.isDanger ? "text-red-500" : "text-white"}`}
+            style={{
+              backgroundImage: btn.disabled
+                ? "url('/images/Button_Background.png')"
+                : menuFocus === i
+                  ? "url('/images/button_highlighted.png')"
+                  : "url('/images/Button_Background.png')",
+              backgroundSize: "100% 100%",
+              imageRendering: "pixelated",
+              opacity: btn.disabled ? 0.5 : 1,
+            }}
+          >
+            <span className="w-full text-center">{btn.label}</span>
+          </button>
+        </div>
       ))}
+
       {!legacyMode && (
         <div className="pt-4 flex flex-col items-center w-full gap-3">
           <div className="flex gap-8">
