@@ -12,37 +12,42 @@ interface UseSkinSyncProps {
 }
 
 export function useSkinSync({ profile, editions }: UseSkinSyncProps) {
-  const [skinUrl, setSkinUrl] = useLocalStorage("lce-skin", "/images/Default.png");
+  const [skinUrl, setSkinUrl] = useLocalStorage(
+    "lce-skin",
+    "/images/Default.png",
+  );
   const [skinBase64, setSkinBase64] = useState<string | null>(null);
 
   useEffect(() => {
-    const syncSkin = async () => {
-      if (!skinUrl) return;
-      const edition = editions.find((e) => e.id === profile);
-      const supportsSlim = edition?.supportsSlimSkins ?? false;
-      if (!supportsSlim) {
-        try {
-          const img = new Image();
-          img.crossOrigin = "anonymous";
-          img.onload = () => {
-            const cvs = document.createElement("canvas");
-            cvs.width = 64;
-            cvs.height = 32;
-            const ctx = cvs.getContext("2d");
-            if (ctx) {
-              ctx.drawImage(img, 0, 0, 64, 32, 0, 0, 64, 32);
-              setSkinBase64(cvs.toDataURL("image/png"));
-            }
-          };
-          img.src = skinUrl;
-        } catch (e) {
-          console.error("Skin conversion failed:", e);
-        }
+    let cancelled = false;
+    if (!skinUrl) return;
+
+    const edition = editions.find((e) => e.id === profile);
+    const supportsSlim = edition?.supportsSlimSkins ?? false;
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      if (cancelled) return;
+      const cvs = document.createElement("canvas");
+      if (supportsSlim) {
+        cvs.width = img.width;
+        cvs.height = img.height;
       } else {
-        setSkinBase64(null);
+        cvs.width = 64;
+        cvs.height = 32;
+      }
+      const ctx = cvs.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        setSkinBase64(cvs.toDataURL("image/png"));
       }
     };
-    syncSkin();
+    img.src = skinUrl;
+
+    return () => {
+      cancelled = true;
+    };
   }, [skinUrl, profile, editions]);
 
   return {
