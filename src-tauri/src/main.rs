@@ -13,7 +13,7 @@ fn main() {
             let mut cmd = Command::new(env::current_exe().unwrap());
             cmd.env("EMERALD_LAUNCH_STAGE", "1");
             
-            let wayland_libs = ["/usr/lib/libwayland-client.so.0", "/usr/lib64/libwayland-client.so.0"];
+            let wayland_libs = ["/usr/lib64/libwayland-client.so.0", "/usr/lib/libwayland-client.so.0"];
             if let Some(path) = wayland_libs.iter().find(|p| std::path::Path::new(p).exists()) {
                 cmd.env("LD_PRELOAD", path);
             }
