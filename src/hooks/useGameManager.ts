@@ -34,7 +34,7 @@ const PARTNERSHIP_SERVERS = [
   {
     name: "Kowhaifans Clubhouse",
     ip: "lce.kowhaifan.net",
-    port: 25565,
+    port: 1026,
   },
 ];
 
