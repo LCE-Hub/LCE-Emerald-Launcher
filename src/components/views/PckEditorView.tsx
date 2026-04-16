@@ -171,7 +171,7 @@ export default function PckEditorView() {
   const handleNewPCK = () => {
     playPressSound();
     const newPck: PCKFile = {
-      version: 2,
+      version: 3,
       endianness: "little",
       xmlSupport: false,
       properties: ["ANIM", "BOX"],
@@ -624,7 +624,7 @@ export default function PckEditorView() {
                                           const newVal = e.target.checked
                                             ? currentVal | item.flag
                                             : currentVal & ~item.flag;
-                                          handlePropertyEdit(idx, newVal.toString());
+                                          handlePropertyEdit(idx, `0x${newVal.toString(16).toUpperCase().padStart(8, "0")}`);
                                         }}
                                         className="hidden"
                                       />
