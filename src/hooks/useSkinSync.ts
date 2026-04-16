@@ -40,7 +40,8 @@ export function useSkinSync({ profile, editions }: UseSkinSyncProps) {
         try {
           const res = await fetch(b64);
           const buf = await res.arrayBuffer();
-          const animValue = (skinIsSlim) ? "0x00040000" : "0x00040000"; //neo: forces wide skin, because slim is not even working.
+          const isModernHeight = img.height === 64;
+          const animValue = skinIsSlim ? "0x00080000" : (isModernHeight ? "0x00040000" : "0x00000000");
           let boxes: PCKProperty[] = [];
           /*if (skinIsSlim) {
             boxes.push({
@@ -55,7 +56,7 @@ export function useSkinSync({ profile, editions }: UseSkinSyncProps) {
           const pckBuf = PckService.serializePCK({
             version: 3,
             endianness: "little",
-            xmlSupport: true,
+            xmlSupport: false,
             properties: ["ANIM", "DISPLAYNAME", "THEMENAME", "GAME_FLAGS", "FREE", "BOX"],
             files: [{
               id: "0",
