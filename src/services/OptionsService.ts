@@ -1,11 +1,9 @@
 import { OptionsFile } from "../types/options";
-
 export class OptionsService {
   public static readOptions(buffer: ArrayBuffer, endianness: "little" | "big" = "little"): OptionsFile {
     const rawData = new Uint8Array(buffer).slice();
     const view = new DataView(buffer);
     const little = endianness === "little";
-
     const opt: Partial<OptionsFile> = {
       endianness,
       rawData

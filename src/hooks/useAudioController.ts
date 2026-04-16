@@ -61,7 +61,6 @@ export function useAudioController({ musicVol, sfxVol, showIntro, isGameRunning,
   const [splashIndex, setSplashIndex] = useState(-1);
   const musicPausedRef = useRef<{ at: number; track: number } | null>(null);
   const fadeIntervalRef = useRef<any>(null);
-
   const playSfx = useCallback((file: string) => {
     const a = new Audio(`/sounds/${file}`);
     a.volume = sfxVol / 100;
@@ -71,7 +70,6 @@ export function useAudioController({ musicVol, sfxVol, showIntro, isGameRunning,
   const playPressSound = useCallback(() => playSfx("press.wav"), [playSfx]);
   const playBackSound = useCallback(() => playSfx("back.ogg"), [playSfx]);
   const playSplashSound = useCallback(() => playSfx("orb.ogg"), [playSfx]);
-
   const fadeOut = useCallback((audio: HTMLAudioElement, duration: number = 500) => {
     return new Promise<void>((resolve) => {
       if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
@@ -132,16 +130,13 @@ export function useAudioController({ musicVol, sfxVol, showIntro, isGameRunning,
   useEffect(() => {
     if (showIntro) return;
     if (audioElement) return;
-
     const audio = new Audio(TRACKS[currentTrack]);
     audio.volume = musicVol / 100;
     const handleEnded = () => setCurrentTrack((prev) => (prev + 1) % TRACKS.length);
     audio.addEventListener("ended", handleEnded);
-
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch(() => {
-        console.log("Autoplay prevented, waiting for user interaction");
         const startMusic = () => {
           audio.play().catch(() => { });
           document.removeEventListener("click", startMusic);

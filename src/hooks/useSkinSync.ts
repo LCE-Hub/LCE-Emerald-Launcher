@@ -17,12 +17,9 @@ export function useSkinSync({ profile, editions }: UseSkinSyncProps) {
   const [skinUrl, setSkinUrl] = useLocalStorage("lce-skin", "/images/Default.png");
   const [skinIsSlim, setSkinIsSlim] = useLocalStorage("lce-skin-slim", false);
   const [skinBase64, setSkinBase64] = useState<string | null>(null);
-
   useEffect(() => {
     let cancelled = false;
     if (!skinUrl) return;
-    const edition = editions.find((e) => e.id === profile);
-    const supportsSlim = edition?.supportsSlimSkins ?? false;
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = async () => {
@@ -38,7 +35,7 @@ export function useSkinSync({ profile, editions }: UseSkinSyncProps) {
         try {
           const res = await fetch(b64);
           const buf = await res.arrayBuffer();
-          const animValue = (supportsSlim && skinIsSlim) ? (1 << 19) : 0;
+          const animValue = (skinIsSlim) ? (1 << 19) : 0;
           const pckBuf = PckService.serializePCK({
             version: 2,
             endianness: "little",

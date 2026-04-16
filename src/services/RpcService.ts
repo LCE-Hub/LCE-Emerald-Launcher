@@ -1,11 +1,9 @@
 import { setActivity, start } from "tauri-plugin-drpc";
 import { Activity, ActivityType, Assets, Timestamps, Button } from "tauri-plugin-drpc/activity";
-
 class RPC {
   private startTime: number = Date.now();
   private initializationPromise: Promise<void> | null = null;
   private initialized: boolean = false;
-
   public async StartRPC() {
     if (this.initialized) return;
     if (sessionStorage.getItem('lce_rpc_started') === 'true') {
@@ -38,16 +36,13 @@ class RPC {
     activity.setDetails(details);
     activity.setState(state);
     activity.setActivity(ActivityType.Playing);
-
     const assets = new Assets();
     assets.setLargeImage("logo");
     assets.setLargeText("LCE Emerald Launcher");
     assets.setSmallImage("app-icon");
     assets.setSmallText(isPlaying ? "Playing" : "In Menus");
     activity.setAssets(assets);
-
     activity.setTimestamps(new Timestamps(this.startTime));
-
     activity.setButton([
       new Button("Discord", "https://discord.gg/vD8akRU24f"),
       new Button("GitHub", "https://github.com/LCE-Hub/LCE-Emerald-Launcher")

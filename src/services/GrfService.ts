@@ -7,7 +7,6 @@ import {
   GrfHeader,
   GrfNode
 } from "../types/grf";
-
 export class GrfService {
   private static textDecoder = new TextDecoder("ascii");
   private static textEncoder = new TextEncoder();
@@ -133,7 +132,7 @@ export class GrfService {
     let bodyView: DataView;
     let bodyOff = { p: 0 };
     if (header.compressionLevel !== GrfCompressionLevel.None) {
-      view.getInt32(off.p, false); // decompressedSize
+      view.getInt32(off.p, false); //neo: this is decompressedSize
       off.p += 4;
       const compressedSize = view.getInt32(off.p, false);
       off.p += 4;

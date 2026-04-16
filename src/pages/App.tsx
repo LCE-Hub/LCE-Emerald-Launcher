@@ -29,7 +29,6 @@ import {
 } from "../context/LauncherContext";
 import { TauriService } from "../services/TauriService";
 import pkg from "../../package.json";
-
 export default function App() {
   const {
     showIntro,
@@ -47,15 +46,12 @@ export default function App() {
     updateMessage,
     clearUpdateMessage,
   } = useUI();
-
   const config = useConfig();
   const audio = useAudio();
   const game = useGame();
   const { skinUrl, setSkinUrl } = useSkin();
-
   const [showSetup, setShowSetup] = useState(true);
   const [displayIsDay, setDisplayIsDay] = useState(config.isDayTime);
-
   useEffect(() => {
     setDisplayIsDay(config.isDayTime);
   }, [config.isDayTime]);
@@ -65,7 +61,6 @@ export default function App() {
   );
   const selectedVersionName = selectedEdition?.name || "";
   const hasAnyInstall = game.installs.length > 0;
-
   const titleImage = hasAnyInstall
     ? (selectedEdition?.titleImage || "/images/MenuTitle.png")
     : "/images/MenuTitle.png";

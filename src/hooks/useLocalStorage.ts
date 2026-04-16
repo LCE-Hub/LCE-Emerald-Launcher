@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-
 export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {

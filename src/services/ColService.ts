@@ -1,5 +1,4 @@
 import { ColFile, ColColor, ColWorldColor } from "../types/col";
-
 export class ColService {
   private static textDecoder = new TextDecoder("utf-8");
   private static textEncoder = new TextEncoder();

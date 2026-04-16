@@ -191,7 +191,7 @@ export function useGameManager({
       const newEdition = {
         ...edition,
         id,
-        titleImage: "/images/minecraft_title_tucustom.png",
+        titleImage: "/images/MenuTitle.png",
       };
       setCustomEditions([...customEditions, newEdition]);
       return id;

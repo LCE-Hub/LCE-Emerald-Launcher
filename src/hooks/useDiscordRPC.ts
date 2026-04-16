@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import RpcService from "../services/RpcService";
-
 interface DiscordRPCProps {
   rpcEnabled: boolean;
   showIntro: boolean;
@@ -29,7 +28,6 @@ export function useDiscordRPC({
   useEffect(() => {
     const updateRPC = async () => {
       if (!rpcEnabled || showIntro || !username) return;
-
       if (!isWindowVisible && !isGameRunning && downloadProgress === null)
         return;
 

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 import { TauriService } from "../services/TauriService";
-
 export function useAppConfig() {
   const [username, setUsername] = useLocalStorage("lce-username", "Steve");
   const [theme, setTheme] = useLocalStorage("lce-theme", "Modern");
@@ -15,12 +14,10 @@ export function useAppConfig() {
   const [profile, setProfile] = useLocalStorage("lce-profile", "legacy_evolved");
   const [legacyMode, setLegacyMode] = useLocalStorage("lce-legacy-mode", false);
   const [hasCompletedSetup, setHasCompletedSetup] = useLocalStorage("lce-setup-completed", false);
-
   const [isLoaded, setIsLoaded] = useState(false);
   const [linuxRunner, setLinuxRunner] = useState<string | undefined>();
   const [perfBoost, setPerfBoost] = useState(false);
   const [customEditions, setCustomEditions] = useState<any[]>([]);
-
   useEffect(() => {
     TauriService.loadConfig().then((config) => {
       if (config.username) setUsername(config.username);
