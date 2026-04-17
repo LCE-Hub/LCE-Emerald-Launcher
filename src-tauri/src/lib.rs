@@ -669,7 +669,7 @@ async fn download_and_install(app: AppHandle, state: State<'_, DownloadState>, u
                 let file_name = entry.file_name();
                 let name_str = file_name.to_string_lossy();
 
-                let keep_list = ["Windows64", "Windows64Media", "uid.dat", "username.txt", "settings.dat", "servers.dat", "servers.txt", "server.properties", "options.txt", "servers.db", "workshop_files.json"];
+                let keep_list = ["Windows64", "Windows64Media", "uid.dat", "username.txt", "settings.dat", "servers.dat", "servers.txt", "server.properties", "options.txt", "servers.db", "workshop_files.json", "screenshots"];
                 let entry_path_str = entry.path().to_string_lossy().to_string();
                 let is_workshop_file = workshop_files.iter().any(|wf| entry_path_str.starts_with(wf) || wf.starts_with(&entry_path_str));
                 if !keep_list.contains(&name_str.as_ref()) && !is_workshop_file {
