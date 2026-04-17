@@ -669,7 +669,7 @@ async fn download_and_install(app: AppHandle, state: State<'_, DownloadState>, u
                 let file_name = entry.file_name();
                 let name_str = file_name.to_string_lossy();
 
-                let keep_list = ["Windows64", "Windows64Media", "uid.dat", "username.txt", "settings.dat", "servers.dat", "servers.txt", "server.properties", "Common", "options.txt", "servers.db", "workshop_files.json"];
+                let keep_list = ["Windows64", "Windows64Media", "uid.dat", "username.txt", "settings.dat", "servers.dat", "servers.txt", "server.properties", "options.txt", "servers.db", "workshop_files.json"];
                 let entry_path_str = entry.path().to_string_lossy().to_string();
                 let is_workshop_file = workshop_files.iter().any(|wf| entry_path_str.starts_with(wf) || wf.starts_with(&entry_path_str));
                 if !keep_list.contains(&name_str.as_ref()) && !is_workshop_file {
@@ -679,41 +679,7 @@ async fn download_and_install(app: AppHandle, state: State<'_, DownloadState>, u
                     } else {
                         let _ = fs::remove_file(path);
                     }
-                } else if name_str == "Common" {
-                    let common_dir = entry.path();
-                    if let Ok(common_entries) = fs::read_dir(&common_dir) {
-                        for c_entry in common_entries.flatten() {
-                            let c_name = c_entry.file_name();
-                            if c_name.to_string_lossy() != "res" {
-                                let c_path = c_entry.path();
-                                if c_path.is_dir() { let _ = fs::remove_dir_all(c_path); } else { let _ = fs::remove_file(c_path); }
-                            } else {
-                                let res_dir = c_entry.path();
-                                if let Ok(res_entries) = fs::read_dir(&res_dir) {
-                                    for r_entry in res_entries.flatten() {
-                                        let r_name = r_entry.file_name();
-                                        if r_name.to_string_lossy() != "mob" {
-                                            let r_path = r_entry.path();
-                                            if r_path.is_dir() { let _ = fs::remove_dir_all(r_path); } else { let _ = fs::remove_file(r_path); }
-                                        } else {
-                                            let mob_dir = r_entry.path();
-                                            if let Ok(mob_entries) = fs::read_dir(&mob_dir) {
-                                                for m_entry in mob_entries.flatten() {
-                                                    let m_name = m_entry.file_name();
-                                                    if m_name.to_string_lossy() != "char.png" {
-                                                        let m_path = m_entry.path();
-                                                        if m_path.is_dir() { let _ = fs::remove_dir_all(m_path); } else { let _ = fs::remove_file(m_path); }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+                }            }
         }
     }
 
