@@ -288,6 +288,7 @@ fn get_available_runners(app: AppHandle) -> Vec<Runner> {
         let steam_paths = [
             format!("{}/.local/share/Steam/compatibilitytools.d", home),
             format!("{}/.local/share/Steam/steamapps/common", home),
+            "/usr/share/Steam/compatibilitytools.d".to_string()
         ];
 
         for base_path in steam_paths {
@@ -296,7 +297,7 @@ fn get_available_runners(app: AppHandle) -> Vec<Runner> {
                     let path = entry.path();
                     if path.is_dir() {
                         let name = entry.file_name().to_string_lossy().to_string();
-                        if name.contains("Proton") {
+                        if name.to_lowercase().contains("proton") {
                             let path_str = path.to_string_lossy().to_string();
                             if !seen_paths.contains(&path_str) {
                                 seen_paths.insert(path_str.clone());
