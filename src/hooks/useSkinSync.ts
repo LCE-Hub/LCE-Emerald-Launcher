@@ -92,6 +92,16 @@ export function useSkinSync({ profile, editions }: UseSkinSyncProps) {
             setCapeBase64(null);
           }
 
+          const getSeededId = (name: string) => {
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+              hash = (hash << 5) - hash + name.charCodeAt(i);
+              hash |= 0;
+            }
+            return Math.abs(hash).toString().padStart(8, "0").slice(-8);
+          };
+
+          const seededId = getSeededId(profile);
           const files: any[] = [
             {
               id: "0",
@@ -107,8 +117,8 @@ export function useSkinSync({ profile, editions }: UseSkinSyncProps) {
               ],
             },
             {
-              id: "dlcskin99999999",
-              path: "dlcskin99999999.png",
+              id: `dlcskin${seededId}`,
+              path: `dlcskin${seededId}.png`,
               type: PCKAssetType.SKIN,
               size: skinBuf.byteLength,
               data: new Uint8Array(skinBuf),
@@ -136,7 +146,7 @@ export function useSkinSync({ profile, editions }: UseSkinSyncProps) {
                 },
                 {
                   key: "CAPEPATH",
-                  value: "dlccape99999999.png",
+                  value: `dlccape${seededId}.png`,
                 },
               ],
             },
@@ -144,8 +154,8 @@ export function useSkinSync({ profile, editions }: UseSkinSyncProps) {
 
           if (capeBuf) {
             files.push({
-              id: "dlccape99999999",
-              path: "dlccape99999999.png",
+              id: `dlccape${seededId}`,
+              path: `dlccape${seededId}.png`,
               type: PCKAssetType.CAPE,
               size: capeBuf.byteLength,
               data: new Uint8Array(capeBuf),
