@@ -53,7 +53,7 @@ export function LauncherProvider({ children }: { children: React.ReactNode }) {
     customEditions: configRaw.customEditions,
     setCustomEditions: configRaw.setCustomEditions,
   });
-  const skinSync = useSkinSync({ profile: configRaw.profile, editions: gameRaw.editions });
+  const skinSync = useSkinSync({ username: configRaw.username, profile: configRaw.profile, editions: gameRaw.editions });
   const audioRaw = useAudioController({
     musicVol: configRaw.musicVol,
     sfxVol: configRaw.sfxVol,

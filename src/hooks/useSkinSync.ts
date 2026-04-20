@@ -9,11 +9,12 @@ interface Edition {
 }
 
 interface UseSkinSyncProps {
+  username: string;
   profile: string;
   editions: Edition[];
 }
 
-export function useSkinSync({ profile, editions }: UseSkinSyncProps) {
+export function useSkinSync({ username, profile, editions }: UseSkinSyncProps) {
   const [skinUrl, setSkinUrl] = useLocalStorage(
     "lce-skin",
     "/images/Default.png",
@@ -101,7 +102,8 @@ export function useSkinSync({ profile, editions }: UseSkinSyncProps) {
             return Math.abs(hash).toString().padStart(8, "0").slice(-8);
           };
 
-          const seededId = getSeededId(profile);
+          const seededId = getSeededId(username);
+          const packId = seededId.slice(-4);
           const files: any[] = [
             {
               id: "0",
@@ -112,7 +114,7 @@ export function useSkinSync({ profile, editions }: UseSkinSyncProps) {
               properties: [
                 {
                   key: "PACKID",
-                  value: "9999",
+                  value: packId,
                 },
               ],
             },
@@ -125,7 +127,7 @@ export function useSkinSync({ profile, editions }: UseSkinSyncProps) {
               properties: [
                 {
                   key: "DISPLAYNAME",
-                  value: "Custom Skin",
+                  value: username,
                 },
                 {
                   key: "GAME_FLAGS",
@@ -187,7 +189,7 @@ export function useSkinSync({ profile, editions }: UseSkinSyncProps) {
     return () => {
       cancelled = true;
     };
-  }, [skinUrl, capeUrl, profile, editions, skinIsSlim]);
+  }, [skinUrl, capeUrl, username, profile, editions, skinIsSlim]);
 
   return {
     skinUrl,
