@@ -670,7 +670,7 @@ async fn download_and_install(app: AppHandle, state: State<'_, DownloadState>, u
                 let file_name = entry.file_name();
                 let name_str = file_name.to_string_lossy();
 
-                let keep_list = ["Windows64", "Windows64Media", "uid.dat", "username.txt", "settings.dat", "servers.dat", "servers.txt", "server.properties", "options.txt", "servers.db", "workshop_files.json", "screenshots"];
+                let keep_list = ["Windows64", "Windows64Media", "uid.dat", "username.txt", "settings.dat", "servers.dat", "servers.txt", "server.properties", "options.txt", "servers.db", "workshop_files.json", "screenshots", "update_timestamp.txt"];
                 let entry_path_str = entry.path().to_string_lossy().to_string();
                 let is_workshop_file = workshop_files.iter().any(|wf| entry_path_str.starts_with(wf) || wf.starts_with(&entry_path_str));
                 if !keep_list.contains(&name_str.as_ref()) && !is_workshop_file {
@@ -689,6 +689,14 @@ async fn download_and_install(app: AppHandle, state: State<'_, DownloadState>, u
 
     if !response.status().is_success() {
         return Err(format!("Download failed: {}", response.status()));
+    }
+
+    let last_modified = response.headers().get(reqwest::header::LAST_MODIFIED)
+        .and_then(|h| h.to_str().ok())
+        .unwrap_or("")
+        .to_string();
+    if !last_modified.is_empty() {
+        let _ = fs::write(instance_dir.join("update_timestamp.txt"), last_modified);
     }
 
     let total_size = response.content_length().unwrap_or(0) as f64;
@@ -1108,6 +1116,28 @@ fn workshop_list_installed(app: AppHandle) -> Vec<InstalledPackageEntry> {
 }
 
 #[tauri::command]
+async fn check_game_update(app: AppHandle, instance_id: String, url: String) -> Result<bool, String> {
+    let instance_dir = get_app_dir(&app).join("instances").join(&instance_id);
+    let timestamp_file = instance_dir.join("update_timestamp.txt");
+    
+    let local_timestamp = fs::read_to_string(&timestamp_file).unwrap_or_default();
+    if local_timestamp.is_empty() {
+        return Ok(false);
+    }
+
+    let response = reqwest::Client::new().head(&url).send().await.map_err(|e| e.to_string())?;
+    if let Some(remote_header) = response.headers().get(reqwest::header::LAST_MODIFIED) {
+        if let Ok(remote_timestamp) = remote_header.to_str() {
+            if remote_timestamp != local_timestamp {
+                return Ok(true);
+            }
+        }
+    }
+    
+    Ok(false)
+}
+
+#[tauri::command]
 #[allow(non_snake_case)]
 async fn launch_game(app: AppHandle, state: State<'_, GameState>, instance_id: String, servers: Vec<McServer>) -> Result<(), String> {
     let root = get_app_dir(&app);
@@ -1459,7 +1489,7 @@ pub fn run() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, save_global_skin_pck])
+        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, save_global_skin_pck, check_game_update])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -194,4 +194,8 @@ export class TauriService {
   static async saveGlobalSkinPck(pckData: Uint8Array): Promise<void> {
     return invoke("save_global_skin_pck", { pckData: Array.from(pckData) });
   }
+
+  static async checkGameUpdate(instanceId: string, url: string): Promise<boolean> {
+    return invoke("check_game_update", { instanceId, url });
+  }
 }

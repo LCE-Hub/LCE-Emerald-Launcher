@@ -60,6 +60,7 @@ export function useGameManager({
     number | null
   >(null);
   const [error, setError] = useState<string | null>(null);
+  const [gameUpdateMessage, setGameUpdateMessage] = useState<string | null>(null);
 
   const editions = useMemo(
     () => [...BASE_EDITIONS, ...customEditions],
@@ -75,6 +76,28 @@ export function useGameManager({
     );
     setInstalls(results.filter((id): id is string => id !== null));
   }, [editions]);
+
+  const checkForGameUpdates = useCallback(async () => {
+    if (!profile) return;
+    const edition = editions.find(e => e.id === profile);
+    if (!edition) return;
+    try {
+      const isUpdate = await TauriService.checkGameUpdate(profile, edition.url);
+      if (isUpdate) {
+        setGameUpdateMessage(`An update is available for ${edition.name}!`);
+      } else {
+        setGameUpdateMessage(null);
+      }
+    } catch(e) {
+      console.error(e);
+    }
+  }, [profile, editions]);
+
+  useEffect(() => {
+    if (installs.includes(profile)) {
+      checkForGameUpdates();
+    }
+  }, [profile, installs, checkForGameUpdates]);
 
   useEffect(() => {
     checkInstalls();
@@ -236,5 +259,7 @@ export function useGameManager({
     updateCustomEdition,
     downloadRunner,
     checkInstalls,
+    gameUpdateMessage,
+    setGameUpdateMessage,
   };
 }

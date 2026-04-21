@@ -164,6 +164,17 @@ export default function App() {
           variant="update"
         />
 
+        <AchievementToast
+          message={game.gameUpdateMessage}
+          onClose={() => game.setGameUpdateMessage(null)}
+          onClick={() => { 
+            game.setGameUpdateMessage(null);
+            game.toggleInstall(config.profile); 
+          }}
+          title="Game Update Available!"
+          variant="update"
+        />
+
         <AnimatePresence>
           {showSetup ? (
             <SetupView
