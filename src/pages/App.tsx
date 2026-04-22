@@ -50,7 +50,7 @@ export default function App() {
   const config = useConfig();
   const audio = useAudio();
   const game = useGame();
-  const { skinUrl, setSkinUrl } = useSkin();
+  const { skinUrl, setSkinUrl, capeUrl } = useSkin();
   const [showSetup, setShowSetup] = useState(true);
   const [displayIsDay, setDisplayIsDay] = useState(config.isDayTime);
   useEffect(() => {
@@ -361,6 +361,7 @@ export default function App() {
                         setUsername={config.setUsername}
                         playPressSound={audio.playPressSound}
                         skinUrl={skinUrl}
+                        capeUrl={config.legacyMode ? null : capeUrl}
                         setSkinUrl={setSkinUrl}
                         setActiveView={setActiveView}
                         isFocusedSection={focusSection === "skin"}

@@ -9,61 +9,53 @@ interface SkinViewerProps {
   setUsername: (name: string) => void;
   playPressSound: () => void;
   skinUrl: string;
+  capeUrl?: string | null;
   setSkinUrl: (url: string) => void;
   setActiveView: (view: string) => void;
   isFocusedSection: boolean;
   onNavigateRight: () => void;
 }
 
-const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSound, skinUrl, setSkinUrl, setActiveView, isFocusedSection, onNavigateRight }: SkinViewerProps) {
+const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSound, skinUrl, capeUrl, setSkinUrl, setActiveView, isFocusedSection, onNavigateRight }: SkinViewerProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [focusIndex, setFocusIndex] = useState(0);
   const { legacyMode } = useConfig();
-
   const [showLayers, setShowLayers] = useLocalStorage('lce-show-layers', true);
   const overlaysRef = useRef<THREE.Mesh[]>([]);
+  const capeRef = useRef<THREE.Group | null>(null);
   const requestRenderRef = useRef<(() => void) | null>(null);
-
   useEffect(() => {
     if (!mountRef.current) return;
-
     const width = 260;
     const height = 450;
-
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, width / height, 0.1, 1000);
     camera.position.set(0, 0, 68);
-
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     mountRef.current.innerHTML = "";
     mountRef.current.appendChild(renderer.domElement);
-
     scene.add(new THREE.AmbientLight(0xffffff, 0.4));
     scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 0.6));
     const dl = new THREE.DirectionalLight(0xffffff, 0.8);
     dl.position.set(10, 20, 10);
     scene.add(dl);
-
     const playerGroup = new THREE.Group();
     playerGroup.position.y = -1.5;
     scene.add(playerGroup);
-
     const textureLoader = new THREE.TextureLoader();
     textureLoader.load(skinUrl || "/images/Default.png", (texture) => {
       texture.magFilter = THREE.NearestFilter;
       texture.minFilter = THREE.NearestFilter;
       texture.colorSpace = THREE.SRGBColorSpace;
-
       const img = texture.image;
       const isLegacy = img.height === 32;
-
-      const createFaceMaterial = (x: number, y: number, w: number, h: number, flipX = false, flipY = false) => {
-        const matTex = texture.clone();
-        matTex.repeat.set((flipX ? -w : w) / 64, (flipY ? -h : h) / img.height);
-        matTex.offset.set((flipX ? (x + w) : x) / 64, 1 - (flipY ? y : (y + h)) / img.height);
+      const createFaceMaterial = (x: number, y: number, w: number, h: number, flipX = false, flipY = false, tex = texture) => {
+        const matTex = tex.clone();
+        matTex.repeat.set((flipX ? -w : w) / 64, (flipY ? -h : h) / tex.image.height);
+        matTex.offset.set((flipX ? (x + w) : x) / 64, 1 - (flipY ? y : (y + h)) / tex.image.height);
         matTex.needsUpdate = true;
         return new THREE.MeshLambertMaterial({ map: matTex, transparent: true, alphaTest: 0.5, side: THREE.FrontSide });
       };
@@ -71,7 +63,6 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
       const createPart = (w: number, h: number, d: number, uv: any, overlayUv?: any, swapMats = false, isLegacyMirror = false) => {
         const group = new THREE.Group();
         const geo = new THREE.BoxGeometry(w, h, d);
-        
         const getMats = (uvSet: any) => {
           const flipX = isLegacyMirror;
           return [
@@ -86,7 +77,6 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
 
         const mesh = new THREE.Mesh(geo, getMats(uv));
         group.add(mesh);
-
         if (overlayUv) {
           const oGeo = new THREE.BoxGeometry(w + 0.5, h + 0.5, d + 0.5);
           const oMesh = new THREE.Mesh(oGeo, getMats(overlayUv));
@@ -113,32 +103,57 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
         return data[3] === 0;
       })();
       const armW = isSlim ? 3 : 4;
-
       const headUv = { top: [8, 0, 8, 8], bottom: [16, 0, 8, 8], right: [0, 8, 8, 8], left: [16, 8, 8, 8], front: [8, 8, 8, 8], back: [24, 8, 8, 8] };
       const hatUv = { top: [40, 0, 8, 8], bottom: [48, 0, 8, 8], right: [32, 8, 8, 8], left: [48, 8, 8, 8], front: [40, 8, 8, 8], back: [56, 8, 8, 8] };
       const head = createPart(8, 8, 8, headUv, hatUv);
       head.position.y = 10;
       playerGroup.add(head);
-
       const bodyUv = { top: [20, 16, 8, 4], bottom: [28, 16, 8, 4], right: [16, 20, 4, 12], left: [28, 20, 4, 12], front: [20, 20, 8, 12], back: [32, 20, 8, 12] };
       const jacketUv = { top: [20, 32, 8, 4], bottom: [28, 32, 8, 4], right: [16, 36, 4, 12], left: [28, 36, 4, 12], front: [20, 36, 8, 12], back: [32, 36, 8, 12] };
       playerGroup.add(createPart(8, 12, 4, bodyUv, isLegacy ? undefined : jacketUv));
-
       const rightArm = createPart(armW, 12, 4, limbUv(40, 16, armW), isLegacy ? undefined : limbUv(40, 32, armW));
       rightArm.position.set(isSlim ? -5.5 : -6, 0, 0);
       playerGroup.add(rightArm);
-
       const leftArm = createPart(armW, 12, 4, isLegacy ? limbUv(40, 16, armW) : limbUv(32, 48, armW), isLegacy ? undefined : limbUv(48, 48, armW), true, isLegacy);
       leftArm.position.set(isSlim ? 5.5 : 6, 0, 0);
       playerGroup.add(leftArm);
-
       const rightLeg = createPart(4, 12, 4, limbUv(0, 16), isLegacy ? undefined : limbUv(0, 32));
       rightLeg.position.set(-2, -12, 0);
       playerGroup.add(rightLeg);
-
       const leftLeg = createPart(4, 12, 4, isLegacy ? limbUv(0, 16) : limbUv(16, 48), isLegacy ? undefined : limbUv(0, 48), true, isLegacy);
       leftLeg.position.set(2, -12, 0);
       playerGroup.add(leftLeg);
+      if (capeUrl) {
+        textureLoader.load(capeUrl, (capeTexture) => {
+          capeTexture.magFilter = THREE.NearestFilter;
+          capeTexture.minFilter = THREE.NearestFilter;
+          capeTexture.colorSpace = THREE.SRGBColorSpace;
+          const capeUv = {
+            top: [1, 0, 10, 1], bottom: [11, 0, 10, 1],
+            right: [0, 1, 1, 16], front: [1, 1, 10, 16],
+            left: [11, 1, 1, 16], back: [12, 1, 10, 16]
+          };
+
+          const capeGroup = new THREE.Group();
+          const capeGeo = new THREE.BoxGeometry(10, 16, 1);
+          const capeMats = [
+            createFaceMaterial(capeUv.left[0], capeUv.left[1], capeUv.left[2], capeUv.left[3], false, false, capeTexture),
+            createFaceMaterial(capeUv.right[0], capeUv.right[1], capeUv.right[2], capeUv.right[3], false, false, capeTexture),
+            createFaceMaterial(capeUv.top[0], capeUv.top[1], capeUv.top[2], capeUv.top[3], false, true, capeTexture),
+            createFaceMaterial(capeUv.bottom[0], capeUv.bottom[1], capeUv.bottom[2], capeUv.bottom[3], false, true, capeTexture),
+            createFaceMaterial(capeUv.back[0], capeUv.back[1], capeUv.back[2], capeUv.back[3], false, false, capeTexture),
+            createFaceMaterial(capeUv.front[0], capeUv.front[1], capeUv.front[2], capeUv.front[3], false, false, capeTexture)
+          ];
+
+          const capeMesh = new THREE.Mesh(capeGeo, capeMats);
+          capeMesh.position.set(0, -8, -0.5);
+          capeGroup.add(capeMesh);
+          capeGroup.position.set(0, 6, -2.35);
+          capeGroup.rotation.x = 0.15;
+          playerGroup.add(capeGroup);
+          capeRef.current = capeGroup;
+        });
+      }
 
       playerGroup.rotation.y = -0.3;
       requestRenderRef.current?.();
@@ -146,7 +161,6 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
 
     let isDragging = false;
     let previousMousePosition = { x: 0, y: 0 };
-
     const onMouseDown = (e: MouseEvent) => {
       isDragging = true;
       previousMousePosition = { x: e.clientX, y: e.clientY };
@@ -154,23 +168,20 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
     const onMouseUp = () => { isDragging = false; };
     const onMouseMove = (e: MouseEvent) => {
       if (isDragging) {
-        playerGroup.rotation.y += (e.clientX - previousMousePosition.x) * 0.01;
+        playerGroup.rotation.y += delta;
         previousMousePosition = { x: e.clientX, y: e.clientY };
         requestRenderRef.current?.();
       }
     };
 
+    requestRenderRef.current = () => renderer.render(scene, camera);
+    requestRenderRef.current();
     renderer.domElement.addEventListener("mousedown", onMouseDown);
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
-
-    requestRenderRef.current = () => renderer.render(scene, camera);
-    requestRenderRef.current();
-
     return () => {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
-
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh) {
           if (object.geometry) object.geometry.dispose();
@@ -189,9 +200,10 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
       });
       renderer.dispose();
       overlaysRef.current = [];
+      capeRef.current = null;
       requestRenderRef.current = null;
     };
-  }, [skinUrl]);
+  }, [skinUrl, capeUrl]);
 
   useEffect(() => {
     overlaysRef.current.forEach(overlay => {
