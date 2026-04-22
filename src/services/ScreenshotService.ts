@@ -14,4 +14,8 @@ export class ScreenshotService {
   static async deleteScreenshot(path: string): Promise<void> {
     return invoke("delete_screenshot", { path });
   }
+
+  static async showInFolder(path: string): Promise<void> {
+    return invoke("open_screenshot_folder", { path });
+  }
 }

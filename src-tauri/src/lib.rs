@@ -1454,6 +1454,16 @@ fn delete_screenshot(path: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn open_screenshot_folder(app: AppHandle, path: String) {
+    let p = std::path::Path::new(&path);
+    if let Some(parent) = p.parent() {
+        if parent.exists() {
+            let _ = app.opener().open_path(parent.to_str().unwrap(), None::<&str>);
+        }
+    }
+}
+
+#[tauri::command]
 async fn save_global_skin_pck(app: AppHandle, pck_data: Vec<u8>) -> Result<(), String> {
     let app_dir = get_app_dir(&app);
     let _ = fs::write(app_dir.join("Skin.pck"), pck_data);
@@ -1489,7 +1499,7 @@ pub fn run() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, save_global_skin_pck, check_game_update])
+        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

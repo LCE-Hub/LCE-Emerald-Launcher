@@ -12,7 +12,8 @@ const ScreenshotsView = memo(function ScreenshotsView() {
   const [loading, setLoading] = useState(true);
   const [gridFocusIndex, setGridFocusIndex] = useState(0);
   const [modalFocusIndex, setModalFocusIndex] = useState(0);
-
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmFocusIndex, setDeleteConfirmFocusIndex] = useState(0);
   useEffect(() => {
     ScreenshotService.getScreenshots().then((data) => {
       setScreenshots(data);
@@ -25,30 +26,60 @@ const ScreenshotsView = memo(function ScreenshotsView() {
     setActiveView("main");
   };
 
-  const handleDelete = async (screenshot: ScreenshotInfo) => {
-    if (confirm("Are you sure you want to delete this screenshot?")) {
-      playPressSound();
-      await ScreenshotService.deleteScreenshot(screenshot.path);
-      setScreenshots((prev) => prev.filter((s) => s.path !== screenshot.path));
-      setSelectedScreenshot(null);
-    }
+  const handleOpenFolder = (screenshot: ScreenshotInfo) => {
+    playPressSound();
+    ScreenshotService.showInFolder(screenshot.path);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedScreenshot) return;
+    playPressSound();
+    await ScreenshotService.deleteScreenshot(selectedScreenshot.path);
+    setScreenshots((prev) => prev.filter((s) => s.path !== selectedScreenshot.path));
+    setSelectedScreenshot(null);
+    setShowDeleteConfirm(false);
   };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (loading) return;
+      if (showDeleteConfirm) {
+        if (e.key === "Escape" || e.key === "Backspace") {
+          playBackSound();
+          setShowDeleteConfirm(false);
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "Tab") {
+          e.preventDefault();
+          playPressSound();
+          setDeleteConfirmFocusIndex((prev) => (prev === 0 ? 1 : 0));
+        } else if (e.key === "Enter") {
+          if (deleteConfirmFocusIndex === 1) confirmDelete();
+          else {
+            playBackSound();
+            setShowDeleteConfirm(false);
+          }
+        }
+        return;
+      }
 
       if (selectedScreenshot) {
-        if (e.key === "Escape") {
+        if (e.key === "Escape" || e.key === "Backspace") {
           playBackSound();
           setSelectedScreenshot(null);
         } else if (e.key === "ArrowLeft") {
-          setModalFocusIndex((prev) => (prev > 0 ? prev - 1 : prev));
-        } else if (e.key === "ArrowRight") {
-          setModalFocusIndex((prev) => (prev < 2 ? prev + 1 : prev));
+          playPressSound();
+          setModalFocusIndex((prev) => (prev > 0 ? prev - 1 : 2));
+        } else if (e.key === "ArrowRight" || e.key === "Tab") {
+          e.preventDefault();
+          playPressSound();
+          setModalFocusIndex((prev) => (prev < 2 ? prev + 1 : 0));
         } else if (e.key === "Enter") {
-          if (modalFocusIndex === 0) handleDelete(selectedScreenshot);
+          if (modalFocusIndex === 0) handleOpenFolder(selectedScreenshot);
           else if (modalFocusIndex === 1) {
+            playPressSound();
+            setDeleteConfirmFocusIndex(0);
+            setShowDeleteConfirm(true);
+          }
+          else if (modalFocusIndex === 2) {
             playBackSound();
             setSelectedScreenshot(null);
           }
@@ -57,8 +88,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
       }
 
       const cols = window.innerWidth >= 1024 ? 4 : window.innerWidth >= 768 ? 3 : 2;
-
-      if (e.key === "Escape") {
+      if (e.key === "Escape" || e.key === "Backspace") {
         handleBack();
       } else if (e.key === "ArrowLeft") {
         setGridFocusIndex((prev) => (prev > 0 ? prev - 1 : prev));
@@ -71,7 +101,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
       } else if (e.key === "Enter") {
         if (screenshots[gridFocusIndex]) {
           playPressSound();
-          setModalFocusIndex(0);
+          setModalFocusIndex(2);
           setSelectedScreenshot(screenshots[gridFocusIndex]);
         }
       }
@@ -79,7 +109,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [loading, selectedScreenshot, gridFocusIndex, modalFocusIndex, screenshots]);
+  }, [loading, selectedScreenshot, gridFocusIndex, modalFocusIndex, screenshots, showDeleteConfirm, deleteConfirmFocusIndex]);
 
   useEffect(() => {
     if (!selectedScreenshot) {
@@ -99,68 +129,97 @@ const ScreenshotsView = memo(function ScreenshotsView() {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: animationsEnabled ? 0.3 : 0 }}
-      className="flex flex-col items-center w-full h-full max-w-5xl"
+      className="flex flex-col items-center w-full h-full max-w-6xl relative font-['Mojangles'] text-white select-none outline-none focus:outline-none"
     >
-      <div className="flex items-center justify-between w-full mb-4 border-b-2 border-[#373737] pb-2">
-        <h2 className="text-2xl text-white mc-text-shadow tracking-widest uppercase opacity-80 font-bold px-4">
-          Screenshots
-        </h2>
+      <h2 className="text-2xl text-white mc-text-shadow mt-4 mb-6 border-b-2 border-[#373737] pb-2 w-[30%] max-w-[250px] text-center tracking-widest uppercase opacity-80 font-bold whitespace-nowrap px-4">
+        Screenshots
+      </h2>
+
+      <div className="w-[98%] flex-1 relative overflow-hidden">
+        <div className="absolute inset-0 overflow-y-auto p-6 scroll-smooth custom-scrollbar">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center h-full gap-4">
+              <span className="text-3xl text-[#FFFF55] mc-text-shadow tracking-widest animate-pulse uppercase">Scanning Archives...</span>
+            </div>
+          ) : screenshots.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full space-y-4 opacity-40">
+              <span className="text-2xl mc-text-shadow uppercase tracking-widest">No screenshots found</span>
+              <span className="text-sm mc-text-shadow tracking-widest italic">Take some in-game with F2</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {screenshots.map((ss, index) => (
+                <div
+                  key={ss.path}
+                  id={`ss-${index}`}
+                  onClick={() => {
+                    setGridFocusIndex(index);
+                    setModalFocusIndex(2); // Close button
+                    setSelectedScreenshot(ss);
+                    playPressSound();
+                  }}
+                  onMouseEnter={() => setGridFocusIndex(index)}
+                  className={`
+                    relative aspect-video flex flex-col cursor-pointer transition-all border-2 rounded-sm overflow-hidden bg-black/40
+                    ${gridFocusIndex === index ? "border-[#FFFF55] scale-105 z-10" : "border-[#333] hover:border-[#FFFF55]"}
+                  `}
+                  style={{
+                    backgroundImage: "url('/images/frame_background.png')",
+                    backgroundSize: '100% 100%',
+                    imageRendering: 'pixelated',
+                    boxShadow: gridFocusIndex === index ? '0 0 20px rgba(255, 255, 85, 0.2)' : 'none',
+                  }}
+                >
+                  <div className="w-full h-full relative overflow-hidden bg-black/50">
+                    <img
+                      src={`screenshots://localhost/${ss.path}`}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      loading="lazy"
+                      alt={ss.name}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/images/Folder_Icon.png";
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+
+                    {getEditionLogo(ss.instanceId) && (
+                      <div className="absolute bottom-2 left-2 flex items-center gap-2">
+                        <img
+                          src={getEditionLogo(ss.instanceId)}
+                          className="w-6 h-6 object-contain drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]"
+                          style={{ imageRendering: "pixelated" }}
+                        />
+                      </div>
+                    )}
+
+                    <div className="absolute bottom-2 right-2 text-[8px] bg-black/60 border border-[#555] px-1.5 py-0.5 text-[#A0A0A0] mc-text-shadow uppercase tracking-tighter">
+                      {new Date(ss.date * 1000).toLocaleDateString()}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="w-full mt-6 mb-4 flex justify-center">
         <button
           onClick={handleBack}
-          className="mc-button px-6 py-2 text-white text-xl mc-text-shadow"
-          style={{ width: "120px", height: "40px" }}
+          className={`
+            w-72 h-10 flex items-center justify-center text-xl mc-text-shadow border-none outline-none transition-all text-white
+            hover:text-[#FFFF55]
+          `}
+          style={{
+            backgroundImage: "url('/images/Button_Background.png')",
+            backgroundSize: '100% 100%',
+            imageRendering: 'pixelated'
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundImage = "url('/images/button_highlighted.png')"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundImage = "url('/images/Button_Background.png')"; }}
         >
           Back
         </button>
-      </div>
-
-      <div className="w-full flex-1 overflow-y-auto custom-scrollbar p-4">
-        {loading ? (
-          <div className="flex items-center justify-center h-full">
-            <span className="text-white text-xl mc-text-shadow">Scanning for screenshots...</span>
-          </div>
-        ) : screenshots.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full space-y-4">
-            <span className="text-gray-400 text-xl mc-text-shadow italic">No screenshots found.</span>
-            <span className="text-gray-500 text-sm mc-text-shadow">Take some in-game with F2!</span>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {screenshots.map((ss, index) => (
-              <motion.div
-                key={ss.path}
-                id={`ss-${index}`}
-                whileHover={{ scale: 1.05 }}
-                onClick={() => {
-                  setGridFocusIndex(index);
-                  setSelectedScreenshot(ss);
-                }}
-                className={`relative aspect-video bg-black/40 border-2 transition-all cursor-pointer overflow-hidden group shadow-lg ${gridFocusIndex === index ? "border-[#FFFF55] scale-105" : "border-transparent"}`}
-              >
-                <img
-                  src={`screenshots://localhost/${ss.path}`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                  alt={ss.name}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/images/Folder_Icon.png";
-                  }}
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                {getEditionLogo(ss.instanceId) && (
-                  <img
-                    src={getEditionLogo(ss.instanceId)}
-                    className="absolute bottom-2 left-2 w-8 h-8 object-contain drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]"
-                    style={{ imageRendering: "pixelated" }}
-                  />
-                )}
-                <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 px-2 py-1 text-[10px] text-white pointer-events-none">
-                  {new Date(ss.date * 1000).toLocaleDateString()}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
       </div>
 
       <AnimatePresence>
@@ -169,43 +228,160 @@ const ScreenshotsView = memo(function ScreenshotsView() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/90 flex flex-col items-center justify-center p-8 backdrop-blur-sm"
+            className="fixed inset-0 z-[200] bg-black/90 flex flex-col items-center justify-center p-8 backdrop-blur-md"
             onClick={() => setSelectedScreenshot(null)}
           >
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              className="relative max-w-full max-h-[80vh] flex flex-col items-center"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative max-w-5xl w-full flex flex-col items-center border-2 border-[#555] rounded-sm p-2"
+              style={{
+                backgroundImage: "url('/images/frame_background.png')",
+                backgroundSize: '100% 100%',
+                imageRendering: 'pixelated',
+              }}
               onClick={(e) => e.stopPropagation()}
             >
-              <img
-                src={`screenshots://localhost/${selectedScreenshot.path}`}
-                className="max-w-full max-h-full object-contain border-4 border-[#373737] shadow-2xl"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/images/Pack_Icon.png";
-                }}
-              />
-
-              <div className="flex gap-4 mt-8 w-full justify-center">
-                <button
-                  onClick={() => handleDelete(selectedScreenshot)}
-                  className={`mc-button px-6 py-2 text-red-500 mc-text-shadow flex items-center justify-center transition-all ${modalFocusIndex === 0 ? "scale-110 brightness-125" : ""}`}
-                  style={{ minWidth: "180px", height: "48px", backgroundImage: modalFocusIndex === 0 ? "url('/images/button_highlighted.png')" : "" }}
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={() => setSelectedScreenshot(null)}
-                  className={`mc-button px-6 py-2 text-white mc-text-shadow flex items-center justify-center transition-all ${modalFocusIndex === 1 ? "scale-110 brightness-125" : ""}`}
-                  style={{ minWidth: "120px", height: "48px", backgroundImage: modalFocusIndex === 1 ? "url('/images/button_highlighted.png')" : "" }}
-                >
-                  Close
-                </button>
+              <div className="relative w-full aspect-video bg-black/60 overflow-hidden border border-[#444] rounded-sm">
+                <img
+                  src={`screenshots://localhost/${selectedScreenshot.path}`}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/images/Pack_Icon.png";
+                  }}
+                />
+                <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between pointer-events-none">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xl text-white mc-text-shadow block leading-tight tracking-wide font-bold">
+                      {selectedScreenshot.name}
+                    </span>
+                    <span className="text-sm text-[#FFFF55] mc-text-shadow uppercase tracking-widest opacity-90">
+                      Captured on {new Date(selectedScreenshot.date * 1000).toLocaleString()}
+                    </span>
+                  </div>
+                  {getEditionLogo(selectedScreenshot.instanceId) && (
+                    <img
+                      src={getEditionLogo(selectedScreenshot.instanceId)}
+                      className="w-16 h-16 object-contain drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]"
+                      style={{ imageRendering: "pixelated" }}
+                    />
+                  )}
+                </div>
               </div>
 
-              <div className="mt-4 text-gray-400 text-sm mc-text-shadow">
-                {selectedScreenshot.name} - {new Date(selectedScreenshot.date * 1000).toLocaleString()}
+              <div className="flex gap-6 mt-6 mb-2 w-full justify-center px-6">
+                <button
+                  onMouseEnter={() => setModalFocusIndex(0)}
+                  onClick={() => handleOpenFolder(selectedScreenshot)}
+                  className={`
+                    flex-1 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all
+                    ${modalFocusIndex === 0 ? "text-[#FFFF55] scale-105" : "text-white"}
+                  `}
+                  style={{
+                    backgroundImage: modalFocusIndex === 0 ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
+                    backgroundSize: '100% 100%',
+                    imageRendering: 'pixelated',
+                  }}
+                >
+                  OPEN FOLDER
+                </button>
+                <button
+                  onMouseEnter={() => setModalFocusIndex(1)}
+                  onClick={() => {
+                    playPressSound();
+                    setDeleteConfirmFocusIndex(0);
+                    setShowDeleteConfirm(true);
+                  }}
+                  className={`
+                    flex-1 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all
+                    ${modalFocusIndex === 1 ? "text-[#FF5555] scale-105" : "text-white"}
+                  `}
+                  style={{
+                    backgroundImage: modalFocusIndex === 1 ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
+                    backgroundSize: '100% 100%',
+                    imageRendering: 'pixelated',
+                  }}
+                >
+                  DELETE
+                </button>
+                <button
+                  onMouseEnter={() => setModalFocusIndex(2)}
+                  onClick={() => setSelectedScreenshot(null)}
+                  className={`
+                    w-48 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all
+                    ${modalFocusIndex === 2 ? "text-[#FFFF55] scale-105" : "text-white"}
+                  `}
+                  style={{
+                    backgroundImage: modalFocusIndex === 2 ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
+                    backgroundSize: '100% 100%',
+                    imageRendering: 'pixelated',
+                  }}
+                >
+                  CLOSE
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-sm flex items-center justify-center"
+            onClick={() => setShowDeleteConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-[420px] p-6 border-2 border-[#555] rounded-sm flex flex-col items-center"
+              style={{
+                backgroundImage: "url('/images/frame_background.png')",
+                backgroundSize: '100% 100%',
+                imageRendering: 'pixelated',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <span className="text-2xl text-white mc-text-shadow text-center mb-6 px-4">
+                Are you sure you want to delete this screenshot?
+              </span>
+
+              <div className="flex gap-4 w-full">
+                <button
+                  onMouseEnter={() => setDeleteConfirmFocusIndex(0)}
+                  onClick={() => { playBackSound(); setShowDeleteConfirm(false); }}
+                  className={`
+                    flex-1 h-10 flex items-center justify-center text-lg mc-text-shadow border-none outline-none cursor-pointer transition-all
+                    ${deleteConfirmFocusIndex === 0 ? "text-[#FFFF55] scale-105" : "text-white"}
+                  `}
+                  style={{
+                    backgroundImage: deleteConfirmFocusIndex === 0 ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
+                    backgroundSize: '100% 100%',
+                    imageRendering: 'pixelated',
+                  }}
+                >
+                  CANCEL
+                </button>
+                <button
+                  onMouseEnter={() => setDeleteConfirmFocusIndex(1)}
+                  onClick={confirmDelete}
+                  className={`
+                    flex-1 h-10 flex items-center justify-center text-lg mc-text-shadow border-none outline-none cursor-pointer transition-all
+                    ${deleteConfirmFocusIndex === 1 ? "text-[#FF5555] scale-105" : "text-white"}
+                  `}
+                  style={{
+                    backgroundImage: deleteConfirmFocusIndex === 1 ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
+                    backgroundSize: '100% 100%',
+                    imageRendering: 'pixelated',
+                  }}
+                >
+                  DELETE
+                </button>
               </div>
             </motion.div>
           </motion.div>
