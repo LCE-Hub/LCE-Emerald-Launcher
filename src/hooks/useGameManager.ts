@@ -27,6 +27,15 @@ const BASE_EDITIONS = [
     titleImage: "/images/minecraft_title_360revived.png",
     supportsSlimSkins: false,
     logo: "/images/360_revived.png"
+  },
+  {
+    id: "legacy_nether_fork",
+    name: "Legacy Nether Fork",
+    desc: "QoL, Random additions, and Nether/End dimensions overhaul (Modded build !)",
+    url: "https://github.com/deadvoxelx/LegacyNetherFork/releases/download/nightly/LCEWindows64.zip",
+    titleImage: "/images/minecraft_title_legacynetherfork.png",
+    supportsSlimSkins: false,
+    logo: "/images/netherrack_0.png"
   }
 ];
 
