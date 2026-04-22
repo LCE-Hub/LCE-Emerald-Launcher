@@ -7,6 +7,9 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  define: {
+    __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+  },
   server: {
     port: 1420,
     strictPort: true,
