@@ -168,6 +168,7 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
     const onMouseUp = () => { isDragging = false; };
     const onMouseMove = (e: MouseEvent) => {
       if (isDragging) {
+        const delta = (e.clientX - previousMousePosition.x) * 0.01;
         playerGroup.rotation.y += delta;
         previousMousePosition = { x: e.clientX, y: e.clientY };
         requestRenderRef.current?.();
