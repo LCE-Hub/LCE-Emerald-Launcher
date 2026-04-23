@@ -35,6 +35,7 @@ pub struct CustomEdition {
     pub name: String,
     pub desc: String,
     pub url: String,
+    pub path: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -146,10 +147,10 @@ fn find_executable_recursive(root: &PathBuf, file_name: &str) -> Option<PathBuf>
     None
 }
 
-fn is_macos_runtime_installed(app: &AppHandle) -> bool {
+fn is_macos_runtime_installed(_app: &AppHandle) -> bool {
     #[cfg(target_os = "macos")]
     {
-        let runtime_dir = get_macos_runtime_dir(app);
+        let runtime_dir = get_macos_runtime_dir(_app);
         let toolkit_dir = runtime_dir.join("toolkit");
         if !toolkit_dir.exists() {
             return false;
@@ -275,6 +276,19 @@ fn import_theme(app: AppHandle) -> Result<String, String> {
         fs::write(dest_path, content).map_err(|e| e.to_string())?;
 
         Ok(palette.name)
+    } else {
+        Err("CANCELED".into())
+    }
+}
+
+#[tauri::command]
+fn pick_folder() -> Result<String, String> {
+    let folder = rfd::FileDialog::new()
+        .set_title("Select Custom TU Folder")
+        .pick_folder();
+
+    if let Some(path) = folder {
+        Ok(path.to_string_lossy().to_string())
     } else {
         Err("CANCELED".into())
     }
@@ -456,13 +470,36 @@ async fn download_runner(app: AppHandle, state: State<'_, DownloadState>, name: 
 #[tauri::command]
 #[allow(non_snake_case)]
 fn check_game_installed(app: AppHandle, instance_id: String) -> bool {
+    let config = load_config(app.clone());
+    if let Some(ref editions) = config.custom_editions {
+        if let Some(edition) = editions.iter().find(|e| e.id == instance_id) {
+            if let Some(ref path) = edition.path {
+                return PathBuf::from(path).join("Minecraft.Client.exe").exists();
+            }
+        }
+    }
     get_app_dir(&app).join("instances").join(&instance_id).join("Minecraft.Client.exe").exists()
 }
 
 #[tauri::command]
 #[allow(non_snake_case)]
 fn open_instance_folder(app: AppHandle, instance_id: String) {
-    let dir = get_app_dir(&app).join("instances").join(&instance_id);
+    let config = load_config(app.clone());
+    let dir = if let Some(ref editions) = config.custom_editions {
+        if let Some(edition) = editions.iter().find(|e| e.id == instance_id) {
+            if let Some(ref path) = edition.path {
+                Some(PathBuf::from(path))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
+    let dir = dir.unwrap_or_else(|| get_app_dir(&app).join("instances").join(&instance_id));
     if dir.exists() {
         let _ = app.opener().open_path(dir.to_str().unwrap(), None::<&str>);
     }
@@ -471,6 +508,15 @@ fn open_instance_folder(app: AppHandle, instance_id: String) {
 #[tauri::command]
 #[allow(non_snake_case)]
 fn delete_instance(app: AppHandle, instance_id: String) -> Result<(), String> {
+    let config = load_config(app.clone());
+    if let Some(ref editions) = config.custom_editions {
+        if let Some(edition) = editions.iter().find(|e| e.id == instance_id) {
+            if edition.path.is_some() {
+                // Do not delete files for custom path instances
+                return Ok(());
+            }
+        }
+    }
     let dir = get_app_dir(&app).join("instances").join(&instance_id);
     if dir.exists() {
         let _ = fs::remove_dir_all(dir);
@@ -1187,7 +1233,18 @@ async fn launch_game(app: AppHandle, state: State<'_, GameState>, instance_id: S
     }
 
     let _ = perform_dlc_sync(&app, &instance_dir)?;
-    let game_exe = instance_dir.join("Minecraft.Client.exe");
+    
+    let mut custom_path = None;
+    if let Some(ref editions) = config.custom_editions {
+        if let Some(edition) = editions.iter().find(|e| e.id == instance_id) {
+            if let Some(ref path) = edition.path {
+                custom_path = Some(PathBuf::from(path));
+            }
+        }
+    }
+
+    let working_dir = custom_path.unwrap_or_else(|| instance_dir.clone());
+    let game_exe = working_dir.join("Minecraft.Client.exe");
     if !game_exe.exists() {
         return Err("Game executable not found in instance folder.".into());
     }
@@ -1226,7 +1283,7 @@ async fn launch_game(app: AppHandle, state: State<'_, GameState>, instance_id: S
                 }
 
                 cmd.arg(&game_exe)
-                   .current_dir(&instance_dir);
+                   .current_dir(&working_dir);
 
                 let child = cmd.spawn().map_err(|e| e.to_string())?;
                 {
@@ -1532,7 +1589,7 @@ pub fn run() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast])
+        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, pick_folder, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

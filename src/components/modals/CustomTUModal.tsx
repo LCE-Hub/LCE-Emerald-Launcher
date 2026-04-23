@@ -18,9 +18,8 @@ const ModalButton = memo(function ModalButton({
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`flex-1 h-12 flex items-center justify-center text-xl mc-text-shadow transition-colors outline-none border-none bg-transparent ${
-        isDanger ? "text-red-500" : "text-white"
-      } ${isHovered ? (isDanger ? "text-red-400" : "text-[#FFFF55]") : ""}`}
+      className={`flex-1 h-12 flex items-center justify-center text-xl mc-text-shadow transition-colors outline-none border-none bg-transparent ${isDanger ? "text-red-500" : "text-white"
+        } ${isHovered ? (isDanger ? "text-red-400" : "text-[#FFFF55]") : ""}`}
       style={{
         backgroundImage: isHovered
           ? "url('/images/button_highlighted.png')"
@@ -41,10 +40,12 @@ export default function CustomTUModal({
   playPressSound,
   playBackSound,
   editingEdition = null,
+  initialPath = "",
 }: any) {
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const [url, setUrl] = useState("");
+  const [path, setPath] = useState("");
   const [error, setError] = useState("");
   const [focusIndex, setFocusIndex] = useState(0);
 
@@ -53,13 +54,17 @@ export default function CustomTUModal({
       setName(editingEdition.name);
       setDesc(editingEdition.desc);
       setUrl(editingEdition.url);
+      setPath(editingEdition.path || "");
+    } else if (isOpen && initialPath) {
+      setPath(initialPath);
     } else if (!isOpen) {
       setName("");
       setDesc("");
       setUrl("");
+      setPath("");
       setError("");
     }
-  }, [editingEdition, isOpen]);
+  }, [editingEdition, isOpen, initialPath]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -88,25 +93,30 @@ export default function CustomTUModal({
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [isOpen, focusIndex, name, desc, url]);
+  }, [isOpen, focusIndex, name, desc, url, path]);
 
   if (!isOpen) return null;
 
   const handleImport = () => {
-    if (!name || !url) {
-      setError("Name and URL are required");
+    if (!name) {
+      setError("Name is required");
       return;
     }
-    if (!url.startsWith("http")) {
+    if (!url && !path) {
+      setError("URL or Path is required");
+      return;
+    }
+    if (url && !url.startsWith("http")) {
       setError("Invalid URL");
       return;
     }
     setError("");
-    onImport({ name, desc: desc || "Custom imported TU", url });
+    onImport({ name, desc: desc || "Custom imported TU", url, path: path || undefined });
     onClose();
     setName("");
     setDesc("");
     setUrl("");
+    setPath("");
   };
 
   return (
@@ -114,19 +124,19 @@ export default function CustomTUModal({
       <div
         className="relative w-[400px] p-6 flex flex-col items-center"
         style={{
-          backgroundImage: "url('/images/Download_Background.png')",
+          backgroundImage: "url('/images/background.png')",
           backgroundSize: "100% 100%",
           backgroundRepeat: "no-repeat",
           imageRendering: "pixelated",
         }}
       >
-        <h2 className="text-xl text-white mc-text-shadow mb-4 text-center">
+        <h2 className="text-xl text-black mc-text-shadow mb-4 text-center">
           {editingEdition ? "Edit Custom TU" : "Import Custom TU"}
         </h2>
 
         <div className="flex flex-col gap-4 w-full">
           <div className="flex flex-col gap-1">
-            <label className="text-white text-sm mc-text-shadow uppercase tracking-widest">
+            <label className="text-gray text-sm mc-text-shadow uppercase tracking-widest">
               TU Name
             </label>
             <input
@@ -142,7 +152,7 @@ export default function CustomTUModal({
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-white text-sm mc-text-shadow uppercase tracking-widest">
+            <label className="text-gray text-sm mc-text-shadow uppercase tracking-widest">
               Description (Optional)
             </label>
             <input
@@ -157,7 +167,7 @@ export default function CustomTUModal({
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-white text-sm mc-text-shadow uppercase tracking-widest">
+            <label className="text-gray text-sm mc-text-shadow uppercase tracking-widest">
               Download URL (.zip)
             </label>
             <input
@@ -165,11 +175,26 @@ export default function CustomTUModal({
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onFocus={() => setFocusIndex(2)}
-              placeholder="https://example.com/mod.zip"
+              placeholder="optional if path is set"
               className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-['Mojangles']"
               style={{ imageRendering: "pixelated" }}
             />
           </div>
+
+          {path && (
+            <div className="flex flex-col gap-1">
+              <label className="text-gray text-sm mc-text-shadow uppercase tracking-widest">
+                Local Path
+              </label>
+              <input
+                type="text"
+                readOnly
+                value={path}
+                className="w-full h-10 px-3 bg-black/20 border-2 border-[#222] text-black text-xs outline-none font-['Mojangles'] cursor-not-allowed"
+                style={{ imageRendering: "pixelated" }}
+              />
+            </div>
+          )}
 
           {error && (
             <div className="text-red-500 text-center mc-text-shadow uppercase text-xs tracking-widest">

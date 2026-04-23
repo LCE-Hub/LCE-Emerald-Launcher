@@ -22,9 +22,8 @@ const DeleteConfirmButton = memo(function DeleteConfirmButton({
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`w-24 h-10 flex items-center justify-center mc-text-shadow transition-colors ${
-        isDanger ? "text-red-500" : "text-white"
-      } ${isHovered ? (isDanger ? "text-red-400" : "text-[#FFFF55]") : ""}`}
+      className={`w-24 h-10 flex items-center justify-center mc-text-shadow transition-colors ${isDanger ? "text-red-500" : "text-white"
+        } ${isHovered ? (isDanger ? "text-red-400" : "text-[#FFFF55]") : ""}`}
       style={{
         backgroundImage: isHovered
           ? "url('/images/button_highlighted.png')"
@@ -43,22 +42,20 @@ const VersionsView = memo(function VersionsView() {
   const { profile: selectedProfile, setProfile: setSelectedProfile, animationsEnabled } = useConfig();
   const { playPressSound, playBackSound } = useAudio();
   const { editions, installs: installedVersions, toggleInstall, handleUninstall, handleCancelDownload, deleteCustomEdition: onDeleteEdition, addCustomEdition: onAddEdition, updateCustomEdition: onUpdateEdition, downloadingId, downloadProgress } = useGame();
-
   const [focusIndex, setFocusIndex] = useState<number>(0);
   const [focusBtn, setFocusBtn] = useState<number>(0);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [editingEdition, setEditingEdition] = useState<any>(null);
-  const [hoveredBtn, setHoveredBtn] = useState<{row: number, btn: string} | null>(null);
+  const [initialPath, setInitialPath] = useState<string>("");
+  const [hoveredBtn, setHoveredBtn] = useState<{ row: number, btn: string } | null>(null);
   const [deleteConfirmEdition, setDeleteConfirmEdition] = useState<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-
-  const ITEM_COUNT = editions.length + 2; // +1 for "+" button, +1 for Done button
-
+  const ITEM_COUNT = editions.length + 3;
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (document.activeElement?.tagName === "INPUT") return;
-      
+
       if (e.key === "Escape" || e.key === "Backspace") {
         playBackSound();
         setActiveView("main");
@@ -139,6 +136,9 @@ const VersionsView = memo(function VersionsView() {
         } else if (focusIndex === editions.length) {
           playPressSound();
           setIsImportModalOpen(true);
+        } else if (focusIndex === editions.length + 1) {
+          playPressSound();
+          handleImportFolder();
         } else {
           playBackSound();
           setActiveView("main");
@@ -174,12 +174,24 @@ const VersionsView = memo(function VersionsView() {
 
   const handleEditionClick = (edition: any, index: number) => {
     const isInstalled = installedVersions.includes(edition.id);
-    
+
     if (isInstalled) {
       playPressSound();
       setSelectedProfile(edition.id);
     }
     setFocusIndex(index);
+  };
+
+  const handleImportFolder = async () => {
+    try {
+      const folder = await TauriService.pickFolder();
+      if (folder) {
+        setInitialPath(folder);
+        setIsImportModalOpen(true);
+      }
+    } catch (e) {
+      if (e !== "CANCELED") console.error(e);
+    }
   };
 
   return (
@@ -195,7 +207,7 @@ const VersionsView = memo(function VersionsView() {
         Versions
       </h2>
 
-      <div 
+      <div
         className="w-full min-w-[480px] p-6 mb-4"
         style={{
           backgroundImage: "url('/images/background.png')",
@@ -222,11 +234,9 @@ const VersionsView = memo(function VersionsView() {
                 <div
                   key={edition.id}
                   data-index={i}
-                  className={`w-[calc(100%-16px)] mx-2 flex items-center gap-3 p-2 rounded-sm ${
-                    isSelected && !isComingSoon ? "bg-[#404040]/50" : ""
-                  } ${isFocused && !isComingSoon ? "ring-2 ring-white" : ""} ${
-                    isComingSoon ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+                  className={`w-[calc(100%-16px)] mx-2 flex items-center gap-3 p-2 rounded-sm ${isSelected && !isComingSoon ? "bg-[#404040]/50" : ""
+                    } ${isFocused && !isComingSoon ? "ring-2 ring-white" : ""} ${isComingSoon ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                   onMouseEnter={() => !isComingSoon && setFocusIndex(i)}
                 >
                   <div className="w-6 flex items-center justify-center flex-shrink-0">
@@ -261,13 +271,12 @@ const VersionsView = memo(function VersionsView() {
                   <button
                     onClick={() => !isComingSoon && handleEditionClick(edition, i)}
                     disabled={isComingSoon}
-                    className={`flex-1 text-left min-w-0 outline-none rounded ${
-                      focusIndex === i && focusBtn === 0 && !isComingSoon ? "ring-2 ring-white" : ""
-                    } ${isComingSoon ? "cursor-not-allowed" : ""}`}
+                    className={`flex-1 text-left min-w-0 outline-none rounded ${focusIndex === i && focusBtn === 0 && !isComingSoon ? "ring-2 ring-white" : ""
+                      } ${isComingSoon ? "cursor-not-allowed" : ""}`}
                   >
                     <div className="flex items-center gap-2">
                       {edition.logo && (
-                        <img 
+                        <img
                           src={edition.logo}
                           alt=""
                           className="w-5 h-5 object-contain flex-shrink-0"
@@ -275,9 +284,8 @@ const VersionsView = memo(function VersionsView() {
                         />
                       )}
                       <span
-                        className={`text-xl tracking-wide truncate ${
-                          isSelected ? "text-white" : "text-black"
-                        }`}
+                        className={`text-xl tracking-wide truncate ${isSelected ? "text-white" : "text-black"
+                          }`}
                         style={{ textShadow: "none" }}
                       >
                         {edition.name}
@@ -288,9 +296,8 @@ const VersionsView = memo(function VersionsView() {
                         </span>
                       )}
                     </div>
-                    <p className={`text-base font-medium leading-tight ${
-                      isSelected ? "text-[#DDDDDD]" : "text-[#666666]"
-                    }`}>
+                    <p className={`text-base font-medium leading-tight ${isSelected ? "text-[#DDDDDD]" : "text-[#666666]"
+                      }`}>
                       {edition.desc}
                     </p>
                   </button>
@@ -303,7 +310,7 @@ const VersionsView = memo(function VersionsView() {
                             e.stopPropagation();
                             handleCancelDownload();
                           }}
-                          onMouseEnter={() => setHoveredBtn({row: i, btn: 'cancel'})}
+                          onMouseEnter={() => setHoveredBtn({ row: i, btn: 'cancel' })}
                           onMouseLeave={() => setHoveredBtn(null)}
                           className="w-8 h-8 flex items-center justify-center text-red-600"
                           style={{
@@ -315,7 +322,7 @@ const VersionsView = memo(function VersionsView() {
                           }}
                         >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="square">
-                            <path d="M18 6L6 18M6 6l12 12"/>
+                            <path d="M18 6L6 18M6 6l12 12" />
                           </svg>
                         </button>
                       ) : edition.comingSoon ? (
@@ -326,7 +333,7 @@ const VersionsView = memo(function VersionsView() {
                             e.stopPropagation();
                             if (!downloadingId) toggleInstall(edition.id);
                           }}
-                          onMouseEnter={() => setHoveredBtn({row: i, btn: 'download'})}
+                          onMouseEnter={() => setHoveredBtn({ row: i, btn: 'download' })}
                           onMouseLeave={() => setHoveredBtn(null)}
                           className={`w-8 h-8 flex items-center justify-center ${downloadingId ? "text-gray-400 cursor-not-allowed" : "text-[#3a3a3a]"}`}
                           style={{
@@ -355,7 +362,7 @@ const VersionsView = memo(function VersionsView() {
                               e.stopPropagation();
                               handleCancelDownload();
                             }}
-                            onMouseEnter={() => setHoveredBtn({row: i, btn: 'cancel'})}
+                            onMouseEnter={() => setHoveredBtn({ row: i, btn: 'cancel' })}
                             onMouseLeave={() => setHoveredBtn(null)}
                             className="w-8 h-8 flex items-center justify-center text-red-600"
                             style={{
@@ -367,7 +374,7 @@ const VersionsView = memo(function VersionsView() {
                             }}
                           >
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="square">
-                              <path d="M18 6L6 18M6 6l12 12"/>
+                              <path d="M18 6L6 18M6 6l12 12" />
                             </svg>
                           </button>
                         ) : (
@@ -377,7 +384,7 @@ const VersionsView = memo(function VersionsView() {
                                 e.stopPropagation();
                                 if (!downloadingId) toggleInstall(edition.id);
                               }}
-                              onMouseEnter={() => setHoveredBtn({row: i, btn: 'update'})}
+                              onMouseEnter={() => setHoveredBtn({ row: i, btn: 'update' })}
                               onMouseLeave={() => setHoveredBtn(null)}
                               className={`w-8 h-8 flex items-center justify-center ${downloadingId ? "text-gray-400 cursor-not-allowed" : "text-[#3a3a3a]"}`}
                               style={{
@@ -403,82 +410,33 @@ const VersionsView = memo(function VersionsView() {
                                 playPressSound();
                                 TauriService.openInstanceFolder(edition.id);
                               }}
-                              onMouseEnter={() => setHoveredBtn({row: i, btn: 'folder'})}
-                              onMouseLeave={() => setHoveredBtn(null)}
-                              className="w-8 h-8 flex items-center justify-center text-[#3a3a3a]"
-                          style={{
-                            backgroundImage: (hoveredBtn?.row === i && hoveredBtn?.btn === 'folder') || (focusIndex === i && focusBtn === 2)
-                              ? "url('/images/Button_Square_Highlighted.png')"
-                              : "url('/images/Button_Square.png')",
-                            backgroundSize: "100% 100%",
-                            imageRendering: "pixelated",
-                          }}
-                        >
-                          <img
-                            src="/images/Folder_Icon.png"
-                            alt="Folder"
-                            className="w-6 h-6 object-contain"
-                            style={{ imageRendering: "pixelated" }}
-                          />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playBackSound();
-                            setDeleteConfirmEdition(edition);
-                          }}
-                          onMouseEnter={() => setHoveredBtn({row: i, btn: 'delete'})}
-                          onMouseLeave={() => setHoveredBtn(null)}
-                          className="w-8 h-8 flex items-center justify-center text-[#3a3a3a]"
-                          style={{
-                            backgroundImage: (hoveredBtn?.row === i && hoveredBtn?.btn === 'delete') || (focusIndex === i && focusBtn === 3)
-                              ? "url('/images/Button_Square_Highlighted.png')"
-                              : "url('/images/Button_Square.png')",
-                            backgroundSize: "100% 100%",
-                            imageRendering: "pixelated",
-                          }}
-                        >
-                          <img
-                            src="/images/Trash_Bin_Icon.png"
-                            alt="Delete"
-                            className="w-6 h-6 object-contain"
-                            style={{ imageRendering: "pixelated" }}
-                          />
-                        </button>
-                        {isCustom && (
-                          <>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                playPressSound();
-                                setEditingEdition(edition);
-                                setIsImportModalOpen(true);
-                              }}
-                              onMouseEnter={() => setHoveredBtn({row: i, btn: 'edit'})}
+                              onMouseEnter={() => setHoveredBtn({ row: i, btn: 'folder' })}
                               onMouseLeave={() => setHoveredBtn(null)}
                               className="w-8 h-8 flex items-center justify-center text-[#3a3a3a]"
                               style={{
-                                backgroundImage: (hoveredBtn?.row === i && hoveredBtn?.btn === 'edit') || (focusIndex === i && focusBtn === 4)
+                                backgroundImage: (hoveredBtn?.row === i && hoveredBtn?.btn === 'folder') || (focusIndex === i && focusBtn === 2)
                                   ? "url('/images/Button_Square_Highlighted.png')"
                                   : "url('/images/Button_Square.png')",
                                 backgroundSize: "100% 100%",
                                 imageRendering: "pixelated",
                               }}
                             >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
-                                <path d="M12 20h9"/>
-                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                              </svg>
+                              <img
+                                src="/images/Folder_Icon.png"
+                                alt="Folder"
+                                className="w-6 h-6 object-contain"
+                                style={{ imageRendering: "pixelated" }}
+                              />
                             </button>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 playBackSound();
-                                onDeleteEdition(edition.id);
+                                setDeleteConfirmEdition(edition);
                               }}
-                              onMouseEnter={() => setHoveredBtn({row: i, btn: 'delete'})}
+                              onMouseEnter={() => setHoveredBtn({ row: i, btn: 'delete' })}
                               onMouseLeave={() => setHoveredBtn(null)}
-                              className="w-8 h-8 flex items-center justify-center text-red-600"
+                              className="w-8 h-8 flex items-center justify-center text-[#3a3a3a]"
                               style={{
                                 backgroundImage: (hoveredBtn?.row === i && hoveredBtn?.btn === 'delete') || (focusIndex === i && focusBtn === 3)
                                   ? "url('/images/Button_Square_Highlighted.png')"
@@ -487,29 +445,79 @@ const VersionsView = memo(function VersionsView() {
                                 imageRendering: "pixelated",
                               }}
                             >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
-                                <polyline points="3 6 5 6 21 6"/>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                              </svg>
+                              <img
+                                src="/images/Trash_Bin_Icon.png"
+                                alt="Delete"
+                                className="w-6 h-6 object-contain"
+                                style={{ imageRendering: "pixelated" }}
+                              />
                             </button>
+                            {isCustom && (
+                              <>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    playPressSound();
+                                    setEditingEdition(edition);
+                                    setIsImportModalOpen(true);
+                                  }}
+                                  onMouseEnter={() => setHoveredBtn({ row: i, btn: 'edit' })}
+                                  onMouseLeave={() => setHoveredBtn(null)}
+                                  className="w-8 h-8 flex items-center justify-center text-[#3a3a3a]"
+                                  style={{
+                                    backgroundImage: (hoveredBtn?.row === i && hoveredBtn?.btn === 'edit') || (focusIndex === i && focusBtn === 4)
+                                      ? "url('/images/Button_Square_Highlighted.png')"
+                                      : "url('/images/Button_Square.png')",
+                                    backgroundSize: "100% 100%",
+                                    imageRendering: "pixelated",
+                                  }}
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
+                                    <path d="M12 20h9" />
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    playBackSound();
+                                    onDeleteEdition(edition.id);
+                                  }}
+                                  onMouseEnter={() => setHoveredBtn({ row: i, btn: 'delete' })}
+                                  onMouseLeave={() => setHoveredBtn(null)}
+                                  className="w-8 h-8 flex items-center justify-center text-red-600"
+                                  style={{
+                                    backgroundImage: (hoveredBtn?.row === i && hoveredBtn?.btn === 'delete') || (focusIndex === i && focusBtn === 3)
+                                      ? "url('/images/Button_Square_Highlighted.png')"
+                                      : "url('/images/Button_Square.png')",
+                                    backgroundSize: "100% 100%",
+                                    imageRendering: "pixelated",
+                                  }}
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
+                                    <polyline points="3 6 5 6 21 6" />
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                  </svg>
+                                </button>
+                              </>
+                            )}
                           </>
                         )}
                       </>
                     )}
-                  </>
-                )}
                   </div>
                 </div>
               );
             })}
 
-            <div className="w-full flex items-center justify-center p-2 mt-1">
+            <div className="w-full flex items-center justify-center gap-4 p-2 mt-1">
               <button
                 onClick={() => {
                   playPressSound();
+                  setInitialPath("");
                   setIsImportModalOpen(true);
                 }}
-                onMouseEnter={() => setHoveredBtn({row: editions.length, btn: 'add'})}
+                onMouseEnter={() => setFocusIndex(editions.length)}
                 onMouseLeave={() => setHoveredBtn(null)}
                 className="w-8 h-8 flex items-center justify-center text-[#3a3a3a]"
                 style={{
@@ -521,8 +529,33 @@ const VersionsView = memo(function VersionsView() {
                 }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="square">
-                  <path d="M12 5v14M5 12h14"/>
+                  <path d="M12 5v14M5 12h14" />
                 </svg>
+              </button>
+
+              <button
+                onClick={() => {
+                  playPressSound();
+                  handleImportFolder();
+                }}
+                onMouseEnter={() => setFocusIndex(editions.length + 1)}
+                onMouseLeave={() => setHoveredBtn(null)}
+                title="Import Custom TU"
+                className="w-8 h-8 flex items-center justify-center text-[#3a3a3a]"
+                style={{
+                  backgroundImage: (hoveredBtn?.row === editions.length && hoveredBtn?.btn === 'folder_import') || focusIndex === editions.length + 1
+                    ? "url('/images/Button_Square_Highlighted.png')"
+                    : "url('/images/Button_Square.png')",
+                  backgroundSize: "100% 100%",
+                  imageRendering: "pixelated",
+                }}
+              >
+                <img
+                  src="/images/Folder_Icon.png"
+                  alt="Import Custom TU"
+                  className="w-5 h-5 object-contain"
+                  style={{ imageRendering: "pixelated" }}
+                />
               </button>
             </div>
           </div>
@@ -531,15 +564,15 @@ const VersionsView = memo(function VersionsView() {
 
       <div className="flex justify-center">
         <button
-          data-index={editions.length + 1}
-          onMouseEnter={() => setFocusIndex(editions.length + 1)}
+          data-index={editions.length + 2}
+          onMouseEnter={() => setFocusIndex(editions.length + 2)}
           onClick={() => {
             playBackSound();
             setActiveView("main");
           }}
           className="w-48 h-10 flex items-center justify-center text-xl mc-text-shadow outline-none border-none text-white"
           style={{
-            backgroundImage: focusIndex === editions.length + 1
+            backgroundImage: focusIndex === editions.length + 2
               ? "url('/images/button_highlighted.png')"
               : "url('/images/Button_Background.png')",
             backgroundSize: "100% 100%",
@@ -555,6 +588,7 @@ const VersionsView = memo(function VersionsView() {
         onClose={() => {
           setIsImportModalOpen(false);
           setEditingEdition(null);
+          setInitialPath("");
         }}
         onImport={(ed: any) => {
           if (editingEdition) {
@@ -567,6 +601,7 @@ const VersionsView = memo(function VersionsView() {
         playPressSound={playPressSound}
         playBackSound={playBackSound}
         editingEdition={editingEdition}
+        initialPath={initialPath}
       />
 
       {deleteConfirmEdition && (

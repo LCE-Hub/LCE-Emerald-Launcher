@@ -18,6 +18,7 @@ export interface CustomEdition {
   name: string;
   desc: string;
   url: string;
+  path?: string;
 }
 
 export interface AppConfig {
@@ -197,5 +198,9 @@ export class TauriService {
 
   static async checkGameUpdate(instanceId: string, url: string): Promise<boolean> {
     return invoke("check_game_update", { instanceId, url });
+  }
+
+  static async pickFolder(): Promise<string> {
+    return invoke("pick_folder");
   }
 }
