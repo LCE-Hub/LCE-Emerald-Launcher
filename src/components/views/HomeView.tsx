@@ -140,7 +140,7 @@ const HomeView = memo(function HomeView() {
         <div className="pt-4 flex flex-col items-center w-full gap-3">
           <div className="flex gap-8">
             <a
-              href="https://discord.gg/vD8akRU24f"
+              href="https://discord.gg/NPMp9JhGYH"
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => {
