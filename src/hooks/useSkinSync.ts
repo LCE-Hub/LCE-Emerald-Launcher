@@ -34,13 +34,8 @@ export function useSkinSync({ username, profile, editions }: UseSkinSyncProps) {
     img.onload = async () => {
       if (cancelled) return;
       const cvs = document.createElement("canvas");
-      if (skinIsSlim) {
-        cvs.width = 64;
-        cvs.height = 64;
-      } else {
-        cvs.width = 64;
-        cvs.height = 32;
-      }
+      cvs.width = 64;
+      cvs.height = 32;
       const ctx = cvs.getContext("2d");
       if (ctx) {
         ctx.drawImage(img, 0, 0);
@@ -51,7 +46,7 @@ export function useSkinSync({ username, profile, editions }: UseSkinSyncProps) {
           const skinBuf = await res.arrayBuffer();
           const isModernHeight = img.height === 64;
           const animValue = skinIsSlim
-            ? "0x00080000"
+            ? "0x00041800"
             : isModernHeight
               ? "0x00040000"
               : "0x00000000";
@@ -59,11 +54,11 @@ export function useSkinSync({ username, profile, editions }: UseSkinSyncProps) {
           if (skinIsSlim) {
             boxes.push({
               key: "BOX",
-              value: "ARM0 -2 1 -1 3 10 3 40 16 0 0 0",
+              value: "ARM0 -2 -2 -2 3 12 4 40 16 0 0 0",
             });
             boxes.push({
               key: "BOX",
-              value: "ARM1 -1 1 -1 3 10 3 52 16 0 0 0",
+              value: "ARM1 -1 -2 -2 3 12 4 40 16 0 1 0",
             });
           }
 
@@ -131,7 +126,7 @@ export function useSkinSync({ username, profile, editions }: UseSkinSyncProps) {
                 },
                 {
                   key: "GAME_FLAGS",
-                  value: "0x1c",
+                  value: "0x18",
                 },
                 {
                   key: "FREE",
