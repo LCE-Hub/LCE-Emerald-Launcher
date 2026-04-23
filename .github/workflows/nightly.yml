@@ -1,7 +1,8 @@
 name: 'nightly'
 on:
-  push:
-    branches: ["main"]
+  schedule:
+    - cron: '0 17 * * *' #neo: 5PM UTC
+  workflow_dispatch:
 
 jobs:
   nightly-tauri:
@@ -91,7 +92,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    needs: nightly-tauri  # Wait for Tauri release to be created
     container:
       image: bilelmoussaoui/flatpak-github-actions:freedesktop-23.08
       options: --privileged
