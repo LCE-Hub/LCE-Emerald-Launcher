@@ -36,6 +36,8 @@ pub struct CustomEdition {
     pub desc: String,
     pub url: String,
     pub path: Option<String>,
+    pub category: Option<Vec<String>>,
+    pub logo: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -1504,6 +1506,31 @@ async fn fetch_skin(username: String) -> Result<(String, String), String> {
 }
 
 #[tauri::command]
+async fn download_logo(app: AppHandle, id: String, url: String) -> Result<String, String> {
+    let logos_dir = get_app_dir(&app).join("logos");
+    fs::create_dir_all(&logos_dir).map_err(|e| e.to_string())?;
+    let file_ext = if url.to_lowercase().ends_with(".png") {
+        "png"
+    } else if url.to_lowercase().ends_with(".jpg") || url.to_lowercase().ends_with(".jpeg") {
+        "jpg"
+    } else {
+        "png"
+    };
+
+    let filename = format!("{}.{}", id, file_ext);
+    let dest_path = logos_dir.join(&filename);
+    let response = reqwest::get(&url).await.map_err(|e| e.to_string())?;
+    if !response.status().is_success() {
+        return Err(format!("Failed to download logo: {}", response.status()));
+    }
+
+    let bytes = response.bytes().await.map_err(|e| e.to_string())?;
+    fs::write(&dest_path, bytes).map_err(|e| e.to_string())?;
+
+    Ok(dest_path.to_string_lossy().to_string())
+}
+
+#[tauri::command]
 fn get_screenshots(app: AppHandle) -> Vec<ScreenshotInfo> {
     let mut screenshots = Vec::new();
     let instances_dir = get_app_dir(&app).join("instances");
@@ -1589,7 +1616,7 @@ pub fn run() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, pick_folder, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast])
+        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, pick_folder, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast, download_logo])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -2,12 +2,14 @@ import { useState, useEffect, memo, useCallback, useRef, useContext } from 'reac
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useUI, useAudio, useConfig, GameContext } from '../../context/LauncherContext';
+import { useUI, useAudio, useConfig, GameContext, useGame } from '../../context/LauncherContext';
 import { TauriService, InstalledWorkshopPackage } from '../../services/TauriService';
 const REGISTRY_URL = 'https://raw.githubusercontent.com/LCE-Hub/LCE-Workshop/refs/heads/main/registry.json';
+const VERSIONS_URL = 'https://raw.githubusercontent.com/LCE-Hub/LCE-Workshop/refs/heads/main/versions.json';
 const RAW_BASE = 'https://raw.githubusercontent.com/LCE-Hub/LCE-Workshop/refs/heads/main';
+const VERSIONS_BASE = 'https://raw.githubusercontent.com/LCE-Hub/LCE-Workshop/refs/heads/main/.00versions';
 const CATEGORY_TABS = ['Skin', 'Texture', 'World', 'Mod', 'DLC'] as const;
-const ALL_TABS = [...CATEGORY_TABS, 'Installed', 'Search'] as const;
+const ALL_TABS = [...CATEGORY_TABS, 'Versions', 'Installed', 'Search'] as const;
 type TabType = typeof ALL_TABS[number];
 interface RegistryPackage {
   id: string;
@@ -17,8 +19,10 @@ interface RegistryPackage {
   extended_description?: string;
   category: string[];
   thumbnail: string;
-  zips: Record<string, string>;
+  zips?: Record<string, string>;
   version: string;
+  logo?: string;
+  url?: string;
 }
 
 const COLS = 4;
@@ -31,6 +35,7 @@ const WorkshopView = memo(function WorkshopView() {
   const searchRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<TabType>('Skin');
   const [allPackages, setAllPackages] = useState<RegistryPackage[]>([]);
+  const [versionPackages, setVersionPackages] = useState<RegistryPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [focusedIdx, setFocusedIdx] = useState<number | null>(null);
@@ -54,13 +59,13 @@ const WorkshopView = memo(function WorkshopView() {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    fetch(REGISTRY_URL)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((data) => {
-        setAllPackages(data.packages ?? []);
+    Promise.all([
+      fetch(REGISTRY_URL).then(r => r.json()),
+      fetch(VERSIONS_URL).then(r => r.json())
+    ])
+      .then(([registryData, versionsData]) => {
+        setAllPackages(registryData.packages ?? []);
+        setVersionPackages(versionsData.versionlist ?? []);
         setLoading(false);
       })
       .catch((e) => {
@@ -70,17 +75,33 @@ const WorkshopView = memo(function WorkshopView() {
   }, []);
 
   const getInstalledEntries = useCallback((pkgId: string) => {
+    if (activeTab === 'Versions') {
+      const isAdded = config.customEditions?.some((e: any) => e.id === pkgId || (e.url === versionPackages.find(p => p.id === pkgId)?.url));
+      if (isAdded) {
+        const vPkg = versionPackages.find(p => p.id === pkgId);
+        return [{
+          packageId: pkgId,
+          instanceId: pkgId,
+          version: vPkg?.version || '0.0.0',
+        }] as InstalledWorkshopPackage[];
+      }
+      return [];
+    }
     return installedPkgs.filter((p) => p.packageId === pkgId);
-  }, [installedPkgs]);
+  }, [installedPkgs, activeTab, config.customEditions, versionPackages]);
 
   const isInstalled = useCallback((pkgId: string) => {
+    if (activeTab === 'Versions') {
+      return config.customEditions?.some((e: any) => e.id === pkgId || (e.url === versionPackages.find(p => p.id === pkgId)?.url)) ?? false;
+    }
     return installedPkgs.some((p) => p.packageId === pkgId);
-  }, [installedPkgs]);
+  }, [installedPkgs, activeTab, config.customEditions, versionPackages]);
 
   const hasUpdate = useCallback((pkg: RegistryPackage) => {
+    if (activeTab === 'Versions') return false;
     const entries = installedPkgs.filter((p) => p.packageId === pkg.id);
     return entries.length > 0 && entries.some((e) => e.version !== pkg.version);
-  }, [installedPkgs]);
+  }, [installedPkgs, activeTab]);
 
   const installedPackageList = allPackages.filter((pkg) => isInstalled(pkg.id));
   const filteredItems = activeTab === 'Installed'
@@ -90,8 +111,8 @@ const WorkshopView = memo(function WorkshopView() {
         return pkg.name.toLowerCase().includes(q) || pkg.author.toLowerCase().includes(q) || pkg.description.toLowerCase().includes(q);
       })
       : installedPackageList)
-    : allPackages.filter((pkg) => {
-      const matchesTab = activeTab === 'Search' ? true : pkg.category.includes(activeTab);
+    : (activeTab === 'Versions' ? versionPackages : allPackages).filter((pkg) => {
+      const matchesTab = (activeTab === 'Search' || activeTab === 'Versions') ? true : pkg.category.includes(activeTab);
       if (!matchesTab) return false;
       if (!search.trim()) return activeTab === 'Search' ? false : true;
       const q = search.toLowerCase();
@@ -190,7 +211,8 @@ const WorkshopView = memo(function WorkshopView() {
 
   const isSearchTab = activeTab === 'Search';
   const isInstalledTab = activeTab === 'Installed';
-  const showSearch = isSearchTab || isInstalledTab;
+  const isVersionTab = activeTab === 'Versions';
+  const showSearch = isSearchTab || isInstalledTab || isVersionTab;
   return (
     <motion.div
       ref={containerRef}
@@ -264,7 +286,7 @@ const WorkshopView = memo(function WorkshopView() {
                     type="text"
                     value={search}
                     onChange={(e) => { setSearch(e.target.value); setFocusedIdx(null); }}
-                    placeholder={isInstalledTab ? "FILTER INSTALLED..." : "ENTER KEYWORDS..."}
+                    placeholder={isInstalledTab ? "FILTER INSTALLED..." : (isVersionTab ? "FILTER VERSIONS..." : "ENTER KEYWORDS...")}
                     spellCheck={false}
                     autoFocus={isSearchTab}
                     className="bg-transparent border-none outline-none text-white text-lg mc-text-shadow w-full placeholder-white/40 font-['Mojangles'] tracking-widest"
@@ -307,6 +329,7 @@ const WorkshopView = memo(function WorkshopView() {
                         onClick={() => openModal(pkg)}
                         installed={isInstalled(pkg.id)}
                         hasUpdate={hasUpdate(pkg)}
+                        isVersionTab={isVersionTab}
                       />
                     ))}
                   </div>
@@ -348,6 +371,7 @@ const WorkshopView = memo(function WorkshopView() {
                       onClick={() => openModal(pkg)}
                       installed={isInstalled(pkg.id)}
                       hasUpdate={hasUpdate(pkg)}
+                      isVersionTab={isVersionTab}
                     />
                   ))}
                 </div>
@@ -378,6 +402,7 @@ const WorkshopView = memo(function WorkshopView() {
             installedEntries={getInstalledEntries(selectedPkg.id)}
             onInstallComplete={refreshInstalled}
             onUninstallComplete={refreshInstalled}
+            isVersionTab={activeTab === 'Versions'}
           />
         )}
       </AnimatePresence>
@@ -385,7 +410,7 @@ const WorkshopView = memo(function WorkshopView() {
   );
 });
 
-function PackageCard({ pkg, index, focused, onHover, onClick, installed, hasUpdate }: {
+function PackageCard({ pkg, index, focused, onHover, onClick, installed, hasUpdate, isVersionTab }: {
   pkg: RegistryPackage;
   index: number;
   focused: boolean;
@@ -393,8 +418,11 @@ function PackageCard({ pkg, index, focused, onHover, onClick, installed, hasUpda
   onClick: () => void;
   installed: boolean;
   hasUpdate: boolean;
+  isVersionTab?: boolean;
 }) {
-  const thumbnailUrl = `${RAW_BASE}/${pkg.id}/${pkg.thumbnail}`;
+  const thumbnailUrl = isVersionTab
+    ? `${VERSIONS_BASE}/${pkg.id}/${pkg.thumbnail}`
+    : `${RAW_BASE}/${pkg.id}/${pkg.thumbnail}`;
   const [imgError, setImgError] = useState(false);
   return (
     <div
@@ -428,7 +456,7 @@ function PackageCard({ pkg, index, focused, onHover, onClick, installed, hasUpda
         )}
         {installed && !hasUpdate && (
           <div className="absolute top-1 left-1">
-            <span className="text-[8px] bg-[#55FF55] border border-[#55FF55]/60 px-1.5 py-0.5 text-[#55FF55] mc-text-shadow uppercase tracking-tighter">Installed</span>
+            <span className="text-[8px] bg-[#55FF55] border border-[#55FF55]/60 px-1.5 py-0.5 text-[#003300] mc-text-shadow uppercase tracking-tighter shadow-sm font-bold">{isVersionTab ? 'Added' : 'Installed'}</span>
           </div>
         )}
       </div>
@@ -448,22 +476,26 @@ function PackageCard({ pkg, index, focused, onHover, onClick, installed, hasUpda
   );
 }
 
-function PackageModal({ pkg, onClose, playPressSound, installedEntries, onInstallComplete, onUninstallComplete }: {
+function PackageModal({ pkg, onClose, playPressSound, installedEntries, onInstallComplete, onUninstallComplete, isVersionTab }: {
   pkg: RegistryPackage;
   onClose: () => void;
   playPressSound: () => void;
   installedEntries: InstalledWorkshopPackage[];
   onInstallComplete: () => void;
   onUninstallComplete: () => void;
+  isVersionTab?: boolean;
 }) {
-  const thumbnailUrl = `${RAW_BASE}/${pkg.id}/${pkg.thumbnail}`;
+  const { addCustomEdition } = useGame();
+  const thumbnailUrl = isVersionTab
+    ? `${VERSIONS_BASE}/${pkg.id}/${pkg.thumbnail}`
+    : `${RAW_BASE}/${pkg.id}/${pkg.thumbnail}`;
   const [imgError, setImgError] = useState(false);
   const [modalFocus, setModalFocus] = useState<'install' | 'uninstall' | 'close'>('install');
   const [showInstall, setShowInstall] = useState(false);
   const [showUninstall, setShowUninstall] = useState(false);
   const hasInstalled = installedEntries.length > 0;
   const needsUpdate = hasInstalled && installedEntries.some((e) => e.version !== pkg.version);
-  const focusOptions: Array<'install' | 'uninstall' | 'close'> = hasInstalled
+  const focusOptions: Array<'install' | 'uninstall' | 'close'> = (hasInstalled || isVersionTab)
     ? ['install', 'uninstall', 'close']
     : ['install', 'close'];
 
@@ -481,7 +513,7 @@ function PackageModal({ pkg, onClose, playPressSound, installedEntries, onInstal
         });
       } else if (e.key === 'Enter') {
         if (modalFocus === 'close') onClose();
-        else if (modalFocus === 'install') setShowInstall(true);
+        else if (modalFocus === 'install') handleAction();
         else if (modalFocus === 'uninstall') setShowUninstall(true);
       }
     };
@@ -489,7 +521,31 @@ function PackageModal({ pkg, onClose, playPressSound, installedEntries, onInstal
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [modalFocus, showInstall, showUninstall, onClose, playPressSound, focusOptions]);
 
-  const installLabel = !hasInstalled ? 'INSTALL' : needsUpdate ? 'UPDATE' : 'REINSTALL';
+  const handleAction = async () => {
+    if (isVersionTab) {
+      if (hasInstalled) return;
+      playPressSound();
+      try {
+        const logoUrl = `${VERSIONS_BASE}/${pkg.id}/${pkg.logo}`;
+        const localLogoPath = await TauriService.downloadLogo(pkg.id, logoUrl);
+        addCustomEdition({
+          id: pkg.id,
+          name: pkg.name,
+          desc: pkg.description,
+          url: pkg.url!,
+          category: pkg.category,
+          logo: localLogoPath
+        });
+        onInstallComplete();
+      } catch (e) {
+        console.error(e);
+      }
+    } else {
+      setShowInstall(true);
+    }
+  };
+
+  const installLabel = isVersionTab ? (hasInstalled ? 'ADDED' : 'ADD') : (!hasInstalled ? 'INSTALL' : needsUpdate ? 'UPDATE' : 'REINSTALL');
   return (
     <>
       <motion.div
@@ -587,8 +643,7 @@ function PackageModal({ pkg, onClose, playPressSound, installedEntries, onInstal
                 </div>
               </div>
             </div>
-
-            {Object.keys(pkg.zips).length > 0 && (
+            {pkg.zips && Object.keys(pkg.zips).length > 0 && (
               <div className="flex flex-col gap-3 pt-4 border-t border-[#333]">
                 <span className="text-[10px] text-[#666] mc-text-shadow uppercase tracking-[0.2em] font-bold">Files</span>
                 <div className="space-y-1.5">
@@ -605,7 +660,7 @@ function PackageModal({ pkg, onClose, playPressSound, installedEntries, onInstal
             <div className="flex items-center gap-4 pt-4 mt-auto">
               <button
                 onMouseEnter={() => setModalFocus('install')}
-                onClick={() => setShowInstall(true)}
+                onClick={handleAction}
                 className={`flex-1 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all ${modalFocus === 'install' ? 'text-[#FFFF55] scale-105' : 'text-white'}`}
                 style={{
                   backgroundImage: modalFocus === 'install' ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
@@ -662,6 +717,7 @@ function PackageModal({ pkg, onClose, playPressSound, installedEntries, onInstal
             installedEntries={installedEntries}
             onClose={() => { setShowUninstall(false); onUninstallComplete(); }}
             playPressSound={playPressSound}
+            isVersionTab={isVersionTab}
           />
         )}
       </AnimatePresence>
@@ -713,7 +769,7 @@ function InstallModal({ pkg, onClose, playPressSound }: {
     setErrorMsg(null);
     playPressSound();
     try {
-      await TauriService.workshopInstall(instanceId, pkg.id, pkg.zips, pkg.version);
+      await TauriService.workshopInstall(instanceId, pkg.id, pkg.zips!, pkg.version);
       setStatus('success');
     } catch (e: any) {
       console.error(e);
@@ -799,12 +855,14 @@ function InstallModal({ pkg, onClose, playPressSound }: {
   );
 }
 
-function UninstallModal({ pkg, installedEntries, onClose, playPressSound }: {
+function UninstallModal({ pkg, installedEntries, onClose, playPressSound, isVersionTab }: {
   pkg: RegistryPackage;
   installedEntries: InstalledWorkshopPackage[];
   onClose: () => void;
   playPressSound: () => void;
+  isVersionTab?: boolean;
 }) {
+  const { deleteCustomEdition } = useGame();
   const game = useContext(GameContext);
   const [focusedIdx, setFocusedIdx] = useState(0);
   const [status, setStatus] = useState<'idle' | 'removing' | 'success' | 'error'>('idle');
@@ -848,7 +906,11 @@ function UninstallModal({ pkg, installedEntries, onClose, playPressSound }: {
     setErrorMsg(null);
     playPressSound();
     try {
-      await TauriService.workshopUninstall(instanceId, pkg.id);
+      if (isVersionTab) {
+        deleteCustomEdition(pkg.id);
+      } else {
+        await TauriService.workshopUninstall(instanceId, pkg.id);
+      }
       setStatus('success');
     } catch (e: any) {
       console.error(e);

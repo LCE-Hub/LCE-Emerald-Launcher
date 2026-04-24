@@ -19,6 +19,8 @@ export interface CustomEdition {
   desc: string;
   url: string;
   path?: string;
+  category?: string[];
+  logo?: string;
 }
 
 export interface AppConfig {
@@ -202,5 +204,9 @@ export class TauriService {
 
   static async pickFolder(): Promise<string> {
     return invoke("pick_folder");
+  }
+
+  static async downloadLogo(id: string, url: string): Promise<string> {
+    return invoke("download_logo", { id, url });
   }
 }

@@ -218,8 +218,8 @@ export function useGameManager({
   }, [profile]);
 
   const addCustomEdition = useCallback(
-    (edition: { name: string; desc: string; url: string; path?: string }) => {
-      const id = `custom_${Date.now()}`;
+    (edition: { name: string; desc: string; url: string; path?: string; category?: string[]; logo?: string; id?: string }) => {
+      const id = edition.id || `custom_${Date.now()}`;
       const newEdition = {
         ...edition,
         id,

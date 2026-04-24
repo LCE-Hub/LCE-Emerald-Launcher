@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { TauriService } from "../../services/TauriService";
 import CustomTUModal from "../modals/CustomTUModal";
 import { useUI, useConfig, useAudio, useGame } from "../../context/LauncherContext";
-
 interface DeleteConfirmButtonProps {
   label: string;
   onClick: () => void;
@@ -277,7 +276,7 @@ const VersionsView = memo(function VersionsView() {
                     <div className="flex items-center gap-2">
                       {edition.logo && (
                         <img
-                          src={edition.logo}
+                          src={edition.logo.startsWith('http') || edition.logo.startsWith('/images') ? edition.logo : `screenshots://localhost/${edition.logo}`}
                           alt=""
                           className="w-5 h-5 object-contain flex-shrink-0"
                           style={{ imageRendering: "pixelated" }}
@@ -290,7 +289,12 @@ const VersionsView = memo(function VersionsView() {
                       >
                         {edition.name}
                       </span>
-                      {isCustom && (
+                      {edition.category && edition.category.map((cat: string) => (
+                        <span key={cat} className="text-[9px] px-1.5 py-0.5 bg-[#444] text-[#aaa] font-bold uppercase border border-[#555] mc-text-shadow">
+                          {cat}
+                        </span>
+                      ))}
+                      {isCustom && !edition.category && (
                         <span className="text-[10px] px-1.5 py-0.5 bg-[#777] text-[#222] font-bold uppercase">
                           Custom
                         </span>
