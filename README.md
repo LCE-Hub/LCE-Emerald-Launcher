@@ -3,7 +3,7 @@
   <h1>LCE Emerald Launcher</h1>
   <p><strong>FOSS cross-platform launcher for Minecraft Legacy Console Edition</strong></p>
   <p>
-    <img src="https://img.shields.io/badge/version-1.0.0-blue?style=flat-square" alt="Version">
+    <img src="https://img.shields.io/badge/version-b1.1.0-blue?style=flat-square" alt="Version">
     <img src="https://img.shields.io/badge/license-GPL--3.0-green?style=flat-square" alt="License">
     <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20GNU/Linux-lightgrey?style=flat-square" alt="Platforms">
   </p>
