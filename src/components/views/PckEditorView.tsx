@@ -4,22 +4,25 @@ import { useUI, useAudio, useConfig } from "../../context/LauncherContext";
 import { PckService } from "../../services/PckService";
 import { PCKFile, PCKAsset, PCKAssetType } from "../../types/pck";
 import SkinPreview3D from "../common/SkinPreview3D";
+import { TauriService } from "../../services/TauriService";
+
 export default function PckEditorView() {
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { animationsEnabled } = useConfig();
   const [pck, setPck] = useState<PCKFile | null>(null);
+  const [openedPath, setOpenedPath] = useState<string | null>(null);
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditingProperty, setIsEditingProperty] = useState<{ idx: number, key: string, val: string } | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [notification, setNotification] = useState<{ message: string, type: "success" | "error" } | null>(null);
-  const [showTypeModal, setShowTypeModal] = useState<{ file: File, data: Uint8Array } | null>(null);
+  const [showTypeModal, setShowTypeModal] = useState<{ file: { name: string, data: Uint8Array } } | null>(null);
   const [isChangingType, setIsChangingType] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const replaceInputRef = useRef<HTMLInputElement>(null);
   const addAssetInputRef = useRef<HTMLInputElement>(null);
+
   const treeData = useMemo(() => {
     if (!pck) return [];
     interface TempNode {
@@ -152,19 +155,22 @@ export default function PckEditorView() {
     });
   };
 
-  const handleFileLoad = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    playPressSound();
-    const buffer = await file.arrayBuffer();
+  const handleFileLoad = async () => {
     try {
-      const parsed = await PckService.readPCK(buffer);
+      const path = await TauriService.pickFile("Open PCK", ["pck"]);
+      if (!path) return;
+      playPressSound();
+      const bytes = await TauriService.readBinaryFile(path);
+      const parsed = await PckService.readPCK(bytes.buffer as ArrayBuffer);
       setPck(parsed);
+      setOpenedPath(path);
       setSelectedAssetId(parsed.files[0]?.id || null);
       setExpandedFolders(new Set());
-    } catch (err) {
-      console.error("Failed to parse PCK", err);
-      showNotification("Failed to parse PCK", "error");
+    } catch (err: any) {
+      if (err !== "CANCELED") {
+        console.error("Failed to parse PCK", err);
+        showNotification("Failed to parse PCK", "error");
+      }
     }
   };
 
@@ -178,27 +184,28 @@ export default function PckEditorView() {
       files: []
     };
     setPck(newPck);
+    setOpenedPath(null);
     setSelectedAssetId(null);
     setExpandedFolders(new Set());
     showNotification("New PCK Created");
   };
-
 
   const showNotification = (message: string, type: "success" | "error" = "success") => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3000);
   };
 
-  const handleExportAsset = (asset: PCKAsset) => {
-    playPressSound();
-    const blob = new Blob([asset.data as any]);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = asset.path.split("/").pop() || "asset";
-    a.click();
-    URL.revokeObjectURL(url);
-    showNotification(`Exported: ${asset.path.split("/").pop()}`);
+  const handleExportAsset = async (asset: PCKAsset) => {
+    try {
+      const fileName = asset.path.split("/").pop() || "asset";
+      const path = await TauriService.saveFileDialog("Export Asset", fileName, []);
+      if (!path) return;
+      playPressSound();
+      await TauriService.writeBinaryFile(path, asset.data);
+      showNotification(`Exported: ${fileName}`);
+    } catch (err: any) {
+      if (err !== "CANCELED") showNotification("Export failed", "error");
+    }
   };
 
   const handleDeleteAsset = (id: string) => {
@@ -233,19 +240,19 @@ export default function PckEditorView() {
     playPressSound();
     const buffer = await file.arrayBuffer();
     const data = new Uint8Array(buffer);
-    setShowTypeModal({ file, data });
+    setShowTypeModal({ file: { name: file.name, data } });
     e.target.value = "";
   };
 
   const confirmAddAsset = (type: PCKAssetType) => {
     if (!pck || !showTypeModal) return;
-    const { file, data } = showTypeModal;
+    const { file } = showTypeModal;
     const newAsset: PCKAsset = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).substring(2, 9),
       path: file.name,
       type,
-      size: data.length,
-      data,
+      size: file.data.length,
+      data: file.data,
       properties: []
     };
 
@@ -332,18 +339,66 @@ export default function PckEditorView() {
     setPck({ ...pck, files: newFiles });
   };
 
-  const handleSavePCK = () => {
+  const handleRenameAsset = (id: string, newPath: string) => {
+    if (!pck) return;
+    playPressSound();
+    const newFiles = pck.files.map(f => {
+      if (f.id === id) {
+        return { ...f, path: newPath };
+      }
+      return f;
+    });
+    setPck({ ...pck, files: newFiles });
+    showNotification("Asset Renamed");
+  };
+
+  const handleExportAll = async () => {
+    if (!pck || pck.files.length === 0) return;
+    try {
+      const baseFolder = await TauriService.pickFolder();
+      if (!baseFolder) return;
+      playPressSound();
+      showNotification("Exporting all assets...");
+
+      for (const asset of pck.files) {
+        const parts = asset.path.split("/");
+        let currentPath = baseFolder;
+        
+        // This won't work easily if we need to create subdirectories, 
+        // normally we should tell the backend to write with directory creation
+        // but for now let's hope writeBinaryFile handles it if we pass the full path
+        // Actually, write_binary_file in lib.rs uses fs::write which doesn't create parents.
+        // I'll update write_binary_file in lib.rs later if needed.
+        // For now let's just write to the flat folder with the filename.
+        const fileName = parts.join("_");
+        await TauriService.writeBinaryFile(`${baseFolder}/${fileName}`, asset.data);
+      }
+      showNotification("All Assets Exported");
+    } catch (err: any) {
+      if (err !== "CANCELED") showNotification("Export failed", "error");
+    }
+  };
+
+  const handleSavePCK = async () => {
     if (!pck) return;
     playPressSound();
     const buffer = PckService.serializePCK(pck);
-    const blob = new Blob([buffer]);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = pck.files.length > 0 ? "new.pck" : "empty.pck";
-    a.click();
-    URL.revokeObjectURL(url);
-    showNotification("PCK Saved Successfully");
+    const data = new Uint8Array(buffer);
+
+    try {
+      let targetPath = openedPath;
+      if (!targetPath) {
+        targetPath = await TauriService.saveFileDialog("Save PCK", pck.files.length > 0 ? "new.pck" : "empty.pck", ["pck"]);
+      }
+      
+      if (targetPath) {
+        await TauriService.writeBinaryFile(targetPath, data);
+        setOpenedPath(targetPath);
+        showNotification("PCK Saved Successfully");
+      }
+    } catch (err: any) {
+      if (err !== "CANCELED") showNotification("Save failed", "error");
+    }
   };
 
   useEffect(() => {
@@ -377,6 +432,8 @@ export default function PckEditorView() {
     }
   };
 
+  const [isRenamingAsset, setIsRenamingAsset] = useState<string | null>(null);
+
   return (
     <motion.div
       ref={containerRef}
@@ -392,7 +449,7 @@ export default function PckEditorView() {
         </h2>
         <div className="flex gap-4">
           <button
-            onClick={() => fileInputRef.current?.click()}
+            onClick={handleFileLoad}
             className="px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none"
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
@@ -406,6 +463,14 @@ export default function PckEditorView() {
             New PCK
           </button>
           <button
+            onClick={handleExportAll}
+            disabled={!pck || pck.files.length === 0}
+            className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none ${(!pck || pck.files.length === 0) ? "opacity-50 grayscale" : ""}`}
+            style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+          >
+            Export All
+          </button>
+          <button
             onClick={handleSavePCK}
             disabled={!pck}
             className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none ${!pck ? "opacity-50 grayscale" : ""}`}
@@ -416,7 +481,35 @@ export default function PckEditorView() {
         </div>
       </div>
 
-      <input type="file" ref={fileInputRef} onChange={handleFileLoad} className="hidden" accept=".pck" />
+      {pck && (
+        <div className="w-full flex gap-4 px-8 mb-4">
+          <div className="flex gap-6 bg-black/40 border-2 border-[#373737] p-3 w-full">
+            <div className="flex items-center gap-2">
+              <span className="text-white/40 text-xs uppercase font-bold tracking-widest">Endianness:</span>
+              <button 
+                onClick={() => { playPressSound(); setPck({...pck, endianness: pck.endianness === "little" ? "big" : "little"}); }}
+                className="text-[#FFFF55] text-sm uppercase hover:underline"
+              >
+                {pck.endianness}
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-white/40 text-xs uppercase font-bold tracking-widest">XML Support:</span>
+              <button 
+                onClick={() => { playPressSound(); setPck({...pck, xmlSupport: !pck.xmlSupport}); }}
+                className={`${pck.xmlSupport ? "text-[#FFFF55]" : "text-white/20"} text-sm uppercase hover:underline`}
+              >
+                {pck.xmlSupport ? "Enabled" : "Disabled"}
+              </button>
+            </div>
+            <div className="flex items-center gap-2 ml-auto">
+              <span className="text-white/40 text-xs uppercase font-bold tracking-widest">Version:</span>
+              <span className="text-white text-sm">{pck.version}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <input type="file" ref={replaceInputRef} onChange={handleReplaceAsset} className="hidden" />
       <input type="file" ref={addAssetInputRef} onChange={handleAddAsset} className="hidden" />
       {!pck ? (
@@ -679,6 +772,13 @@ export default function PckEditorView() {
                         </button>
                       </div>
                       <button
+                        onClick={() => setIsRenamingAsset(selectedAsset.id)}
+                        className="w-full py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#FFFF55]"
+                        style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+                      >
+                        Rename Asset (Path)
+                      </button>
+                      <button
                         onClick={() => handleDeleteAsset(selectedAsset.id)}
                         className="w-full py-2 text-red-500/80 mc-text-shadow text-sm transition-all hover:text-red-500 hover:scale-[1.02]"
                         style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
@@ -774,6 +874,73 @@ export default function PckEditorView() {
           </div>
         )}
       </AnimatePresence>
+      <AnimatePresence>
+        {isRenamingAsset && (
+          <RenameAssetModal
+            initialPath={pck?.files.find(f => f.id === isRenamingAsset)?.path || ""}
+            onClose={() => setIsRenamingAsset(null)}
+            onConfirm={(newPath) => {
+              handleRenameAsset(isRenamingAsset, newPath);
+              setIsRenamingAsset(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
+  );
+}
+
+function RenameAssetModal({ initialPath, onClose, onConfirm }: { initialPath: string, onClose: () => void, onConfirm: (path: string) => void }) {
+  const [path, setPath] = useState(initialPath);
+  return (
+    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        className="relative w-full max-w-lg p-8 flex flex-col"
+        style={{
+          backgroundImage: "url('/images/frame_background.png')",
+          backgroundSize: "100% 100%",
+          imageRendering: "pixelated"
+        }}
+      >
+        <h3 className="text-2xl text-[#FFFF55] mc-text-shadow font-bold mb-6 tracking-widest uppercase">Rename Asset</h3>
+        <div className="flex flex-col gap-4">
+          <div>
+            <label className="text-white/40 text-[10px] uppercase tracking-widest mb-1 block">New Asset Path</label>
+            <input
+              type="text"
+              value={path}
+              onChange={(e) => setPath(e.target.value)}
+              className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-3 outline-none focus:border-[#FFFF55] transition-colors"
+              autoFocus
+            />
+          </div>
+          <div className="flex justify-end gap-4 mt-4">
+            <button
+              onClick={onClose}
+              className="px-6 py-2 text-white/60 hover:text-white transition-colors uppercase tracking-widest text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => onConfirm(path)}
+              className="px-8 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none"
+              style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+            >
+              Rename
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
 }

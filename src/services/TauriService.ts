@@ -206,6 +206,23 @@ export class TauriService {
     return invoke("pick_folder");
   }
 
+  static async pickFile(title: string, filters: string[]): Promise<string> {
+    return invoke("pick_file", { title, filters });
+  }
+
+  static async saveFileDialog(title: string, filename: string, filters: string[]): Promise<string> {
+    return invoke("save_file_dialog", { title, filename, filters });
+  }
+
+  static async writeBinaryFile(path: string, data: Uint8Array): Promise<void> {
+    return invoke("write_binary_file", { path, data: Array.from(data) });
+  }
+
+  static async readBinaryFile(path: string): Promise<Uint8Array> {
+    const data: number[] = await invoke("read_binary_file", { path });
+    return new Uint8Array(data);
+  }
+
   static async downloadLogo(id: string, url: string): Promise<string> {
     return invoke("download_logo", { id, url });
   }

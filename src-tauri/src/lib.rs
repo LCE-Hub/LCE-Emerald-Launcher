@@ -299,7 +299,7 @@ fn import_theme(app: AppHandle) -> Result<String, String> {
 #[tauri::command]
 fn pick_folder() -> Result<String, String> {
     let folder = rfd::FileDialog::new()
-        .set_title("Select Custom TU Folder")
+        .set_title("Select Export Folder")
         .pick_folder();
 
     if let Some(path) = folder {
@@ -307,6 +307,44 @@ fn pick_folder() -> Result<String, String> {
     } else {
         Err("CANCELED".into())
     }
+}
+
+#[tauri::command]
+fn pick_file(title: String, filters: Vec<String>) -> Result<String, String> {
+    let mut dialog = rfd::FileDialog::new().set_title(&title);
+    if !filters.is_empty() {
+        let filters_ref: Vec<&str> = filters.iter().map(|s| s.as_str()).collect();
+        dialog = dialog.add_filter("Files", &filters_ref);
+    }
+    if let Some(path) = dialog.pick_file() {
+        Ok(path.to_string_lossy().to_string())
+    } else {
+        Err("CANCELED".into())
+    }
+}
+
+#[tauri::command]
+fn save_file_dialog(title: String, filename: String, filters: Vec<String>) -> Result<String, String> {
+    let mut dialog = rfd::FileDialog::new().set_title(&title).set_file_name(&filename);
+    if !filters.is_empty() {
+        let filters_ref: Vec<&str> = filters.iter().map(|s| s.as_str()).collect();
+        dialog = dialog.add_filter("Files", &filters_ref);
+    }
+    if let Some(path) = dialog.save_file() {
+        Ok(path.to_string_lossy().to_string())
+    } else {
+        Err("CANCELED".into())
+    }
+}
+
+#[tauri::command]
+fn write_binary_file(path: String, data: Vec<u8>) -> Result<(), String> {
+    fs::write(path, data).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn read_binary_file(path: String) -> Result<Vec<u8>, String> {
+    fs::read(path).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -1686,7 +1724,7 @@ pub fn run() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, pick_folder, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast, download_logo])
+        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, pick_folder, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast, download_logo, pick_file, save_file_dialog, write_binary_file, read_binary_file])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
