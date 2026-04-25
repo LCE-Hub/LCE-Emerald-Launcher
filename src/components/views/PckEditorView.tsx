@@ -13,10 +13,21 @@ export default function PckEditorView() {
   const [openedPath, setOpenedPath] = useState<string | null>(null);
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isEditingProperty, setIsEditingProperty] = useState<{ idx: number, key: string, val: string } | null>(null);
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
-  const [notification, setNotification] = useState<{ message: string, type: "success" | "error" } | null>(null);
-  const [showTypeModal, setShowTypeModal] = useState<{ file: { name: string, data: Uint8Array } } | null>(null);
+  const [isEditingProperty, setIsEditingProperty] = useState<{
+    idx: number;
+    key: string;
+    val: string;
+  } | null>(null);
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+    new Set(),
+  );
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
+  const [showTypeModal, setShowTypeModal] = useState<{
+    file: { name: string; data: Uint8Array };
+  } | null>(null);
   const [isChangingType, setIsChangingType] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const replaceInputRef = useRef<HTMLInputElement>(null);
@@ -32,8 +43,12 @@ export default function PckEditorView() {
     }
 
     const root: Record<string, TempNode> = {};
-    pck.files.forEach(asset => {
-      if (searchTerm && !asset.path.toLowerCase().includes(searchTerm.toLowerCase())) return;
+    pck.files.forEach((asset) => {
+      if (
+        searchTerm &&
+        !asset.path.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+        return;
       const parts = asset.path.split("/");
       let currentLevel = root;
       let currentPath = "";
@@ -46,7 +61,7 @@ export default function PckEditorView() {
             path: currentPath,
             isFolder: !isLast,
             asset: isLast ? asset : undefined,
-            children: {}
+            children: {},
           };
         }
         currentLevel = currentLevel[part].children;
@@ -60,9 +75,9 @@ export default function PckEditorView() {
           if (!a.isFolder && b.isFolder) return 1;
           return a.name.localeCompare(b.name);
         })
-        .map(node => ({
+        .map((node) => ({
           ...node,
-          children: convert(node.children)
+          children: convert(node.children),
         }));
     };
 
@@ -70,13 +85,24 @@ export default function PckEditorView() {
   }, [pck, searchTerm]);
 
   const selectedAsset = useMemo(() => {
-    return pck?.files.find(f => f.id === selectedAssetId) || null;
+    return pck?.files.find((f) => f.id === selectedAssetId) || null;
   }, [pck, selectedAssetId]);
 
-  const [assetPreview, setAssetPreview] = useState<{ id: string, url: string } | null>(null);
+  const [assetPreview, setAssetPreview] = useState<{
+    id: string;
+    url: string;
+  } | null>(null);
 
   useEffect(() => {
-    if (!selectedAsset || ![PCKAssetType.SKIN, PCKAssetType.CAPE, PCKAssetType.TEXTURE, PCKAssetType.SKIN_DATA].includes(selectedAsset.type)) {
+    if (
+      !selectedAsset ||
+      ![
+        PCKAssetType.SKIN,
+        PCKAssetType.CAPE,
+        PCKAssetType.TEXTURE,
+        PCKAssetType.SKIN_DATA,
+      ].includes(selectedAsset.type)
+    ) {
       setAssetPreview(null);
       return;
     }
@@ -90,7 +116,10 @@ export default function PckEditorView() {
     };
   }, [selectedAsset]);
 
-  const assetPreviewUrl = (assetPreview && selectedAsset && assetPreview.id === selectedAsset.id) ? assetPreview.url : null;
+  const assetPreviewUrl =
+    assetPreview && selectedAsset && assetPreview.id === selectedAsset.id
+      ? assetPreview.url
+      : null;
 
   const toggleFolder = (path: string) => {
     const next = new Set(expandedFolders);
@@ -100,7 +129,7 @@ export default function PckEditorView() {
   };
 
   const renderTree = (nodes: any[], depth = 0) => {
-    return nodes.map(node => {
+    return nodes.map((node) => {
       const isExpanded = expandedFolders.has(node.path) || !!searchTerm;
       const isSelected = selectedAssetId === node.asset?.id;
       return (
@@ -115,14 +144,19 @@ export default function PckEditorView() {
               }
             }}
             style={{ paddingLeft: `${depth * 16 + 12}px` }}
-            className={`flex items-center gap-2 p-2 cursor-pointer transition-all border-l-2 ${isSelected
-              ? "bg-[#FFFF55]/10 border-[#FFFF55] text-[#FFFF55]"
-              : "border-transparent hover:bg-white/5 text-white"
-              } ${node.isFolder ? "font-bold" : ""}`}
+            className={`flex items-center gap-2 p-2 cursor-pointer transition-all border-l-2 ${
+              isSelected
+                ? "bg-[#FFFF55]/10 border-[#FFFF55] text-[#FFFF55]"
+                : "border-transparent hover:bg-white/5 text-white"
+            } ${node.isFolder ? "font-bold" : ""}`}
           >
             {node.isFolder ? (
               <img
-                src={isExpanded ? "/images/Settings_Arrow_Down.png" : "/images/Settings_Arrow_Right.png"}
+                src={
+                  isExpanded
+                    ? "/images/Settings_Arrow_Down.png"
+                    : "/images/Settings_Arrow_Right.png"
+                }
                 className="w-3 h-3 object-contain opacity-80"
                 style={{ imageRendering: "pixelated" }}
               />
@@ -130,7 +164,11 @@ export default function PckEditorView() {
               <div className="w-3" />
             )}
             <img
-              src={node.isFolder ? "/images/Folder_Icon.png" : "/images/tools/pck.png"}
+              src={
+                node.isFolder
+                  ? "/images/Folder_Icon.png"
+                  : "/images/tools/pck.png"
+              }
               className={`w-4 h-4 object-contain ${isSelected ? "" : "grayscale opacity-60"}`}
               style={{ imageRendering: "pixelated" }}
             />
@@ -179,7 +217,7 @@ export default function PckEditorView() {
       endianness: "little",
       xmlSupport: false,
       properties: ["ANIM", "BOX"],
-      files: []
+      files: [],
     };
     setPck(newPck);
     setOpenedPath(null);
@@ -188,7 +226,10 @@ export default function PckEditorView() {
     showNotification("New PCK Created");
   };
 
-  const showNotification = (message: string, type: "success" | "error" = "success") => {
+  const showNotification = (
+    message: string,
+    type: "success" | "error" = "success",
+  ) => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3000);
   };
@@ -196,7 +237,11 @@ export default function PckEditorView() {
   const handleExportAsset = async (asset: PCKAsset) => {
     try {
       const fileName = asset.path.split("/").pop() || "asset";
-      const path = await TauriService.saveFileDialog("Export Asset", fileName, []);
+      const path = await TauriService.saveFileDialog(
+        "Export Asset",
+        fileName,
+        [],
+      );
       if (!path) return;
       playPressSound();
       await TauriService.writeBinaryFile(path, asset.data);
@@ -209,8 +254,8 @@ export default function PckEditorView() {
   const handleDeleteAsset = (id: string) => {
     if (!pck) return;
     playBackSound();
-    const newFiles = pck.files.filter(f => f.id !== id);
-    const assetPath = pck.files.find(f => f.id === id)?.path;
+    const newFiles = pck.files.filter((f) => f.id !== id);
+    const assetPath = pck.files.find((f) => f.id === id)?.path;
     setPck({ ...pck, files: newFiles });
     if (selectedAssetId === id) setSelectedAssetId(newFiles[0]?.id || null);
     showNotification(`Deleted: ${assetPath?.split("/").pop()}`);
@@ -225,7 +270,9 @@ export default function PckEditorView() {
     const buffer = await file.arrayBuffer();
     const data = new Uint8Array(buffer);
 
-    const newFiles = pck.files.map(f => f.id === selectedAssetId ? { ...f, data, size: data.length } : f);
+    const newFiles = pck.files.map((f) =>
+      f.id === selectedAssetId ? { ...f, data, size: data.length } : f,
+    );
     setPck({ ...pck, files: newFiles });
     e.target.value = "";
     showNotification("Asset Replaced");
@@ -251,7 +298,7 @@ export default function PckEditorView() {
       type,
       size: file.data.length,
       data: file.data,
-      properties: []
+      properties: [],
     };
 
     if (type === PCKAssetType.SKIN || type === PCKAssetType.CAPE) {
@@ -266,7 +313,7 @@ export default function PckEditorView() {
 
   const handlePropertyEdit = (idx: number, newVal: string, isKey = false) => {
     if (!pck || !selectedAssetId) return;
-    const newFiles = pck.files.map(f => {
+    const newFiles = pck.files.map((f) => {
       if (f.id === selectedAssetId) {
         const newProps = [...f.properties];
         if (isKey) {
@@ -287,11 +334,11 @@ export default function PckEditorView() {
   const handleAddProperty = () => {
     if (!pck || !selectedAssetId) return;
     playPressSound();
-    const newFiles = pck.files.map(f => {
+    const newFiles = pck.files.map((f) => {
       if (f.id === selectedAssetId) {
         return {
           ...f,
-          properties: [...f.properties, { key: "NEW_PROPERTY", value: "0" }]
+          properties: [...f.properties, { key: "NEW_PROPERTY", value: "0" }],
         };
       }
       return f;
@@ -302,7 +349,7 @@ export default function PckEditorView() {
   const handleRemoveProperty = (idx: number) => {
     if (!pck || !selectedAssetId) return;
     playBackSound();
-    const newFiles = pck.files.map(f => {
+    const newFiles = pck.files.map((f) => {
       if (f.id === selectedAssetId) {
         const newProps = [...f.properties];
         newProps.splice(idx, 1);
@@ -316,7 +363,7 @@ export default function PckEditorView() {
   const handleTypeChange = (newType: PCKAssetType) => {
     if (!pck || !selectedAssetId) return;
     playPressSound();
-    const newFiles = pck.files.map(f => {
+    const newFiles = pck.files.map((f) => {
       if (f.id === selectedAssetId) {
         return { ...f, type: newType };
       }
@@ -325,11 +372,11 @@ export default function PckEditorView() {
     setPck({ ...pck, files: newFiles });
   };
 
-  const handleMoveAsset = (direction: 'up' | 'down') => {
+  const handleMoveAsset = (direction: "up" | "down") => {
     if (!pck || !selectedAssetId) return;
-    const idx = pck.files.findIndex(f => f.id === selectedAssetId);
+    const idx = pck.files.findIndex((f) => f.id === selectedAssetId);
     if (idx === -1) return;
-    const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+    const newIdx = direction === "up" ? idx - 1 : idx + 1;
     if (newIdx < 0 || newIdx >= pck.files.length) return;
     playPressSound();
     const newFiles = [...pck.files];
@@ -340,7 +387,7 @@ export default function PckEditorView() {
   const handleRenameAsset = (id: string, newPath: string) => {
     if (!pck) return;
     playPressSound();
-    const newFiles = pck.files.map(f => {
+    const newFiles = pck.files.map((f) => {
       if (f.id === id) {
         return { ...f, path: newPath };
       }
@@ -359,9 +406,11 @@ export default function PckEditorView() {
       showNotification("Exporting all assets...");
       for (const asset of pck.files) {
         const parts = asset.path.split("/");
-        let currentPath = baseFolder;
         const fileName = parts.join("_");
-        await TauriService.writeBinaryFile(`${baseFolder}/${fileName}`, asset.data);
+        await TauriService.writeBinaryFile(
+          `${baseFolder}/${fileName}`,
+          asset.data,
+        );
       }
       showNotification("All Assets Exported");
     } catch (err: any) {
@@ -377,7 +426,11 @@ export default function PckEditorView() {
     try {
       let targetPath = openedPath;
       if (!targetPath) {
-        targetPath = await TauriService.saveFileDialog("Save PCK", pck.files.length > 0 ? "new.pck" : "empty.pck", ["pck"]);
+        targetPath = await TauriService.saveFileDialog(
+          "Save PCK",
+          pck.files.length > 0 ? "new.pck" : "empty.pck",
+          ["pck"],
+        );
       }
 
       if (targetPath) {
@@ -409,15 +462,24 @@ export default function PckEditorView() {
 
   const getTypeColor = (type: PCKAssetType) => {
     switch (type) {
-      case PCKAssetType.SKIN: return "#FFFF55";
-      case PCKAssetType.SKIN_DATA: return "#FFFF55";
-      case PCKAssetType.CAPE: return "#AA00AA";
-      case PCKAssetType.TEXTURE: return "#55FFFF";
-      case PCKAssetType.AUDIO_DATA: return "#55FF55";
-      case PCKAssetType.UI_DATA: return "#FFAA00";
-      case PCKAssetType.LOCALISATION: return "#FF55FF";
-      case PCKAssetType.MODELS: return "#5555FF";
-      default: return "#AAAAAA";
+      case PCKAssetType.SKIN:
+        return "#FFFF55";
+      case PCKAssetType.SKIN_DATA:
+        return "#FFFF55";
+      case PCKAssetType.CAPE:
+        return "#AA00AA";
+      case PCKAssetType.TEXTURE:
+        return "#55FFFF";
+      case PCKAssetType.AUDIO_DATA:
+        return "#55FF55";
+      case PCKAssetType.UI_DATA:
+        return "#FFAA00";
+      case PCKAssetType.LOCALISATION:
+        return "#FF55FF";
+      case PCKAssetType.MODELS:
+        return "#5555FF";
+      default:
+        return "#AAAAAA";
     }
   };
 
@@ -440,22 +502,31 @@ export default function PckEditorView() {
           <button
             onClick={handleFileLoad}
             className="px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none"
-            style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+            style={{
+              backgroundImage: "url('/images/Button_Background.png')",
+              backgroundSize: "100% 100%",
+            }}
           >
             Open PCK
           </button>
           <button
             onClick={handleNewPCK}
             className="px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none"
-            style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+            style={{
+              backgroundImage: "url('/images/Button_Background.png')",
+              backgroundSize: "100% 100%",
+            }}
           >
             New PCK
           </button>
           <button
             onClick={handleExportAll}
             disabled={!pck || pck.files.length === 0}
-            className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none ${(!pck || pck.files.length === 0) ? "opacity-50 grayscale" : ""}`}
-            style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+            className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none ${!pck || pck.files.length === 0 ? "opacity-50 grayscale" : ""}`}
+            style={{
+              backgroundImage: "url('/images/Button_Background.png')",
+              backgroundSize: "100% 100%",
+            }}
           >
             Export All
           </button>
@@ -463,7 +534,10 @@ export default function PckEditorView() {
             onClick={handleSavePCK}
             disabled={!pck}
             className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none ${!pck ? "opacity-50 grayscale" : ""}`}
-            style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+            style={{
+              backgroundImage: "url('/images/Button_Background.png')",
+              backgroundSize: "100% 100%",
+            }}
           >
             Save PCK
           </button>
@@ -474,42 +548,86 @@ export default function PckEditorView() {
         <div className="w-full flex gap-4 px-8 mb-4">
           <div className="flex gap-6 bg-black/40 border-2 border-[#373737] p-3 w-full">
             <div className="flex items-center gap-2">
-              <span className="text-white/40 text-xs uppercase font-bold tracking-widest">Endianness:</span>
+              <span className="text-white/40 text-xs uppercase font-bold tracking-widest">
+                Endianness:
+              </span>
               <button
-                onClick={() => { playPressSound(); setPck({ ...pck, endianness: pck.endianness === "little" ? "big" : "little" }); }}
+                onClick={() => {
+                  playPressSound();
+                  setPck({
+                    ...pck,
+                    endianness: pck.endianness === "little" ? "big" : "little",
+                  });
+                }}
                 className="text-[#FFFF55] text-sm uppercase hover:underline"
               >
                 {pck.endianness}
               </button>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-white/40 text-xs uppercase font-bold tracking-widest">XML Support:</span>
+              <span className="text-white/40 text-xs uppercase font-bold tracking-widest">
+                XML Support:
+              </span>
               <button
-                onClick={() => { playPressSound(); setPck({ ...pck, xmlSupport: !pck.xmlSupport }); }}
+                onClick={() => {
+                  playPressSound();
+                  setPck({ ...pck, xmlSupport: !pck.xmlSupport });
+                }}
                 className={`${pck.xmlSupport ? "text-[#FFFF55]" : "text-white/20"} text-sm uppercase hover:underline`}
               >
                 {pck.xmlSupport ? "Enabled" : "Disabled"}
               </button>
             </div>
             <div className="flex items-center gap-2 ml-auto">
-              <span className="text-white/40 text-xs uppercase font-bold tracking-widest">Version:</span>
+              <span className="text-white/40 text-xs uppercase font-bold tracking-widest">
+                Version:
+              </span>
               <span className="text-white text-sm">{pck.version}</span>
             </div>
           </div>
         </div>
       )}
 
-      <input type="file" ref={replaceInputRef} onChange={handleReplaceAsset} className="hidden" />
-      <input type="file" ref={addAssetInputRef} onChange={handleAddAsset} className="hidden" />
+      <input
+        type="file"
+        ref={replaceInputRef}
+        onChange={handleReplaceAsset}
+        className="hidden"
+      />
+      <input
+        type="file"
+        ref={addAssetInputRef}
+        onChange={handleAddAsset}
+        className="hidden"
+      />
       {!pck ? (
-        <div className="flex-1 w-full flex flex-col items-center justify-center p-12"
-          style={{ backgroundImage: "url('/images/frame_background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}>
-          <img src="/images/tools/pck.png" className="w-32 h-32 mb-8 opacity-20 grayscale" style={{ imageRendering: "pixelated" }} />
-          <h3 className="text-2xl text-white/40 mc-text-shadow italic">Open a PCK file to begin editing</h3>
+        <div
+          className="flex-1 w-full flex flex-col items-center justify-center p-12"
+          style={{
+            backgroundImage: "url('/images/frame_background.png')",
+            backgroundSize: "100% 100%",
+            imageRendering: "pixelated",
+          }}
+        >
+          <img
+            src="/images/tools/pck.png"
+            className="w-32 h-32 mb-8 opacity-20 grayscale"
+            style={{ imageRendering: "pixelated" }}
+          />
+          <h3 className="text-2xl text-white/40 mc-text-shadow italic">
+            Open a PCK file to begin editing
+          </h3>
         </div>
       ) : (
         <div className="flex-1 w-full flex gap-4 overflow-hidden">
-          <div className="w-2/3 flex flex-col p-4" style={{ backgroundImage: "url('/images/frame_background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}>
+          <div
+            className="w-2/3 flex flex-col p-4"
+            style={{
+              backgroundImage: "url('/images/frame_background.png')",
+              backgroundSize: "100% 100%",
+              imageRendering: "pixelated",
+            }}
+          >
             <div className="mb-4 flex gap-4">
               <input
                 type="text"
@@ -521,7 +639,10 @@ export default function PckEditorView() {
               <button
                 onClick={() => addAssetInputRef.current?.click()}
                 className="px-4 py-2 text-white mc-text-shadow text-sm shrink-0"
-                style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+                style={{
+                  backgroundImage: "url('/images/Button_Background.png')",
+                  backgroundSize: "100% 100%",
+                }}
               >
                 Add Asset
               </button>
@@ -530,11 +651,22 @@ export default function PckEditorView() {
               {renderTree(treeData)}
             </div>
           </div>
-          <div className="w-1/3 flex flex-col p-6 overflow-y-auto" style={{ backgroundImage: "url('/images/frame_background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}>
+          <div
+            className="w-1/3 flex flex-col p-6 overflow-y-auto"
+            style={{
+              backgroundImage: "url('/images/frame_background.png')",
+              backgroundSize: "100% 100%",
+              imageRendering: "pixelated",
+            }}
+          >
             <AnimatePresence mode="wait">
               {!selectedAsset ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-white/20 italic gap-4">
-                  <img src="/images/tools/pck.png" className="w-16 h-16 opacity-10 grayscale" style={{ imageRendering: "pixelated" }} />
+                  <img
+                    src="/images/tools/pck.png"
+                    className="w-16 h-16 opacity-10 grayscale"
+                    style={{ imageRendering: "pixelated" }}
+                  />
                   <span>Select an asset to view details</span>
                 </div>
               ) : (
@@ -554,8 +686,14 @@ export default function PckEditorView() {
                           onClick={() => setIsChangingType(!isChangingType)}
                           className="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-sm transition-all group/type"
                         >
-                          <span className="text-[10px] uppercase tracking-widest mc-text-shadow font-bold" style={{ color: getTypeColor(selectedAsset.type) }}>
-                            {PCKAssetType[selectedAsset.type].replace(/_/g, " ")}
+                          <span
+                            className="text-[10px] uppercase tracking-widest mc-text-shadow font-bold"
+                            style={{ color: getTypeColor(selectedAsset.type) }}
+                          >
+                            {PCKAssetType[selectedAsset.type].replace(
+                              /_/g,
+                              " ",
+                            )}
                           </span>
                           <img
                             src="/images/Settings_Arrow_Down.png"
@@ -580,16 +718,21 @@ export default function PckEditorView() {
                                 exit={{ opacity: 0, scale: 0.95, y: -10 }}
                                 className="absolute top-full left-0 mt-2 z-[130] p-2 min-w-[180px] grid grid-cols-1 gap-1 shadow-2xl"
                                 style={{
-                                  backgroundImage: "url('/images/frame_background.png')",
+                                  backgroundImage:
+                                    "url('/images/frame_background.png')",
                                   backgroundSize: "100% 100%",
-                                  imageRendering: "pixelated"
+                                  imageRendering: "pixelated",
                                 }}
                               >
                                 {Object.keys(PCKAssetType)
-                                  .filter(k => isNaN(Number(k)))
+                                  .filter((k) => isNaN(Number(k)))
                                   .map((typeName) => {
-                                    const typeVal = PCKAssetType[typeName as keyof typeof PCKAssetType];
-                                    const isActive = selectedAsset.type === typeVal;
+                                    const typeVal =
+                                      PCKAssetType[
+                                        typeName as keyof typeof PCKAssetType
+                                      ];
+                                    const isActive =
+                                      selectedAsset.type === typeVal;
                                     return (
                                       <button
                                         key={typeName}
@@ -597,13 +740,20 @@ export default function PckEditorView() {
                                           handleTypeChange(typeVal);
                                           setIsChangingType(false);
                                         }}
-                                        className={`w-full text-left px-3 py-2 text-[10px] uppercase tracking-widest transition-all border-l-2 ${isActive
-                                          ? "bg-white/10 border-[#FFFF55] text-white"
-                                          : "border-transparent text-white/40 hover:text-white/80 hover:bg-white/5"
-                                          }`}
+                                        className={`w-full text-left px-3 py-2 text-[10px] uppercase tracking-widest transition-all border-l-2 ${
+                                          isActive
+                                            ? "bg-white/10 border-[#FFFF55] text-white"
+                                            : "border-transparent text-white/40 hover:text-white/80 hover:bg-white/5"
+                                        }`}
                                       >
                                         <div className="flex items-center gap-2">
-                                          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: getTypeColor(typeVal) }} />
+                                          <div
+                                            className="w-1.5 h-1.5 rounded-full"
+                                            style={{
+                                              backgroundColor:
+                                                getTypeColor(typeVal),
+                                            }}
+                                          />
                                           {typeName.replace(/_/g, " ")}
                                         </div>
                                       </button>
@@ -616,24 +766,53 @@ export default function PckEditorView() {
                       </div>
                     </div>
                     <div className="flex gap-2 shrink-0">
-                      <button onClick={() => handleMoveAsset('up')} className="hover:scale-110 active:scale-95 transition-transform">
-                        <img src="/images/Settings_Arrow_Up.png" className="w-4 h-4 object-contain" style={{ imageRendering: "pixelated" }} />
+                      <button
+                        onClick={() => handleMoveAsset("up")}
+                        className="hover:scale-110 active:scale-95 transition-transform"
+                      >
+                        <img
+                          src="/images/Settings_Arrow_Up.png"
+                          className="w-4 h-4 object-contain"
+                          style={{ imageRendering: "pixelated" }}
+                        />
                       </button>
-                      <button onClick={() => handleMoveAsset('down')} className="hover:scale-110 active:scale-95 transition-transform">
-                        <img src="/images/Settings_Arrow_Down.png" className="w-4 h-4 object-contain" style={{ imageRendering: "pixelated" }} />
+                      <button
+                        onClick={() => handleMoveAsset("down")}
+                        className="hover:scale-110 active:scale-95 transition-transform"
+                      >
+                        <img
+                          src="/images/Settings_Arrow_Down.png"
+                          className="w-4 h-4 object-contain"
+                          style={{ imageRendering: "pixelated" }}
+                        />
                       </button>
                     </div>
                   </div>
 
                   {assetPreviewUrl && (
                     <div className="w-full h-[550px] bg-black/40 border-2 border-[#373737] mb-6 flex items-center justify-center overflow-hidden relative group">
-                      {(selectedAsset.type === PCKAssetType.SKIN || selectedAsset.type === PCKAssetType.CAPE || selectedAsset.type === PCKAssetType.SKIN_DATA) ? (
-                        <SkinPreview3D key={selectedAsset.id} asset={selectedAsset} previewUrl={assetPreviewUrl || undefined} className="w-full h-full" />
+                      {selectedAsset.type === PCKAssetType.SKIN ||
+                      selectedAsset.type === PCKAssetType.CAPE ||
+                      selectedAsset.type === PCKAssetType.SKIN_DATA ? (
+                        <SkinPreview3D
+                          key={selectedAsset.id}
+                          asset={selectedAsset}
+                          previewUrl={assetPreviewUrl || undefined}
+                          className="w-full h-full"
+                        />
                       ) : (
-                        <img src={assetPreviewUrl} className="max-w-full max-h-full object-contain" style={{ imageRendering: "pixelated" }} />
+                        <img
+                          src={assetPreviewUrl}
+                          className="max-w-full max-h-full object-contain"
+                          style={{ imageRendering: "pixelated" }}
+                        />
                       )}
                       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 px-2 py-1 rounded text-[10px] text-white/60 pointer-events-none uppercase tracking-widest">
-                        {selectedAsset.type === PCKAssetType.SKIN ? "3D Skin View" : selectedAsset.type === PCKAssetType.CAPE ? "3D Cape View" : "Texture Preview"}
+                        {selectedAsset.type === PCKAssetType.SKIN
+                          ? "3D Skin View"
+                          : selectedAsset.type === PCKAssetType.CAPE
+                            ? "3D Cape View"
+                            : "Texture Preview"}
                       </div>
                     </div>
                   )}
@@ -641,7 +820,9 @@ export default function PckEditorView() {
                   <div className="space-y-6 flex-1">
                     <div>
                       <div className="flex justify-between items-end mb-2 px-1">
-                        <div className="text-white/40 text-[10px] uppercase tracking-widest text-[#FFFF55]/60">Metadata Properties</div>
+                        <div className="text-white/40 text-[10px] uppercase tracking-widest text-[#FFFF55]/60">
+                          Metadata Properties
+                        </div>
                         <button
                           onClick={handleAddProperty}
                           className="text-[#FFFF55] text-[10px] uppercase hover:underline"
@@ -651,12 +832,17 @@ export default function PckEditorView() {
                       </div>
                       <div className="space-y-4">
                         {selectedAsset.properties.map((prop, idx) => (
-                          <div key={idx} className="flex flex-col gap-1 group/prop">
+                          <div
+                            key={idx}
+                            className="flex flex-col gap-1 group/prop"
+                          >
                             <div className="flex justify-between items-center px-1">
                               <input
                                 type="text"
                                 value={prop.key}
-                                onChange={(e) => handlePropertyEdit(idx, e.target.value, true)}
+                                onChange={(e) =>
+                                  handlePropertyEdit(idx, e.target.value, true)
+                                }
                                 className="bg-transparent text-white/40 text-[10px] outline-none hover:text-white/60 focus:text-[#FFFF55] w-2/3"
                               />
                               <button
@@ -670,7 +856,9 @@ export default function PckEditorView() {
                               <input
                                 type="text"
                                 value={prop.value}
-                                onChange={(e) => handlePropertyEdit(idx, e.target.value)}
+                                onChange={(e) =>
+                                  handlePropertyEdit(idx, e.target.value)
+                                }
                                 className="w-full bg-black/40 p-2 text-white border border-[#373737] text-sm focus:border-[#FFFF55] outline-none transition-colors"
                               />
                             </div>
@@ -694,7 +882,10 @@ export default function PckEditorView() {
                                   { label: "04: No Body", flag: 0x2000 },
                                   { label: "04: No R. Leg", flag: 0x4000 },
                                   { label: "04: No L. Leg", flag: 0x8000 },
-                                  { label: "05: No Head Overlay", flag: 0x10000 },
+                                  {
+                                    label: "05: No Head Overlay",
+                                    flag: 0x10000,
+                                  },
                                   { label: "05: Back Crouch", flag: 0x20000 },
                                   { label: "05: Modern Skin", flag: 0x40000 },
                                   { label: "05: Slim Skin", flag: 0x80000 },
@@ -703,18 +894,40 @@ export default function PckEditorView() {
                                   { label: "06: No L. Pant", flag: 0x400000 },
                                   { label: "06: No R. Pant", flag: 0x800000 },
                                   { label: "07: No Jacket", flag: 0x1000000 },
-                                  { label: "07: Rend Head Arm", flag: 0x2000000 },
-                                  { label: "07: Rend R.Arm Arm", flag: 0x4000000 },
-                                  { label: "07: Rend L.Arm Arm", flag: 0x8000000 },
-                                  { label: "08: Rend Body Arm", flag: 0x10000000 },
-                                  { label: "08: Rend R.Leg Arm", flag: 0x20000000 },
-                                  { label: "08: Rend L.Leg Arm", flag: 0x40000000 },
+                                  {
+                                    label: "07: Rend Head Arm",
+                                    flag: 0x2000000,
+                                  },
+                                  {
+                                    label: "07: Rend R.Arm Arm",
+                                    flag: 0x4000000,
+                                  },
+                                  {
+                                    label: "07: Rend L.Arm Arm",
+                                    flag: 0x8000000,
+                                  },
+                                  {
+                                    label: "08: Rend Body Arm",
+                                    flag: 0x10000000,
+                                  },
+                                  {
+                                    label: "08: Rend R.Leg Arm",
+                                    flag: 0x20000000,
+                                  },
+                                  {
+                                    label: "08: Rend L.Leg Arm",
+                                    flag: 0x40000000,
+                                  },
                                   { label: "08: Dinnerbone", flag: 0x80000000 },
                                 ].map((item) => {
                                   const currentVal = parseInt(prop.value) || 0;
-                                  const isChecked = (currentVal & item.flag) !== 0;
+                                  const isChecked =
+                                    (currentVal & item.flag) !== 0;
                                   return (
-                                    <label key={item.label} className="flex items-center gap-2 cursor-pointer group/flag">
+                                    <label
+                                      key={item.label}
+                                      className="flex items-center gap-2 cursor-pointer group/flag"
+                                    >
                                       <input
                                         type="checkbox"
                                         checked={isChecked}
@@ -722,12 +935,19 @@ export default function PckEditorView() {
                                           const newVal = e.target.checked
                                             ? currentVal | item.flag
                                             : currentVal & ~item.flag;
-                                          handlePropertyEdit(idx, `0x${newVal.toString(16).toUpperCase().padStart(8, "0")}`);
+                                          handlePropertyEdit(
+                                            idx,
+                                            `0x${newVal.toString(16).toUpperCase().padStart(8, "0")}`,
+                                          );
                                         }}
                                         className="hidden"
                                       />
-                                      <div className={`w-3 h-3 border transition-colors ${isChecked ? "bg-[#FFFF55] border-[#FFFF55]" : "border-white/20 group-hover/flag:border-white/40"}`} />
-                                      <span className={`text-[9px] uppercase tracking-tight ${isChecked ? "text-[#FFFF55]" : "text-white/40 group-hover/flag:text-white/60"}`}>
+                                      <div
+                                        className={`w-3 h-3 border transition-colors ${isChecked ? "bg-[#FFFF55] border-[#FFFF55]" : "border-white/20 group-hover/flag:border-white/40"}`}
+                                      />
+                                      <span
+                                        className={`text-[9px] uppercase tracking-tight ${isChecked ? "text-[#FFFF55]" : "text-white/40 group-hover/flag:text-white/60"}`}
+                                      >
                                         {item.label}
                                       </span>
                                     </label>
@@ -738,7 +958,9 @@ export default function PckEditorView() {
                           </div>
                         ))}
                         {selectedAsset.properties.length === 0 && (
-                          <div className="text-white/20 italic text-sm px-1 py-4 border-2 border-dashed border-[#373737] text-center">No metadata properties</div>
+                          <div className="text-white/20 italic text-sm px-1 py-4 border-2 border-dashed border-[#373737] text-center">
+                            No metadata properties
+                          </div>
                         )}
                       </div>
                     </div>
@@ -748,14 +970,22 @@ export default function PckEditorView() {
                         <button
                           onClick={() => handleExportAsset(selectedAsset)}
                           className="py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#FFFF55]"
-                          style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+                          style={{
+                            backgroundImage:
+                              "url('/images/Button_Background.png')",
+                            backgroundSize: "100% 100%",
+                          }}
                         >
                           Export
                         </button>
                         <button
                           onClick={() => replaceInputRef.current?.click()}
                           className="py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#FFFF55]"
-                          style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+                          style={{
+                            backgroundImage:
+                              "url('/images/Button_Background.png')",
+                            backgroundSize: "100% 100%",
+                          }}
                         >
                           Replace
                         </button>
@@ -763,14 +993,22 @@ export default function PckEditorView() {
                       <button
                         onClick={() => setIsRenamingAsset(selectedAsset.id)}
                         className="w-full py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#FFFF55]"
-                        style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+                        style={{
+                          backgroundImage:
+                            "url('/images/Button_Background.png')",
+                          backgroundSize: "100% 100%",
+                        }}
                       >
                         Rename Asset (Path)
                       </button>
                       <button
                         onClick={() => handleDeleteAsset(selectedAsset.id)}
                         className="w-full py-2 text-red-500/80 mc-text-shadow text-sm transition-all hover:text-red-500 hover:scale-[1.02]"
-                        style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+                        style={{
+                          backgroundImage:
+                            "url('/images/Button_Background.png')",
+                          backgroundSize: "100% 100%",
+                        }}
                       >
                         Delete This Asset
                       </button>
@@ -808,7 +1046,7 @@ export default function PckEditorView() {
             style={{
               backgroundImage: "url('/images/frame_background.png')",
               backgroundSize: "100% 100%",
-              imageRendering: "pixelated"
+              imageRendering: "pixelated",
             }}
           >
             <span className="text-white text-lg mc-text-shadow font-bold tracking-widest uppercase">
@@ -836,17 +1074,23 @@ export default function PckEditorView() {
               style={{
                 backgroundImage: "url('/images/frame_background.png')",
                 backgroundSize: "100% 100%",
-                imageRendering: "pixelated"
+                imageRendering: "pixelated",
               }}
             >
-              <h3 className="text-2xl text-[#FFFF55] mc-text-shadow font-bold mb-6 tracking-widest uppercase">Select Asset Type</h3>
+              <h3 className="text-2xl text-[#FFFF55] mc-text-shadow font-bold mb-6 tracking-widest uppercase">
+                Select Asset Type
+              </h3>
               <div className="grid grid-cols-2 gap-4 w-full">
                 {Object.keys(PCKAssetType)
-                  .filter(k => isNaN(Number(k)))
+                  .filter((k) => isNaN(Number(k)))
                   .map((typeName) => (
                     <button
                       key={typeName}
-                      onClick={() => confirmAddAsset(PCKAssetType[typeName as keyof typeof PCKAssetType])}
+                      onClick={() =>
+                        confirmAddAsset(
+                          PCKAssetType[typeName as keyof typeof PCKAssetType],
+                        )
+                      }
                       className="py-3 px-4 text-white mc-text-shadow text-sm transition-all hover:text-[#FFFF55] border-2 border-transparent hover:border-[#FFFF55]/30 bg-black/40"
                     >
                       {typeName.replace(/_/g, " ")}
@@ -866,7 +1110,9 @@ export default function PckEditorView() {
       <AnimatePresence>
         {isRenamingAsset && (
           <RenameAssetModal
-            initialPath={pck?.files.find(f => f.id === isRenamingAsset)?.path || ""}
+            initialPath={
+              pck?.files.find((f) => f.id === isRenamingAsset)?.path || ""
+            }
             onClose={() => setIsRenamingAsset(null)}
             onConfirm={(newPath) => {
               handleRenameAsset(isRenamingAsset, newPath);
@@ -879,7 +1125,15 @@ export default function PckEditorView() {
   );
 }
 
-function RenameAssetModal({ initialPath, onClose, onConfirm }: { initialPath: string, onClose: () => void, onConfirm: (path: string) => void }) {
+function RenameAssetModal({
+  initialPath,
+  onClose,
+  onConfirm,
+}: {
+  initialPath: string;
+  onClose: () => void;
+  onConfirm: (path: string) => void;
+}) {
   const [path, setPath] = useState(initialPath);
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
@@ -898,13 +1152,17 @@ function RenameAssetModal({ initialPath, onClose, onConfirm }: { initialPath: st
         style={{
           backgroundImage: "url('/images/frame_background.png')",
           backgroundSize: "100% 100%",
-          imageRendering: "pixelated"
+          imageRendering: "pixelated",
         }}
       >
-        <h3 className="text-2xl text-[#FFFF55] mc-text-shadow font-bold mb-6 tracking-widest uppercase">Rename Asset</h3>
+        <h3 className="text-2xl text-[#FFFF55] mc-text-shadow font-bold mb-6 tracking-widest uppercase">
+          Rename Asset
+        </h3>
         <div className="flex flex-col gap-4">
           <div>
-            <label className="text-white/40 text-[10px] uppercase tracking-widest mb-1 block">New Asset Path</label>
+            <label className="text-white/40 text-[10px] uppercase tracking-widest mb-1 block">
+              New Asset Path
+            </label>
             <input
               type="text"
               value={path}
@@ -923,7 +1181,10 @@ function RenameAssetModal({ initialPath, onClose, onConfirm }: { initialPath: st
             <button
               onClick={() => onConfirm(path)}
               className="px-8 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none"
-              style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+              style={{
+                backgroundImage: "url('/images/Button_Background.png')",
+                backgroundSize: "100% 100%",
+              }}
             >
               Rename
             </button>
