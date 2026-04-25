@@ -5,7 +5,6 @@ import { PckService } from "../../services/PckService";
 import { PCKFile, PCKAsset, PCKAssetType } from "../../types/pck";
 import SkinPreview3D from "../common/SkinPreview3D";
 import { TauriService } from "../../services/TauriService";
-
 export default function PckEditorView() {
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
@@ -22,7 +21,6 @@ export default function PckEditorView() {
   const containerRef = useRef<HTMLDivElement>(null);
   const replaceInputRef = useRef<HTMLInputElement>(null);
   const addAssetInputRef = useRef<HTMLInputElement>(null);
-
   const treeData = useMemo(() => {
     if (!pck) return [];
     interface TempNode {
@@ -359,17 +357,9 @@ export default function PckEditorView() {
       if (!baseFolder) return;
       playPressSound();
       showNotification("Exporting all assets...");
-
       for (const asset of pck.files) {
         const parts = asset.path.split("/");
         let currentPath = baseFolder;
-        
-        // This won't work easily if we need to create subdirectories, 
-        // normally we should tell the backend to write with directory creation
-        // but for now let's hope writeBinaryFile handles it if we pass the full path
-        // Actually, write_binary_file in lib.rs uses fs::write which doesn't create parents.
-        // I'll update write_binary_file in lib.rs later if needed.
-        // For now let's just write to the flat folder with the filename.
         const fileName = parts.join("_");
         await TauriService.writeBinaryFile(`${baseFolder}/${fileName}`, asset.data);
       }
@@ -384,13 +374,12 @@ export default function PckEditorView() {
     playPressSound();
     const buffer = PckService.serializePCK(pck);
     const data = new Uint8Array(buffer);
-
     try {
       let targetPath = openedPath;
       if (!targetPath) {
         targetPath = await TauriService.saveFileDialog("Save PCK", pck.files.length > 0 ? "new.pck" : "empty.pck", ["pck"]);
       }
-      
+
       if (targetPath) {
         await TauriService.writeBinaryFile(targetPath, data);
         setOpenedPath(targetPath);
@@ -486,8 +475,8 @@ export default function PckEditorView() {
           <div className="flex gap-6 bg-black/40 border-2 border-[#373737] p-3 w-full">
             <div className="flex items-center gap-2">
               <span className="text-white/40 text-xs uppercase font-bold tracking-widest">Endianness:</span>
-              <button 
-                onClick={() => { playPressSound(); setPck({...pck, endianness: pck.endianness === "little" ? "big" : "little"}); }}
+              <button
+                onClick={() => { playPressSound(); setPck({ ...pck, endianness: pck.endianness === "little" ? "big" : "little" }); }}
                 className="text-[#FFFF55] text-sm uppercase hover:underline"
               >
                 {pck.endianness}
@@ -495,8 +484,8 @@ export default function PckEditorView() {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-white/40 text-xs uppercase font-bold tracking-widest">XML Support:</span>
-              <button 
-                onClick={() => { playPressSound(); setPck({...pck, xmlSupport: !pck.xmlSupport}); }}
+              <button
+                onClick={() => { playPressSound(); setPck({ ...pck, xmlSupport: !pck.xmlSupport }); }}
                 className={`${pck.xmlSupport ? "text-[#FFFF55]" : "text-white/20"} text-sm uppercase hover:underline`}
               >
                 {pck.xmlSupport ? "Enabled" : "Disabled"}
