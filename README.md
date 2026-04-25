@@ -55,8 +55,8 @@ LCE Emerald Launcher is the easiest way to play Minecraft Legacy Console Edition
 
 | Feature | Description |
 |---------|-------------|
-| **Automated Setup** | One-click installation for TU19, Legacy Evolved, Revelations, and 360Revived versions |
-| **Cross-Platform** | Native support for Windows, macOS (Intel & Apple Silicon), and Linux |
+| **Automated Setup** | One-click installation for neoLegacy, Revelations, 360 Revived, and Hellish Ends |
+| **Cross-Platform** | Native support for Windows, macOS (Intel & Apple Silicon), and Linux (Steam Deck is supported !) |
 | **Lightweight** | Very light RAM usage thanks to Rust backend and Tauri framework |
 | **Easy Configuration** | Built-in settings for username, game parameters, and profiles |
 | **Skin Viewer** | Interactive skin preview using Three.js with layer support |
@@ -75,9 +75,10 @@ LCE Emerald Launcher integrates multiple community-driven builds of Minecraft Le
 
 | Build | Developer | Platform | Description |
 |-------|-----------|----------|-------------|
-| **[neoLegacy](https://github.com/pieeebot/neoLegacy)** | [@pieeebot](https://github.com/pieeebot) | GitHub | Backports newer title updates to LCE TU19 base. And Minigames. |
-| **[Revelations](https://github.com/itsRevela/MinecraftConsoles)** | [@itsRevela](https://github.com/itsRevela) | GitHub | Enhanced LCE with uncapped FPS, graphics fixes, hardcore hearts, and dedicated server security. Features LAN multiplayer, split-screen, and keyboard & mouse support. |
-| **[360 Revived](https://github.com/BluTac10/360Revived)** | [@BluTac10](https://github.com/BluTac10) | GitHub | PC port of Xbox 360 Edition TU19 with desktop optimizations. Features keyboard & mouse, fullscreen, LAN multiplayer, dedicated server, and split-screen support. |
+| **[neoLegacy](https://github.com/pieeebot/neoLegacy)** | [@pieeebot](https://github.com/pieeebot) | GitHub | Backports newer title updates to LCE TU19 base. And Minigames |
+| **[Revelations](https://github.com/itsRevela/MinecraftConsoles)** | [@itsRevela](https://github.com/itsRevela) | GitHub | Enhanced LCE with uncapped FPS, graphics fixes, hardcore hearts, and dedicated server security. Features LAN multiplayer, split-screen, and keyboard & mouse support |
+| **[360 Revived](https://github.com/BluTac10/360Revived)** | [@BluTac10](https://github.com/BluTac10) | GitHub | PC port of Xbox 360 Edition TU19 with desktop optimizations. Features keyboard & mouse, fullscreen, LAN multiplayer, dedicated server, and split-screen support |
+| **[Hellish Ends](https://github.com/deadvoxelx/HellishEnds)** | [DeadVoxelx](https://github.com/deadvoxelx) | GitHub | Modded build that overhauls Nether and End |
 
 ---
 
