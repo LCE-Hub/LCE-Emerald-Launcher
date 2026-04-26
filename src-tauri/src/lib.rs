@@ -744,7 +744,6 @@ fn copy_dir_all(src: impl AsRef<std::path::Path>, dst: impl AsRef<std::path::Pat
     }
     Ok(())
 }
-
 #[tauri::command]
 #[allow(non_snake_case)]
 async fn download_and_install(app: AppHandle, state: State<'_, DownloadState>, url: String, instance_id: String) -> Result<String, String> {
@@ -760,6 +759,11 @@ async fn download_and_install(app: AppHandle, state: State<'_, DownloadState>, u
         *lock = Some(token);
     }
 
+    let keep_list: std::collections::HashSet<&str> = [
+        "Windows64", "Windows64Media", "uid.dat", "username.txt", "settings.dat",
+        "servers.dat", "servers.txt", "server.properties", "options.txt", "servers.db",
+        "workshop_files.json", "screenshots", "update_timestamp.txt",
+    ].iter().copied().collect();
     if !instance_dir.exists() {
         fs::create_dir_all(&instance_dir).map_err(|e| e.to_string())?;
     } else {
@@ -777,24 +781,22 @@ async fn download_and_install(app: AppHandle, state: State<'_, DownloadState>, u
             for entry in entries.flatten() {
                 let file_name = entry.file_name();
                 let name_str = file_name.to_string_lossy();
-
-                let keep_list = ["Windows64", "Windows64Media", "uid.dat", "username.txt", "settings.dat", "servers.dat", "servers.txt", "server.properties", "options.txt", "servers.db", "workshop_files.json", "screenshots", "update_timestamp.txt"];
                 let entry_path_str = entry.path().to_string_lossy().to_string();
                 let is_workshop_file = workshop_files.iter().any(|wf| entry_path_str.starts_with(wf) || wf.starts_with(&entry_path_str));
-                if !keep_list.contains(&name_str.as_ref()) && !is_workshop_file {
+                if !keep_list.contains(name_str.as_ref()) && !is_workshop_file {
                     let path = entry.path();
                     if path.is_dir() {
                         let _ = fs::remove_dir_all(path);
                     } else {
                         let _ = fs::remove_file(path);
                     }
-                }            }
+                }
+            }
         }
     }
 
     let zip_path = root.join(format!("temp_{}.zip", instance_id));
     let response = reqwest::get(&url).await.map_err(|e| e.to_string())?;
-
     if !response.status().is_success() {
         return Err(format!("Download failed: {}", response.status()));
     }
@@ -811,21 +813,22 @@ async fn download_and_install(app: AppHandle, state: State<'_, DownloadState>, u
     let mut file = fs::File::create(&zip_path).map_err(|e| e.to_string())?;
     let mut downloaded = 0.0;
     let mut stream = response.bytes_stream();
-
     while let Some(chunk) = stream.next().await {
         if child_token.is_cancelled() {
-            drop(file); let _ = fs::remove_file(&zip_path);
+            drop(file);
+            let _ = fs::remove_file(&zip_path);
             return Err("CANCELLED".into());
         }
         let chunk = chunk.map_err(|e| e.to_string())?;
         file.write_all(&chunk).map_err(|e| e.to_string())?;
         downloaded += chunk.len() as f64;
-        if total_size > 0.0 { let _ = app.emit("download-progress", downloaded / total_size * 100.0); }
+        if total_size > 0.0 {
+            let _ = app.emit("download-progress", downloaded / total_size * 100.0);
+        }
     }
 
     drop(file);
     { *state.token.lock().await = None; }
-
     #[cfg(target_os = "linux")]
     {
         let unzip_check = Command::new("unzip").arg("-v").status();
@@ -856,7 +859,6 @@ async fn download_and_install(app: AppHandle, state: State<'_, DownloadState>, u
     }
 
     let _ = fs::remove_file(&zip_path);
-
     if let Ok(entries) = fs::read_dir(&instance_dir) {
         for entry in entries.flatten() {
             let path = entry.path();
@@ -867,7 +869,11 @@ async fn download_and_install(app: AppHandle, state: State<'_, DownloadState>, u
                     if let Ok(inner_entries) = fs::read_dir(&inner_dir) {
                         for inner_entry in inner_entries.flatten() {
                             let file_name = inner_entry.file_name();
-                            let dest_path = instance_dir.join(file_name);
+                            let name_str = file_name.to_string_lossy();
+                            let dest_path = instance_dir.join(&file_name);
+                            if keep_list.contains(name_str.as_ref()) && dest_path.exists() {
+                                continue;
+                            }
                             if fs::rename(inner_entry.path(), &dest_path).is_err() {
                                 if inner_entry.path().is_dir() {
                                     let _ = copy_dir_all(inner_entry.path(), &dest_path);
