@@ -1,14 +1,23 @@
 import { useState, useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUI, useAudio, useGame, useConfig } from "../../context/LauncherContext";
-import { ScreenshotService, ScreenshotInfo } from "../../services/ScreenshotService";
+import {
+  useUI,
+  useAudio,
+  useGame,
+  useConfig,
+} from "../../context/LauncherContext";
+import {
+  ScreenshotService,
+  ScreenshotInfo,
+} from "../../services/ScreenshotService";
 const ScreenshotsView = memo(function ScreenshotsView() {
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { editions } = useGame();
   const { animationsEnabled } = useConfig();
   const [screenshots, setScreenshots] = useState<ScreenshotInfo[]>([]);
-  const [selectedScreenshot, setSelectedScreenshot] = useState<ScreenshotInfo | null>(null);
+  const [selectedScreenshot, setSelectedScreenshot] =
+    useState<ScreenshotInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [gridFocusIndex, setGridFocusIndex] = useState(0);
   const [modalFocusIndex, setModalFocusIndex] = useState(0);
@@ -35,7 +44,9 @@ const ScreenshotsView = memo(function ScreenshotsView() {
     if (!selectedScreenshot) return;
     playPressSound();
     await ScreenshotService.deleteScreenshot(selectedScreenshot.path);
-    setScreenshots((prev) => prev.filter((s) => s.path !== selectedScreenshot.path));
+    setScreenshots((prev) =>
+      prev.filter((s) => s.path !== selectedScreenshot.path),
+    );
     setSelectedScreenshot(null);
     setShowDeleteConfirm(false);
   };
@@ -47,7 +58,11 @@ const ScreenshotsView = memo(function ScreenshotsView() {
         if (e.key === "Escape" || e.key === "Backspace") {
           playBackSound();
           setShowDeleteConfirm(false);
-        } else if (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "Tab") {
+        } else if (
+          e.key === "ArrowLeft" ||
+          e.key === "ArrowRight" ||
+          e.key === "Tab"
+        ) {
           e.preventDefault();
           playPressSound();
           setDeleteConfirmFocusIndex((prev) => (prev === 0 ? 1 : 0));
@@ -78,8 +93,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
             playPressSound();
             setDeleteConfirmFocusIndex(0);
             setShowDeleteConfirm(true);
-          }
-          else if (modalFocusIndex === 2) {
+          } else if (modalFocusIndex === 2) {
             playBackSound();
             setSelectedScreenshot(null);
           }
@@ -87,17 +101,22 @@ const ScreenshotsView = memo(function ScreenshotsView() {
         return;
       }
 
-      const cols = window.innerWidth >= 1024 ? 4 : window.innerWidth >= 768 ? 3 : 2;
+      const cols =
+        window.innerWidth >= 1024 ? 4 : window.innerWidth >= 768 ? 3 : 2;
       if (e.key === "Escape" || e.key === "Backspace") {
         handleBack();
       } else if (e.key === "ArrowLeft") {
         setGridFocusIndex((prev) => (prev > 0 ? prev - 1 : prev));
       } else if (e.key === "ArrowRight") {
-        setGridFocusIndex((prev) => (prev < screenshots.length - 1 ? prev + 1 : prev));
+        setGridFocusIndex((prev) =>
+          prev < screenshots.length - 1 ? prev + 1 : prev,
+        );
       } else if (e.key === "ArrowUp") {
         setGridFocusIndex((prev) => (prev >= cols ? prev - cols : prev));
       } else if (e.key === "ArrowDown") {
-        setGridFocusIndex((prev) => (prev <= screenshots.length - 1 - cols ? prev + cols : prev));
+        setGridFocusIndex((prev) =>
+          prev <= screenshots.length - 1 - cols ? prev + cols : prev,
+        );
       } else if (e.key === "Enter") {
         if (screenshots[gridFocusIndex]) {
           playPressSound();
@@ -109,7 +128,15 @@ const ScreenshotsView = memo(function ScreenshotsView() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [loading, selectedScreenshot, gridFocusIndex, modalFocusIndex, screenshots, showDeleteConfirm, deleteConfirmFocusIndex]);
+  }, [
+    loading,
+    selectedScreenshot,
+    gridFocusIndex,
+    modalFocusIndex,
+    screenshots,
+    showDeleteConfirm,
+    deleteConfirmFocusIndex,
+  ]);
 
   useEffect(() => {
     if (!selectedScreenshot) {
@@ -139,12 +166,18 @@ const ScreenshotsView = memo(function ScreenshotsView() {
         <div className="absolute inset-0 overflow-y-auto p-6 scroll-smooth custom-scrollbar">
           {loading ? (
             <div className="flex flex-col items-center justify-center h-full gap-4">
-              <span className="text-3xl text-[#FFFF55] mc-text-shadow tracking-widest animate-pulse uppercase">Scanning Archives...</span>
+              <span className="text-3xl text-[#FFFF55] mc-text-shadow tracking-widest animate-pulse uppercase">
+                Scanning Archives...
+              </span>
             </div>
           ) : screenshots.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full space-y-4 opacity-40">
-              <span className="text-2xl mc-text-shadow uppercase tracking-widest">No screenshots found</span>
-              <span className="text-sm mc-text-shadow tracking-widest italic">Take some in-game with F2</span>
+              <span className="text-2xl mc-text-shadow uppercase tracking-widest">
+                No screenshots found
+              </span>
+              <span className="text-sm mc-text-shadow tracking-widest italic">
+                Take some in-game with F2
+              </span>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -165,19 +198,23 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                   `}
                   style={{
                     backgroundImage: "url('/images/frame_background.png')",
-                    backgroundSize: '100% 100%',
-                    imageRendering: 'pixelated',
-                    boxShadow: gridFocusIndex === index ? '0 0 20px rgba(255, 255, 85, 0.2)' : 'none',
+                    backgroundSize: "100% 100%",
+                    imageRendering: "pixelated",
+                    boxShadow:
+                      gridFocusIndex === index
+                        ? "0 0 20px rgba(255, 255, 85, 0.2)"
+                        : "none",
                   }}
                 >
                   <div className="w-full h-full relative overflow-hidden bg-black/50">
                     <img
-                      src={`screenshots://localhost/${ss.path}`}
+                      src={`screenshots://localhost/${ss.path.replace(/\\/g, "/")}`}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       loading="lazy"
                       alt={ss.name}
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/images/Folder_Icon.png";
+                        (e.target as HTMLImageElement).src =
+                          "/images/Folder_Icon.png";
                       }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
@@ -212,11 +249,17 @@ const ScreenshotsView = memo(function ScreenshotsView() {
           `}
           style={{
             backgroundImage: "url('/images/Button_Background.png')",
-            backgroundSize: '100% 100%',
-            imageRendering: 'pixelated'
+            backgroundSize: "100% 100%",
+            imageRendering: "pixelated",
           }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundImage = "url('/images/button_highlighted.png')"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundImage = "url('/images/Button_Background.png')"; }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.backgroundImage =
+              "url('/images/button_highlighted.png')";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.backgroundImage =
+              "url('/images/Button_Background.png')";
+          }}
         >
           Back
         </button>
@@ -239,17 +282,18 @@ const ScreenshotsView = memo(function ScreenshotsView() {
               className="relative max-w-5xl w-full flex flex-col items-center border-2 border-[#555] rounded-sm p-2"
               style={{
                 backgroundImage: "url('/images/frame_background.png')",
-                backgroundSize: '100% 100%',
-                imageRendering: 'pixelated',
+                backgroundSize: "100% 100%",
+                imageRendering: "pixelated",
               }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="relative w-full aspect-video bg-black/60 overflow-hidden border border-[#444] rounded-sm">
                 <img
-                  src={`screenshots://localhost/${selectedScreenshot.path}`}
+                  src={`screenshots://localhost/${selectedScreenshot.path.replace(/\\/g, "/")}`}
                   className="w-full h-full object-contain"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/images/Pack_Icon.png";
+                    (e.target as HTMLImageElement).src =
+                      "/images/Pack_Icon.png";
                   }}
                 />
                 <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between pointer-events-none">
@@ -258,7 +302,10 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                       {selectedScreenshot.name}
                     </span>
                     <span className="text-sm text-[#FFFF55] mc-text-shadow uppercase tracking-widest opacity-90">
-                      Captured on {new Date(selectedScreenshot.date * 1000).toLocaleString()}
+                      Captured on{" "}
+                      {new Date(
+                        selectedScreenshot.date * 1000,
+                      ).toLocaleString()}
                     </span>
                   </div>
                   {getEditionLogo(selectedScreenshot.instanceId) && (
@@ -280,9 +327,12 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                     ${modalFocusIndex === 0 ? "text-[#FFFF55] scale-105" : "text-white"}
                   `}
                   style={{
-                    backgroundImage: modalFocusIndex === 0 ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
-                    backgroundSize: '100% 100%',
-                    imageRendering: 'pixelated',
+                    backgroundImage:
+                      modalFocusIndex === 0
+                        ? "url('/images/button_highlighted.png')"
+                        : "url('/images/Button_Background.png')",
+                    backgroundSize: "100% 100%",
+                    imageRendering: "pixelated",
                   }}
                 >
                   OPEN FOLDER
@@ -299,9 +349,12 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                     ${modalFocusIndex === 1 ? "text-[#FF5555] scale-105" : "text-white"}
                   `}
                   style={{
-                    backgroundImage: modalFocusIndex === 1 ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
-                    backgroundSize: '100% 100%',
-                    imageRendering: 'pixelated',
+                    backgroundImage:
+                      modalFocusIndex === 1
+                        ? "url('/images/button_highlighted.png')"
+                        : "url('/images/Button_Background.png')",
+                    backgroundSize: "100% 100%",
+                    imageRendering: "pixelated",
                   }}
                 >
                   DELETE
@@ -314,9 +367,12 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                     ${modalFocusIndex === 2 ? "text-[#FFFF55] scale-105" : "text-white"}
                   `}
                   style={{
-                    backgroundImage: modalFocusIndex === 2 ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
-                    backgroundSize: '100% 100%',
-                    imageRendering: 'pixelated',
+                    backgroundImage:
+                      modalFocusIndex === 2
+                        ? "url('/images/button_highlighted.png')"
+                        : "url('/images/Button_Background.png')",
+                    backgroundSize: "100% 100%",
+                    imageRendering: "pixelated",
                   }}
                 >
                   CLOSE
@@ -342,8 +398,8 @@ const ScreenshotsView = memo(function ScreenshotsView() {
               className="w-[420px] p-6 border-2 border-[#555] rounded-sm flex flex-col items-center"
               style={{
                 backgroundImage: "url('/images/frame_background.png')",
-                backgroundSize: '100% 100%',
-                imageRendering: 'pixelated',
+                backgroundSize: "100% 100%",
+                imageRendering: "pixelated",
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -354,15 +410,21 @@ const ScreenshotsView = memo(function ScreenshotsView() {
               <div className="flex gap-4 w-full">
                 <button
                   onMouseEnter={() => setDeleteConfirmFocusIndex(0)}
-                  onClick={() => { playBackSound(); setShowDeleteConfirm(false); }}
+                  onClick={() => {
+                    playBackSound();
+                    setShowDeleteConfirm(false);
+                  }}
                   className={`
                     flex-1 h-10 flex items-center justify-center text-lg mc-text-shadow border-none outline-none cursor-pointer transition-all
                     ${deleteConfirmFocusIndex === 0 ? "text-[#FFFF55] scale-105" : "text-white"}
                   `}
                   style={{
-                    backgroundImage: deleteConfirmFocusIndex === 0 ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
-                    backgroundSize: '100% 100%',
-                    imageRendering: 'pixelated',
+                    backgroundImage:
+                      deleteConfirmFocusIndex === 0
+                        ? "url('/images/button_highlighted.png')"
+                        : "url('/images/Button_Background.png')",
+                    backgroundSize: "100% 100%",
+                    imageRendering: "pixelated",
                   }}
                 >
                   CANCEL
@@ -375,9 +437,12 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                     ${deleteConfirmFocusIndex === 1 ? "text-[#FF5555] scale-105" : "text-white"}
                   `}
                   style={{
-                    backgroundImage: deleteConfirmFocusIndex === 1 ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
-                    backgroundSize: '100% 100%',
-                    imageRendering: 'pixelated',
+                    backgroundImage:
+                      deleteConfirmFocusIndex === 1
+                        ? "url('/images/button_highlighted.png')"
+                        : "url('/images/Button_Background.png')",
+                    backgroundSize: "100% 100%",
+                    imageRendering: "pixelated",
                   }}
                 >
                   DELETE
