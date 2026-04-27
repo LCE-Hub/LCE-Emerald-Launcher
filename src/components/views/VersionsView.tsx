@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, memo } from "react";
-import { motion } from "framer-motion";
 import { TauriService } from "../../services/TauriService";
 import CustomTUModal from "../modals/CustomTUModal";
 import {
@@ -8,46 +7,12 @@ import {
   useAudio,
   useGame,
 } from "../../context/LauncherContext";
-interface DeleteConfirmButtonProps {
-  label: string;
-  onClick: () => void;
-  isDanger?: boolean;
-}
-
-const DeleteConfirmButton = memo(function DeleteConfirmButton({
-  label,
-  onClick,
-  isDanger = false,
-}: DeleteConfirmButtonProps) {
-  const [isHovered, setIsHovered] = useState(false);
-
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={`w-24 h-10 flex items-center justify-center mc-text-shadow transition-colors ${
-        isDanger ? "text-red-500" : "text-white"
-      } ${isHovered ? (isDanger ? "text-red-400" : "text-[#FFFF55]") : ""}`}
-      style={{
-        backgroundImage: isHovered
-          ? "url('/images/button_highlighted.png')"
-          : "url('/images/Button_Background.png')",
-        backgroundSize: "100% 100%",
-        imageRendering: "pixelated",
-      }}
-    >
-      {label}
-    </button>
-  );
-});
 
 const VersionsView = memo(function VersionsView() {
   const { setActiveView } = useUI();
   const {
     profile: selectedProfile,
     setProfile: setSelectedProfile,
-    animationsEnabled,
   } = useConfig();
   const { playPressSound, playBackSound } = useAudio();
   const {
@@ -220,27 +185,22 @@ const VersionsView = memo(function VersionsView() {
   };
 
   return (
-    <motion.div
+    <div
       ref={containerRef}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      transition={{ duration: animationsEnabled ? 0.25 : 0 }}
-      className="flex flex-col items-center w-full max-w-2xl outline-none"
+      className="flex flex-col items-center w-full max-w-5xl outline-none"
     >
       <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 pb-2 w-[40%] max-w-[200px] text-center tracking-widest uppercase font-bold">
         Versions
       </h2>
 
-      <div
-        className="w-full min-w-[480px] p-6 mb-4"
-        style={{
-          backgroundImage: "url('/images/background.png')",
-          backgroundSize: "100% 100%",
-          backgroundRepeat: "no-repeat",
-          imageRendering: "pixelated",
-        }}
-      >
+      <div className="mc-lce-content-bg w-full max-w-[85vw] max-h-[55vh] mb-4 flex flex-col items-center p-3">
+        <div className="w-full h-full p-2 overflow-hidden" style={{
+          borderImage: "url('/images/panel_content.png') 4 fill",
+          borderWidth: '12px',
+          borderStyle: 'solid',
+          borderColor: 'transparent',
+          imageRendering: 'pixelated',
+        }}>
         <div
           ref={listRef}
           className="w-full max-h-[45vh] overflow-y-auto py-2 custom-scrollbar"
@@ -267,30 +227,23 @@ const VersionsView = memo(function VersionsView() {
                   }`}
                   onMouseEnter={() => !isComingSoon && setFocusIndex(i)}
                 >
-                  <div className="w-6 flex items-center justify-center flex-shrink-0">
-                    {isComingSoon ? (
-                      <img
-                        src="/images/wool_8.png"
-                        alt="Coming Soon"
-                        className="w-4 h-4 object-contain"
-                        style={{ imageRendering: "pixelated" }}
-                      />
-                    ) : isDownloading ? (
+                  <div className="w-12 flex items-center justify-center flex-shrink-0">
+                    {isDownloading ? (
                       <span className="text-xs text-gray-400 font-bold">
                         {Math.floor(downloadProgress || 0)}%
                       </span>
-                    ) : isInstalled ? (
-                      <img
-                        src="/images/wool_5.png"
-                        alt="Installed"
-                        className="w-4 h-4 object-contain"
-                        style={{ imageRendering: "pixelated" }}
-                      />
                     ) : (
                       <img
-                        src="/images/wool_14.png"
-                        alt="Not installed"
-                        className="w-4 h-4 object-contain"
+                        src={
+                          edition.logo
+                            ? edition.logo.startsWith("http") ||
+                              edition.logo.startsWith("/images")
+                              ? edition.logo
+                              : `screenshots://localhost/${edition.logo.replace(/\\/g, "/")}`
+                            : "/images/MinecraftIcon.png"
+                        }
+                        alt=""
+                        className="w-8 h-8 object-contain"
                         style={{ imageRendering: "pixelated" }}
                       />
                     )}
@@ -308,19 +261,6 @@ const VersionsView = memo(function VersionsView() {
                     } ${isComingSoon ? "cursor-not-allowed" : ""}`}
                   >
                     <div className="flex items-center gap-2">
-                      {edition.logo && (
-                        <img
-                          src={
-                            edition.logo.startsWith("http") ||
-                            edition.logo.startsWith("/images")
-                              ? edition.logo
-                              : `screenshots://localhost/${edition.logo.replace(/\\/g, "/")}`
-                          }
-                          alt=""
-                          className="w-5 h-5 object-contain flex-shrink-0"
-                          style={{ imageRendering: "pixelated" }}
-                        />
-                      )}
                       <span
                         className={`text-xl tracking-wide truncate ${
                           isSelected ? "text-white" : "text-black"
@@ -697,6 +637,7 @@ const VersionsView = memo(function VersionsView() {
             </div>
           </div>
         </div>
+        </div>
       </div>
 
       <div className="flex justify-center">
@@ -707,7 +648,7 @@ const VersionsView = memo(function VersionsView() {
             playBackSound();
             setActiveView("main");
           }}
-          className="w-48 h-10 flex items-center justify-center text-xl mc-text-shadow outline-none border-none text-white"
+          className="w-40 h-10 flex items-center justify-center text-xl mc-text-shadow outline-none border-none text-white hover:text-[#ffff00]"
           style={{
             backgroundImage:
               focusIndex === editions.length + 2
@@ -717,7 +658,7 @@ const VersionsView = memo(function VersionsView() {
             imageRendering: "pixelated",
           }}
         >
-          Done
+          Back
         </button>
       </div>
 
@@ -745,43 +686,50 @@ const VersionsView = memo(function VersionsView() {
       {deleteConfirmEdition && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div
-            className="w-[400px] p-6"
-            style={{
-              backgroundImage: "url('/images/Download_Background.png')",
-              backgroundSize: "100% 100%",
-              backgroundRepeat: "no-repeat",
-              imageRendering: "pixelated",
-            }}
+            className="w-[420px] p-4 flex flex-col items-center mc-options-bg"
           >
-            <h3 className="text-xl text-white mc-text-shadow mb-4 text-center">
+            <h3 className="text-2xl text-[#333333] mc-text-shadow mb-2 text-left w-full px-4">
               Delete {deleteConfirmEdition.name}?
             </h3>
-            <p className="text-sm text-white mb-6 text-center leading-relaxed">
+            <p className="text-sm text-[#333333] mb-8 text-left leading-relaxed px-4 w-full">
               Warning: All your saves and worlds for this version will be
               permanently deleted!
             </p>
-            <div className="flex justify-center gap-4">
-              <DeleteConfirmButton
-                label="Cancel"
+            <div className="flex flex-col gap-3 w-full px-4">
+              <button
                 onClick={() => {
                   playBackSound();
                   setDeleteConfirmEdition(null);
                 }}
-              />
-              <DeleteConfirmButton
-                label="Delete"
-                isDanger
+                className="w-full h-10 flex items-center justify-center text-lg mc-text-shadow border-none outline-none cursor-pointer transition-all text-white hover:text-[#ffff00]"
+                style={{
+                  backgroundImage: "url('/images/Button_Background.png')",
+                  backgroundSize: "100% 100%",
+                  imageRendering: "pixelated",
+                }}
+              >
+                Cancel
+              </button>
+              <button
                 onClick={() => {
                   playPressSound();
                   handleUninstall(deleteConfirmEdition.id);
                   setDeleteConfirmEdition(null);
                 }}
-              />
+                className="w-full h-10 flex items-center justify-center text-lg mc-text-shadow border-none outline-none cursor-pointer transition-all text-white hover:text-[#FF5555]"
+                style={{
+                  backgroundImage: "url('/images/Button_Background.png')",
+                  backgroundSize: "100% 100%",
+                  imageRendering: "pixelated",
+                }}
+              >
+                OK
+              </button>
             </div>
           </div>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 });
 

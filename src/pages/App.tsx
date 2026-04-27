@@ -291,7 +291,7 @@ export default function App() {
                               (e.target as HTMLImageElement).src = "/images/Button_Background.png";
                             }}
                           />
-                          <span className="text-[#FFFF55] text-sm mc-text-shadow opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="text-[#ffff00] text-sm mc-text-shadow opacity-0 group-hover:opacity-100 transition-opacity">
                             SWF Editor
                           </span>
                         </button>
@@ -324,7 +324,7 @@ export default function App() {
                         >
                           <div
                             onClick={audio.cycleSplash}
-                            className="mc-splash text-[#FFFF55] text-[28px] z-100 cursor-pointer whitespace-nowrap"
+                            className="mc-splash text-[#ffff00] text-[28px] z-100 cursor-pointer whitespace-nowrap"
                             style={{ textShadow: "2px 2px 0px #3F3F00" }}
                           >
                             {audio.splashIndex === -1
@@ -371,46 +371,44 @@ export default function App() {
                   </AnimatePresence>
 
                   <div className="w-full h-full max-w-4xl relative flex justify-center items-center overflow-hidden">
-                    <AnimatePresence mode="wait">
-                      {activeView === "main" && <HomeView key="main-view" />}
-                      {activeView === "settings" && (
-                        <SettingsView key="settings-view" />
-                      )}
-                      {activeView === "versions" && (
-                        <VersionsView key="versions-view" />
-                      )}
-                      {activeView === "workshop" && (
-                        <WorkshopView key="workshop-view" />
-                      )}
-                      {activeView === "devtools" && (
-                        <DevtoolsView key="devtools-view" />
-                      )}
-                      {activeView === "pck-editor" && (
-                        <PckEditorView key="pck-editor-view" />
-                      )}
-                      {activeView === "arc-editor" && (
-                        <ArcEditorView key="arc-editor-view" />
-                      )}
-                      {activeView === "loc-editor" && (
-                        <LocEditorView key="loc-editor-view" />
-                      )}
-                      {activeView === "grf-editor" && (
-                        <GrfEditorView key="grf-editor-view" />
-                      )}
-                      {activeView === "col-editor" && (
-                        <ColEditorView key="col-editor-view" />
-                      )}
-                      {activeView === "options-editor" && (
-                        <OptionsEditorView key="options-editor-view" />
-                      )}
-                      {activeView === "swf-editor" && (
-                        <SwfView key="swf-editor-view" />
-                      )}
-                      {activeView === "skins" && <SkinsView key="skins-view" />}
-                      {activeView === "screenshots" && (
-                        <ScreenshotsView key="screenshots-view" />
-                      )}
-                    </AnimatePresence>
+                    {activeView === "main" && <HomeView key="main-view" />}
+                    {activeView === "settings" && (
+                      <SettingsView key="settings-view" />
+                    )}
+                    {activeView === "versions" && (
+                      <VersionsView key="versions-view" />
+                    )}
+                    {activeView === "workshop" && (
+                      <WorkshopView key="workshop-view" />
+                    )}
+                    {activeView === "devtools" && (
+                      <DevtoolsView key="devtools-view" />
+                    )}
+                    {activeView === "pck-editor" && (
+                      <PckEditorView key="pck-editor-view" />
+                    )}
+                    {activeView === "arc-editor" && (
+                      <ArcEditorView key="arc-editor-view" />
+                    )}
+                    {activeView === "loc-editor" && (
+                      <LocEditorView key="loc-editor-view" />
+                    )}
+                    {activeView === "grf-editor" && (
+                      <GrfEditorView key="grf-editor-view" />
+                    )}
+                    {activeView === "col-editor" && (
+                      <ColEditorView key="col-editor-view" />
+                    )}
+                    {activeView === "options-editor" && (
+                      <OptionsEditorView key="options-editor-view" />
+                    )}
+                    {activeView === "swf-editor" && (
+                      <SwfView key="swf-editor-view" />
+                    )}
+                    {activeView === "skins" && <SkinsView key="skins-view" />}
+                    {activeView === "screenshots" && (
+                      <ScreenshotsView key="screenshots-view" />
+                    )}
                   </div>
                 </div>
               </main>

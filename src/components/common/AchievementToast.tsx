@@ -34,7 +34,7 @@ export function AchievementToast({
           height="32"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#FFFF55"
+          stroke="#ffff00"
           strokeWidth="3"
           strokeLinecap="square"
           className="drop-shadow-md"
@@ -95,7 +95,7 @@ export function AchievementToast({
               {getIcon()}
             </div>
             <div className="flex flex-col">
-              <span className="text-[#FFFF55] text-lg font-bold mc-text-shadow leading-tight">
+              <span className="text-[#ffff00] text-lg font-bold mc-text-shadow leading-tight">
                 {title}
               </span>
               <span className="text-white text-base mc-text-shadow leading-tight break-words">

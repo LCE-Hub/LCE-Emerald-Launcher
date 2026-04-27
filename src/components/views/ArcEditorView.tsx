@@ -247,7 +247,7 @@ export const ArcEditorView: React.FC = () => {
         <div
           key={node.originalIdx}
           onClick={() => { playPressSound(); setSelectedEntryIdx(node.originalIdx); }}
-          className={`group flex items-center gap-2 px-2 py-1 cursor-pointer transition-colors ${isSelected ? "bg-[#FFFF55]/20 text-[#FFFF55]" : "hover:bg-white/5 text-white/80"}`}
+          className={`group flex items-center gap-2 px-2 py-1 cursor-pointer transition-colors ${isSelected ? "bg-[#ffff00]/20 text-[#ffff00]" : "hover:bg-white/5 text-white/80"}`}
         >
           <img src="/images/Download_Icon.png" className="w-3 h-3 opacity-40" style={{ imageRendering: "pixelated" }} />
           <span className="truncate text-sm font-medium tracking-tight">
@@ -328,7 +328,9 @@ export const ArcEditorView: React.FC = () => {
         <div className="flex gap-4">
           <button
             onClick={handleFileLoad}
-            className="px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none"
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+            className="px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#ffff00] text-lg outline-none"
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
             Open ARC
@@ -336,7 +338,9 @@ export const ArcEditorView: React.FC = () => {
           <button
             onClick={handleExportAll}
             disabled={!arc || arc.entries.length === 0}
-            className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none ${(!arc || arc.entries.length === 0) ? "opacity-50 grayscale" : ""}`}
+            onMouseEnter={(e) => !(!arc || arc.entries.length === 0) && (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+            className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#ffff00] text-lg outline-none ${(!arc || arc.entries.length === 0) ? "opacity-50 grayscale" : ""}`}
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
             Export All
@@ -344,7 +348,9 @@ export const ArcEditorView: React.FC = () => {
           <button
             onClick={handleSaveArc}
             disabled={!arc}
-            className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none ${!arc ? "opacity-50 grayscale" : ""}`}
+            onMouseEnter={(e) => !(!arc) && (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+            className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#ffff00] text-lg outline-none ${!arc ? "opacity-50 grayscale" : ""}`}
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
             Save ARC
@@ -366,14 +372,14 @@ export const ArcEditorView: React.FC = () => {
           <div className="flex gap-1 p-2 pt-4 border-b-2 border-[#373737]">
             <button
               onClick={() => { playPressSound(); setActiveTab("arc"); }}
-              className={`flex items-center gap-3 px-6 py-2 transition-all mc-text-shadow ${activeTab === "arc" ? "text-[#FFFF55] opacity-100 scale-105" : "text-white opacity-40 hover:opacity-100"}`}
+              className={`flex items-center gap-3 px-6 py-2 transition-all mc-text-shadow ${activeTab === "arc" ? "text-[#ffff00] opacity-100 scale-105" : "text-white opacity-40 hover:opacity-100"}`}
             >
               <img src="/images/tools/arc.png" className={`w-5 h-5 object-contain ${activeTab === "arc" ? "" : "grayscale opacity-50"}`} style={{ imageRendering: "pixelated" }} />
               <span className="text-lg uppercase tracking-wider font-bold">Archive</span>
             </button>
             <button
               onClick={() => { playPressSound(); setActiveTab("loc"); }}
-              className={`flex items-center gap-3 px-6 py-2 transition-all mc-text-shadow ${activeTab === "loc" ? "text-[#FFFF55] opacity-100 scale-105" : "text-white opacity-40 hover:opacity-100"}`}
+              className={`flex items-center gap-3 px-6 py-2 transition-all mc-text-shadow ${activeTab === "loc" ? "text-[#ffff00] opacity-100 scale-105" : "text-white opacity-40 hover:opacity-100"}`}
             >
               <img src="/images/tools/loc.png" className={`w-5 h-5 object-contain ${activeTab === "loc" ? "" : "grayscale opacity-50"}`} style={{ imageRendering: "pixelated" }} />
               <span className="text-lg uppercase tracking-wider font-bold">Languages (LOC)</span>
@@ -390,11 +396,13 @@ export const ArcEditorView: React.FC = () => {
                       placeholder="Search entries..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="flex-1 bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
+                      className="flex-1 bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#ffff00] transition-colors"
                     />
                     <button
                       onClick={() => setIsAddModalOpen(true)}
-                      className="px-6 py-2 text-white mc-text-shadow text-sm"
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                      className="px-6 py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#ffff00]"
                       style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
                     >
                       Add Entry
@@ -408,7 +416,7 @@ export const ArcEditorView: React.FC = () => {
                   {selectedEntry ? (
                     <div className="flex flex-col gap-6">
                       <div className="p-4 bg-black/40 border-2 border-[#373737]">
-                        <h4 className="text-[#FFFF55] mc-text-shadow font-bold text-sm uppercase tracking-widest mb-1">Entry Details</h4>
+                        <h4 className="text-[#ffff00] mc-text-shadow font-bold text-sm uppercase tracking-widest mb-1">Entry Details</h4>
                         <p className="text-white text-xs break-all font-mono opacity-80">{selectedEntry.filename}</p>
                       </div>
                       <div className="grid grid-cols-2 gap-4 text-center">
@@ -425,21 +433,27 @@ export const ArcEditorView: React.FC = () => {
                       <div className="flex flex-col gap-3">
                         <button
                           onClick={() => handleExtractEntry(selectedEntry)}
-                          className="w-full py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#FFFF55]"
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                          className="w-full py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#ffff00]"
                           style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
                         >
                           Export File
                         </button>
                         <button
                           onClick={() => setIsReplaceModalOpen(true)}
-                          className="w-full py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#FFFF55]"
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                          className="w-full py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#ffff00]"
                           style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
                         >
                           Replace Data
                         </button>
                         <button
                           onClick={() => setIsRenameModalOpen(true)}
-                          className="w-full py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#FFFF55]"
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                          className="w-full py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#ffff00]"
                           style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
                         >
                           Rename / Path
@@ -452,7 +466,9 @@ export const ArcEditorView: React.FC = () => {
                             setArc({ ...arc, entries: newEntries });
                             showNotification(`Compression ${!selectedEntry.isCompressed ? "Enabled" : "Disabled"}`);
                           }}
-                          className={`w-full py-2 text-white mc-text-shadow text-sm transition-all ${selectedEntry.isCompressed ? "text-[#FFFF55]" : "opacity-60"}`}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                          className={`w-full py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#ffff00] ${selectedEntry.isCompressed ? "text-[#ffff00]" : "opacity-60"}`}
                           style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
                         >
                           {selectedEntry.isCompressed ? "ZLIB Compressed" : "Uncompressed"}
@@ -460,7 +476,9 @@ export const ArcEditorView: React.FC = () => {
                         <div className="mt-4 pt-4 border-t border-white/10">
                           <button
                             onClick={() => handleDeleteEntry(selectedEntryIdx!)}
-                            className="w-full py-2 text-red-500/80 mc-text-shadow text-sm transition-all hover:text-red-500 hover:scale-[1.02]"
+                            onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                            className="w-full py-2 text-red-500/80 mc-text-shadow text-sm transition-all hover:text-red-500"
                             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
                           >
                             Delete Entry
@@ -483,10 +501,12 @@ export const ArcEditorView: React.FC = () => {
                     <h4 className="text-xl text-white/40 mc-text-shadow italic mb-4">No languages.loc found in archive</h4>
                     <button
                       onClick={() => {
-                        setLoc({ version: 0, languages: [{ id: "en_US", version: 1, isStatic: false, langId: "en_US", strings: [] }] });
+                        setLoc({ version: 0, languages: [{ id: "en-GB", version: 0, langId: "0", isStatic: false, strings: [] }] });
                         showNotification("Created new locale structure");
                       }}
-                      className="px-6 py-2 text-white mc-text-shadow text-lg"
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                      className="px-6 py-2 text-white mc-text-shadow text-lg transition-all hover:text-[#ffff00]"
                       style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
                     >
                       Create languages.loc
@@ -498,7 +518,7 @@ export const ArcEditorView: React.FC = () => {
                       <select
                         value={selectedLocLangIdx}
                         onChange={(e) => setSelectedLocLangIdx(parseInt(e.target.value))}
-                        className="bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
+                        className="bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#ffff00] transition-colors"
                       >
                         {loc.languages.map((lang, idx) => (
                           <option key={idx} value={idx}>{lang.id} {lang.isStatic ? "[Static]" : "[Keyed]"}</option>
@@ -509,18 +529,22 @@ export const ArcEditorView: React.FC = () => {
                         placeholder="Search strings..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="flex-1 bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
+                        className="flex-1 bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#ffff00] transition-colors"
                       />
                       <button
                         onClick={() => setIsLocEditModalOpen({ langIdx: selectedLocLangIdx, strIdx: -1, isNew: true })}
-                        className="px-6 py-2 text-white mc-text-shadow text-sm"
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                        className="px-6 py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#ffff00]"
                         style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
                       >
                         Add String
                       </button>
                       <button
                         onClick={handleSaveLocToArc}
-                        className="px-6 py-2 text-[#FFFF55] mc-text-shadow text-sm"
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                        className="px-6 py-2 text-[#ffff00] mc-text-shadow text-sm transition-all hover:text-[#ffff00]"
                         style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
                       >
                         Write to ARC
@@ -538,7 +562,7 @@ export const ArcEditorView: React.FC = () => {
                         <tbody>
                           {filteredLocStrings.map((str) => (
                             <tr key={str.originalIdx} className="border-b border-[#373737]/30 hover:bg-white/5 transition-colors group">
-                              <td className="p-3 text-[#FFFF55] font-mono text-sm max-w-[200px] truncate">
+                              <td className="p-3 text-[#ffff00] font-mono text-sm max-w-[200px] truncate">
                                 {currentLocLang?.isStatic ? str.originalIdx : str.key}
                               </td>
                               <td className="p-3 text-white text-sm whitespace-pre-wrap">{str.value}</td>
@@ -546,7 +570,7 @@ export const ArcEditorView: React.FC = () => {
                                 <div className="flex justify-end gap-2">
                                   <button
                                     onClick={() => setIsLocEditModalOpen({ langIdx: selectedLocLangIdx, strIdx: str.originalIdx, isNew: false })}
-                                    className="px-2 py-1 text-[10px] bg-white/10 hover:bg-[#FFFF55]/20 hover:text-[#FFFF55] border border-white/20 transition-all uppercase"
+                                    className="px-2 py-1 text-[10px] bg-white/10 hover:bg-[#ffff00]/20 hover:text-[#ffff00] border border-white/20 transition-all uppercase"
                                   >
                                     Edit
                                   </button>
@@ -570,7 +594,7 @@ export const ArcEditorView: React.FC = () => {
       <div className="flex justify-center mt-6 h-14 w-full">
         <button
           onClick={() => { playBackSound(); setActiveView("devtools"); }}
-          className="w-72 h-full flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] text-white"
+          className="w-72 h-full flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#ffff00] text-white"
           style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
         >
           Back
@@ -594,11 +618,13 @@ export const ArcEditorView: React.FC = () => {
       {isAddModalOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="w-full max-w-md p-8" style={{ backgroundImage: "url('/images/frame_background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}>
-            <h3 className="text-2xl text-[#FFFF55] mc-text-shadow mb-6">Add File to Archive</h3>
+            <h3 className="text-2xl text-[#ffff00] mc-text-shadow mb-6">Add File to Archive</h3>
             <div className="flex flex-col gap-6">
               <button
                 onClick={() => injectInputRef.current?.click()}
-                className="w-full py-3 text-white mc-text-shadow"
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                className="w-full py-3 text-white mc-text-shadow transition-all hover:text-[#ffff00]"
                 style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
               >
                 Select Source File
@@ -614,12 +640,14 @@ export const ArcEditorView: React.FC = () => {
       {isReplaceModalOpen && selectedEntryIdx !== null && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="w-full max-w-md p-8" style={{ backgroundImage: "url('/images/frame_background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}>
-            <h3 className="text-2xl text-[#FFFF55] mc-text-shadow mb-4">Replace File Data</h3>
+            <h3 className="text-2xl text-[#ffff00] mc-text-shadow mb-4">Replace File Data</h3>
             <p className="text-white/60 mb-6 truncate">{arc?.entries[selectedEntryIdx].filename}</p>
             <div className="flex flex-col gap-6">
               <button
                 onClick={() => replaceInputRef.current?.click()}
-                className="w-full py-3 text-white mc-text-shadow"
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                className="w-full py-3 text-white mc-text-shadow transition-all hover:text-[#ffff00]"
                 style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
               >
                 Select New File
@@ -658,7 +686,7 @@ function RenameModal({ initialName, initialCompressed, onClose, onConfirm }: { i
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="w-full max-w-lg p-8" style={{ backgroundImage: "url('/images/frame_background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}>
-        <h3 className="text-2xl text-[#FFFF55] mc-text-shadow mb-6 uppercase tracking-widest">Rename Entry</h3>
+        <h3 className="text-2xl text-[#ffff00] mc-text-shadow mb-6 uppercase tracking-widest">Rename Entry</h3>
         <div className="flex flex-col gap-4">
           <div>
             <label className="text-white/40 text-xs uppercase mb-2 block">New Archive Path</label>
@@ -666,18 +694,20 @@ function RenameModal({ initialName, initialCompressed, onClose, onConfirm }: { i
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-3 outline-none focus:border-[#FFFF55] transition-colors"
+              className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-3 outline-none focus:border-[#ffff00] transition-colors"
             />
           </div>
           <label className="flex items-center gap-3 cursor-pointer group">
-            <input type="checkbox" checked={comp} onChange={(e) => setComp(e.target.checked)} className="w-5 h-5 accent-[#FFFF55]" />
-            <span className="text-white group-hover:text-[#FFFF55] transition-colors">Mark as compressed (zlib)</span>
+            <input type="checkbox" checked={comp} onChange={(e) => setComp(e.target.checked)} className="w-5 h-5 accent-[#ffff00]" />
+            <span className="text-white group-hover:text-[#ffff00] transition-colors">Mark as compressed (zlib)</span>
           </label>
           <div className="flex justify-end gap-4 mt-6">
             <button onClick={onClose} className="px-6 py-2 text-white/60 hover:text-white transition-colors uppercase tracking-widest">Cancel</button>
             <button
               onClick={() => onConfirm(name, comp)}
-              className="px-8 py-2 text-white mc-text-shadow"
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+              className="px-8 py-2 text-white mc-text-shadow transition-all hover:text-[#ffff00]"
               style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
             >
               Rename
@@ -695,7 +725,7 @@ function LocEditModal({ data, lang, onClose, onConfirm }: { data: { langIdx: num
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="w-full max-w-2xl p-8" style={{ backgroundImage: "url('/images/frame_background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}>
-        <h3 className="text-2xl text-[#FFFF55] mc-text-shadow mb-6 uppercase tracking-widest">{data.isNew ? "Add" : "Edit"} String</h3>
+        <h3 className="text-2xl text-[#ffff00] mc-text-shadow mb-6 uppercase tracking-widest">{data.isNew ? "Add" : "Edit"} String</h3>
         <div className="flex flex-col gap-4">
           {!lang.isStatic ? (
             <div>
@@ -704,7 +734,7 @@ function LocEditModal({ data, lang, onClose, onConfirm }: { data: { langIdx: num
                 type="text"
                 value={key}
                 onChange={(e) => setKey(e.target.value)}
-                className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-3 outline-none focus:border-[#FFFF55] transition-colors font-mono"
+                className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-3 outline-none focus:border-[#ffff00] transition-colors font-mono"
               />
             </div>
           ) : (
@@ -716,14 +746,16 @@ function LocEditModal({ data, lang, onClose, onConfirm }: { data: { langIdx: num
               value={val}
               onChange={(e) => setVal(e.target.value)}
               rows={6}
-              className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-3 outline-none focus:border-[#FFFF55] transition-colors resize-none"
+              className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-3 outline-none focus:border-[#ffff00] transition-colors resize-none"
             />
           </div>
           <div className="flex justify-end gap-4 mt-6">
             <button onClick={onClose} className="px-6 py-2 text-white/60 hover:text-white transition-colors uppercase tracking-widest">Cancel</button>
             <button
               onClick={() => onConfirm(data.langIdx, data.strIdx, data.isNew, key, val)}
-              className="px-8 py-2 text-white mc-text-shadow"
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+              className="px-8 py-2 text-white mc-text-shadow transition-all hover:text-[#ffff00]"
               style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
             >
               {data.isNew ? "Add" : "Save"}

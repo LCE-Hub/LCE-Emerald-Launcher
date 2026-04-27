@@ -187,7 +187,9 @@ export default function SwfView() {
         <div className="flex gap-4">
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none"
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+            className="px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#ffff00] text-lg outline-none"
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
             Open SWF
@@ -195,7 +197,9 @@ export default function SwfView() {
           <button
             onClick={handleSaveSwf}
             disabled={!swfData}
-            className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none ${!swfData ? "opacity-50 grayscale" : ""}`}
+            onMouseEnter={(e) => !(!swfData) && (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+            className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#ffff00] text-lg outline-none ${!swfData ? "opacity-50 grayscale" : ""}`}
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
             Save SWF
@@ -221,7 +225,7 @@ export default function SwfView() {
                 placeholder="Search assets..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
+                className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#ffff00] transition-colors"
               />
             </div>
             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-1">
@@ -230,7 +234,7 @@ export default function SwfView() {
                   key={img.id}
                   onClick={() => { playPressSound(); setSelectedImageId(img.id); }}
                   className={`flex items-center gap-3 p-3 cursor-pointer transition-all border-l-4 ${selectedImageId === img.id
-                    ? "bg-[#FFFF55]/10 border-[#FFFF55] text-[#FFFF55]"
+                    ? "bg-[#ffff00]/10 border-[#ffff00] text-[#ffff00]"
                     : "border-transparent hover:bg-white/5 text-white/60 hover:text-white"
                     }`}
                 >
@@ -259,7 +263,7 @@ export default function SwfView() {
                 >
                   <div className="flex justify-between items-start mb-6 border-b border-[#373737] pb-4">
                     <div className="flex flex-col gap-1">
-                      <h3 className="text-[#FFFF55] text-2xl mc-text-shadow">
+                      <h3 className="text-[#ffff00] text-2xl mc-text-shadow">
                         {selectedImage.name || `Bitmap ${selectedImage.id}`}
                       </h3>
                       <div className="flex gap-4 text-xs uppercase tracking-widest text-white/40">
@@ -286,14 +290,18 @@ export default function SwfView() {
                   <div className="flex gap-4 mt-auto">
                     <button
                       onClick={() => handleDownload(selectedImage)}
-                      className="flex-1 py-3 text-white mc-text-shadow text-lg transition-all hover:text-[#FFFF55]"
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                      className="flex-1 py-3 text-white mc-text-shadow text-lg transition-all hover:text-[#ffff00]"
                       style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
                     >
                       Export Bitmap
                     </button>
                     <button
                       onClick={() => replaceInputRef.current?.click()}
-                      className="flex-1 py-3 text-white mc-text-shadow text-lg transition-all hover:text-[#FFFF55]"
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                      className="flex-1 py-3 text-white mc-text-shadow text-lg transition-all hover:text-[#ffff00]"
                       style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
                     >
                       Replace Bitmap
@@ -308,7 +316,9 @@ export default function SwfView() {
 
       <button
         onClick={handleBack}
-        className="w-72 h-14 flex items-center justify-center transition-colors text-2xl mc-text-shadow mt-6 outline-none border-none hover:text-[#FFFF55] text-white"
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+        className="w-72 h-14 flex items-center justify-center transition-colors text-2xl mc-text-shadow mt-6 outline-none border-none hover:text-[#ffff00] text-white"
         style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
       >
         Back

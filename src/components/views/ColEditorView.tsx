@@ -135,12 +135,14 @@ export default function ColEditorView() {
       <div className="flex items-center justify-between mb-6 px-4">
         <div className="flex items-center gap-6">
           <h2 className="text-3xl text-white mc-text-shadow tracking-widest uppercase font-bold">COL Editor</h2>
-          {col && <span className="text-white/40 mc-text-shadow italic">Version: <span className="text-[#FFFF55]">{col.version}</span></span>}
+          {col && <span className="text-white/40 mc-text-shadow italic">Version: <span className="text-[#ffff00]">{col.version}</span></span>}
         </div>
         <div className="flex gap-4">
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="px-6 py-2 text-white mc-text-shadow text-lg"
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+            className="px-6 py-2 text-white mc-text-shadow text-lg transition-all hover:text-[#ffff00]"
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
             Open COL
@@ -148,7 +150,9 @@ export default function ColEditorView() {
           <button
             onClick={handleSaveCol}
             disabled={!col}
-            className={`px-6 py-2 text-white mc-text-shadow text-lg ${!col ? "opacity-50 grayscale" : ""}`}
+            onMouseEnter={(e) => !(!col) && (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+            className={`px-6 py-2 text-white mc-text-shadow text-lg transition-all hover:text-[#ffff00] ${!col ? "opacity-50 grayscale" : ""}`}
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
             Save COL
@@ -166,14 +170,14 @@ export default function ColEditorView() {
           <div className="flex gap-1 p-2 pt-4 border-b-2 border-[#373737]">
             <button
               onClick={() => { playPressSound(); setActiveTab("colors"); }}
-              className={`flex items-center gap-3 px-6 py-2 transition-all mc-text-shadow ${activeTab === "colors" ? "text-[#FFFF55] opacity-100 scale-105" : "text-white opacity-40 hover:opacity-100"}`}
+              className={`flex items-center gap-3 px-6 py-2 transition-all mc-text-shadow ${activeTab === "colors" ? "text-[#ffff00] opacity-100 scale-105" : "text-white opacity-40 hover:opacity-100"}`}
             >
               <span className="text-lg">Colors ({col.colors.length})</span>
             </button>
             <button
               onClick={() => { playPressSound(); setActiveTab("worldColors"); }}
               disabled={col.version === 0}
-              className={`flex items-center gap-3 px-6 py-2 transition-all mc-text-shadow ${activeTab === "worldColors" ? "text-[#FFFF55] opacity-100 scale-105" : "text-white opacity-40 hover:opacity-100"} ${col.version === 0 ? "opacity-20 cursor-not-allowed" : ""}`}
+              className={`flex items-center gap-3 px-6 py-2 transition-all mc-text-shadow ${activeTab === "worldColors" ? "text-[#ffff00] opacity-100 scale-105" : "text-white opacity-40 hover:opacity-100"} ${col.version === 0 ? "opacity-20 cursor-not-allowed" : ""}`}
             >
               <span className="text-lg">World Colors ({col.worldColors.length})</span>
             </button>
@@ -186,11 +190,13 @@ export default function ColEditorView() {
                 placeholder="Search colors..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
+                className="flex-1 bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#ffff00] transition-colors"
               />
               <button
                 onClick={activeTab === "colors" ? handleAddColor : handleAddWorldColor}
-                className="px-6 py-2 text-white mc-text-shadow text-sm"
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                className="px-6 py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#ffff00]"
                 style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
               >
                 Add {activeTab === "colors" ? "Color" : "World Color"}
@@ -221,7 +227,7 @@ export default function ColEditorView() {
                           type="text"
                           value={c.name}
                           onChange={(e) => handleUpdateColor(c.originalIdx, "name", e.target.value)}
-                          className="w-full bg-black/40 border border-[#373737] px-2 py-1 outline-none focus:border-[#FFFF55] text-white text-sm"
+                          className="w-full bg-black/40 border border-[#373737] px-2 py-1 outline-none focus:border-[#ffff00] text-white text-sm"
                         />
                       </td>
                       <td className="p-2">
@@ -247,7 +253,7 @@ export default function ColEditorView() {
                                 if (!isNaN(parsed)) handleUpdateColor(c.originalIdx, "color", parsed >>> 0);
                               }
                             }}
-                            className="bg-black/40 border border-[#373737] w-24 px-2 py-1 outline-none focus:border-[#FFFF55] text-white font-mono text-sm uppercase"
+                            className="bg-black/40 border border-[#373737] w-24 px-2 py-1 outline-none focus:border-[#ffff00] text-white font-mono text-sm uppercase"
                             maxLength={8}
                           />
                         </div>
@@ -267,7 +273,7 @@ export default function ColEditorView() {
                           type="text"
                           value={w.name}
                           onChange={(e) => handleUpdateWorldColor(w.originalIdx, "name", e.target.value)}
-                          className="w-full bg-black/40 border border-[#373737] px-2 py-1 outline-none focus:border-[#FFFF55] text-white text-sm"
+                          className="w-full bg-black/40 border border-[#373737] px-2 py-1 outline-none focus:border-[#ffff00] text-white text-sm"
                         />
                       </td>
                       <td className="p-2">
@@ -292,7 +298,7 @@ export default function ColEditorView() {
                                 if (!isNaN(parsed)) handleUpdateWorldColor(w.originalIdx, "waterColor", parsed >>> 0);
                               }
                             }}
-                            className="bg-black/40 border border-[#373737] w-20 px-2 py-1 outline-none focus:border-[#FFFF55] text-white font-mono text-xs uppercase"
+                            className="bg-black/40 border border-[#373737] w-20 px-2 py-1 outline-none focus:border-[#ffff00] text-white font-mono text-xs uppercase"
                             maxLength={8}
                           />
                         </div>
@@ -319,7 +325,7 @@ export default function ColEditorView() {
                                 if (!isNaN(parsed)) handleUpdateWorldColor(w.originalIdx, "underwaterColor", parsed >>> 0);
                               }
                             }}
-                            className="bg-black/40 border border-[#373737] w-20 px-2 py-1 outline-none focus:border-[#FFFF55] text-white font-mono text-xs uppercase"
+                            className="bg-black/40 border border-[#373737] w-20 px-2 py-1 outline-none focus:border-[#ffff00] text-white font-mono text-xs uppercase"
                             maxLength={8}
                           />
                         </div>
@@ -346,7 +352,7 @@ export default function ColEditorView() {
                                 if (!isNaN(parsed)) handleUpdateWorldColor(w.originalIdx, "fogColor", parsed >>> 0);
                               }
                             }}
-                            className="bg-black/40 border border-[#373737] w-20 px-2 py-1 outline-none focus:border-[#FFFF55] text-white font-mono text-xs uppercase"
+                            className="bg-black/40 border border-[#373737] w-20 px-2 py-1 outline-none focus:border-[#ffff00] text-white font-mono text-xs uppercase"
                             maxLength={8}
                           />
                         </div>
@@ -368,7 +374,9 @@ export default function ColEditorView() {
       <div className="flex justify-center mt-6 h-14">
         <button
           onClick={() => { playBackSound(); setActiveView("devtools"); }}
-          className="w-72 h-full flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] text-white"
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+          className="w-40 h-10 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none border-none hover:text-[#ffff00] text-white"
           style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
         >
           Back

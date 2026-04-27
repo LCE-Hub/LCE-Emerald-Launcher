@@ -217,52 +217,51 @@ const WorkshopView = memo(function WorkshopView() {
     <motion.div
       ref={containerRef}
       tabIndex={0}
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 1, scale: 1 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: config.animationsEnabled ? 0.3 : 0 }}
+      exit={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0 }}
       className="flex flex-col items-center w-full max-w-6xl h-full max-h-full relative font-['Mojangles'] text-white select-none outline-none focus:outline-none"
     >
       <h2 className="text-2xl text-white mc-text-shadow mt-4 mb-6 border-b-2 border-[#373737] pb-2 w-[30%] max-w-[250px] text-center tracking-widest uppercase opacity-80 font-bold whitespace-nowrap px-4">
         Workshop
       </h2>
 
-      <div className="flex items-center justify-center gap-2 mb-6 w-full flex-wrap px-4">
-        {ALL_TABS.map((tab) => {
-          const isActive = tab === activeTab;
-          const updateCount = tab === 'Installed'
-            ? allPackages.filter((p) => hasUpdate(p)).length
-            : 0;
-          return (
-            <button
-              key={tab}
-              onClick={() => selectTab(tab)}
-              className={`
-                relative h-10 px-6 text-lg mc-text-shadow tracking-widest border-none outline-none cursor-pointer transition-all
-                ${isActive ? 'text-[#FFFF55] scale-105' : 'text-white hover:text-[#FFFF55] hover:scale-105'}
-              `}
-              style={{
-                backgroundImage: isActive
-                  ? "url('/images/button_highlighted.png')"
-                  : "url('/images/Button_Background.png')",
-                backgroundSize: '100% 100%',
-                imageRendering: 'pixelated',
-              }}
-            >
-              {tab.toUpperCase()}
-              {updateCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-[#FF5555] text-white text-[8px] rounded-full w-4 h-4 flex items-center justify-center font-bold mc-text-shadow border border-[#AA0000]">
-                  {updateCount}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+      <div className="flex flex-col items-center w-[85%] max-w-5xl flex-1">
+        <div className="flex items-end gap-1 w-full px-2">
+          {ALL_TABS.map((tab) => {
+            const isActive = tab === activeTab;
+            const updateCount = tab === 'Installed'
+              ? allPackages.filter((p) => hasUpdate(p)).length
+              : 0;
+            return (
+              <button
+                key={tab}
+                onClick={() => selectTab(tab)}
+                className={`
+                  mc-lce-tab-bg h-10 min-w-[80px] flex items-center justify-center px-3 text-sm mc-text-shadow tracking-wide border-none outline-none cursor-pointer flex-shrink-0
+                  ${isActive ? 'active text-white' : 'text-white/70 hover:text-white'}
+                `}
+              >
+                {tab}
+                {updateCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-[#FF5555] text-white text-[8px] rounded-full w-4 h-4 flex items-center justify-center font-bold mc-text-shadow border border-[#AA0000]">
+                    {updateCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
 
-      <div
-        className="w-[98%] flex-1 relative overflow-hidden"
-      >
+        <div className="mc-lce-content-bg w-full flex-1 overflow-hidden relative p-3 max-w-[85vw] max-h-[55vh]">
+          <div className="w-full h-full p-2 overflow-hidden" style={{
+            borderImage: "url('/images/panel_content.png') 4 fill",
+            borderWidth: '12px',
+            borderStyle: 'solid',
+            borderColor: 'transparent',
+            imageRendering: 'pixelated',
+          }}>
         <AnimatePresence mode="wait">
           {showSearch ? (
             <motion.div
@@ -270,7 +269,7 @@ const WorkshopView = memo(function WorkshopView() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute inset-0 flex flex-col pt-2"
+              className="relative w-full h-full flex flex-col pt-2"
             >
               <div className="flex items-center gap-3 px-6 pb-4">
                 <div
@@ -302,14 +301,14 @@ const WorkshopView = memo(function WorkshopView() {
                 </div>
               </div>
 
-              <div ref={gridRef} className="flex-1 overflow-y-auto p-6 scroll-smooth">
+              <div ref={gridRef} className="flex-1 overflow-y-auto p-6 scroll-smooth max-h-[35vh]">
                 {isSearchTab && !search.trim() ? (
                   <div className="flex flex-col items-center justify-center h-[200px] opacity-40">
                     <span className="text-xl mc-text-shadow tracking-widest uppercase">Start typing to search...</span>
                   </div>
                 ) : loading ? (
                   <div className="flex items-center justify-center h-full">
-                    <span className="text-3xl text-[#FFFF55] mc-text-shadow tracking-widest animate-pulse uppercase">Searching Archives...</span>
+                    <span className="text-3xl text-[#ffff00] mc-text-shadow tracking-widest animate-pulse uppercase">Searching Archives...</span>
                   </div>
                 ) : filteredItems.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
@@ -337,23 +336,18 @@ const WorkshopView = memo(function WorkshopView() {
               </div>
             </motion.div>
           ) : loading ? (
-            <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 flex items-center justify-center">
-              <span className="text-3xl text-[#FFFF55] mc-text-shadow tracking-widest animate-pulse uppercase">Searching Archives...</span>
-            </motion.div>
+            <div key="loading" className="relative w-full h-full flex items-center justify-center">
+              <span className="text-3xl text-[#ffff00] mc-text-shadow tracking-widest animate-pulse uppercase">Searching Archives...</span>
+            </div>
           ) : error ? (
-            <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 flex items-center justify-center">
+            <div key="error" className="relative w-full h-full flex items-center justify-center">
               <span className="text-xl text-red-500 mc-text-shadow uppercase tracking-widest">{error}</span>
-            </motion.div>
+            </div>
           ) : (
-            <motion.div
+            <div
               key={activeTab}
               ref={gridRef}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="absolute inset-0 overflow-y-auto p-6 scroll-smooth"
+              className="relative w-full h-full overflow-y-auto p-6 scroll-smooth max-h-[45vh]"
             >
               {filteredItems.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
@@ -376,18 +370,20 @@ const WorkshopView = memo(function WorkshopView() {
                   ))}
                 </div>
               )}
-            </motion.div>
+            </div>
           )}
         </AnimatePresence>
+        </div>
+      </div>
       </div>
 
       <div className="w-full mt-6 mb-4 flex justify-center">
         <button
           onClick={() => { playBackSound(); setActiveView('main'); }}
-          className="w-72 h-10 flex items-center justify-center text-xl mc-text-shadow hover:text-[#FFFF55] text-white border-none outline-none transition-all"
-          style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: '100% 100%', imageRendering: 'pixelated' }}
           onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundImage = "url('/images/button_highlighted.png')"; }}
           onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundImage = "url('/images/Button_Background.png')"; }}
+          className="w-40 h-10 flex items-center justify-center text-xl mc-text-shadow hover:text-[#ffff00] text-white border-none outline-none transition-all"
+          style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: '100% 100%', imageRendering: 'pixelated' }}
         >
           Back
         </button>
@@ -429,7 +425,7 @@ function PackageCard({ pkg, index, focused, onHover, onClick, installed, hasUpda
       data-card={index}
       onMouseEnter={onHover}
       onClick={onClick}
-      className={`flex flex-col cursor-pointer transition-all border-2 ${focused ? 'border-[#FFFF55] scale-105 z-10' : 'border-[#333] hover:border-[#FFFF55]'} rounded-sm overflow-hidden bg-black/40`}
+      className={`flex flex-col cursor-pointer transition-all border-2 ${focused ? 'border-[#ffff00] scale-105 z-10' : 'border-[#333] hover:border-[#ffff00]'} rounded-sm overflow-hidden bg-black/40`}
       style={{
         backgroundImage: "url('/images/frame_background.png')",
         backgroundSize: '100% 100%',
@@ -446,7 +442,7 @@ function PackageCard({ pkg, index, focused, onHover, onClick, installed, hasUpda
         )}
         <div className="absolute top-1 right-1 flex gap-1">
           {pkg.category.slice(0, 1).map((c) => (
-            <span key={c} className="text-[8px] bg-black/80 border border-[#555] px-1.5 py-0.5 text-[#FFFF55] mc-text-shadow uppercase tracking-tighter">{c}</span>
+            <span key={c} className="text-[8px] bg-black/80 border border-[#555] px-1.5 py-0.5 text-[#ffff00] mc-text-shadow uppercase tracking-tighter">{c}</span>
           ))}
         </div>
         {hasUpdate && (
@@ -461,7 +457,7 @@ function PackageCard({ pkg, index, focused, onHover, onClick, installed, hasUpda
         )}
       </div>
       <div className="flex flex-col p-3 gap-1 relative bg-gradient-to-b from-transparent to-black/20">
-        <span className={`text-base mc-text-shadow leading-tight truncate font-bold tracking-wide ${focused ? 'text-[#FFFF55]' : 'text-white'}`}>
+        <span className={`text-base mc-text-shadow leading-tight truncate font-bold tracking-wide ${focused ? 'text-[#ffff00]' : 'text-white'}`}>
           {pkg.name}
         </span>
         <div className="flex items-center justify-between">
@@ -580,7 +576,7 @@ function PackageModal({ pkg, onClose, playPressSound, installedEntries, onInstal
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
             <div className="absolute bottom-4 left-6 right-6">
               <span className="text-3xl text-white mc-text-shadow block leading-tight tracking-wide font-bold">{pkg.name}</span>
-              <span className="text-base text-[#FFFF55] mc-text-shadow uppercase tracking-widest opacity-90">By {pkg.author}</span>
+              <span className="text-base text-[#ffff00] mc-text-shadow uppercase tracking-widest opacity-90">By {pkg.author}</span>
             </div>
             {needsUpdate && (
               <div className="absolute top-3 right-3 bg-[#FF8800] border border-[#FF6600] px-2 py-1">
@@ -661,7 +657,7 @@ function PackageModal({ pkg, onClose, playPressSound, installedEntries, onInstal
               <button
                 onMouseEnter={() => setModalFocus('install')}
                 onClick={handleAction}
-                className={`flex-1 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all ${modalFocus === 'install' ? 'text-[#FFFF55] scale-105' : 'text-white'}`}
+                className={`flex-1 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all ${modalFocus === 'install' ? 'text-[#ffff00]' : 'text-white'}`}
                 style={{
                   backgroundImage: modalFocus === 'install' ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
                   backgroundSize: '100% 100%',
@@ -674,7 +670,7 @@ function PackageModal({ pkg, onClose, playPressSound, installedEntries, onInstal
                 <button
                   onMouseEnter={() => setModalFocus('uninstall')}
                   onClick={() => setShowUninstall(true)}
-                  className={`w-36 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all ${modalFocus === 'uninstall' ? 'text-[#FF5555] scale-105' : 'text-white'}`}
+                  className={`w-36 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all ${modalFocus === 'uninstall' ? 'text-[#FF5555]' : 'text-white'}`}
                   style={{
                     backgroundImage: modalFocus === 'uninstall' ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
                     backgroundSize: '100% 100%',
@@ -687,7 +683,7 @@ function PackageModal({ pkg, onClose, playPressSound, installedEntries, onInstal
               <button
                 onMouseEnter={() => setModalFocus('close')}
                 onClick={onClose}
-                className={`w-36 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all ${modalFocus === 'close' ? 'text-[#FFFF55] scale-105' : 'text-white'}`}
+                className={`w-36 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all ${modalFocus === 'close' ? 'text-[#ffff00]' : 'text-white'}`}
                 style={{
                   backgroundImage: modalFocus === 'close' ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
                   backgroundSize: '100% 100%',
@@ -807,7 +803,7 @@ function InstallModal({ pkg, onClose, playPressSound }: {
         <div className="p-4 flex flex-col gap-2 max-h-[300px] overflow-y-auto">
           {status === 'installing' && (
             <div className="py-8 flex flex-col items-center justify-center gap-3">
-              <span className="text-2xl text-[#FFFF55] mc-text-shadow animate-pulse">Installing...</span>
+              <span className="text-2xl text-[#ffff00] mc-text-shadow animate-pulse">Installing...</span>
               <span className="text-xs text-[#A0A0A0] mc-text-shadow">Downloading and extracting assets</span>
             </div>
           )}
@@ -823,7 +819,9 @@ function InstallModal({ pkg, onClose, playPressSound }: {
               <span className="text-xs text-[#A0A0A0] mc-text-shadow text-center">{errorMsg}</span>
               <button
                 onClick={() => setStatus('idle')}
-                className="mt-2 w-32 h-9 flex items-center justify-center text-sm mc-text-shadow text-white cursor-pointer"
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                className="mt-2 w-32 h-9 flex items-center justify-center text-sm mc-text-shadow text-white cursor-pointer transition-all hover:text-[#ffff00]"
                 style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: '100% 100%', imageRendering: 'pixelated' }}
               >
                 Retry
@@ -842,9 +840,9 @@ function InstallModal({ pkg, onClose, playPressSound }: {
                   key={ed.id}
                   onClick={() => installTo(ed.id)}
                   onMouseEnter={() => setFocusedIdx(i)}
-                  className={`flex flex-col p-3 cursor-pointer border-2 transition-none ${focusedIdx === i ? 'border-[#FFFF55] bg-black/40' : 'border-[#444] bg-black/20'}`}
+                  className={`flex flex-col p-3 cursor-pointer border-2 transition-none ${focusedIdx === i ? 'border-[#ffff00] bg-black/40' : 'border-[#444] bg-black/20'}`}
                 >
-                  <span className={`text-lg mc-text-shadow ${focusedIdx === i ? 'text-[#FFFF55]' : 'text-white'}`}>{ed.name}</span>
+                  <span className={`text-lg mc-text-shadow ${focusedIdx === i ? 'text-[#ffff00]' : 'text-white'}`}>{ed.name}</span>
                 </div>
               ))
             )
@@ -964,7 +962,9 @@ function UninstallModal({ pkg, installedEntries, onClose, playPressSound, isVers
               <span className="text-xs text-[#A0A0A0] mc-text-shadow text-center">{errorMsg}</span>
               <button
                 onClick={() => setStatus('idle')}
-                className="mt-2 w-32 h-9 flex items-center justify-center text-sm mc-text-shadow text-white cursor-pointer"
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                className="mt-2 w-32 h-9 flex items-center justify-center text-sm mc-text-shadow text-white cursor-pointer transition-all hover:text-[#ffff00]"
                 style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: '100% 100%', imageRendering: 'pixelated' }}
               >
                 Retry

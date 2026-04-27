@@ -23,7 +23,7 @@ export const DownloadOverlay = memo(function DownloadOverlay({ downloadProgress,
       }}
     >
       <div className="flex flex-col gap-1 w-full">
-        <span className="text-[15px] text-[#FFFF55] mc-text-shadow uppercase tracking-widest text-center w-full">
+        <span className="text-[15px] text-[#ffff00] mc-text-shadow uppercase tracking-widest text-center w-full">
           Downloading
         </span>
         <div className="text-[10px] text-gray-300 mc-text-shadow truncate uppercase opacity-80 pb-1 text-center w-full">

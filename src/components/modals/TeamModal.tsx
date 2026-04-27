@@ -50,9 +50,9 @@ export default function TeamModal({
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      initial={{ opacity: 1 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      exit={{ opacity: 1 }}
       className="absolute inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm outline-none border-none"
     >
       <div
@@ -63,7 +63,7 @@ export default function TeamModal({
           imageRendering: "pixelated",
         }}
       >
-        <h2 className="text-[#FFFF55] text-2xl mc-text-shadow mb-4 border-b-2 border-[#373737] pb-2 w-full text-center uppercase">
+        <h2 className="text-[#ffff00] text-2xl mc-text-shadow mb-4 border-b-2 border-[#373737] pb-2 w-full text-center uppercase">
           Emerald Team
         </h2>
         <div className="flex flex-col gap-3 w-full items-center">
@@ -75,7 +75,7 @@ export default function TeamModal({
               rel="noopener noreferrer"
               onClick={() => playPressSound()}
               onMouseEnter={() => setFocusIndex(idx)}
-              className={`w-56 h-10 flex items-center justify-center mc-text-shadow text-xl transition-all outline-none border-none bg-transparent ${focusIndex === idx ? "text-[#FFFF55]" : "text-white"}`}
+              className={`w-56 h-10 flex items-center justify-center mc-text-shadow text-xl transition-all outline-none border-none bg-transparent ${focusIndex === idx ? "text-[#ffff00]" : "text-white"}`}
               style={{
                 backgroundImage: focusIndex === idx
                   ? "url('/images/button_highlighted.png')"
@@ -94,7 +94,7 @@ export default function TeamModal({
             playSfx("close_click.wav");
             onClose();
           }}
-          className={`mt-6 w-56 h-12 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none ${focusIndex === team.length ? "text-[#FFFF55]" : "text-white"}`}
+          className={`mt-6 w-56 h-12 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none ${focusIndex === team.length ? "text-[#ffff00]" : "text-white"}`}
           style={{
             backgroundImage: focusIndex === team.length
               ? "url('/images/button_highlighted.png')"

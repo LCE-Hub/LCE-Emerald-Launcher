@@ -274,14 +274,14 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
   return (
     <motion.div
       ref={containerRef}
-      initial={{ opacity: 0, x: -20 }}
+      initial={{ opacity: 1, x: 0 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: useConfig().animationsEnabled ? 0.3 : 0 }}
+      exit={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0 }}
       className={`absolute ${legacyMode ? 'left-[calc(50vw-340px)]' : 'left-16'} ${legacyMode ? 'top-1/2' : 'top-[40%]'} -translate-y-1/2 flex flex-col items-center gap-1 outline-none z-10`}
     >
       {!legacyMode && (
-        <div className={`relative z-20 bg-black/20 flex justify-center items-center ${legacyMode ? 'mb-0' : 'mb-2'} px-2 py-1 rounded-sm border-2 transition-colors ${isFocusedSection && focusIndex === 0 ? 'border-[#FFFF55]' : 'border-transparent'}`} data-focus="0" tabIndex={0}>
+        <div className={`relative z-20 bg-black/20 flex justify-center items-center ${legacyMode ? 'mb-0' : 'mb-2'} px-2 py-1 rounded-sm border-2 transition-colors ${isFocusedSection && focusIndex === 0 ? 'border-[#ffff00]' : 'border-transparent'}`} data-focus="0" tabIndex={0}>
           <input
             type="text" value={username} maxLength={16}
             style={{ width: `${Math.max(username.length, 3) + 2}ch` }}
@@ -292,7 +292,7 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
                 e.stopPropagation();
               }
             }}
-            className="bg-transparent text-white focus:text-[#FFFF55] outline-none border-none text-center font-['Mojangles'] mc-text-shadow tracking-widest text-xl cursor-text"
+            className="bg-transparent text-white focus:text-[#ffff00] outline-none border-none text-center font-['Mojangles'] mc-text-shadow tracking-widest text-xl cursor-text"
           />
         </div>
       )}
@@ -306,7 +306,7 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
           data-focus="1" tabIndex={0}
           onMouseEnter={() => isFocusedSection && setFocusIndex(1)}
           onClick={() => { playPressSound(); setActiveView('skins'); }}
-          className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none transition-all ${isFocusedSection && focusIndex === 1 ? 'scale-110' : ''}`}
+          className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none ${isFocusedSection && focusIndex === 1 ? 'scale-110' : ''}`}
           style={isFocusedSection && focusIndex === 1 ? { backgroundImage: "url('/images/Button_Square_Highlighted.png')" } : {}}
           title="Change Skin"
         >
@@ -317,7 +317,7 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
             data-focus="2" tabIndex={0}
             onMouseEnter={() => isFocusedSection && setFocusIndex(2)}
             onClick={() => { playPressSound(); setShowLayers(!showLayers); }}
-            className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none transition-all ${isFocusedSection && focusIndex === 2 ? 'scale-110' : ''}`}
+            className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none ${isFocusedSection && focusIndex === 2 ? 'scale-110' : ''}`}
             style={isFocusedSection && focusIndex === 2 ? { backgroundImage: "url('/images/Button_Square_Highlighted.png')" } : {}}
             title="Toggle Layers"
           >
@@ -329,7 +329,7 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
             data-focus="3" tabIndex={0}
             onMouseEnter={() => isFocusedSection && setFocusIndex(3)}
             onClick={() => { playPressSound(); setSkinUrl('/images/Default.png'); }}
-            className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none transition-all ${isFocusedSection && focusIndex === 3 ? 'scale-110' : ''}`}
+            className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none ${isFocusedSection && focusIndex === 3 ? 'scale-110' : ''}`}
             style={isFocusedSection && focusIndex === 3 ? { backgroundImage: "url('/images/Button_Square_Highlighted.png')" } : {}}
             title="Reset to Default"
           >
@@ -340,7 +340,7 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
           data-focus="4" tabIndex={0}
           onMouseEnter={() => isFocusedSection && setFocusIndex(4)}
           onClick={() => { playPressSound(); setActiveView('screenshots'); }}
-          className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none transition-all ${isFocusedSection && focusIndex === 4 ? 'scale-110' : ''}`}
+          className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none ${isFocusedSection && focusIndex === 4 ? 'scale-110' : ''}`}
           style={isFocusedSection && focusIndex === 4 ? { backgroundImage: "url('/images/Button_Square_Highlighted.png')" } : {}}
           title="Screenshots"
         >

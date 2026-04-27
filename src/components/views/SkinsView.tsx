@@ -6,7 +6,6 @@ import {
   useUI,
   useAudio,
   useSkin,
-  useConfig,
 } from "../../context/LauncherContext";
 
 interface SavedSkin {
@@ -414,10 +413,10 @@ const SkinsView = memo(function SkinsView() {
     <motion.div
       ref={containerRef}
       tabIndex={-1}
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 1, scale: 1 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: useConfig().animationsEnabled ? 0.3 : 0 }}
+      exit={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0 }}
       className="flex flex-col items-center w-full max-w-3xl outline-none"
     >
       <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 border-b-2 border-[#373737] pb-2 w-[60%] max-w-75 text-center tracking-widest uppercase opacity-80 font-bold">
@@ -442,7 +441,7 @@ const SkinsView = memo(function SkinsView() {
                 if (viewMode === "skin") handleImportClick();
                 else capeFileInputRef.current?.click();
               }}
-              className={`w-40 h-10 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] ${focusIndex === 0 ? "text-[#FFFF55]" : "text-white"}`}
+              className={`w-40 h-10 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#ffff00] ${focusIndex === 0 ? "text-[#ffff00]" : "text-white"}`}
               style={{
                 backgroundImage:
                   focusIndex === 0
@@ -472,7 +471,7 @@ const SkinsView = memo(function SkinsView() {
                 (viewMode === "cape" && isActiveCapeDefault)
                   ? "text-gray-400 opacity-80 cursor-not-allowed"
                   : focusIndex === 1
-                    ? "text-[#FFFF55]"
+                    ? "text-[#ffff00]"
                     : "text-white"
               }`}
               style={{
@@ -555,7 +554,7 @@ const SkinsView = memo(function SkinsView() {
                 >
                   <div className="h-4 flex items-center justify-center gap-1">
                     {isActive && (
-                      <span className="text-[#FFFF55] text-xs mc-text-shadow uppercase tracking-widest">
+                      <span className="text-[#ffff00] text-xs mc-text-shadow uppercase tracking-widest">
                         Active
                       </span>
                     )}
@@ -567,7 +566,7 @@ const SkinsView = memo(function SkinsView() {
                   </div>
                   <div
                     onClick={() => handleSkinSelect(skin)}
-                    className={`w-16 h-16 bg-black/40 border-2 shadow-inner relative cursor-pointer overflow-hidden transition-colors outline-none ${isActive || isFocused ? "border-[#FFFF55]" : "border-[#373737] hover:border-[#A0A0A0]"}`}
+                    className={`w-16 h-16 bg-black/40 border-2 shadow-inner relative cursor-pointer overflow-hidden transition-colors outline-none ${isActive || isFocused ? "border-[#ffff00]" : "border-[#373737] hover:border-[#A0A0A0]"}`}
                   >
                     <img
                       src={skin.url}
@@ -590,7 +589,7 @@ const SkinsView = memo(function SkinsView() {
                     value={skin.name}
                     maxLength={16}
                     onChange={(e) => handleNameChange(skin.id, e.target.value)}
-                    className={`bg-transparent text-center outline-none border-none text-base mc-text-shadow w-full truncate transition-colors relative z-10 ${isActive || isFocused ? "text-[#FFFF55]" : "text-white"} ${isDefaultSkin(skin.id) ? "pointer-events-none" : ""}`}
+                    className={`bg-transparent text-center outline-none border-none text-base mc-text-shadow w-full truncate transition-colors relative z-10 ${isActive || isFocused ? "text-[#ffff00]" : "text-white"} ${isDefaultSkin(skin.id) ? "pointer-events-none" : ""}`}
                     onClick={(e) => e.stopPropagation()}
                     spellCheck={false}
                     readOnly={isDefaultSkin(skin.id)}
@@ -608,7 +607,7 @@ const SkinsView = memo(function SkinsView() {
               >
                 <div className="h-4 flex items-center justify-center gap-1">
                   {isActiveCapeDefault && (
-                    <span className="text-[#FFFF55] text-xs mc-text-shadow uppercase tracking-widest">
+                    <span className="text-[#ffff00] text-xs mc-text-shadow uppercase tracking-widest">
                       Active
                     </span>
                   )}
@@ -619,12 +618,12 @@ const SkinsView = memo(function SkinsView() {
                     setCapeUrl(null);
                     setActiveCapeId(null);
                   }}
-                  className={`w-16 h-16 bg-black/40 border-2 shadow-inner relative cursor-pointer overflow-hidden transition-colors outline-none flex items-center justify-center ${isActiveCapeDefault || focusIndex === SKINS_START_INDEX ? "border-[#FFFF55]" : "border-[#373737] hover:border-[#A0A0A0]"}`}
+                  className={`w-16 h-16 bg-black/40 border-2 shadow-inner relative cursor-pointer overflow-hidden transition-colors outline-none flex items-center justify-center ${isActiveCapeDefault || focusIndex === SKINS_START_INDEX ? "border-[#ffff00]" : "border-[#373737] hover:border-[#A0A0A0]"}`}
                 >
                   <span className="text-gray-500 text-2xl">X</span>
                 </div>
                 <span
-                  className={`text-center outline-none border-none text-base mc-text-shadow w-full truncate transition-colors ${isActiveCapeDefault || focusIndex === SKINS_START_INDEX ? "text-[#FFFF55]" : "text-white"}`}
+                  className={`text-center outline-none border-none text-base mc-text-shadow w-full truncate transition-colors ${isActiveCapeDefault || focusIndex === SKINS_START_INDEX ? "text-[#ffff00]" : "text-white"}`}
                 >
                   No Cape
                 </span>
@@ -645,14 +644,14 @@ const SkinsView = memo(function SkinsView() {
                   >
                     <div className="h-4 flex items-center justify-center gap-1">
                       {isActive && (
-                        <span className="text-[#FFFF55] text-xs mc-text-shadow uppercase tracking-widest">
+                        <span className="text-[#ffff00] text-xs mc-text-shadow uppercase tracking-widest">
                           Active
                         </span>
                       )}
                     </div>
                     <div
                       onClick={() => handleCapeSelect(cape)}
-                      className={`w-16 h-16 bg-black/40 border-2 shadow-inner relative cursor-pointer overflow-hidden transition-colors outline-none ${isActive || isFocused ? "border-[#FFFF55]" : "border-[#373737] hover:border-[#A0A0A0]"}`}
+                      className={`w-16 h-16 bg-black/40 border-2 shadow-inner relative cursor-pointer overflow-hidden transition-colors outline-none ${isActive || isFocused ? "border-[#ffff00]" : "border-[#373737] hover:border-[#A0A0A0]"}`}
                     >
                       <img
                         src={cape.url}
@@ -678,7 +677,7 @@ const SkinsView = memo(function SkinsView() {
                       onChange={(e) =>
                         handleCapeNameChange(cape.id, e.target.value)
                       }
-                      className={`bg-transparent text-center outline-none border-none text-base mc-text-shadow w-full truncate transition-colors relative z-10 ${isActive || isFocused ? "text-[#FFFF55]" : "text-white"}`}
+                      className={`bg-transparent text-center outline-none border-none text-base mc-text-shadow w-full truncate transition-colors relative z-10 ${isActive || isFocused ? "text-[#ffff00]" : "text-white"}`}
                       onClick={(e) => e.stopPropagation()}
                       spellCheck={false}
                     />
@@ -697,7 +696,7 @@ const SkinsView = memo(function SkinsView() {
           playBackSound();
           setActiveView("main");
         }}
-        className={`w-72 h-14 flex items-center justify-center transition-colors text-2xl mc-text-shadow mt-2 outline-none border-none hover:text-[#FFFF55] ${focusIndex === BACK_BUTTON_INDEX ? "text-[#FFFF55]" : "text-white"}`}
+        className={`w-72 h-14 flex items-center justify-center transition-colors text-2xl mc-text-shadow mt-2 outline-none border-none hover:text-[#ffff00] ${focusIndex === BACK_BUTTON_INDEX ? "text-[#ffff00]" : "text-white"}`}
         style={{
           backgroundImage:
             focusIndex === BACK_BUTTON_INDEX
@@ -733,7 +732,7 @@ const SkinsView = memo(function SkinsView() {
                     playPressSound();
                     fileInputRef.current?.click();
                   }}
-                  className={`w-full h-12 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none ${modalFocusIndex === 0 ? "text-[#FFFF55]" : "text-white"}`}
+                  className={`w-full h-12 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none ${modalFocusIndex === 0 ? "text-[#ffff00]" : "text-white"}`}
                   style={{
                     backgroundImage:
                       modalFocusIndex === 0
@@ -752,7 +751,7 @@ const SkinsView = memo(function SkinsView() {
                     setImportMode("username");
                     setModalFocusIndex(0);
                   }}
-                  className={`w-full h-12 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none ${modalFocusIndex === 1 ? "text-[#FFFF55]" : "text-white"}`}
+                  className={`w-full h-12 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none ${modalFocusIndex === 1 ? "text-[#ffff00]" : "text-white"}`}
                   style={{
                     backgroundImage:
                       modalFocusIndex === 1
@@ -775,7 +774,7 @@ const SkinsView = memo(function SkinsView() {
                   onFocus={() => setModalFocusIndex(0)}
                   autoFocus
                   spellCheck={false}
-                  className={`w-full h-12 bg-black/50 border-2 text-white px-4 text-xl outline-none transition-colors relative z-10 ${modalFocusIndex === 0 ? "border-[#FFFF55]" : "border-[#373737]"}`}
+                  className={`w-full h-12 bg-black/50 border-2 text-white px-4 text-xl outline-none transition-colors relative z-10 ${modalFocusIndex === 0 ? "border-[#ffff00]" : "border-[#373737]"}`}
                 />
 
                 {importError && (
@@ -788,7 +787,7 @@ const SkinsView = memo(function SkinsView() {
                   onMouseEnter={() => setModalFocusIndex(1)}
                   onClick={handleFetchUsername}
                   disabled={isImporting}
-                  className={`w-full h-12 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none ${isImporting ? "opacity-50" : modalFocusIndex === 1 ? "text-[#FFFF55]" : "text-white"}`}
+                  className={`w-full h-12 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none ${isImporting ? "opacity-50" : modalFocusIndex === 1 ? "text-[#ffff00]" : "text-white"}`}
                   style={{
                     backgroundImage:
                       modalFocusIndex === 1
@@ -814,7 +813,7 @@ const SkinsView = memo(function SkinsView() {
                     playPressSound();
                     handleFinalizeImport(false);
                   }}
-                  className={`w-full h-12 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none ${modalFocusIndex === 0 ? "text-[#FFFF55]" : "text-white"}`}
+                  className={`w-full h-12 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none ${modalFocusIndex === 0 ? "text-[#ffff00]" : "text-white"}`}
                   style={{
                     backgroundImage:
                       modalFocusIndex === 0
@@ -832,7 +831,7 @@ const SkinsView = memo(function SkinsView() {
                     playPressSound();
                     handleFinalizeImport(true);
                   }}
-                  className={`w-full h-12 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none ${modalFocusIndex === 1 ? "text-[#FFFF55]" : "text-white"}`}
+                  className={`w-full h-12 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none ${modalFocusIndex === 1 ? "text-[#ffff00]" : "text-white"}`}
                   style={{
                     backgroundImage:
                       modalFocusIndex === 1
@@ -857,7 +856,7 @@ const SkinsView = memo(function SkinsView() {
                 setImportError("");
                 setModalFocusIndex(0);
               }}
-              className={`w-40 h-10 flex items-center justify-center transition-colors text-lg mc-text-shadow mt-6 outline-none ${modalFocusIndex === 2 ? "text-[#FFFF55]" : "text-white"}`}
+              className={`w-40 h-10 flex items-center justify-center transition-colors text-lg mc-text-shadow mt-6 outline-none ${modalFocusIndex === 2 ? "text-[#ffff00]" : "text-white"}`}
               style={{
                 backgroundImage:
                   modalFocusIndex === 2

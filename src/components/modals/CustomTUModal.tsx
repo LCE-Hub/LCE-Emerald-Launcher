@@ -19,7 +19,7 @@ const ModalButton = memo(function ModalButton({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`flex-1 h-12 flex items-center justify-center text-xl mc-text-shadow transition-colors outline-none border-none bg-transparent ${isDanger ? "text-red-500" : "text-white"
-        } ${isHovered ? (isDanger ? "text-red-400" : "text-[#FFFF55]") : ""}`}
+        } ${isHovered ? (isDanger ? "text-red-400" : "text-[#ffff00]") : ""}`}
       style={{
         backgroundImage: isHovered
           ? "url('/images/button_highlighted.png')"
@@ -122,13 +122,7 @@ export default function CustomTUModal({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 outline-none border-none">
       <div
-        className="relative w-[400px] p-6 flex flex-col items-center"
-        style={{
-          backgroundImage: "url('/images/background.png')",
-          backgroundSize: "100% 100%",
-          backgroundRepeat: "no-repeat",
-          imageRendering: "pixelated",
-        }}
+        className="relative w-[400px] p-4 flex flex-col items-center mc-options-bg"
       >
         <h2 className="text-xl text-black mc-text-shadow mb-4 text-center">
           {editingEdition ? "Edit Custom TU" : "Import Custom TU"}
