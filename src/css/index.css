@@ -456,7 +456,7 @@ body {
 
 
 
-.no-animations * {
+.no-animations *:not(.particle-burst):not(.mc-splash) {
 
   transition: none !important;
 
