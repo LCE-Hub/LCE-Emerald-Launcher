@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, memo } from "react";
+import { motion } from "framer-motion";
 import { TauriService, Runner } from "../../services/TauriService";
 import { usePlatform } from "../../hooks/usePlatform";
 import { useUI, useConfig, useAudio, useGame } from "../../context/LauncherContext";
@@ -442,9 +443,13 @@ const SettingsView = memo(function SettingsView() {
   };
 
   return (
-    <div
+    <motion.div
       ref={containerRef}
       tabIndex={-1}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: animationsEnabled ? 0.3 : 0 }}
       className="flex flex-col items-center w-full max-w-3xl outline-none"
     >
       <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 border-b-2 border-[#373737] pb-2 w-[40%] max-w-[200px] text-center tracking-widest uppercase opacity-80 font-bold whitespace-nowrap px-4">
@@ -620,7 +625,7 @@ const SettingsView = memo(function SettingsView() {
           </button>
         );
       })()}
-    </div>
+    </motion.div>
   );
 });
 

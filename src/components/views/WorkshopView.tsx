@@ -217,10 +217,10 @@ const WorkshopView = memo(function WorkshopView() {
     <motion.div
       ref={containerRef}
       tabIndex={0}
-      initial={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: config.animationsEnabled ? 0.3 : 0 }}
       className="flex flex-col items-center w-full max-w-6xl h-full max-h-full relative font-['Mojangles'] text-white select-none outline-none focus:outline-none"
     >
       <h2 className="text-2xl text-white mc-text-shadow mt-4 mb-6 border-b-2 border-[#373737] pb-2 w-[30%] max-w-[250px] text-center tracking-widest uppercase opacity-80 font-bold whitespace-nowrap px-4">
@@ -239,8 +239,8 @@ const WorkshopView = memo(function WorkshopView() {
                 key={tab}
                 onClick={() => selectTab(tab)}
                 className={`
-                  mc-lce-tab-bg h-10 min-w-[80px] flex items-center justify-center px-3 text-sm mc-text-shadow tracking-wide border-none outline-none cursor-pointer flex-shrink-0
-                  ${isActive ? 'active text-white' : 'text-white/70 hover:text-white'}
+                  mc-lce-tab-bg h-10 min-w-[80px] flex items-center justify-center px-3 text-sm mc-text-shadow tracking-wide border-none outline-none cursor-pointer flex-shrink-0 transition-all
+                  ${isActive ? 'active text-white scale-105' : 'text-white/70 hover:text-white hover:scale-105'}
                 `}
               >
                 {tab}
@@ -336,17 +336,23 @@ const WorkshopView = memo(function WorkshopView() {
               </div>
             </motion.div>
           ) : loading ? (
-            <div key="loading" className="relative w-full h-full flex items-center justify-center">
+            <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="relative w-full h-full flex items-center justify-center">
               <span className="text-3xl text-[#ffff00] mc-text-shadow tracking-widest animate-pulse uppercase">Searching Archives...</span>
-            </div>
+            </motion.div>
           ) : error ? (
-            <div key="error" className="relative w-full h-full flex items-center justify-center">
+            <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="relative w-full h-full flex items-center justify-center">
               <span className="text-xl text-red-500 mc-text-shadow uppercase tracking-widest">{error}</span>
-            </div>
+            </motion.div>
           ) : (
-            <div
+            <motion.div
               key={activeTab}
               ref={gridRef}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: config.animationsEnabled ? 0.3 : 0 }}
               className="relative w-full h-full overflow-y-auto p-6 scroll-smooth max-h-[45vh]"
             >
               {filteredItems.length === 0 ? (
@@ -370,7 +376,7 @@ const WorkshopView = memo(function WorkshopView() {
                   ))}
                 </div>
               )}
-            </div>
+            </motion.div>
           )}
         </AnimatePresence>
         </div>
@@ -657,7 +663,7 @@ function PackageModal({ pkg, onClose, playPressSound, installedEntries, onInstal
               <button
                 onMouseEnter={() => setModalFocus('install')}
                 onClick={handleAction}
-                className={`flex-1 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all ${modalFocus === 'install' ? 'text-[#ffff00]' : 'text-white'}`}
+                className={`flex-1 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all ${modalFocus === 'install' ? 'text-[#ffff00] scale-105' : 'text-white'}`}
                 style={{
                   backgroundImage: modalFocus === 'install' ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
                   backgroundSize: '100% 100%',
@@ -670,7 +676,7 @@ function PackageModal({ pkg, onClose, playPressSound, installedEntries, onInstal
                 <button
                   onMouseEnter={() => setModalFocus('uninstall')}
                   onClick={() => setShowUninstall(true)}
-                  className={`w-36 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all ${modalFocus === 'uninstall' ? 'text-[#FF5555]' : 'text-white'}`}
+                  className={`w-36 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all ${modalFocus === 'uninstall' ? 'text-[#FF5555] scale-105' : 'text-white'}`}
                   style={{
                     backgroundImage: modalFocus === 'uninstall' ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
                     backgroundSize: '100% 100%',
@@ -683,7 +689,7 @@ function PackageModal({ pkg, onClose, playPressSound, installedEntries, onInstal
               <button
                 onMouseEnter={() => setModalFocus('close')}
                 onClick={onClose}
-                className={`w-36 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all ${modalFocus === 'close' ? 'text-[#ffff00]' : 'text-white'}`}
+                className={`w-36 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all ${modalFocus === 'close' ? 'text-[#ffff00] scale-105' : 'text-white'}`}
                 style={{
                   backgroundImage: modalFocus === 'close' ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
                   backgroundSize: '100% 100%',
@@ -840,7 +846,7 @@ function InstallModal({ pkg, onClose, playPressSound }: {
                   key={ed.id}
                   onClick={() => installTo(ed.id)}
                   onMouseEnter={() => setFocusedIdx(i)}
-                  className={`flex flex-col p-3 cursor-pointer border-2 transition-none ${focusedIdx === i ? 'border-[#ffff00] bg-black/40' : 'border-[#444] bg-black/20'}`}
+                  className={`flex flex-col p-3 cursor-pointer border-2 transition-all ${focusedIdx === i ? 'border-[#ffff00] bg-black/40 scale-[1.02] z-10' : 'border-[#444] bg-black/20'}`}
                 >
                   <span className={`text-lg mc-text-shadow ${focusedIdx === i ? 'text-[#ffff00]' : 'text-white'}`}>{ed.name}</span>
                 </div>
@@ -977,7 +983,7 @@ function UninstallModal({ pkg, installedEntries, onClose, playPressSound, isVers
               key={entry.instanceId}
               onClick={() => uninstallFrom(entry.instanceId)}
               onMouseEnter={() => setFocusedIdx(i)}
-              className={`flex items-center justify-between p-3 cursor-pointer border-2 transition-none ${focusedIdx === i ? 'border-[#FF5555] bg-black/40' : 'border-[#444] bg-black/20'}`}
+              className={`flex items-center justify-between p-3 cursor-pointer border-2 transition-all ${focusedIdx === i ? 'border-[#FF5555] bg-black/40 scale-[1.02] z-10' : 'border-[#444] bg-black/20'}`}
             >
               <span className={`text-lg mc-text-shadow ${focusedIdx === i ? 'text-[#FF5555]' : 'text-white'}`}>{editionName(entry.instanceId)}</span>
               <span className="text-[10px] text-[#666] mc-text-shadow uppercase tracking-widest">v{entry.version}</span>

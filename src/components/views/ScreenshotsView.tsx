@@ -4,6 +4,7 @@ import {
   useUI,
   useAudio,
   useGame,
+  useConfig,
 } from "../../context/LauncherContext";
 import {
   ScreenshotService,
@@ -13,7 +14,8 @@ const ScreenshotsView = memo(function ScreenshotsView() {
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { editions } = useGame();
-    const [screenshots, setScreenshots] = useState<ScreenshotInfo[]>([]);
+  const { animationsEnabled } = useConfig();
+  const [screenshots, setScreenshots] = useState<ScreenshotInfo[]>([]);
   const [selectedScreenshot, setSelectedScreenshot] =
     useState<ScreenshotInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -150,10 +152,10 @@ const ScreenshotsView = memo(function ScreenshotsView() {
 
   return (
     <motion.div
-      initial={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: animationsEnabled ? 0.3 : 0 }}
       className="flex flex-col items-center w-full h-full max-w-6xl relative font-['Mojangles'] text-white select-none outline-none focus:outline-none"
     >
       <h2 className="text-2xl text-white mc-text-shadow mt-4 mb-6 border-b-2 border-[#373737] pb-2 w-[30%] max-w-[250px] text-center tracking-widest uppercase opacity-80 font-bold whitespace-nowrap px-4">
@@ -322,7 +324,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                   onClick={() => handleOpenFolder(selectedScreenshot)}
                   className={`
                     flex-1 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all
-                    ${modalFocusIndex === 0 ? "text-[#ffff00]" : "text-white"}
+                    ${modalFocusIndex === 0 ? "text-[#ffff00] scale-105" : "text-white"}
                   `}
                   style={{
                     backgroundImage:
@@ -344,7 +346,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                   }}
                   className={`
                     flex-1 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all
-                    ${modalFocusIndex === 1 ? "text-[#FF5555]" : "text-white"}
+                    ${modalFocusIndex === 1 ? "text-[#FF5555] scale-105" : "text-white"}
                   `}
                   style={{
                     backgroundImage:
@@ -362,7 +364,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                   onClick={() => setSelectedScreenshot(null)}
                   className={`
                     w-48 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all
-                    ${modalFocusIndex === 2 ? "text-[#ffff00]" : "text-white"}
+                    ${modalFocusIndex === 2 ? "text-[#ffff00] scale-105" : "text-white"}
                   `}
                   style={{
                     backgroundImage:
@@ -409,7 +411,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                   }}
                   className={`
                     w-full h-10 flex items-center justify-center text-lg mc-text-shadow border-none outline-none cursor-pointer transition-all
-                    ${deleteConfirmFocusIndex === 0 ? "text-[#ffff00]" : "text-white"}
+                    ${deleteConfirmFocusIndex === 0 ? "text-[#ffff00] scale-105" : "text-white"}
                   `}
                   style={{
                     backgroundImage:
@@ -427,7 +429,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                   onClick={confirmDelete}
                   className={`
                     w-full h-10 flex items-center justify-center text-lg mc-text-shadow border-none outline-none cursor-pointer transition-all
-                    ${deleteConfirmFocusIndex === 1 ? "text-[#FF5555]" : "text-white"}
+                    ${deleteConfirmFocusIndex === 1 ? "text-[#FF5555] scale-105" : "text-white"}
                   `}
                   style={{
                     backgroundImage:

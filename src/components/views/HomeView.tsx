@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, memo } from "react";
+import { motion } from "framer-motion";
 import {
   useUI,
   useConfig,
@@ -98,9 +99,13 @@ const HomeView = memo(function HomeView() {
   }, [menuFocus, buttons, playPressSound, isFocusedSection, onNavigateToSkin]);
 
   return (
-    <div
+    <motion.div
       tabIndex={-1}
-      className={`relative w-full max-w-[540px] flex flex-col space-y-3 outline-none ${isFocusedSection ? "opacity-100" : "opacity-50"}`}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: isFocusedSection ? 1 : 0.5, y: 0 }}
+      exit={{ opacity: 0, y: 10 }}
+      transition={{ duration: useConfig().animationsEnabled ? 0.3 : 0 }}
+      className="relative w-full max-w-[540px] flex flex-col space-y-3 outline-none"
     >
       {buttons.map((btn: any, i: number) => (
         <div key={i} className="relative w-full group">
@@ -183,7 +188,7 @@ const HomeView = memo(function HomeView() {
           </button>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 });
 

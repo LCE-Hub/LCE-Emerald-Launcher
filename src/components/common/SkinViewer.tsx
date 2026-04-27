@@ -20,7 +20,7 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
   const mountRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [focusIndex, setFocusIndex] = useState(0);
-  const { legacyMode } = useConfig();
+  const { legacyMode, animationsEnabled } = useConfig();
   const [showLayers, setShowLayers] = useLocalStorage('lce-show-layers', true);
   const overlaysRef = useRef<THREE.Mesh[]>([]);
   const capeRef = useRef<THREE.Group | null>(null);
@@ -274,10 +274,10 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
   return (
     <motion.div
       ref={containerRef}
-      initial={{ opacity: 1, x: 0 }}
+      initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ duration: animationsEnabled ? 0.3 : 0 }}
       className={`absolute ${legacyMode ? 'left-[calc(50vw-340px)]' : 'left-16'} ${legacyMode ? 'top-1/2' : 'top-[40%]'} -translate-y-1/2 flex flex-col items-center gap-1 outline-none z-10`}
     >
       {!legacyMode && (
@@ -306,7 +306,7 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
           data-focus="1" tabIndex={0}
           onMouseEnter={() => isFocusedSection && setFocusIndex(1)}
           onClick={() => { playPressSound(); setActiveView('skins'); }}
-          className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none ${isFocusedSection && focusIndex === 1 ? 'scale-110' : ''}`}
+          className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none transition-all ${isFocusedSection && focusIndex === 1 ? 'scale-110' : ''}`}
           style={isFocusedSection && focusIndex === 1 ? { backgroundImage: "url('/images/Button_Square_Highlighted.png')" } : {}}
           title="Change Skin"
         >
@@ -317,7 +317,7 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
             data-focus="2" tabIndex={0}
             onMouseEnter={() => isFocusedSection && setFocusIndex(2)}
             onClick={() => { playPressSound(); setShowLayers(!showLayers); }}
-            className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none ${isFocusedSection && focusIndex === 2 ? 'scale-110' : ''}`}
+            className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none transition-all ${isFocusedSection && focusIndex === 2 ? 'scale-110' : ''}`}
             style={isFocusedSection && focusIndex === 2 ? { backgroundImage: "url('/images/Button_Square_Highlighted.png')" } : {}}
             title="Toggle Layers"
           >
@@ -329,7 +329,7 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
             data-focus="3" tabIndex={0}
             onMouseEnter={() => isFocusedSection && setFocusIndex(3)}
             onClick={() => { playPressSound(); setSkinUrl('/images/Default.png'); }}
-            className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none ${isFocusedSection && focusIndex === 3 ? 'scale-110' : ''}`}
+            className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none transition-all ${isFocusedSection && focusIndex === 3 ? 'scale-110' : ''}`}
             style={isFocusedSection && focusIndex === 3 ? { backgroundImage: "url('/images/Button_Square_Highlighted.png')" } : {}}
             title="Reset to Default"
           >
@@ -340,7 +340,7 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
           data-focus="4" tabIndex={0}
           onMouseEnter={() => isFocusedSection && setFocusIndex(4)}
           onClick={() => { playPressSound(); setActiveView('screenshots'); }}
-          className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none ${isFocusedSection && focusIndex === 4 ? 'scale-110' : ''}`}
+          className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none transition-all ${isFocusedSection && focusIndex === 4 ? 'scale-110' : ''}`}
           style={isFocusedSection && focusIndex === 4 ? { backgroundImage: "url('/images/Button_Square_Highlighted.png')" } : {}}
           title="Screenshots"
         >

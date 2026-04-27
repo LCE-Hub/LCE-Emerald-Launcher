@@ -371,44 +371,46 @@ export default function App() {
                   </AnimatePresence>
 
                   <div className="w-full h-full max-w-4xl relative flex justify-center items-center overflow-hidden">
-                    {activeView === "main" && <HomeView key="main-view" />}
-                    {activeView === "settings" && (
-                      <SettingsView key="settings-view" />
-                    )}
-                    {activeView === "versions" && (
-                      <VersionsView key="versions-view" />
-                    )}
-                    {activeView === "workshop" && (
-                      <WorkshopView key="workshop-view" />
-                    )}
-                    {activeView === "devtools" && (
-                      <DevtoolsView key="devtools-view" />
-                    )}
-                    {activeView === "pck-editor" && (
-                      <PckEditorView key="pck-editor-view" />
-                    )}
-                    {activeView === "arc-editor" && (
-                      <ArcEditorView key="arc-editor-view" />
-                    )}
-                    {activeView === "loc-editor" && (
-                      <LocEditorView key="loc-editor-view" />
-                    )}
-                    {activeView === "grf-editor" && (
-                      <GrfEditorView key="grf-editor-view" />
-                    )}
-                    {activeView === "col-editor" && (
-                      <ColEditorView key="col-editor-view" />
-                    )}
-                    {activeView === "options-editor" && (
-                      <OptionsEditorView key="options-editor-view" />
-                    )}
-                    {activeView === "swf-editor" && (
-                      <SwfView key="swf-editor-view" />
-                    )}
-                    {activeView === "skins" && <SkinsView key="skins-view" />}
-                    {activeView === "screenshots" && (
-                      <ScreenshotsView key="screenshots-view" />
-                    )}
+                    <AnimatePresence mode="wait">
+                      {activeView === "main" && <HomeView key="main-view" />}
+                      {activeView === "settings" && (
+                        <SettingsView key="settings-view" />
+                      )}
+                      {activeView === "versions" && (
+                        <VersionsView key="versions-view" />
+                      )}
+                      {activeView === "workshop" && (
+                        <WorkshopView key="workshop-view" />
+                      )}
+                      {activeView === "devtools" && (
+                        <DevtoolsView key="devtools-view" />
+                      )}
+                      {activeView === "pck-editor" && (
+                        <PckEditorView key="pck-editor-view" />
+                      )}
+                      {activeView === "arc-editor" && (
+                        <ArcEditorView key="arc-editor-view" />
+                      )}
+                      {activeView === "loc-editor" && (
+                        <LocEditorView key="loc-editor-view" />
+                      )}
+                      {activeView === "grf-editor" && (
+                        <GrfEditorView key="grf-editor-view" />
+                      )}
+                      {activeView === "col-editor" && (
+                        <ColEditorView key="col-editor-view" />
+                      )}
+                      {activeView === "options-editor" && (
+                        <OptionsEditorView key="options-editor-view" />
+                      )}
+                      {activeView === "swf-editor" && (
+                        <SwfView key="swf-editor-view" />
+                      )}
+                      {activeView === "skins" && <SkinsView key="skins-view" />}
+                      {activeView === "screenshots" && (
+                        <ScreenshotsView key="screenshots-view" />
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
               </main>

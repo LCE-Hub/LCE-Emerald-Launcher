@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, memo } from "react";
+import { motion } from "framer-motion";
 import { TauriService } from "../../services/TauriService";
 import CustomTUModal from "../modals/CustomTUModal";
 import {
@@ -13,6 +14,7 @@ const VersionsView = memo(function VersionsView() {
   const {
     profile: selectedProfile,
     setProfile: setSelectedProfile,
+    animationsEnabled,
   } = useConfig();
   const { playPressSound, playBackSound } = useAudio();
   const {
@@ -185,8 +187,12 @@ const VersionsView = memo(function VersionsView() {
   };
 
   return (
-    <div
+    <motion.div
       ref={containerRef}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      transition={{ duration: animationsEnabled ? 0.25 : 0 }}
       className="flex flex-col items-center w-full max-w-5xl outline-none"
     >
       <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 pb-2 w-[40%] max-w-[200px] text-center tracking-widest uppercase font-bold">
@@ -729,7 +735,7 @@ const VersionsView = memo(function VersionsView() {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 });
 
