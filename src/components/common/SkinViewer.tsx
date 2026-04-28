@@ -20,7 +20,7 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
   const mountRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [focusIndex, setFocusIndex] = useState(0);
-  const { legacyMode } = useConfig();
+  const { legacyMode, animationsEnabled } = useConfig();
   const [showLayers, setShowLayers] = useLocalStorage('lce-show-layers', true);
   const overlaysRef = useRef<THREE.Mesh[]>([]);
   const capeRef = useRef<THREE.Group | null>(null);
@@ -277,11 +277,11 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: useConfig().animationsEnabled ? 0.3 : 0 }}
+      transition={{ duration: animationsEnabled ? 0.3 : 0 }}
       className={`absolute ${legacyMode ? 'left-[calc(50vw-340px)]' : 'left-16'} ${legacyMode ? 'top-1/2' : 'top-[40%]'} -translate-y-1/2 flex flex-col items-center gap-1 outline-none z-10`}
     >
       {!legacyMode && (
-        <div className={`relative z-20 bg-black/20 flex justify-center items-center ${legacyMode ? 'mb-0' : 'mb-2'} px-2 py-1 rounded-sm border-2 transition-colors ${isFocusedSection && focusIndex === 0 ? 'border-[#FFFF55]' : 'border-transparent'}`} data-focus="0" tabIndex={0}>
+        <div className={`relative z-20 bg-black/20 flex justify-center items-center ${legacyMode ? 'mb-0' : 'mb-2'} px-2 py-1 rounded-sm border-2 transition-colors ${isFocusedSection && focusIndex === 0 ? 'border-[#ffff00]' : 'border-transparent'}`} data-focus="0" tabIndex={0}>
           <input
             type="text" value={username} maxLength={16}
             style={{ width: `${Math.max(username.length, 3) + 2}ch` }}
@@ -292,7 +292,7 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
                 e.stopPropagation();
               }
             }}
-            className="bg-transparent text-white focus:text-[#FFFF55] outline-none border-none text-center font-['Mojangles'] mc-text-shadow tracking-widest text-xl cursor-text"
+            className="bg-transparent text-white focus:text-[#ffff00] outline-none border-none text-center font-['Mojangles'] mc-text-shadow tracking-widest text-xl cursor-text"
           />
         </div>
       )}

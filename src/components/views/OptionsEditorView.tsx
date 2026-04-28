@@ -90,7 +90,9 @@ export default function OptionsEditorView() {
         <div className="flex gap-4">
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="px-6 py-2 text-white mc-text-shadow text-lg"
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+            className="px-6 py-2 text-white mc-text-shadow text-lg transition-all hover:text-[#ffff00]"
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
             Open settings.dat
@@ -98,7 +100,9 @@ export default function OptionsEditorView() {
           <button
             onClick={handleSaveOptions}
             disabled={!opt}
-            className={`px-6 py-2 text-white mc-text-shadow text-lg ${!opt ? "opacity-50 grayscale" : ""}`}
+            onMouseEnter={(e) => !(!opt) && (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+            className={`px-6 py-2 text-white mc-text-shadow text-lg transition-all hover:text-[#ffff00] ${!opt ? "opacity-50 grayscale" : ""}`}
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
             Save settings.dat
@@ -118,7 +122,7 @@ export default function OptionsEditorView() {
               <button
                 key={tab}
                 onClick={() => { playPressSound(); setActiveTab(tab); }}
-                className={`flex items-center gap-3 px-6 py-2 transition-all mc-text-shadow ${activeTab === tab ? "text-[#FFFF55] opacity-100 scale-105" : "text-white opacity-40 hover:opacity-100"}`}
+                className={`flex items-center gap-3 px-6 py-2 transition-all mc-text-shadow ${activeTab === tab ? "text-[#ffff00] opacity-100 scale-105" : "text-white opacity-40 hover:opacity-100"}`}
               >
                 <span className="text-lg capitalize">{tab}</span>
               </button>
@@ -145,7 +149,7 @@ export default function OptionsEditorView() {
                           type="range" min="0" max={k.includes("Size") || k === "difficulty" ? 3 : 255}
                           value={val}
                           onChange={(e) => updateSetting(k as keyof OptionsFile, parseInt(e.target.value))}
-                          className="w-full accent-[#FFFF55]"
+                          className="w-full accent-[#ffff00]"
                         />
                       </div>
                     );
@@ -161,14 +165,14 @@ export default function OptionsEditorView() {
                   <span className="text-white/80 uppercase tracking-widest">Chosen Skin ID</span>
                   <input
                     type="number" value={opt.chosenSkin} onChange={(e) => updateSetting("chosenSkin", parseInt(e.target.value) || 0)}
-                    className="bg-black/40 border border-[#373737] p-2 text-white outline-none focus:border-[#FFFF55] font-mono text-lg"
+                    className="bg-black/40 border border-[#373737] p-2 text-white outline-none focus:border-[#ffff00] font-mono text-lg"
                   />
                 </div>
                 <div className="flex flex-col gap-2">
                   <span className="text-white/80 uppercase tracking-widest">Player Cape ID</span>
                   <input
                     type="number" value={opt.playerCape} onChange={(e) => updateSetting("playerCape", parseInt(e.target.value) || 0)}
-                    className="bg-black/40 border border-[#373737] p-2 text-white outline-none focus:border-[#FFFF55] font-mono text-lg"
+                    className="bg-black/40 border border-[#373737] p-2 text-white outline-none focus:border-[#ffff00] font-mono text-lg"
                   />
                 </div>
                 <div className="flex flex-col gap-2">
@@ -178,7 +182,7 @@ export default function OptionsEditorView() {
                       <span className="text-white/40 w-8">{i + 1}.</span>
                       <input
                         type="number" value={s} onChange={(e) => updateFavSkin(i, parseInt(e.target.value) || 0)}
-                        className="bg-black/40 flex-1 border border-[#373737] p-2 text-white outline-none focus:border-[#FFFF55] font-mono"
+                        className="bg-black/40 flex-1 border border-[#373737] p-2 text-white outline-none focus:border-[#ffff00] font-mono"
                       />
                     </div>
                   ))}
@@ -196,7 +200,7 @@ export default function OptionsEditorView() {
                       <select
                         value={val}
                         onChange={(e) => updateAction(k as keyof typeof opt.actions, parseInt(e.target.value))}
-                        className="bg-black/40 border border-[#373737] p-2 text-white outline-none focus:border-[#FFFF55] min-w-[120px] cursor-pointer"
+                        className="bg-black/40 border border-[#373737] p-2 text-white outline-none focus:border-[#ffff00] min-w-[120px] cursor-pointer"
                       >
                         {Object.entries(BUTTONS).map(([id, name]) => (
                           <option key={id} value={id}>{name}</option>
@@ -214,7 +218,9 @@ export default function OptionsEditorView() {
       <div className="flex justify-center mt-6 h-14">
         <button
           onClick={() => { playBackSound(); setActiveView("devtools"); }}
-          className="w-72 h-full flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] text-white"
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+          className="w-72 h-full flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#ffff00] text-white"
           style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
         >
           Back

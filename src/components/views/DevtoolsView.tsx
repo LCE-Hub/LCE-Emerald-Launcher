@@ -22,7 +22,7 @@ export default function DevtoolsView() {
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { animationsEnabled } = useConfig();
-  const [focusIndex, setFocusIndex] = useState<number>(0);
+    const [focusIndex, setFocusIndex] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const BACK_BUTTON_INDEX = DEV_TOOLS.length;
   useEffect(() => {
@@ -82,14 +82,14 @@ export default function DevtoolsView() {
         Developer Tools
       </h2>
 
-      <div
-        className="w-full max-w-160 h-85 mb-4 p-8 shadow-2xl flex flex-col items-center"
-        style={{
-          backgroundImage: "url('/images/frame_background.png')",
-          backgroundSize: "100% 100%",
-          imageRendering: "pixelated",
-        }}
-      >
+      <div className="mc-lce-content-bg w-full max-w-[85vw] max-h-[55vh] mb-4 flex flex-col items-center p-3">
+        <div className="w-full h-full p-2 overflow-hidden" style={{
+          borderImage: "url('/images/panel_content.png') 4 fill",
+          borderWidth: '12px',
+          borderStyle: 'solid',
+          borderColor: 'transparent',
+          imageRendering: 'pixelated',
+        }}>
         <div className="flex flex-wrap gap-8 justify-center items-start w-full h-full overflow-y-auto pt-4">
           {DEV_TOOLS.map((tool, i) => (
             <div
@@ -101,7 +101,7 @@ export default function DevtoolsView() {
                 playPressSound();
                 setActiveView(tool.view);
               }}
-              className={`group flex flex-col items-center gap-3 w-40 p-4 relative transition-all cursor-pointer outline-none border-2 ${focusIndex === i ? "border-[#FFFF55] bg-white/5" : "border-transparent"
+              className={`group flex flex-col items-center gap-3 w-40 p-4 relative transition-all cursor-pointer outline-none border-2 ${focusIndex === i ? "border-[#ffff00] bg-white/5" : "border-transparent"
                 }`}
             >
               <div className="w-20 h-20 bg-black/40 border-2 border-[#373737] flex items-center justify-center relative shadow-inner">
@@ -113,20 +113,21 @@ export default function DevtoolsView() {
                 />
                 {tool.comingSoon && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/60">
-                    <span className="text-[10px] text-[#FFFF55] mc-text-shadow uppercase tracking-tighter text-center px-1">
+                    <span className="text-[10px] text-[#ffff00] mc-text-shadow uppercase tracking-tighter text-center px-1">
                       Coming Soon
                     </span>
                   </div>
                 )}
               </div>
               <span
-                className={`text-center text-lg mc-text-shadow transition-colors ${focusIndex === i ? "text-[#FFFF55]" : "text-white"
+                className={`text-center text-lg mc-text-shadow transition-colors ${focusIndex === i ? "text-[#ffff00]" : "text-white"
                   }`}
               >
                 {tool.name}
               </span>
             </div>
           ))}
+        </div>
         </div>
       </div>
 
@@ -137,8 +138,7 @@ export default function DevtoolsView() {
           playBackSound();
           setActiveView("main");
         }}
-        className={`w-72 h-14 flex items-center justify-center transition-colors text-2xl mc-text-shadow mt-2 outline-none border-none ${focusIndex === BACK_BUTTON_INDEX ? "text-[#FFFF55]" : "text-white"
-          }`}
+        className={`w-40 h-10 flex items-center justify-center transition-colors text-xl mc-text-shadow mt-2 outline-none border-none ${focusIndex === BACK_BUTTON_INDEX ? "text-[#ffff00]" : "text-white"}`}
         style={{
           backgroundImage:
             focusIndex === BACK_BUTTON_INDEX

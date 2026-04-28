@@ -119,7 +119,7 @@ const HomeView = memo(function HomeView() {
               }
             }}
             disabled={btn.disabled}
-            className={`w-full h-12 flex items-center justify-between px-6 text-2xl mc-text-shadow transition-colors outline-none border-none ${btn.disabled ? "text-gray-400 cursor-not-allowed" : menuFocus === i ? (btn.isDanger ? "text-red-400" : "text-[#FFFF55]") : btn.isDanger ? "text-red-500" : "text-white"}`}
+            className={`w-full h-12 flex items-center justify-between px-6 text-2xl mc-text-shadow transition-colors outline-none border-none ${btn.disabled ? "text-gray-400 cursor-not-allowed" : menuFocus === i ? (btn.isDanger ? "text-red-400" : "text-[#ffff00]") : btn.isDanger ? "text-red-500" : "text-white"}`}
             style={{
               backgroundImage: btn.disabled
                 ? "url('/images/Button_Background.png')"
@@ -140,7 +140,7 @@ const HomeView = memo(function HomeView() {
         <div className="pt-4 flex flex-col items-center w-full gap-3">
           <div className="flex gap-8">
             <a
-              href="https://discord.gg/NPMp9JhGYH"
+              href="https://discord.gg/cQVKhQXcCx"
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => {
@@ -182,7 +182,7 @@ const HomeView = memo(function HomeView() {
                 setShowCredits(true);
               }
             }}
-            className={`text-white hover:text-[#FFFF55] text-xl mc-text-shadow tracking-widest transition-colors mt-1 bg-transparent border-none outline-none ${!isFocusedSection ? "pointer-events-none" : ""}`}
+            className={`text-white hover:text-[#ffff00] text-xl mc-text-shadow tracking-widest transition-colors mt-1 bg-transparent border-none outline-none ${!isFocusedSection ? "pointer-events-none" : ""}`}
           >
             EMERALD TEAM
           </button>

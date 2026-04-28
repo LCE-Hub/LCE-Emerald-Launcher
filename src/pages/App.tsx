@@ -291,7 +291,7 @@ export default function App() {
                               (e.target as HTMLImageElement).src = "/images/Button_Background.png";
                             }}
                           />
-                          <span className="text-[#FFFF55] text-sm mc-text-shadow opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="text-[#ffff00] text-sm mc-text-shadow opacity-0 group-hover:opacity-100 transition-opacity">
                             SWF Editor
                           </span>
                         </button>
@@ -324,7 +324,7 @@ export default function App() {
                         >
                           <div
                             onClick={audio.cycleSplash}
-                            className="mc-splash text-[#FFFF55] text-[28px] z-100 cursor-pointer whitespace-nowrap"
+                            className="mc-splash text-[#ffff00] text-[28px] z-100 cursor-pointer whitespace-nowrap"
                             style={{ textShadow: "2px 2px 0px #3F3F00" }}
                           >
                             {audio.splashIndex === -1

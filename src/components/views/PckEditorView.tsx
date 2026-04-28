@@ -146,7 +146,7 @@ export default function PckEditorView() {
             style={{ paddingLeft: `${depth * 16 + 12}px` }}
             className={`flex items-center gap-2 p-2 cursor-pointer transition-all border-l-2 ${
               isSelected
-                ? "bg-[#FFFF55]/10 border-[#FFFF55] text-[#FFFF55]"
+                ? "bg-[#ffff00]/10 border-[#ffff00] text-[#ffff00]"
                 : "border-transparent hover:bg-white/5 text-white"
             } ${node.isFolder ? "font-bold" : ""}`}
           >
@@ -463,9 +463,9 @@ export default function PckEditorView() {
   const getTypeColor = (type: PCKAssetType) => {
     switch (type) {
       case PCKAssetType.SKIN:
-        return "#FFFF55";
+        return "#ffff00";
       case PCKAssetType.SKIN_DATA:
-        return "#FFFF55";
+        return "#ffff00";
       case PCKAssetType.CAPE:
         return "#AA00AA";
       case PCKAssetType.TEXTURE:
@@ -501,7 +501,9 @@ export default function PckEditorView() {
         <div className="flex gap-4">
           <button
             onClick={handleFileLoad}
-            className="px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none"
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+            className="px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#ffff00] text-lg outline-none"
             style={{
               backgroundImage: "url('/images/Button_Background.png')",
               backgroundSize: "100% 100%",
@@ -511,7 +513,9 @@ export default function PckEditorView() {
           </button>
           <button
             onClick={handleNewPCK}
-            className="px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none"
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+            className="px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#ffff00] text-lg outline-none"
             style={{
               backgroundImage: "url('/images/Button_Background.png')",
               backgroundSize: "100% 100%",
@@ -522,7 +526,9 @@ export default function PckEditorView() {
           <button
             onClick={handleExportAll}
             disabled={!pck || pck.files.length === 0}
-            className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none ${!pck || pck.files.length === 0 ? "opacity-50 grayscale" : ""}`}
+            onMouseEnter={(e) => !(!pck || pck.files.length === 0) && (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+            className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#ffff00] text-lg outline-none ${!pck || pck.files.length === 0 ? "opacity-50 grayscale" : ""}`}
             style={{
               backgroundImage: "url('/images/Button_Background.png')",
               backgroundSize: "100% 100%",
@@ -533,7 +539,9 @@ export default function PckEditorView() {
           <button
             onClick={handleSavePCK}
             disabled={!pck}
-            className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none ${!pck ? "opacity-50 grayscale" : ""}`}
+            onMouseEnter={(e) => !(!pck) && (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+            className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#ffff00] text-lg outline-none ${!pck ? "opacity-50 grayscale" : ""}`}
             style={{
               backgroundImage: "url('/images/Button_Background.png')",
               backgroundSize: "100% 100%",
@@ -559,7 +567,7 @@ export default function PckEditorView() {
                     endianness: pck.endianness === "little" ? "big" : "little",
                   });
                 }}
-                className="text-[#FFFF55] text-sm uppercase hover:underline"
+                className="text-[#ffff00] text-sm uppercase hover:underline"
               >
                 {pck.endianness}
               </button>
@@ -573,7 +581,7 @@ export default function PckEditorView() {
                   playPressSound();
                   setPck({ ...pck, xmlSupport: !pck.xmlSupport });
                 }}
-                className={`${pck.xmlSupport ? "text-[#FFFF55]" : "text-white/20"} text-sm uppercase hover:underline`}
+                className={`${pck.xmlSupport ? "text-[#ffff00]" : "text-white/20"} text-sm uppercase hover:underline`}
               >
                 {pck.xmlSupport ? "Enabled" : "Disabled"}
               </button>
@@ -634,7 +642,7 @@ export default function PckEditorView() {
                 placeholder="Search assets..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
+                className="flex-1 bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#ffff00] transition-colors"
               />
               <button
                 onClick={() => addAssetInputRef.current?.click()}
@@ -678,7 +686,7 @@ export default function PckEditorView() {
                 >
                   <div className="flex justify-between items-start mb-4 border-b border-[#373737] pb-2">
                     <div className="flex flex-col gap-1 min-w-0 flex-1 pr-4">
-                      <h3 className="text-[#FFFF55] text-xl mc-text-shadow truncate">
+                      <h3 className="text-[#ffff00] text-xl mc-text-shadow truncate">
                         {selectedAsset.path.split("/").pop()}
                       </h3>
                       <div className="relative">
@@ -742,7 +750,7 @@ export default function PckEditorView() {
                                         }}
                                         className={`w-full text-left px-3 py-2 text-[10px] uppercase tracking-widest transition-all border-l-2 ${
                                           isActive
-                                            ? "bg-white/10 border-[#FFFF55] text-white"
+                                            ? "bg-white/10 border-[#ffff00] text-white"
                                             : "border-transparent text-white/40 hover:text-white/80 hover:bg-white/5"
                                         }`}
                                       >
@@ -820,12 +828,12 @@ export default function PckEditorView() {
                   <div className="space-y-6 flex-1">
                     <div>
                       <div className="flex justify-between items-end mb-2 px-1">
-                        <div className="text-white/40 text-[10px] uppercase tracking-widest text-[#FFFF55]/60">
+                        <div className="text-white/40 text-[10px] uppercase tracking-widest text-[#ffff00]/60">
                           Metadata Properties
                         </div>
                         <button
                           onClick={handleAddProperty}
-                          className="text-[#FFFF55] text-[10px] uppercase hover:underline"
+                          className="text-[#ffff00] text-[10px] uppercase hover:underline"
                         >
                           + Add Property
                         </button>
@@ -843,7 +851,7 @@ export default function PckEditorView() {
                                 onChange={(e) =>
                                   handlePropertyEdit(idx, e.target.value, true)
                                 }
-                                className="bg-transparent text-white/40 text-[10px] outline-none hover:text-white/60 focus:text-[#FFFF55] w-2/3"
+                                className="bg-transparent text-white/40 text-[10px] outline-none hover:text-white/60 focus:text-[#ffff00] w-2/3"
                               />
                               <button
                                 onClick={() => handleRemoveProperty(idx)}
@@ -859,7 +867,7 @@ export default function PckEditorView() {
                                 onChange={(e) =>
                                   handlePropertyEdit(idx, e.target.value)
                                 }
-                                className="w-full bg-black/40 p-2 text-white border border-[#373737] text-sm focus:border-[#FFFF55] outline-none transition-colors"
+                                className="w-full bg-black/40 p-2 text-white border border-[#373737] text-sm focus:border-[#ffff00] outline-none transition-colors"
                               />
                             </div>
 
@@ -943,10 +951,10 @@ export default function PckEditorView() {
                                         className="hidden"
                                       />
                                       <div
-                                        className={`w-3 h-3 border transition-colors ${isChecked ? "bg-[#FFFF55] border-[#FFFF55]" : "border-white/20 group-hover/flag:border-white/40"}`}
+                                        className={`w-3 h-3 border transition-colors ${isChecked ? "bg-[#ffff00] border-[#ffff00]" : "border-white/20 group-hover/flag:border-white/40"}`}
                                       />
                                       <span
-                                        className={`text-[9px] uppercase tracking-tight ${isChecked ? "text-[#FFFF55]" : "text-white/40 group-hover/flag:text-white/60"}`}
+                                        className={`text-[9px] uppercase tracking-tight ${isChecked ? "text-[#ffff00]" : "text-white/40 group-hover/flag:text-white/60"}`}
                                       >
                                         {item.label}
                                       </span>
@@ -969,7 +977,7 @@ export default function PckEditorView() {
                       <div className="grid grid-cols-2 gap-3">
                         <button
                           onClick={() => handleExportAsset(selectedAsset)}
-                          className="py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#FFFF55]"
+                          className="py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#ffff00]"
                           style={{
                             backgroundImage:
                               "url('/images/Button_Background.png')",
@@ -980,7 +988,7 @@ export default function PckEditorView() {
                         </button>
                         <button
                           onClick={() => replaceInputRef.current?.click()}
-                          className="py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#FFFF55]"
+                          className="py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#ffff00]"
                           style={{
                             backgroundImage:
                               "url('/images/Button_Background.png')",
@@ -992,7 +1000,7 @@ export default function PckEditorView() {
                       </div>
                       <button
                         onClick={() => setIsRenamingAsset(selectedAsset.id)}
-                        className="w-full py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#FFFF55]"
+                        className="w-full py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#ffff00]"
                         style={{
                           backgroundImage:
                             "url('/images/Button_Background.png')",
@@ -1003,7 +1011,9 @@ export default function PckEditorView() {
                       </button>
                       <button
                         onClick={() => handleDeleteAsset(selectedAsset.id)}
-                        className="w-full py-2 text-red-500/80 mc-text-shadow text-sm transition-all hover:text-red-500 hover:scale-[1.02]"
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                        className="w-full py-2 text-red-500/80 mc-text-shadow text-sm transition-all hover:text-red-500"
                         style={{
                           backgroundImage:
                             "url('/images/Button_Background.png')",
@@ -1026,7 +1036,7 @@ export default function PckEditorView() {
           playBackSound();
           setActiveView("devtools");
         }}
-        className="w-72 h-14 flex items-center justify-center transition-colors text-2xl mc-text-shadow mt-6 outline-none border-none hover:text-[#FFFF55] text-white"
+        className="w-40 h-10 flex items-center justify-center transition-colors text-xl mc-text-shadow mt-6 outline-none border-none hover:text-[#ffff00] text-white"
         style={{
           backgroundImage: "url('/images/Button_Background.png')",
           backgroundSize: "100% 100%",
@@ -1077,7 +1087,7 @@ export default function PckEditorView() {
                 imageRendering: "pixelated",
               }}
             >
-              <h3 className="text-2xl text-[#FFFF55] mc-text-shadow font-bold mb-6 tracking-widest uppercase">
+              <h3 className="text-2xl text-[#ffff00] mc-text-shadow font-bold mb-6 tracking-widest uppercase">
                 Select Asset Type
               </h3>
               <div className="grid grid-cols-2 gap-4 w-full">
@@ -1091,7 +1101,7 @@ export default function PckEditorView() {
                           PCKAssetType[typeName as keyof typeof PCKAssetType],
                         )
                       }
-                      className="py-3 px-4 text-white mc-text-shadow text-sm transition-all hover:text-[#FFFF55] border-2 border-transparent hover:border-[#FFFF55]/30 bg-black/40"
+                      className="py-3 px-4 text-white mc-text-shadow text-sm transition-all hover:text-[#ffff00] border-2 border-transparent hover:border-[#ffff00]/30 bg-black/40"
                     >
                       {typeName.replace(/_/g, " ")}
                     </button>
@@ -1155,7 +1165,7 @@ function RenameAssetModal({
           imageRendering: "pixelated",
         }}
       >
-        <h3 className="text-2xl text-[#FFFF55] mc-text-shadow font-bold mb-6 tracking-widest uppercase">
+        <h3 className="text-2xl text-[#ffff00] mc-text-shadow font-bold mb-6 tracking-widest uppercase">
           Rename Asset
         </h3>
         <div className="flex flex-col gap-4">
@@ -1167,7 +1177,7 @@ function RenameAssetModal({
               type="text"
               value={path}
               onChange={(e) => setPath(e.target.value)}
-              className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-3 outline-none focus:border-[#FFFF55] transition-colors"
+              className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-3 outline-none focus:border-[#ffff00] transition-colors"
               autoFocus
             />
           </div>
@@ -1180,7 +1190,7 @@ function RenameAssetModal({
             </button>
             <button
               onClick={() => onConfirm(path)}
-              className="px-8 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none"
+              className="px-8 py-2 text-white mc-text-shadow transition-all hover:text-[#ffff00] text-lg outline-none"
               style={{
                 backgroundImage: "url('/images/Button_Background.png')",
                 backgroundSize: "100% 100%",

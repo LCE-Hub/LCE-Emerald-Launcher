@@ -121,7 +121,7 @@ export default function GrfEditorView() {
       <div className="flex items-center justify-between mb-6 px-4">
         <div className="flex items-center gap-6">
           <h2 className="text-3xl text-white mc-text-shadow tracking-widest uppercase font-bold">GRF Editor</h2>
-          {grf && <span className="text-white/40 mc-text-shadow italic">editing: <span className="text-[#FFFF55]">{filename}</span></span>}
+          {grf && <span className="text-white/40 mc-text-shadow italic">editing: <span className="text-[#ffff00]">{filename}</span></span>}
         </div>
         <div className="flex gap-4">
           <button
@@ -133,7 +133,9 @@ export default function GrfEditorView() {
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="px-6 py-2 text-white mc-text-shadow text-lg"
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+            className="px-6 py-2 text-white mc-text-shadow text-lg transition-all hover:text-[#ffff00]"
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
             Open GRF
@@ -141,7 +143,9 @@ export default function GrfEditorView() {
           <button
             onClick={handleSaveGrf}
             disabled={!grf}
-            className={`px-6 py-2 text-white mc-text-shadow text-lg ${!grf ? "opacity-50 grayscale" : ""}`}
+            onMouseEnter={(e) => !(!grf) && (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+            className={`px-6 py-2 text-white mc-text-shadow text-lg transition-all hover:text-[#ffff00] ${!grf ? "opacity-50 grayscale" : ""}`}
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
             Save GRF
@@ -159,13 +163,13 @@ export default function GrfEditorView() {
           <div className="flex gap-1 p-2 pt-4 border-b-2 border-[#373737]">
             <button
               onClick={() => { playPressSound(); setActiveTab("rules"); }}
-              className={`flex items-center gap-3 px-6 py-2 transition-all mc-text-shadow ${activeTab === "rules" ? "text-[#FFFF55] opacity-100 scale-105" : "text-white opacity-40 hover:opacity-100"}`}
+              className={`flex items-center gap-3 px-6 py-2 transition-all mc-text-shadow ${activeTab === "rules" ? "text-[#ffff00] opacity-100 scale-105" : "text-white opacity-40 hover:opacity-100"}`}
             >
               <span className="text-lg">Game Rules</span>
             </button>
             <button
               onClick={() => { playPressSound(); setActiveTab("files"); }}
-              className={`flex items-center gap-3 px-6 py-2 transition-all mc-text-shadow ${activeTab === "files" ? "text-[#FFFF55] opacity-100 scale-105" : "text-white opacity-40 hover:opacity-100"}`}
+              className={`flex items-center gap-3 px-6 py-2 transition-all mc-text-shadow ${activeTab === "files" ? "text-[#ffff00] opacity-100 scale-105" : "text-white opacity-40 hover:opacity-100"}`}
             >
               <span className="text-lg">Files ({grf.files.length})</span>
             </button>
@@ -226,7 +230,9 @@ export default function GrfEditorView() {
       <div className="flex justify-center mt-6 h-14">
         <button
           onClick={() => { playBackSound(); setActiveView("devtools"); }}
-          className="w-72 h-full flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] text-white"
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+          className="w-40 h-10 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none border-none hover:text-[#ffff00] text-white"
           style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
         >
           Back
@@ -278,7 +284,7 @@ function GrfNodeView({ node, level, path, onUpdate }: { node: GrfNode, level: nu
           style={{ imageRendering: "pixelated" }}
           onError={(e) => (e.currentTarget.src = "/images/tools/pck.png")}
         />
-        <span className="text-[#FFFF55] font-bold">{node.name}</span>
+        <span className="text-[#ffff00] font-bold">{node.name}</span>
         {node.parameters.length > 0 && <span className="text-white/40 text-xs ml-2">[{node.parameters.length} props]</span>}
       </div>
       {expanded && (

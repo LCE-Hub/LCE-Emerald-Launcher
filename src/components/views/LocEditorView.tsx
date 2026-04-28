@@ -102,7 +102,9 @@ export default function LocEditorView() {
         <div className="flex gap-4">
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="px-6 py-2 text-white mc-text-shadow text-lg"
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+            className="px-6 py-2 text-white mc-text-shadow text-lg transition-all hover:text-[#ffff00]"
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
             Open LOC
@@ -110,7 +112,9 @@ export default function LocEditorView() {
           <button
             onClick={handleSaveLoc}
             disabled={!loc}
-            className={`px-6 py-2 text-white mc-text-shadow text-lg ${!loc ? "opacity-50 grayscale" : ""}`}
+            onMouseEnter={(e) => !(!loc) && (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+            className={`px-6 py-2 text-white mc-text-shadow text-lg transition-all hover:text-[#ffff00] ${!loc ? "opacity-50 grayscale" : ""}`}
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
             Save LOC
@@ -131,7 +135,7 @@ export default function LocEditorView() {
               <select
                 value={selectedLocLangIdx}
                 onChange={(e) => setSelectedLocLangIdx(parseInt(e.target.value))}
-                className="bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
+                className="bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#ffff00] transition-colors"
               >
                 {loc.languages.map((lang, idx) => (
                   <option key={idx} value={idx}>{lang.id} {lang.isStatic ? "[Static]" : "[Keyed]"}</option>
@@ -142,11 +146,13 @@ export default function LocEditorView() {
                 placeholder="Search strings..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
+                className="flex-1 bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#ffff00] transition-colors"
               />
               <button
                 onClick={() => setIsLocEditModalOpen({ langIdx: selectedLocLangIdx, strIdx: -1, isNew: true })}
-                className="px-6 py-2 text-white mc-text-shadow text-sm"
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+                className="px-6 py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#ffff00]"
                 style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
               >
                 Add String
@@ -164,7 +170,7 @@ export default function LocEditorView() {
                 <tbody>
                   {filteredLocStrings.map((str) => (
                     <tr key={str.originalIdx} className="border-b border-[#373737]/30 hover:bg-white/5 transition-colors group">
-                      <td className="p-3 text-[#FFFF55] font-mono text-sm max-w-[200px] truncate">
+                      <td className="p-3 text-[#ffff00] font-mono text-sm max-w-[200px] truncate">
                         {currentLocLang?.isStatic ? str.originalIdx : str.key}
                       </td>
                       <td className="p-3 text-white text-sm whitespace-pre-wrap">{str.value}</td>
@@ -172,7 +178,7 @@ export default function LocEditorView() {
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => setIsLocEditModalOpen({ langIdx: selectedLocLangIdx, strIdx: str.originalIdx, isNew: false })}
-                            className="px-2 py-1 text-[10px] bg-white/10 hover:bg-[#FFFF55]/20 hover:text-[#FFFF55] border border-white/20 transition-all uppercase"
+                            className="px-2 py-1 text-[10px] bg-white/10 hover:bg-[#ffff00]/20 hover:text-[#ffff00] border border-white/20 transition-all uppercase"
                           >
                             Edit
                           </button>
@@ -192,7 +198,9 @@ export default function LocEditorView() {
       <div className="flex justify-center mt-6 h-14">
         <button
           onClick={() => { playBackSound(); setActiveView("devtools"); }}
-          className="w-72 h-full flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] text-white"
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+          className="w-72 h-full flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#ffff00] text-white"
           style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
         >
           Back
@@ -231,7 +239,7 @@ function LocEditModal({ data, lang, onClose, onConfirm }: { data: { langIdx: num
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="w-full max-w-2xl p-8" style={{ backgroundImage: "url('/images/frame_background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}>
-        <h3 className="text-2xl text-[#FFFF55] mc-text-shadow mb-6 uppercase tracking-widest">{data.isNew ? "Add" : "Edit"} String</h3>
+        <h3 className="text-2xl text-[#ffff00] mc-text-shadow mb-6 uppercase tracking-widest">{data.isNew ? "Add" : "Edit"} String</h3>
         <div className="flex flex-col gap-4">
           {!lang.isStatic ? (
             <div>
@@ -240,7 +248,7 @@ function LocEditModal({ data, lang, onClose, onConfirm }: { data: { langIdx: num
                 type="text"
                 value={key}
                 onChange={(e) => setKey(e.target.value)}
-                className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-3 outline-none focus:border-[#FFFF55] transition-colors font-mono"
+                className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-3 outline-none focus:border-[#ffff00] transition-colors font-mono"
               />
             </div>
           ) : (
@@ -252,14 +260,16 @@ function LocEditModal({ data, lang, onClose, onConfirm }: { data: { langIdx: num
               value={val}
               onChange={(e) => setVal(e.target.value)}
               rows={6}
-              className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-3 outline-none focus:border-[#FFFF55] transition-colors resize-none"
+              className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-3 outline-none focus:border-[#ffff00] transition-colors resize-none"
             />
           </div>
           <div className="flex justify-end gap-4 mt-6">
             <button onClick={onClose} className="px-6 py-2 text-white/60 hover:text-white transition-colors uppercase tracking-widest">Cancel</button>
             <button
               onClick={() => onConfirm(data.langIdx, data.strIdx, data.isNew, key, val)}
-              className="px-8 py-2 text-white mc-text-shadow"
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundImage = "url('/images/button_highlighted.png')")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundImage = "url('/images/Button_Background.png')")}
+              className="px-8 py-2 text-white mc-text-shadow transition-all hover:text-[#ffff00]"
               style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
             >
               {data.isNew ? "Add" : "Save"}

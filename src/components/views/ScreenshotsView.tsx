@@ -166,7 +166,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
         <div className="absolute inset-0 overflow-y-auto p-6 scroll-smooth custom-scrollbar">
           {loading ? (
             <div className="flex flex-col items-center justify-center h-full gap-4">
-              <span className="text-3xl text-[#FFFF55] mc-text-shadow tracking-widest animate-pulse uppercase">
+              <span className="text-3xl text-[#ffff00] mc-text-shadow tracking-widest animate-pulse uppercase">
                 Scanning Archives...
               </span>
             </div>
@@ -187,14 +187,14 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                   id={`ss-${index}`}
                   onClick={() => {
                     setGridFocusIndex(index);
-                    setModalFocusIndex(2); // Close button
+                    setModalFocusIndex(2);
                     setSelectedScreenshot(ss);
                     playPressSound();
                   }}
                   onMouseEnter={() => setGridFocusIndex(index)}
                   className={`
                     relative aspect-video flex flex-col cursor-pointer transition-all border-2 rounded-sm overflow-hidden bg-black/40
-                    ${gridFocusIndex === index ? "border-[#FFFF55] scale-105 z-10" : "border-[#333] hover:border-[#FFFF55]"}
+                    ${gridFocusIndex === index ? "border-[#ffff00] scale-105 z-10" : "border-[#333] hover:border-[#ffff00]"}
                   `}
                   style={{
                     backgroundImage: "url('/images/frame_background.png')",
@@ -245,7 +245,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
           onClick={handleBack}
           className={`
             w-72 h-10 flex items-center justify-center text-xl mc-text-shadow border-none outline-none transition-all text-white
-            hover:text-[#FFFF55]
+            hover:text-[#ffff00]
           `}
           style={{
             backgroundImage: "url('/images/Button_Background.png')",
@@ -301,7 +301,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                     <span className="text-xl text-white mc-text-shadow block leading-tight tracking-wide font-bold">
                       {selectedScreenshot.name}
                     </span>
-                    <span className="text-sm text-[#FFFF55] mc-text-shadow uppercase tracking-widest opacity-90">
+                    <span className="text-sm text-[#ffff00] mc-text-shadow uppercase tracking-widest opacity-90">
                       Captured on{" "}
                       {new Date(
                         selectedScreenshot.date * 1000,
@@ -324,7 +324,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                   onClick={() => handleOpenFolder(selectedScreenshot)}
                   className={`
                     flex-1 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all
-                    ${modalFocusIndex === 0 ? "text-[#FFFF55] scale-105" : "text-white"}
+                    ${modalFocusIndex === 0 ? "text-[#ffff00] scale-105" : "text-white"}
                   `}
                   style={{
                     backgroundImage:
@@ -364,7 +364,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                   onClick={() => setSelectedScreenshot(null)}
                   className={`
                     w-48 h-12 flex items-center justify-center text-xl mc-text-shadow border-none outline-none cursor-pointer transition-all
-                    ${modalFocusIndex === 2 ? "text-[#FFFF55] scale-105" : "text-white"}
+                    ${modalFocusIndex === 2 ? "text-[#ffff00] scale-105" : "text-white"}
                   `}
                   style={{
                     backgroundImage:
@@ -395,19 +395,14 @@ const ScreenshotsView = memo(function ScreenshotsView() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="w-[420px] p-6 border-2 border-[#555] rounded-sm flex flex-col items-center"
-              style={{
-                backgroundImage: "url('/images/frame_background.png')",
-                backgroundSize: "100% 100%",
-                imageRendering: "pixelated",
-              }}
+              className="w-[420px] p-4 flex flex-col items-center mc-options-bg"
               onClick={(e) => e.stopPropagation()}
             >
-              <span className="text-2xl text-white mc-text-shadow text-center mb-6 px-4">
+              <span className="text-2xl text-[#333333] mc-text-shadow text-left mb-8 px-4 w-full">
                 Are you sure you want to delete this screenshot?
               </span>
 
-              <div className="flex gap-4 w-full">
+              <div className="flex flex-col gap-3 w-full px-4">
                 <button
                   onMouseEnter={() => setDeleteConfirmFocusIndex(0)}
                   onClick={() => {
@@ -415,8 +410,8 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                     setShowDeleteConfirm(false);
                   }}
                   className={`
-                    flex-1 h-10 flex items-center justify-center text-lg mc-text-shadow border-none outline-none cursor-pointer transition-all
-                    ${deleteConfirmFocusIndex === 0 ? "text-[#FFFF55] scale-105" : "text-white"}
+                    w-full h-10 flex items-center justify-center text-lg mc-text-shadow border-none outline-none cursor-pointer transition-all
+                    ${deleteConfirmFocusIndex === 0 ? "text-[#ffff00] scale-105" : "text-white"}
                   `}
                   style={{
                     backgroundImage:
@@ -427,13 +422,13 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                     imageRendering: "pixelated",
                   }}
                 >
-                  CANCEL
+                  Cancel
                 </button>
                 <button
                   onMouseEnter={() => setDeleteConfirmFocusIndex(1)}
                   onClick={confirmDelete}
                   className={`
-                    flex-1 h-10 flex items-center justify-center text-lg mc-text-shadow border-none outline-none cursor-pointer transition-all
+                    w-full h-10 flex items-center justify-center text-lg mc-text-shadow border-none outline-none cursor-pointer transition-all
                     ${deleteConfirmFocusIndex === 1 ? "text-[#FF5555] scale-105" : "text-white"}
                   `}
                   style={{
@@ -445,7 +440,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                     imageRendering: "pixelated",
                   }}
                 >
-                  DELETE
+                  OK
                 </button>
               </div>
             </motion.div>

@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
-
 const SGA_CHARS = "abcdefghijklmnopqrstuvwxyz".split("");
-
 interface Particle {
   id: number;
   char: string;
@@ -14,19 +12,17 @@ interface Particle {
 
 export const ClickParticles: React.FC = React.memo(() => {
   const [bursts, setBursts] = useState<Particle[]>([]);
-
   useEffect(() => {
     const handlePressSound = (e: MouseEvent) => {
       const newParticles: Particle[] = [];
       const particleCount = 8;
-
       for (let i = 0; i < particleCount; i++) {
         newParticles.push({
           id: Date.now() + Math.random(),
           char: SGA_CHARS[Math.floor(Math.random() * SGA_CHARS.length)],
           x: e.clientX,
           y: e.clientY,
-          vX: (Math.random() - 0.5) * 200, 
+          vX: (Math.random() - 0.5) * 200,
           vY: (Math.random() - 0.5) * 200,
           rotation: Math.random() * 360,
         });
