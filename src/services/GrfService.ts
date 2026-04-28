@@ -286,7 +286,7 @@ export class GrfService {
       compressedSize = bodyData.length;
     }
 
-    const finalBuffer = new Uint8Array(10 + (header.compressionLevel >= GrfCompressionLevel.Compressed ? 8 : 0) + bodyData.length);
+    const finalBuffer = new Uint8Array(11 + (header.compressionLevel >= GrfCompressionLevel.Compressed ? 8 : 0) + bodyData.length);
     const fw = new DataView(finalBuffer.buffer);
     let poff = 0;
     fw.setInt16(poff, 1, false); poff += 2;
