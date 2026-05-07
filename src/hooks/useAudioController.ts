@@ -161,7 +161,6 @@ const SPLASHES = [
   "LGTM",
   "git revert",
   "We do not crypto mine on your computer.",
-  "I have spent 2 dollars and ninety nine cents",
 ];
 
 interface AudioControllerProps {
