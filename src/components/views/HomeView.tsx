@@ -55,6 +55,7 @@ const HomeView = memo(function HomeView() {
         isDanger: isGameRunning,
         disabled: isDownloading,
       },
+      { label: "LCELive", action: () => setActiveView("lcelive"), disabled: false, id: "lcelive" },
       { label: "Help & Options", action: () => setActiveView("settings"), disabled: false, id: "settings" },
       { label: "Versions", action: () => setActiveView("versions"), disabled: false, id: "versions" },
       { label: "Workshop", action: () => setActiveView("workshop"), disabled: false, id: "workshop" },
@@ -133,14 +134,14 @@ const HomeView = memo(function HomeView() {
             }}
           >
             <div className="w-full h-full flex items-center justify-center relative">
-               <span>{btn.label}</span>
-               {btn.id === "versions" && Object.values(updatesAvailable || {}).some((v) => v) && (
-                 <img 
-                   src="/images/Update_Icon.png" 
-                   className="absolute right-4 w-6 h-6 object-contain" 
-                   style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 2px rgba(255, 255, 0, 0.8)) sepia(100%) saturate(500%) hue-rotate(5deg) brightness(1.2)" }} 
-                 />
-               )}
+              <span>{btn.label}</span>
+              {btn.id === "versions" && Object.values(updatesAvailable || {}).some((v) => v) && (
+                <img
+                  src="/images/Update_Icon.png"
+                  className="absolute right-4 w-6 h-6 object-contain"
+                  style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 2px rgba(255, 255, 0, 0.8)) sepia(100%) saturate(500%) hue-rotate(5deg) brightness(1.2)" }}
+                />
+              )}
             </div>
           </button>
         </div>

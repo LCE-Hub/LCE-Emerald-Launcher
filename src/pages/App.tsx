@@ -15,6 +15,7 @@ import ColEditorView from "../components/views/ColEditorView";
 import OptionsEditorView from "../components/views/OptionsEditorView";
 import ScreenshotsView from "../components/views/ScreenshotsView";
 import SwfView from "../components/views/SwfView";
+import LceLiveView from "../components/views/LceLiveView";
 import SkinViewer from "../components/common/SkinViewer";
 import TeamModal from "../components/modals/TeamModal";
 import PanoramaBackground from "../components/common/PanoramaBackground";
@@ -413,6 +414,9 @@ export default function App() {
                       )}
                       {activeView === "swf-editor" && (
                         <SwfView key="swf-editor-view" />
+                      )}
+                      {activeView === "lcelive" && (
+                        <LceLiveView key="lcelive-view" />
                       )}
                       {activeView === "skins" && <SkinsView key="skins-view" />}
                       {activeView === "screenshots" && (

@@ -87,6 +87,12 @@ pub struct ScreenshotInfo {
     pub date: u64,
 }
 
+#[derive(Serialize)]
+pub struct HttpResponse {
+    status: u16,
+    body: String,
+}
+
 pub struct DownloadState { pub token: Arc<Mutex<Option<CancellationToken>>> }
 pub struct GameState { pub child: Arc<Mutex<Option<tokio::process::Child>>> }
 
@@ -1809,6 +1815,32 @@ async fn save_global_skin_pck(app: AppHandle, pck_data: Vec<u8>) -> Result<(), S
     Ok(())
 }
 
+#[tauri::command]
+async fn http_proxy_request(method: String, url: String, body: Option<String>, headers: std::collections::HashMap<String, String>) -> Result<HttpResponse, String> {
+    let client = reqwest::Client::new();
+    let mut req = match method.to_uppercase().as_str() {
+        "GET" => client.get(&url),
+        "POST" => client.post(&url),
+        "PUT" => client.put(&url),
+        "DELETE" => client.delete(&url),
+        _ => return Err(format!("Unsupported method: {}", method)),
+    };
+    for (k, v) in headers {
+        req = req.header(k, v);
+    }
+    if let Some(b) = body {
+        req = req.body(b);
+    }
+    let res = req.send().await.map_err(|e| e.to_string())?;
+    let status = res.status().as_u16();
+    let text = res.text().await.map_err(|e| e.to_string())?;
+    
+    Ok(HttpResponse {
+        status,
+        body: text,
+    })
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -1843,7 +1875,7 @@ pub fn run() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, pick_folder, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast, download_logo, pick_file, save_file_dialog, write_binary_file, read_binary_file, add_to_steam])
+        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, pick_folder, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast, download_logo, pick_file, save_file_dialog, write_binary_file, read_binary_file, add_to_steam, http_proxy_request])
         .setup(|app| {
             let args: Vec<String> = std::env::args().collect();
             if args.len() > 1 && !args[1].starts_with('-') {

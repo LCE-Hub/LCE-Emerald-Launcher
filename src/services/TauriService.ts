@@ -235,4 +235,13 @@ export class TauriService {
   ): Promise<void> {
     return invoke("add_to_steam", { instanceId, name, titleBase64, panoramaBase64 });
   }
+
+  static async httpProxyRequest(
+    method: string,
+    url: string,
+    body: string | null,
+    headers: Record<string, string>
+  ): Promise<{ status: number; body: string }> {
+    return invoke("http_proxy_request", { method, url, body, headers });
+  }
 }
