@@ -55,6 +55,7 @@ export interface PendingRequests {
 export class LceLiveService {
     private _session: SessionData | null = null;
     private baseUrl: string = DEFAULT_BASE_URL;
+    private _refreshPromise: Promise<void> | null = null;
 
     constructor() {
         this.loadSession();
@@ -110,6 +111,12 @@ export class LceLiveService {
     }
 
     private async request(method: string, path: string, body?: any, authed: boolean = true, retryCount: number = 0): Promise<any> {
+        if (authed && this._session?.refreshToken && retryCount === 0) {
+            try {
+                await this.refreshSession();
+            } catch (err) { }
+        }
+
         const headers: Record<string, string> = {
             "Accept": "application/json",
             "User-Agent": "MCLCE-LceLive/1.0"
@@ -179,15 +186,28 @@ export class LceLiveService {
 
     async refreshSession(): Promise<void> {
         if (!this._session?.refreshToken) throw new Error("No refresh token");
-        const data = await this.request("POST", "/api/auth/refresh", {
-            refreshToken: this._session.refreshToken
-        }, false);
-        this._session = {
-            accessToken: data.accessToken,
-            refreshToken: data.refreshToken,
-            account: data.account
-        };
-        this.saveSession();
+
+        if (this._refreshPromise) {
+            return this._refreshPromise;
+        }
+
+        this._refreshPromise = (async () => {
+            try {
+                const data = await this.request("POST", "/api/auth/refresh", {
+                    refreshToken: this._session!.refreshToken
+                }, false);
+                this._session = {
+                    accessToken: data.accessToken,
+                    refreshToken: data.refreshToken,
+                    account: data.account
+                };
+                this.saveSession();
+            } finally {
+                this._refreshPromise = null;
+            }
+        })();
+
+        return this._refreshPromise;
     }
 
     async logout(): Promise<void> {
