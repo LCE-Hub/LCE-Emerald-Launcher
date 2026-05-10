@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, memo } from "react";
 import { motion } from "framer-motion";
 import { TauriService } from "../../services/TauriService";
 import CustomTUModal from "../modals/CustomTUModal";
+import SetUidModal from "../modals/SetUidModal";
 import {
   useUI,
   useConfig,
@@ -68,6 +69,8 @@ const VersionsView = memo(function VersionsView() {
   const [focusIndex, setFocusIndex] = useState<number>(0);
   const [focusBtn, setFocusBtn] = useState<number>(0);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isSetUidModalOpen, setIsSetUidModalOpen] = useState(false);
+  const [setUidTargetId, setSetUidTargetId] = useState("");
   const [editingEdition, setEditingEdition] = useState<any>(null);
   const [initialPath, setInitialPath] = useState<string>("");
   const [hoveredBtn, setHoveredBtn] = useState<{
@@ -450,6 +453,19 @@ const VersionsView = memo(function VersionsView() {
                           <img src="/images/steam.png" alt="" className="w-3.5 h-3.5 object-contain invert brightness-0" style={{ imageRendering: "pixelated" }} />
                           Add to Steam
                         </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playPressSound();
+                            setSetUidTargetId(edition.instanceId);
+                            setIsSetUidModalOpen(true);
+                            setOpenMenuId(null);
+                          }}
+                          className="w-full text-left px-3 py-2 text-xs text-[#dddddd] hover:text-white hover:bg-white/10 flex items-center gap-2 transition-colors mc-text-shadow"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                          Set UID
+                        </button>
                         {isCustom ? (
                           <button
                             onClick={(e) => {
@@ -597,6 +613,17 @@ const VersionsView = memo(function VersionsView() {
         editingEdition={editingEdition}
         initialPath={initialPath}
       />
+
+      <SetUidModal
+        isOpen={isSetUidModalOpen}
+        onClose={() => setIsSetUidModalOpen(false)}
+        playPressSound={playPressSound}
+        playBackSound={playBackSound}
+        instances={editions}
+        installedVersions={installedVersions}
+        targetInstanceId={setUidTargetId}
+      />
+
 
       {deleteConfirmEdition && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">

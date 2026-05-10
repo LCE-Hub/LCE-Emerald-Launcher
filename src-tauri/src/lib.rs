@@ -1841,6 +1841,11 @@ async fn http_proxy_request(method: String, url: String, body: Option<String>, h
     })
 }
 
+#[tauri::command]
+fn get_instance_path(app: tauri::AppHandle, instance_id: String) -> String {
+    get_instance_working_dir(&app, &instance_id).to_string_lossy().to_string()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -1875,7 +1880,7 @@ pub fn run() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, pick_folder, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast, download_logo, pick_file, save_file_dialog, write_binary_file, read_binary_file, add_to_steam, http_proxy_request])
+        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, pick_folder, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast, download_logo, pick_file, save_file_dialog, write_binary_file, read_binary_file, add_to_steam, http_proxy_request, get_instance_path])
         .setup(|app| {
             let args: Vec<String> = std::env::args().collect();
             if args.len() > 1 && !args[1].starts_with('-') {

@@ -244,4 +244,8 @@ export class TauriService {
   ): Promise<{ status: number; body: string }> {
     return invoke("http_proxy_request", { method, url, body, headers });
   }
+
+  static async getInstancePath(instanceId: string): Promise<string> {
+    return invoke("get_instance_path", { instanceId });
+  }
 }
