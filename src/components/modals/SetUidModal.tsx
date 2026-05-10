@@ -120,7 +120,7 @@ export default function SetUidModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="absolute inset-0 z-[100] flex items-center justify-center outline-none border-none"
+      className="fixed inset-0 w-screen h-screen z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md outline-none border-none"
     >
       <div
         className="relative w-[400px] p-6 flex flex-col items-center shadow-2xl"
@@ -187,8 +187,8 @@ export default function SetUidModal({
               <label className="text-gray text-xs mc-text-shadow uppercase tracking-widest text-[#AAAAAA]">
                 Select Installed Instance
               </label>
-              
-              <div 
+
+              <div
                 onClick={() => { playPressSound(); setIsDropdownOpen(!isDropdownOpen); }}
                 onFocus={() => { setFocusIndex(2); setIsDropdownOpen(false); }}
                 tabIndex={0}
@@ -196,11 +196,11 @@ export default function SetUidModal({
                 style={{ imageRendering: "pixelated", filter: focusIndex === 2 ? 'brightness(1.2)' : 'none' }}
               >
                 <span className="truncate">
-                  {selectedInstance 
+                  {selectedInstance
                     ? (() => {
-                        const i = validInstances.find((inst: any) => inst.instanceId === selectedInstance);
-                        return i ? `${i.name} ${i.selectedBranch ? `(${i.selectedBranch})` : ""}` : "-- Select an Instance --";
-                      })()
+                      const i = validInstances.find((inst: any) => inst.instanceId === selectedInstance);
+                      return i ? `${i.name} ${i.selectedBranch ? `(${i.selectedBranch})` : ""}` : "-- Select an Instance --";
+                    })()
                     : "-- Select an Instance --"}
                 </span>
                 <span className="text-xs">▼</span>
