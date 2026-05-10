@@ -30,6 +30,7 @@ import {
   useSkin,
 } from "../context/LauncherContext";
 import { TauriService } from "../services/TauriService";
+import { useLceLiveNotifications } from "../hooks/useLceLiveNotifications";
 import pkg from "../../package.json";
 export default function App() {
   const {
@@ -53,6 +54,7 @@ export default function App() {
   const audio = useAudio();
   const game = useGame();
   const { skinUrl, setSkinUrl, capeUrl } = useSkin();
+  const { friendRequestMessage, gameInviteMessage, clearFriendRequestMessage, clearGameInviteMessage } = useLceLiveNotifications();
   const [showSetup, setShowSetup] = useState(true);
   const [displayIsDay, setDisplayIsDay] = useState(config.isDayTime);
   useEffect(() => {
@@ -183,6 +185,28 @@ export default function App() {
           onClose={() => game.setSteamSuccessMessage(null)}
           title="Steam Integration"
           variant="steam"
+        />
+
+        <AchievementToast
+          message={friendRequestMessage}
+          onClose={clearFriendRequestMessage}
+          onClick={() => {
+            clearFriendRequestMessage();
+            setActiveView("lcelive");
+          }}
+          title="Friend Request"
+          variant="update"
+        />
+
+        <AchievementToast
+          message={gameInviteMessage}
+          onClose={clearGameInviteMessage}
+          onClick={() => {
+            clearGameInviteMessage();
+            setActiveView("lcelive");
+          }}
+          title="Game Invite"
+          variant="update"
         />
 
         <AnimatePresence>

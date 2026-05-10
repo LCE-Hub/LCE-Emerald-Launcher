@@ -42,15 +42,7 @@ const LceLiveView = memo(function LceLiveView() {
   useEffect(() => {
     if (isSignedIn) {
       if (currentTab === "device_link") setCurrentTab("friends");
-      const initSession = async () => {
-        try {
-          await lceLiveService.refreshSession();
-        } catch (e: any) {
-          console.error(e);
-        }
-        fetchSocialData();
-      };
-      initSession();
+      fetchSocialData();
       const pollInvites = setInterval(async () => {
         try {
           const invs = await lceLiveService.getGameInvites();
