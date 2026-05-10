@@ -1849,6 +1849,7 @@ fn get_instance_path(app: tauri::AppHandle, instance_id: String) -> String {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(DownloadState { token: Arc::new(Mutex::new(None)) })
         .manage(GameState { child: Arc::new(Mutex::new(None)) })
         .plugin(tauri_plugin_gamepad::init())

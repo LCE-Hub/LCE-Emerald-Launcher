@@ -18,6 +18,7 @@
     "opener:default",
     "gamepad:default",
     "drpc:default",
+    "updater:default",
     {
       "identifier": "opener:allow-open-path",
       "allow": [{ "path": "**" }]

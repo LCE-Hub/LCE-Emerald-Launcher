@@ -26,9 +26,17 @@
       }
     ]
   },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDM1NTk5MjQ4QjMxQjFCQgpSV1M3c1RHTEpKbFZBMEtxMnNUZ3F5V2FmQmQrREY5Z0pkbnJuUlBYL2d1cUtzRkJIeDFkUkR4RQo=",
+      "endpoints": ["https://github.com/LCE-Hub/LCE-Emerald-Launcher/releases/latest/download/latest.json"],
+      "windows": {"installMode": "passive"}
+    }
+  },
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "linux": {
         "appimage": {
             "bundleMediaFramework": true

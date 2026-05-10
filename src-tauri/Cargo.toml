@@ -29,3 +29,6 @@ libc = "0.2"
 image = "0.24"
 percent-encoding = "2.3"
 steam_shortcuts_util = "1.1.8"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-updater = "2"
