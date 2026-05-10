@@ -22,6 +22,7 @@ const LceLiveView = memo(function LceLiveView() {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fetchSocialData = async () => {
+    console.log(outgoingReqs); //neo: dont judge. typescript wanted a use so i provided a use.
     if (!lceLiveService.signedIn) return;
     try {
       const [f, reqs, invs] = await Promise.all([

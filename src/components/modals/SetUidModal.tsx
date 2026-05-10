@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { TauriService } from "../../services/TauriService";
 
