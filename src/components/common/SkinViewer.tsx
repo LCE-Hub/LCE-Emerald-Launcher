@@ -24,6 +24,7 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
   const [showLayers, setShowLayers] = useLocalStorage('lce-show-layers', true);
   const overlaysRef = useRef<THREE.Mesh[]>([]);
   const capeRef = useRef<THREE.Group | null>(null);
+  const headRef = useRef<THREE.Group | null>(null);
   const requestRenderRef = useRef<(() => void) | null>(null);
   useEffect(() => {
     if (!mountRef.current) return;
@@ -108,6 +109,7 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
       const head = createPart(8, 8, 8, headUv, hatUv);
       head.position.y = 10;
       playerGroup.add(head);
+      headRef.current = head;
       const bodyUv = { top: [20, 16, 8, 4], bottom: [28, 16, 8, 4], right: [16, 20, 4, 12], left: [28, 20, 4, 12], front: [20, 20, 8, 12], back: [32, 20, 8, 12] };
       const jacketUv = { top: [20, 32, 8, 4], bottom: [28, 32, 8, 4], right: [16, 36, 4, 12], left: [28, 36, 4, 12], front: [20, 36, 8, 12], back: [32, 36, 8, 12] };
       playerGroup.add(createPart(8, 12, 4, bodyUv, isLegacy ? undefined : jacketUv));
@@ -173,6 +175,25 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
         previousMousePosition = { x: e.clientX, y: e.clientY };
         requestRenderRef.current?.();
       }
+
+      if (headRef.current) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const mouseX = e.clientX - centerX;
+        const mouseY = e.clientY - centerY;
+
+        const maxYaw = 0.8;
+        const maxPitch = 0.4;
+
+        const yaw = (mouseX / (rect.width / 2)) * maxYaw;
+        const pitch = -(mouseY / (rect.height / 2)) * maxPitch;
+
+        headRef.current.rotation.y = Math.max(-maxYaw, Math.min(maxYaw, yaw));
+        headRef.current.rotation.x = Math.max(-maxPitch, Math.min(maxPitch, pitch));
+
+        requestRenderRef.current?.();
+      }
     };
 
     requestRenderRef.current = () => renderer.render(scene, camera);
@@ -202,6 +223,7 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
       renderer.dispose();
       overlaysRef.current = [];
       capeRef.current = null;
+      headRef.current = null;
       requestRenderRef.current = null;
     };
   }, [skinUrl, capeUrl]);
