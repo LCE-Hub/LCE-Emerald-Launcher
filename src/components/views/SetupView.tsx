@@ -271,7 +271,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                         />
                       </label>
                       {tempUsername.trim().length === 0 && (
-                        <p className="text-white/40 text-xs text-center uppercase tracking-widest">A username is required to continue</p>
+                        <p className="text-white/70 text-xs text-center uppercase tracking-widest">A username is required to continue</p>
                       )}
                     </div>
                   )}
