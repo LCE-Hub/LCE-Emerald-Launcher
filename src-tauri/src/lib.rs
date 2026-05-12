@@ -873,13 +873,8 @@ async fn download_and_install(app: AppHandle, state: State<'_, DownloadState>, u
     { *state.token.lock().await = None; }
     #[cfg(target_os = "linux")]
     {
-        let unzip_check = Command::new("unzip").arg("-v").status();
-        if unzip_check.is_err() || !unzip_check.unwrap().success() {
-            return Err("The 'unzip' command was not found. Please install it (e.g., 'sudo apt install unzip') to continue.".into());
-        }
-
-        let status = Command::new("unzip")
-            .args(["-o", "-q", zip_path.to_str().unwrap(), "-d", instance_dir.to_str().unwrap()])
+        let status = Command::new("bsdtar")
+            .args(["-xf", zip_path.to_str().unwrap(), "-C", instance_dir.to_str().unwrap()])
             .status()
             .map_err(|e| e.to_string())?;
 
@@ -1164,8 +1159,8 @@ async fn workshop_install(app: AppHandle, request: WorkshopInstallRequest) -> Re
 
         #[cfg(target_os = "linux")]
         {
-            let status = Command::new("unzip")
-                .args(["-o", "-q", zip_tmp.to_str().unwrap(), "-d", dest_dir.to_str().unwrap()])
+            let status = Command::new("bsdtar")
+                .args(["-xf", zip_tmp.to_str().unwrap(), "-C", dest_dir.to_str().unwrap()])
                 .status()
                 .map_err(|e| e.to_string())?;
             if !status.success() {
