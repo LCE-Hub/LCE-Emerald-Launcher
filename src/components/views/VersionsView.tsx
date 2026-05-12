@@ -9,6 +9,7 @@ import {
   useAudio,
   useGame,
 } from "../../context/LauncherContext";
+import { ScreenshotImage } from "../common/ScreenshotImage";
 interface DeleteConfirmButtonProps {
   label: string;
   onClick: () => void;
@@ -290,17 +291,22 @@ const VersionsView = memo(function VersionsView() {
                   >
                     <div className="flex items-center gap-2">
                       {edition.logo && (
-                        <img
-                          src={
-                            edition.logo.startsWith("http") ||
-                              edition.logo.startsWith("/images")
-                              ? edition.logo
-                              : `screenshots://localhost/${edition.logo.replace(/\\/g, "/")}`
-                          }
-                          alt=""
-                          className="w-5 h-5 object-contain flex-shrink-0"
-                          style={{ imageRendering: "pixelated" }}
-                        />
+                        edition.logo.startsWith("http") ||
+                          edition.logo.startsWith("/images") ? (
+                          <img
+                            src={edition.logo}
+                            alt=""
+                            className="w-5 h-5 object-contain flex-shrink-0"
+                            style={{ imageRendering: "pixelated" }}
+                          />
+                        ) : (
+                          <ScreenshotImage
+                            path={edition.logo}
+                            alt=""
+                            className="w-5 h-5 object-contain flex-shrink-0"
+                            style={{ imageRendering: "pixelated" }}
+                          />
+                        )
                       )}
                       <span
                         className={`text-xl tracking-wide truncate ${isSelected ? "text-white" : "text-black"

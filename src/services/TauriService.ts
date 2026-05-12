@@ -248,4 +248,8 @@ export class TauriService {
   static async getInstancePath(instanceId: string): Promise<string> {
     return invoke("get_instance_path", { instanceId });
   }
+
+  static async readScreenshotAsDataUrl(path: string): Promise<string> {
+    return invoke("read_screenshot_as_data_url", { path });
+  }
 }

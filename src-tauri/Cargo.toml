@@ -27,7 +27,6 @@ base64 = "0.21"
 rfd = "0.15"
 libc = "0.2"
 image = "0.24"
-percent-encoding = "2.3"
 steam_shortcuts_util = "1.1.8"
 tauri-plugin-process = "2"
 

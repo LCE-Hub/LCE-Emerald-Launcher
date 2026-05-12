@@ -10,6 +10,7 @@ import {
   ScreenshotService,
   ScreenshotInfo,
 } from "../../services/ScreenshotService";
+import { ScreenshotImage } from "../common/ScreenshotImage";
 const ScreenshotsView = memo(function ScreenshotsView() {
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
@@ -207,15 +208,12 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                   }}
                 >
                   <div className="w-full h-full relative overflow-hidden bg-black/50">
-                    <img
-                      src={`screenshots://localhost/${ss.path.replace(/\\/g, "/")}`}
+                    <ScreenshotImage
+                      path={ss.path}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       loading="lazy"
                       alt={ss.name}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          "/images/Folder_Icon.png";
-                      }}
+                      fallbackSrc="/images/Folder_Icon.png"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
 
@@ -288,13 +286,10 @@ const ScreenshotsView = memo(function ScreenshotsView() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="relative w-full aspect-video bg-black/60 overflow-hidden border border-[#444] rounded-sm">
-                <img
-                  src={`screenshots://localhost/${selectedScreenshot.path.replace(/\\/g, "/")}`}
+                <ScreenshotImage
+                  path={selectedScreenshot.path}
                   className="w-full h-full object-contain"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      "/images/Pack_Icon.png";
-                  }}
+                  fallbackSrc="/images/Pack_Icon.png"
                 />
                 <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between pointer-events-none">
                   <div className="flex flex-col gap-1">

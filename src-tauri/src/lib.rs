@@ -356,6 +356,29 @@ fn read_binary_file(path: String) -> Result<Vec<u8>, String> {
 }
 
 #[tauri::command]
+fn read_screenshot_as_data_url(path: String) -> Result<String, String> {
+    let data = fs::read(&path).map_err(|e| e.to_string())?;
+    let mime = if path.to_lowercase().ends_with(".png") {
+        "image/png"
+    } else if path.to_lowercase().ends_with(".jpg") || path.to_lowercase().ends_with(".jpeg") {
+        "image/jpeg"
+    } else if path.to_lowercase().ends_with(".gif") {
+        "image/gif"
+    } else if path.to_lowercase().ends_with(".webp") {
+        "image/webp"
+    } else if data.len() > 4 && data[..4] == [0x89, 0x50, 0x4E, 0x47] {
+        "image/png"
+    } else if data.len() > 2 && data[..2] == [0xFF, 0xD8] {
+        "image/jpeg"
+    } else {
+        "image/png"
+    };
+    use base64::Engine;
+    let b64 = base64::engine::general_purpose::STANDARD.encode(&data);
+    Ok(format!("data:{};base64,{}", mime, b64))
+}
+
+#[tauri::command]
 fn get_available_runners(app: AppHandle) -> Vec<Runner> {
     let mut runners = Vec::new();
     let mut seen_paths: std::collections::HashSet<String> = std::collections::HashSet::new();
@@ -1856,33 +1879,7 @@ pub fn run() {
         .plugin(tauri_plugin_gamepad::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_drpc::init())
-        .register_uri_scheme_protocol("screenshots", |_app, request| {
-            let uri = request.uri().path();
-            let decoded_path = percent_encoding::percent_decode_str(uri).decode_utf8_lossy();
-            let mut path_str = decoded_path.to_string();
-            #[cfg(target_os = "windows")]
-            if path_str.starts_with('/') {
-                path_str = path_str[1..].to_string();
-            }
-            let path = std::path::Path::new(&path_str);
-
-            match std::fs::read(path) {
-                Ok(data) => {
-                    tauri::http::Response::builder()
-                        .header("Content-Type", "image/png")
-                        .header("Access-Control-Allow-Origin", "*")
-                        .body(data)
-                        .unwrap()
-                }
-                Err(_) => {
-                    tauri::http::Response::builder()
-                        .status(404)
-                        .body(Vec::new())
-                        .unwrap()
-                }
-            }
-        })
-        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, pick_folder, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast, download_logo, pick_file, save_file_dialog, write_binary_file, read_binary_file, add_to_steam, http_proxy_request, get_instance_path])
+        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, pick_folder, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast, download_logo, pick_file, save_file_dialog, write_binary_file, read_binary_file, read_screenshot_as_data_url, add_to_steam, http_proxy_request, get_instance_path])
         .setup(|app| {
             let args: Vec<String> = std::env::args().collect();
             if args.len() > 1 && !args[1].starts_with('-') {
