@@ -2,16 +2,54 @@ import { useState, useEffect, useRef, useMemo, memo } from "react";
 import { motion } from "framer-motion";
 import { TauriService, Runner } from "../../services/TauriService";
 import { usePlatform } from "../../hooks/usePlatform";
-import { useUI, useConfig, useAudio, useGame } from "../../context/LauncherContext";
+import {
+  useUI,
+  useConfig,
+  useAudio,
+  useGame,
+} from "../../context/LauncherContext";
 
 const SettingsView = memo(function SettingsView() {
   const { setActiveView } = useUI();
-  const { vfxEnabled, setVfxEnabled, animationsEnabled, setAnimationsEnabled, musicVol: musicVolume, setMusicVol: setMusicVolume, sfxVol: sfxVolume, setSfxVol: setSfxVolume, layout, setLayout, linuxRunner, setLinuxRunner, perfBoost, setPerfBoost, rpcEnabled, setRpcEnabled, legacyMode, setLegacyMode } = useConfig();
-  const { currentTrack, setCurrentTrack, tracks, playPressSound, playBackSound } = useAudio();
-  const { isGameRunning, stopGame, isRunnerDownloading, runnerDownloadProgress, downloadRunner } = useGame();
+  const {
+    vfxEnabled,
+    setVfxEnabled,
+    animationsEnabled,
+    setAnimationsEnabled,
+    musicVol: musicVolume,
+    setMusicVol: setMusicVolume,
+    sfxVol: sfxVolume,
+    setSfxVol: setSfxVolume,
+    layout,
+    setLayout,
+    linuxRunner,
+    setLinuxRunner,
+    perfBoost,
+    setPerfBoost,
+    rpcEnabled,
+    setRpcEnabled,
+    legacyMode,
+    setLegacyMode,
+  } = useConfig();
+  const {
+    currentTrack,
+    setCurrentTrack,
+    tracks,
+    playPressSound,
+    playBackSound,
+  } = useAudio();
+  const {
+    isGameRunning,
+    stopGame,
+    isRunnerDownloading,
+    runnerDownloadProgress,
+    downloadRunner,
+  } = useGame();
   const { isLinux, isMac } = usePlatform();
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
-  const [currentSubMenu, setCurrentSubMenu] = useState<"main" | "audio" | "video" | "controls" | "launcher">("main");
+  const [currentSubMenu, setCurrentSubMenu] = useState<
+    "main" | "audio" | "video" | "controls" | "launcher"
+  >("main");
   const [runners, setRunners] = useState<Runner[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -69,35 +107,37 @@ const SettingsView = memo(function SettingsView() {
   const handleResetSetup = () => {
     playPressSound();
 
-    // Create styled confirmation dialog
-    const dialog = document.createElement('div');
-    dialog.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50';
+    const dialog = document.createElement("div");
+    dialog.className =
+      "fixed inset-0 bg-black/80 flex items-center justify-center z-50";
     dialog.innerHTML = `
-      <div class="relative p-8 max-w-md mx-4" style="background-image: url('/images/frame_background.png'); background-size: 100% 100%; background-repeat: no-repeat; image-rendering: pixelated;">
-        <h3 class="text-2xl font-bold text-white mb-4 text-center" style="text-shadow: 2px 2px 0px rgba(0,0,0,0.8)">Reset Setup</h3>
-        <p class="text-white mb-6 text-center">Are you sure you want to reset launcher setup?</p>
-        <div class="flex gap-4 justify-center">
-          <button id="reset-yes" class="mc-sq-btn px-6 py-3 text-white hover:scale-105 active:scale-95 transition-transform">Yes</button>
-          <button id="reset-no" class="mc-sq-btn px-6 py-3 text-white hover:scale-105 active:scale-95 transition-transform">No</button>
+      <div class="w-[420px] p-4 flex flex-col items-center mc-options-bg">
+        <h3 class="text-2xl font-bold text-[#333333] mb-4 text-left w-full px-4 mc-text-shadow">Reset Setup</h3>
+        <p class="text-[#333333] mb-8 text-left w-full px-4">Are you sure you want to reset launcher setup?</p>
+        <div class="flex flex-col gap-3 w-full px-4">
+          <button id="reset-cancel" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">Cancel</button>
+          <button id="reset-ok" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">OK</button>
         </div>
       </div>
     `;
 
     document.body.appendChild(dialog);
 
-    const handleYes = () => {
+    const handleOk = () => {
       document.body.removeChild(dialog);
       showSecondConfirmation();
     };
 
-    const handleNo = () => {
+    const handleCancel = () => {
       document.body.removeChild(dialog);
     };
 
-    dialog.querySelector('#reset-yes')?.addEventListener('click', handleYes);
-    dialog.querySelector('#reset-no')?.addEventListener('click', handleNo);
+    dialog.querySelector("#reset-ok")?.addEventListener("click", handleOk);
+    dialog
+      .querySelector("#reset-cancel")
+      ?.addEventListener("click", handleCancel);
 
-    dialog.addEventListener('click', (e) => {
+    dialog.addEventListener("click", (e) => {
       if (e.target === dialog) {
         document.body.removeChild(dialog);
       }
@@ -105,43 +145,48 @@ const SettingsView = memo(function SettingsView() {
   };
 
   const showSecondConfirmation = () => {
-    const dialog = document.createElement('div');
-    dialog.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50';
+    const dialog = document.createElement("div");
+    dialog.className =
+      "fixed inset-0 bg-black/80 flex items-center justify-center z-50";
     dialog.innerHTML = `
-      <div class="relative p-8 max-w-md mx-4" style="background-image: url('/images/frame_background.png'); background-size: 100% 100%; background-repeat: no-repeat; image-rendering: pixelated;">
-        <h3 class="text-2xl font-bold text-yellow-400 mb-4 text-center" style="text-shadow: 2px 2px 0px rgba(0,0,0,0.8)">CONFIRM RESET</h3>
-        <div class="text-white mb-6 text-left">
+      <div class="w-[420px] p-4 flex flex-col items-center mc-options-bg">
+        <h3 class="text-2xl font-bold text-[#333333] mb-2 text-left w-full px-4 mc-text-shadow">CONFIRM RESET</h3>
+        <div class="text-[#333333] mb-6 text-left w-full px-4">
           <p class="mb-2">⚠️ This will:</p>
-          <ul class="list-disc list-inside space-y-1 text-sm">
+          <ul class="list-none space-y-1 text-sm">
             <li>Clear all launcher settings</li>
             <li>Reset your username</li>
             <li>Show setup screen again</li>
             <li>Require reconfiguration</li>
           </ul>
-          <p class="mt-3 text-yellow-400 font-bold">This action cannot be undone!</p>
+          <p class="mt-3 text-[#333333] font-bold">This action cannot be undone!</p>
         </div>
-        <div class="flex gap-4 justify-center">
-          <button id="reset-final-yes" class="mc-sq-btn px-6 py-3 text-yellow-400 hover:scale-105 active:scale-95 transition-transform">YES, RESET</button>
-          <button id="reset-final-no" class="mc-sq-btn px-6 py-3 text-white hover:scale-105 active:scale-95 transition-transform">Cancel</button>
+        <div class="flex flex-col gap-3 w-full px-4">
+          <button id="reset-final-cancel" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">Cancel</button>
+          <button id="reset-final-ok" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">OK</button>
         </div>
       </div>
     `;
 
     document.body.appendChild(dialog);
 
-    const handleFinalYes = () => {
+    const handleFinalOk = () => {
       document.body.removeChild(dialog);
       performReset();
     };
 
-    const handleFinalNo = () => {
+    const handleFinalCancel = () => {
       document.body.removeChild(dialog);
     };
 
-    dialog.querySelector('#reset-final-yes')?.addEventListener('click', handleFinalYes);
-    dialog.querySelector('#reset-final-no')?.addEventListener('click', handleFinalNo);
+    dialog
+      .querySelector("#reset-final-ok")
+      ?.addEventListener("click", handleFinalOk);
+    dialog
+      .querySelector("#reset-final-cancel")
+      ?.addEventListener("click", handleFinalCancel);
 
-    dialog.addEventListener('click', (e) => {
+    dialog.addEventListener("click", (e) => {
       if (e.target === dialog) {
         document.body.removeChild(dialog);
       }
@@ -149,13 +194,10 @@ const SettingsView = memo(function SettingsView() {
   };
 
   const performReset = () => {
-    // Clear all localStorage data
     localStorage.clear();
 
-    // Set setup as not completed
-    localStorage.setItem('lce-setup-completed', 'false');
+    localStorage.setItem("lce-setup-completed", "false");
 
-    // Force reload to show setup screen
     window.location.reload();
   };
 
@@ -163,11 +205,9 @@ const SettingsView = memo(function SettingsView() {
   if (tracks && tracks.length > 0) {
     const fullPath = tracks[currentTrack];
     if (fullPath) {
-      trackName = fullPath
-        .split("/")
-        .pop()
-        ?.replace(".ogg", "")
-        .replace(".wav", "") || "Unknown";
+      trackName =
+        fullPath.split("/").pop()?.replace(".ogg", "").replace(".wav", "") ||
+        "Unknown";
     }
   }
 
@@ -176,20 +216,20 @@ const SettingsView = memo(function SettingsView() {
 
   type SettingsItem =
     | {
-      id: string;
-      label: string;
-      type: "slider";
-      value: number;
-      onChange: (val: any) => void;
-    }
+        id: string;
+        label: string;
+        type: "slider";
+        value: number;
+        onChange: (val: any) => void;
+      }
     | {
-      id: string;
-      label: string;
-      type: "button";
-      onClick: () => void;
-      small?: boolean;
-      color?: string;
-    };
+        id: string;
+        label: string;
+        type: "button";
+        onClick: () => void;
+        small?: boolean;
+        color?: string;
+      };
 
   const settingsItems = useMemo<SettingsItem[]>(() => {
     const items: SettingsItem[] = [];
@@ -199,25 +239,41 @@ const SettingsView = memo(function SettingsView() {
         id: "audio_menu",
         label: "Audio",
         type: "button",
-        onClick: () => { playPressSound(); setCurrentSubMenu("audio"); setFocusIndex(0); },
+        onClick: () => {
+          playPressSound();
+          setCurrentSubMenu("audio");
+          setFocusIndex(0);
+        },
       });
       items.push({
         id: "video_menu",
         label: "Video",
         type: "button",
-        onClick: () => { playPressSound(); setCurrentSubMenu("video"); setFocusIndex(0); },
+        onClick: () => {
+          playPressSound();
+          setCurrentSubMenu("video");
+          setFocusIndex(0);
+        },
       });
       items.push({
         id: "controls_menu",
         label: "Controls",
         type: "button",
-        onClick: () => { playPressSound(); setCurrentSubMenu("controls"); setFocusIndex(0); },
+        onClick: () => {
+          playPressSound();
+          setCurrentSubMenu("controls");
+          setFocusIndex(0);
+        },
       });
       items.push({
         id: "launcher_menu",
         label: "Launcher",
         type: "button",
-        onClick: () => { playPressSound(); setCurrentSubMenu("launcher"); setFocusIndex(0); },
+        onClick: () => {
+          playPressSound();
+          setCurrentSubMenu("launcher");
+          setFocusIndex(0);
+        },
       });
     } else if (currentSubMenu === "audio") {
       items.push({
@@ -296,7 +352,10 @@ const SettingsView = memo(function SettingsView() {
           type: "button",
           onClick: () => {
             if (!isRunnerDownloading) {
-              downloadRunner("GE-Proton9-25", "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton9-25/GE-Proton9-25.tar.gz");
+              downloadRunner(
+                "GE-Proton9-25",
+                "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton9-25/GE-Proton9-25.tar.gz",
+              );
             }
           },
           small: true,
@@ -435,11 +494,16 @@ const SettingsView = memo(function SettingsView() {
     backgroundImage: "url('/images/Button_Background2.png')",
     backgroundSize: "100% 100%",
     imageRendering: "pixelated" as const,
-    color: focusIndex === index ? "#FFFF55" : "white",
+    color: focusIndex === index ? "#ffff00" : "white",
   });
 
   const isToggleOption = (label: string): boolean => {
-    return label.includes("ON") || label.includes("OFF") || label.includes("Enabled") || label.includes("Disabled");
+    return (
+      label.includes("ON") ||
+      label.includes("OFF") ||
+      label.includes("Enabled") ||
+      label.includes("Disabled")
+    );
   };
 
   const getToggleState = (label: string): boolean => {
@@ -454,10 +518,18 @@ const SettingsView = memo(function SettingsView() {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: animationsEnabled ? 0.3 : 0 }}
-      className="flex flex-col items-center w-full max-w-2xl outline-none"
+      className="flex flex-col items-center w-full max-w-3xl outline-none"
     >
       <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 border-b-2 border-[#373737] pb-2 w-[40%] max-w-[200px] text-center tracking-widest uppercase opacity-80 font-bold whitespace-nowrap px-4">
-        {currentSubMenu === "main" ? "Settings" : currentSubMenu === "audio" ? "Audio" : currentSubMenu === "video" ? "Video" : currentSubMenu === "controls" ? "Controls" : "Launcher"}
+        {currentSubMenu === "main"
+          ? "Settings"
+          : currentSubMenu === "audio"
+            ? "Audio"
+            : currentSubMenu === "video"
+              ? "Video"
+              : currentSubMenu === "controls"
+                ? "Controls"
+                : "Launcher"}
       </h2>
 
       {currentSubMenu === "main" ? (
@@ -472,11 +544,11 @@ const SettingsView = memo(function SettingsView() {
                   data-index={index}
                   tabIndex={0}
                   onMouseEnter={() => setFocusIndex(index)}
-                  className="relative w-[360px] h-10 flex items-center justify-center cursor-pointer transition-all outline-none border-none hover:text-[#FFFF55] shrink-0"
+                  className="relative w-[360px] h-10 flex items-center justify-center cursor-pointer transition-all outline-none border-none hover:text-[#ffff00] shrink-0"
                   style={getSliderStyle(index)}
                 >
                   <span
-                    className={`absolute z-10 text-xl mc-text-shadow pointer-events-none transition-colors tracking-widest ${focusIndex === index ? "text-[#FFFF55]" : "text-white"}`}
+                    className={`absolute z-10 text-xl mc-text-shadow pointer-events-none transition-colors tracking-widest ${focusIndex === index ? "text-[#ffff00]" : "text-white"}`}
                   >
                     {item.label}
                   </span>
@@ -505,14 +577,15 @@ const SettingsView = memo(function SettingsView() {
                 data-index={index}
                 onMouseEnter={() => setFocusIndex(index)}
                 onClick={item.onClick}
-                className={`w-[360px] h-10 flex items-center justify-center px-4 relative z-30 transition-colors outline-none border-none shrink-0 ${isRed
-                  ? focusIndex === index
-                    ? "text-red-400"
-                    : "text-red-200"
-                  : focusIndex === index
-                    ? "text-[#FFFF55]"
-                    : "text-white"
-                  } ${isRed ? "hover:text-red-500" : "hover:text-[#FFFF55]"}`}
+                className={`w-[360px] h-10 flex items-center justify-center px-4 relative z-30 transition-colors outline-none border-none shrink-0 ${
+                  isRed
+                    ? focusIndex === index
+                      ? "text-red-400"
+                      : "text-red-200"
+                    : focusIndex === index
+                      ? "text-[#ffff00]"
+                      : "text-white"
+                } ${isRed ? "hover:text-red-500" : "hover:text-[#ffff00]"}`}
                 style={getItemStyle(index)}
               >
                 <span
@@ -525,15 +598,7 @@ const SettingsView = memo(function SettingsView() {
           })}
         </div>
       ) : (
-        <div 
-          className="min-w-[420px] w-fit p-6 flex flex-col items-center"
-          style={{
-            backgroundImage: "url('/images/background.png')",
-            backgroundSize: "100% 100%",
-            backgroundRepeat: "no-repeat",
-            imageRendering: "pixelated",
-          }}
-        >
+        <div className="min-w-[420px] w-fit p-4 flex flex-col items-center mc-options-bg">
           <div className="w-full space-y-3 flex flex-col items-center overflow-y-auto max-h-[50vh] py-2">
             {settingsItems.map((item, index) => {
               if (item.id === "back") return null;
@@ -545,11 +610,11 @@ const SettingsView = memo(function SettingsView() {
                     data-index={index}
                     tabIndex={0}
                     onMouseEnter={() => setFocusIndex(index)}
-                    className="relative w-[360px] h-10 flex items-center justify-center cursor-pointer transition-all outline-none border-none hover:text-[#FFFF55] shrink-0"
+                    className="relative w-[360px] h-10 flex items-center justify-center cursor-pointer transition-all outline-none border-none hover:text-[#ffff00] shrink-0"
                     style={getSliderStyle(index)}
                   >
                     <span
-                      className={`absolute z-10 text-xl pointer-events-none transition-colors tracking-widest ${focusIndex === index ? "text-[#FFFF55]" : item.id === "music" || item.id === "sfx" ? "text-white" : "text-[#2a2a2a]"}`}
+                      className={`absolute z-10 text-xl pointer-events-none transition-colors tracking-widest ${focusIndex === index ? "text-[#ffff00]" : item.id === "music" || item.id === "sfx" ? "text-white" : "text-[#2a2a2a]"}`}
                     >
                       {item.label}
                     </span>
@@ -560,7 +625,9 @@ const SettingsView = memo(function SettingsView() {
                         max="100"
                         step="1"
                         value={item.value}
-                        onChange={(e) => item.onChange(parseInt(e.target.value))}
+                        onChange={(e) =>
+                          item.onChange(parseInt(e.target.value))
+                        }
                         onMouseUp={playPressSound}
                         className="mc-slider-custom w-[calc(100%+16px)] h-full opacity-100 cursor-pointer z-20 outline-none m-0"
                       />
@@ -580,21 +647,37 @@ const SettingsView = memo(function SettingsView() {
                   data-index={index}
                   onMouseEnter={() => setFocusIndex(index)}
                   onClick={item.onClick}
-                  className={`w-[360px] h-10 flex items-center justify-between px-4 relative z-30 transition-all outline-none border-none shrink-0 rounded ${focusIndex === index ? "bg-black/10" : "bg-transparent"} ${isRed ? "text-red-600" : "text-[#2a2a2a]"} hover:bg-black/15`}
+                  className={`w-[360px] h-10 flex items-center pl-1.5 pr-4 relative z-30 outline-none border-none shrink-0 rounded ${focusIndex === index ? "text-[#ffff00]" : isRed ? "text-red-600" : "text-[#333333]"}`}
                 >
-                  <span
-                    className={`tracking-widest uppercase ${isSmall ? "text-xs" : item.label.length > 25 ? "text-base" : "text-lg"} truncate text-left flex-1`}
-                  >
-                    {isToggle ? item.label.split(":")[0] : item.label}
-                  </span>
                   {isToggle && (
-                    <img
-                      src={toggleState ? "/images/Toggle_Switch_On.png" : "/images/Toggle_Switch_Off.png"}
-                      alt={toggleState ? "ON" : "OFF"}
-                      className="w-12 h-6 object-contain shrink-0 ml-2"
-                      style={{ imageRendering: "pixelated" }}
-                    />
+                    <div className="relative w-6 h-6 mr-3 shrink-0">
+                      <img
+                        src={
+                          focusIndex === index
+                            ? "/images/checkbox_highlighted.png"
+                            : "/images/checkbox.png"
+                        }
+                        alt="checkbox"
+                        className="w-full h-full object-contain"
+                        style={{ imageRendering: "pixelated" }}
+                      />
+                      {toggleState && (
+                        <img
+                          src="/images/check.png"
+                          alt="checked"
+                          className="absolute inset-0 w-full h-full object-contain"
+                          style={{ imageRendering: "pixelated" }}
+                        />
+                      )}
+                    </div>
                   )}
+                  <span
+                    className={`tracking-widest text-xl mc-text-shadow ${isSmall ? "text-xs" : item.label.length > 25 ? "text-base" : "text-lg"} truncate text-left capitalize`}
+                  >
+                    {isToggle
+                      ? item.label.split(":")[0].toLowerCase()
+                      : item.label.toLowerCase()}
+                  </span>
                 </button>
               );
             })}
@@ -612,11 +695,12 @@ const SettingsView = memo(function SettingsView() {
             data-index={backIndex}
             onMouseEnter={() => setFocusIndex(backIndex)}
             onClick={backItem.onClick}
-            className={`w-72 h-10 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] mt-4 ${focusIndex === backIndex ? "text-[#FFFF55]" : "text-white"}`}
+            className={`w-40 h-10 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none border-none hover:text-[#ffff00] mt-4 ${focusIndex === backIndex ? "text-[#ffff00]" : "text-white"}`}
             style={{
-              backgroundImage: focusIndex === backIndex
-                ? "url('/images/button_highlighted.png')"
-                : "url('/images/Button_Background.png')",
+              backgroundImage:
+                focusIndex === backIndex
+                  ? "url('/images/button_highlighted.png')"
+                  : "url('/images/Button_Background.png')",
               backgroundSize: "100% 100%",
               imageRendering: "pixelated",
             }}

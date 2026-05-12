@@ -1,12 +1,18 @@
 import { setActivity, start } from "tauri-plugin-drpc";
-import { Activity, ActivityType, Assets, Timestamps, Button } from "tauri-plugin-drpc/activity";
+import {
+  Activity,
+  ActivityType,
+  Assets,
+  Timestamps,
+  Button,
+} from "tauri-plugin-drpc/activity";
 class RPC {
   private startTime: number = Date.now();
   private initializationPromise: Promise<void> | null = null;
   private initialized: boolean = false;
   public async StartRPC() {
     if (this.initialized) return;
-    if (sessionStorage.getItem('lce_rpc_started') === 'true') {
+    if (sessionStorage.getItem("lce_rpc_started") === "true") {
       this.initialized = true;
       return;
     }
@@ -15,7 +21,7 @@ class RPC {
     this.initializationPromise = (async () => {
       try {
         await start("1482504445152460871");
-        sessionStorage.setItem('lce_rpc_started', 'true');
+        sessionStorage.setItem("lce_rpc_started", "true");
         this.initialized = true;
       } catch (e) {
         console.error("Failed to start RPC:", e);
@@ -26,7 +32,11 @@ class RPC {
     return this.initializationPromise;
   }
 
-  public async updateActivity(details: string, state: string, isPlaying: boolean = false) {
+  public async updateActivity(
+    details: string,
+    state: string,
+    isPlaying: boolean = false,
+  ) {
     if (!this.initialized) {
       await this.StartRPC();
       if (!this.initialized) return;
@@ -44,8 +54,8 @@ class RPC {
     activity.setAssets(assets);
     activity.setTimestamps(new Timestamps(this.startTime));
     activity.setButton([
-      new Button("Discord", "https://discord.gg/NPMp9JhGYH"),
-      new Button("GitHub", "https://github.com/LCE-Hub/LCE-Emerald-Launcher")
+      new Button("Discord", "https://discord.gg/cQVKhQXcCx"),
+      new Button("GitHub", "https://github.com/LCE-Hub/LCE-Emerald-Launcher"),
     ]);
 
     try {

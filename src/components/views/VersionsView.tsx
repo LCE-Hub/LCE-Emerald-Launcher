@@ -28,8 +28,9 @@ const DeleteConfirmButton = memo(function DeleteConfirmButton({
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`w-24 h-10 flex items-center justify-center mc-text-shadow transition-colors ${isDanger ? "text-red-500" : "text-white"
-        } ${isHovered ? (isDanger ? "text-red-400" : "text-[#FFFF55]") : ""}`}
+      className={`w-24 h-10 flex items-center justify-center mc-text-shadow transition-colors ${
+        isDanger ? "text-red-500" : "text-white"
+      } ${isHovered ? (isDanger ? "text-red-400" : "text-[#FFFF55]") : ""}`}
       style={{
         backgroundImage: isHovered
           ? "url('/images/button_highlighted.png')"
@@ -170,7 +171,7 @@ const VersionsView = memo(function VersionsView() {
     toggleInstall,
     handleCancelDownload,
     addToSteam,
-    isDayTime
+    isDayTime,
   ]);
 
   useEffect(() => {
@@ -212,7 +213,7 @@ const VersionsView = memo(function VersionsView() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
       transition={{ duration: animationsEnabled ? 0.25 : 0 }}
-      className="flex flex-col items-center w-full max-w-2xl outline-none"
+      className="flex flex-col items-center w-full max-w-5xl outline-none"
     >
       <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 pb-2 w-[40%] max-w-[200px] text-center tracking-widest uppercase font-bold">
         Versions
@@ -233,7 +234,9 @@ const VersionsView = memo(function VersionsView() {
         >
           <div className="flex flex-col gap-1">
             {editions.map((edition: any, i: number) => {
-              const isInstalled = installedVersions.includes(edition.instanceId);
+              const isInstalled = installedVersions.includes(
+                edition.instanceId,
+              );
               const hasAnyInstall = installedVersions.length > 0;
               const isSelected =
                 hasAnyInstall && selectedProfile === edition.instanceId;
@@ -246,9 +249,11 @@ const VersionsView = memo(function VersionsView() {
                 <div
                   key={edition.id}
                   data-index={i}
-                  className={`w-[calc(100%-16px)] mx-2 flex items-center gap-3 p-2 rounded-sm ${isSelected && !isComingSoon ? "bg-[#404040]/50" : ""
-                    } ${isFocused && !isComingSoon ? "ring-2 ring-white" : ""} ${isComingSoon ? "opacity-50 cursor-not-allowed" : ""
-                    } relative ${openMenuId === edition.id ? "z-50" : "z-0"}`}
+                  className={`w-[calc(100%-16px)] mx-2 flex items-center gap-3 p-2 rounded-sm ${
+                    isSelected && !isComingSoon ? "bg-[#404040]/50" : ""
+                  } ${isFocused && !isComingSoon ? "ring-2 ring-white" : ""} ${
+                    isComingSoon ? "opacity-50 cursor-not-allowed" : ""
+                  } relative ${openMenuId === edition.id ? "z-50" : "z-0"}`}
                   onMouseEnter={() => !isComingSoon && setFocusIndex(i)}
                 >
                   <div className="w-6 flex items-center justify-center flex-shrink-0">
@@ -284,15 +289,16 @@ const VersionsView = memo(function VersionsView() {
                     onClick={() =>
                       !isComingSoon && handleEditionClick(edition, i)
                     }
-                    className={`flex-1 text-left min-w-0 outline-none rounded cursor-pointer ${focusIndex === i && focusBtn === 0 && !isComingSoon
-                      ? "ring-2 ring-white"
-                      : ""
-                      } ${isComingSoon ? "cursor-not-allowed" : ""}`}
+                    className={`flex-1 text-left min-w-0 outline-none rounded cursor-pointer ${
+                      focusIndex === i && focusBtn === 0 && !isComingSoon
+                        ? "ring-2 ring-white"
+                        : ""
+                    } ${isComingSoon ? "cursor-not-allowed" : ""}`}
                   >
                     <div className="flex items-center gap-2">
-                      {edition.logo && (
-                        edition.logo.startsWith("http") ||
-                          edition.logo.startsWith("/images") ? (
+                      {edition.logo &&
+                        (edition.logo.startsWith("http") ||
+                        edition.logo.startsWith("/images") ? (
                           <img
                             src={edition.logo}
                             alt=""
@@ -306,11 +312,11 @@ const VersionsView = memo(function VersionsView() {
                             className="w-5 h-5 object-contain flex-shrink-0"
                             style={{ imageRendering: "pixelated" }}
                           />
-                        )
-                      )}
+                        ))}
                       <span
-                        className={`text-xl tracking-wide truncate ${isSelected ? "text-white" : "text-black"
-                          }`}
+                        className={`text-xl tracking-wide truncate ${
+                          isSelected ? "text-white" : "text-black"
+                        }`}
                         style={{ textShadow: "none" }}
                       >
                         {edition.name}
@@ -331,8 +337,9 @@ const VersionsView = memo(function VersionsView() {
                       )}
                     </div>
                     <p
-                      className={`text-base font-medium leading-tight ${isSelected ? "text-[#DDDDDD]" : "text-[#666666]"
-                        }`}
+                      className={`text-base font-medium leading-tight ${
+                        isSelected ? "text-[#DDDDDD]" : "text-[#666666]"
+                      }`}
                     >
                       {edition.desc}
                     </p>
@@ -349,23 +356,40 @@ const VersionsView = memo(function VersionsView() {
                             handleCancelDownload();
                           }
                         }}
-                        onMouseEnter={() => setHoveredBtn({ row: i, btn: "main" })}
+                        onMouseEnter={() =>
+                          setHoveredBtn({ row: i, btn: "main" })
+                        }
                         onMouseLeave={() => setHoveredBtn(null)}
-                        className={`w-9 h-9 flex items-center justify-center ${(isDownloading || (!!downloadingId && !isInstalled)) ? "opacity-50" : ""
-                          }`}
+                        className={`w-9 h-9 flex items-center justify-center ${
+                          isDownloading || (!!downloadingId && !isInstalled)
+                            ? "opacity-50"
+                            : ""
+                        }`}
                         style={{
-                          backgroundImage: (hoveredBtn?.row === i && hoveredBtn?.btn === "main") || (focusIndex === i && focusBtn === 0)
-                            ? "url('/images/Button_Square_Highlighted.png')"
-                            : "url('/images/Button_Square.png')",
+                          backgroundImage:
+                            (hoveredBtn?.row === i &&
+                              hoveredBtn?.btn === "main") ||
+                            (focusIndex === i && focusBtn === 0)
+                              ? "url('/images/Button_Square_Highlighted.png')"
+                              : "url('/images/Button_Square.png')",
                           backgroundSize: "100% 100%",
                           imageRendering: "pixelated",
                         }}
                       >
                         <img
-                          src={isDownloading ? "/images/Trash_Bin_Icon.png" : "/images/Download_Icon.png"}
+                          src={
+                            isDownloading
+                              ? "/images/Trash_Bin_Icon.png"
+                              : "/images/Download_Icon.png"
+                          }
                           alt=""
                           className="w-5 h-5 object-contain"
-                          style={{ imageRendering: "pixelated", filter: isDownloading ? "hue-rotate(300deg)" : "none" }}
+                          style={{
+                            imageRendering: "pixelated",
+                            filter: isDownloading
+                              ? "hue-rotate(300deg)"
+                              : "none",
+                          }}
                         />
                       </button>
                     ) : (
@@ -373,23 +397,39 @@ const VersionsView = memo(function VersionsView() {
                         onClick={(e) => {
                           e.stopPropagation();
                           playPressSound();
-                          setOpenMenuId(openMenuId === edition.id ? null : edition.id);
+                          setOpenMenuId(
+                            openMenuId === edition.id ? null : edition.id,
+                          );
                         }}
-                        onMouseEnter={() => setHoveredBtn({ row: i, btn: "menu" })}
+                        onMouseEnter={() =>
+                          setHoveredBtn({ row: i, btn: "menu" })
+                        }
                         onMouseLeave={() => setHoveredBtn(null)}
                         className="w-9 h-9 flex flex-col items-center justify-center gap-1 transition-colors relative"
                         style={{
-                          backgroundImage: (hoveredBtn?.row === i && hoveredBtn?.btn === "menu") || (focusIndex === i && (focusBtn === 0 || focusBtn === 1))
-                            ? "url('/images/Button_Square_Highlighted.png')"
-                            : "url('/images/Button_Square.png')",
+                          backgroundImage:
+                            (hoveredBtn?.row === i &&
+                              hoveredBtn?.btn === "menu") ||
+                            (focusIndex === i &&
+                              (focusBtn === 0 || focusBtn === 1))
+                              ? "url('/images/Button_Square_Highlighted.png')"
+                              : "url('/images/Button_Square.png')",
                           backgroundSize: "100% 100%",
                           imageRendering: "pixelated",
-                          filter: updatesAvailable?.[edition.instanceId] ? "drop-shadow(0 0 4px rgba(255,255,0,0.8))" : "none"
+                          filter: updatesAvailable?.[edition.instanceId]
+                            ? "drop-shadow(0 0 4px rgba(255,255,0,0.8))"
+                            : "none",
                         }}
                       >
-                        <div className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`} />
-                        <div className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`} />
-                        <div className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`} />
+                        <div
+                          className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`}
+                        />
+                        <div
+                          className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`}
+                        />
+                        <div
+                          className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`}
+                        />
                       </button>
                     )}
 
@@ -397,7 +437,7 @@ const VersionsView = memo(function VersionsView() {
                       <div
                         className="absolute right-0 top-11 w-48 bg-[#1a1a1a] border-2 border-[#555] z-[100] shadow-2xl p-0.5 animate-in fade-in zoom-in duration-75"
                         style={{
-                          imageRendering: "pixelated"
+                          imageRendering: "pixelated",
                         }}
                       >
                         {updatesAvailable?.[edition.instanceId] && (
@@ -410,27 +450,33 @@ const VersionsView = memo(function VersionsView() {
                             }}
                             className="w-full text-left px-3 py-1.5 text-xs text-[#ffff55] hover:text-white hover:bg-[#ffff55]/20 flex items-center gap-2 group transition-colors mc-text-shadow font-bold border-b border-white/5 mb-1"
                           >
-                            <img src="/images/Download_Icon.png" alt="" className="w-3 h-3 object-contain" style={{ imageRendering: "pixelated" }} />
+                            <img
+                              src="/images/Download_Icon.png"
+                              alt=""
+                              className="w-3 h-3 object-contain"
+                              style={{ imageRendering: "pixelated" }}
+                            />
                             Update Available!
                           </button>
                         )}
-                        {Array.isArray(edition.branches) && edition.branches.length > 0 && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              playPressSound();
-                              cycleBranch(edition.id);
-                            }}
-                            className="w-full text-left px-3 py-1.5 text-[10px] text-white mc-text-shadow hover:bg-white/10 flex items-center justify-between group transition-colors"
-                          >
-                            <span className="text-[#AAAAAA] group-hover:text-white font-bold">
-                              Channel
-                            </span>
-                            <span className="text-[#ffff55] font-bold">
-                              {edition.selectedBranch ?? "Latest"}
-                            </span>
-                          </button>
-                        )}
+                        {Array.isArray(edition.branches) &&
+                          edition.branches.length > 0 && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                playPressSound();
+                                cycleBranch(edition.id);
+                              }}
+                              className="w-full text-left px-3 py-1.5 text-[10px] text-white mc-text-shadow hover:bg-white/10 flex items-center justify-between group transition-colors"
+                            >
+                              <span className="text-[#AAAAAA] group-hover:text-white font-bold">
+                                Channel
+                              </span>
+                              <span className="text-[#ffff55] font-bold">
+                                {edition.selectedBranch ?? "Latest"}
+                              </span>
+                            </button>
+                          )}
                         <div className="h-[1px] bg-white/5 my-0.5 mx-1" />
                         <button
                           onClick={(e) => {
@@ -441,22 +487,46 @@ const VersionsView = memo(function VersionsView() {
                           }}
                           className="w-full text-left px-3 py-2 text-xs text-[#dddddd] hover:text-white hover:bg-white/10 flex items-center gap-2 transition-colors mc-text-shadow"
                         >
-                          <img src="/images/Folder_Icon.png" alt="" className="w-3.5 h-3.5 object-contain" style={{ imageRendering: "pixelated" }} />
+                          <img
+                            src="/images/Folder_Icon.png"
+                            alt=""
+                            className="w-3.5 h-3.5 object-contain"
+                            style={{ imageRendering: "pixelated" }}
+                          />
                           Open Folder
                         </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             playPressSound();
-                            const PANORAMA_PROFILES = ['legacy_evolved', 'vanilla_tu19', '360revived', 'vanilla_tu24'];
-                            const panoId = PANORAMA_PROFILES.includes(edition.id) ? edition.id : 'vanilla_tu19';
-                            const panoramaUrl = `/panorama/${panoId}_Panorama_Background_${isDayTime ? 'Day' : 'Night'}.png`;
-                            addToSteam(edition.instanceId, edition.name, edition.titleImage, panoramaUrl);
+                            const PANORAMA_PROFILES = [
+                              "legacy_evolved",
+                              "vanilla_tu19",
+                              "360revived",
+                              "vanilla_tu24",
+                            ];
+                            const panoId = PANORAMA_PROFILES.includes(
+                              edition.id,
+                            )
+                              ? edition.id
+                              : "vanilla_tu19";
+                            const panoramaUrl = `/panorama/${panoId}_Panorama_Background_${isDayTime ? "Day" : "Night"}.png`;
+                            addToSteam(
+                              edition.instanceId,
+                              edition.name,
+                              edition.titleImage,
+                              panoramaUrl,
+                            );
                             setOpenMenuId(null);
                           }}
                           className="w-full text-left px-3 py-2 text-xs text-[#dddddd] hover:text-white hover:bg-white/10 flex items-center gap-2 transition-colors mc-text-shadow"
                         >
-                          <img src="/images/steam.png" alt="" className="w-3.5 h-3.5 object-contain invert brightness-0" style={{ imageRendering: "pixelated" }} />
+                          <img
+                            src="/images/steam.png"
+                            alt=""
+                            className="w-3.5 h-3.5 object-contain invert brightness-0"
+                            style={{ imageRendering: "pixelated" }}
+                          />
                           Add to Steam
                         </button>
                         <button
@@ -469,7 +539,18 @@ const VersionsView = memo(function VersionsView() {
                           }}
                           className="w-full text-left px-3 py-2 text-xs text-[#dddddd] hover:text-white hover:bg-white/10 flex items-center gap-2 transition-colors mc-text-shadow"
                         >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            className="w-3.5 h-3.5"
+                          >
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                          </svg>
                           Set UID
                         </button>
                         {isCustom ? (
@@ -483,7 +564,17 @@ const VersionsView = memo(function VersionsView() {
                             }}
                             className="w-full text-left px-3 py-2 text-xs text-[#aaaaaa] hover:text-white hover:bg-white/10 flex items-center gap-2 transition-colors mc-text-shadow"
                           >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              className="w-3.5 h-3.5"
+                            >
+                              <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                            </svg>
                             Edit Custom
                           </button>
                         ) : null}
@@ -501,7 +592,12 @@ const VersionsView = memo(function VersionsView() {
                           }}
                           className="w-full text-left px-3 py-2 text-xs text-red-500 hover:text-red-400 hover:bg-red-500/10 flex items-center gap-2 transition-colors mc-text-shadow font-bold"
                         >
-                          <img src="/images/Trash_Bin_Icon.png" alt="" className="w-3.5 h-3.5 object-contain" style={{ imageRendering: "pixelated" }} />
+                          <img
+                            src="/images/Trash_Bin_Icon.png"
+                            alt=""
+                            className="w-3.5 h-3.5 object-contain"
+                            style={{ imageRendering: "pixelated" }}
+                          />
                           {isCustom ? "Remove Custom" : "Uninstall"}
                         </button>
                       </div>
@@ -525,7 +621,7 @@ const VersionsView = memo(function VersionsView() {
                   backgroundImage:
                     (hoveredBtn?.row === editions.length &&
                       hoveredBtn?.btn === "add") ||
-                      focusIndex === editions.length
+                    focusIndex === editions.length
                       ? "url('/images/Button_Square_Highlighted.png')"
                       : "url('/images/Button_Square.png')",
                   backgroundSize: "100% 100%",
@@ -558,7 +654,7 @@ const VersionsView = memo(function VersionsView() {
                   backgroundImage:
                     (hoveredBtn?.row === editions.length &&
                       hoveredBtn?.btn === "folder_import") ||
-                      focusIndex === editions.length + 1
+                    focusIndex === editions.length + 1
                       ? "url('/images/Button_Square_Highlighted.png')"
                       : "url('/images/Button_Square.png')",
                   backgroundSize: "100% 100%",
@@ -629,7 +725,6 @@ const VersionsView = memo(function VersionsView() {
         installedVersions={installedVersions}
         targetInstanceId={setUidTargetId}
       />
-
 
       {deleteConfirmEdition && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
