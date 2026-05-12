@@ -195,28 +195,6 @@ export default function App() {
           variant="steam"
         />
 
-        <AchievementToast
-          message={friendRequestMessage}
-          onClose={clearFriendRequestMessage}
-          onClick={() => {
-            clearFriendRequestMessage();
-            setActiveView("lcelive");
-          }}
-          title="Friend Request"
-          variant="update"
-        />
-
-        <AchievementToast
-          message={gameInviteMessage}
-          onClose={clearGameInviteMessage}
-          onClick={() => {
-            clearGameInviteMessage();
-            setActiveView("lcelive");
-          }}
-          title="Game Invite"
-          variant="update"
-        />
-
         <AnimatePresence>
           {showSetup ? (
             <SetupView
@@ -486,6 +464,28 @@ export default function App() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <AchievementToast
+          message={friendRequestMessage}
+          onClose={clearFriendRequestMessage}
+          onClick={() => {
+            clearFriendRequestMessage();
+            setActiveView("lcelive");
+          }}
+          title="Friend Request"
+          variant="update"
+        />
+
+        <AchievementToast
+          message={gameInviteMessage}
+          onClose={clearGameInviteMessage}
+          onClick={() => {
+            clearGameInviteMessage();
+            setActiveView("lcelive");
+          }}
+          title="Game Invite"
+          variant="update"
+        />
       </div>
     </MotionConfig>
   );
