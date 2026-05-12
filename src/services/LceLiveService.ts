@@ -131,8 +131,7 @@ export class LceLiveService {
   ): Promise<any> {
     if (authed && this._session?.refreshToken && retryCount === 0) {
       try {
-        console.warn("refreshing session");
-        await this.refreshSession();
+        await this.refreshSession(); //neo: i do this on every request only because it doesnt always return 401
       } catch (err) {}
     }
 
