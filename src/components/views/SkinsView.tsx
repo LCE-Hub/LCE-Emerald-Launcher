@@ -46,8 +46,14 @@ const DEFAULT_SKINS: SavedSkin[] = [
   },
   { id: "peter", name: "Peter", url: "/Skins/Peter.png", isSlim: false },
   { id: "piebot", name: "piebot", url: "/Skins/piebot.png", isSlim: false },
+  { id: "andipog", name: "Andi_Pog", url: "/Skins/andi.png", isSlim: false },
   { id: "sevenhundred", name: "700", url: "/Skins/700.png", isSlim: false },
-  { id: "prismachunk0", name: "PrismaChunk0", url: "/Skins/PrismaChunk0.png", isSlim: false }
+  {
+    id: "prismachunk0",
+    name: "PrismaChunk0",
+    url: "/Skins/PrismaChunk0.png",
+    isSlim: false,
+  },
 ];
 
 const SkinsView = memo(function SkinsView() {
