@@ -24,7 +24,8 @@ const BASE_EDITIONS = [
     url: "https://github.com/pieeebot/neoLegacy/releases/download/latest/neoLegacyWindows64.zip",
     titleImage: "/images/minecraft_title_neoLegacy.png",
     supportsSlimSkins: true,
-    logo: "/images/neoLegacy.png"
+    logo: "/images/neoLegacy.png",
+    panorama: "legacy_evolved",
   },
   {
     id: "revelations",
@@ -33,6 +34,7 @@ const BASE_EDITIONS = [
     url: "https://github.com/itsRevela/LCE-Revelations/releases/download/Nightly/LCE-Revelations-Client-Win64.zip",
     titleImage: "/images/minecraft_title_revelations.png",
     supportsSlimSkins: false,
+    panorama: "vanilla_tu24",
   },
   {
     id: "360revived",
@@ -41,7 +43,8 @@ const BASE_EDITIONS = [
     url: "https://github.com/BluTac10/360Revived/releases/download/nightly/LCEWindows64.zip",
     titleImage: "/images/minecraft_title_360revived.png",
     supportsSlimSkins: false,
-    logo: "/images/360_revived.png"
+    logo: "/images/360_revived.png",
+    panorama: "360revived",
   },
   {
     id: "legacy_nether_fork",
@@ -50,8 +53,9 @@ const BASE_EDITIONS = [
     url: "https://github.com/deadvoxelx/HellishEnds/releases/download/nightly/LCEWindows64.zip",
     titleImage: "/images/minecraft_title_hellishends.png",
     supportsSlimSkins: false,
-    logo: "/images/netherrack_0.png"
-  }
+    logo: "/images/netherrack_0.png",
+    panorama: "vanilla_tu19",
+  },
 ];
 
 const PARTNERSHIP_SERVERS = [
@@ -101,22 +105,28 @@ export function useGameManager({
     number | null
   >(null);
   const [error, setError] = useState<string | null>(null);
-  const [gameUpdateMessage, setGameUpdateMessage] = useState<string | null>(null);
-  const [steamSuccessMessage, setSteamSuccessMessage] = useState<string | null>(null);
+  const [gameUpdateMessage, setGameUpdateMessage] = useState<string | null>(
+    null,
+  );
+  const [steamSuccessMessage, setSteamSuccessMessage] = useState<string | null>(
+    null,
+  );
   const [dynamicUrls, setDynamicUrls] = useState<Record<string, string>>({});
   const [branches, setBranches] = useState<Record<string, string[]>>({});
-  const [selectedBranches, setSelectedBranches] = useState<Record<string, string>>({});
+  const [selectedBranches, setSelectedBranches] = useState<
+    Record<string, string>
+  >({});
   const branchesFetched = useRef<Set<string>>(new Set());
   const initialBranchesSet = useRef(false);
 
   useEffect(() => {
     if (initialBranchesSet.current || !profile) return;
-    BASE_EDITIONS.forEach(e => {
+    BASE_EDITIONS.forEach((e) => {
       if (profile.startsWith(e.id + "_")) {
         const branch = profile.replace(e.id + "_", "");
-        setSelectedBranches(prev => ({ ...prev, [e.id]: branch }));
+        setSelectedBranches((prev) => ({ ...prev, [e.id]: branch }));
       } else if (profile === e.id) {
-        setSelectedBranches(prev => ({ ...prev, [e.id]: "Stable" }));
+        setSelectedBranches((prev) => ({ ...prev, [e.id]: "Stable" }));
       }
     });
     initialBranchesSet.current = true;
@@ -125,12 +135,19 @@ export function useGameManager({
   useEffect(() => {
     async function fetchLatestReleases() {
       try {
-        const response = await fetch("https://api.github.com/repos/pieeebot/neoLegacy/releases/latest");
+        const response = await fetch(
+          "https://api.github.com/repos/pieeebot/neoLegacy/releases/latest",
+        );
         if (response.ok) {
           const data = await response.json();
-          const asset = data.assets.find((a: any) => a.name === "neoLegacyWindows64.zip");
+          const asset = data.assets.find(
+            (a: any) => a.name === "neoLegacyWindows64.zip",
+          );
           if (asset) {
-            setDynamicUrls(prev => ({ ...prev, legacy_evolved: asset.browser_download_url }));
+            setDynamicUrls((prev) => ({
+              ...prev,
+              legacy_evolved: asset.browser_download_url,
+            }));
           }
         }
       } catch (e) {
@@ -140,85 +157,105 @@ export function useGameManager({
     fetchLatestReleases();
   }, []);
 
-  const fetchBranchesForEdition = useCallback(async (editionId: string, url: string) => {
-    if (branchesFetched.current.has(editionId)) return;
-    if (!url.includes("github.com")) return;
-    const parts = url.split("github.com/")[1].split("/");
-    const owner = parts[0];
-    const repo = parts[1];
-    try {
-      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases`);
-      if (response.ok) {
-        const data = await response.json();
-        let tags: string[] = data
-          .map((r: any) => r.tag_name)
-          .filter((t: string) => !t.toLowerCase().includes("server"));
+  const fetchBranchesForEdition = useCallback(
+    async (editionId: string, url: string) => {
+      if (branchesFetched.current.has(editionId)) return;
+      if (!url.includes("github.com")) return;
+      const parts = url.split("github.com/")[1].split("/");
+      const owner = parts[0];
+      const repo = parts[1];
+      try {
+        const response = await fetch(
+          `https://api.github.com/repos/${owner}/${repo}/releases`,
+        );
+        if (response.ok) {
+          const data = await response.json();
+          let tags: string[] = data
+            .map((r: any) => r.tag_name)
+            .filter((t: string) => !t.toLowerCase().includes("server"));
 
-        const vTags = tags.filter(t => t.startsWith("v")).sort(compareVersions);
-        const bestVTag = vTags[vTags.length - 1];
-        if (!tags.includes("Stable")) tags.unshift("Stable");
-        if (bestVTag) {
-          setDynamicUrls(prev => ({ ...prev, [`${editionId}_Stable`]: bestVTag }));
+          const vTags = tags
+            .filter((t) => t.startsWith("v"))
+            .sort(compareVersions);
+          const bestVTag = vTags[vTags.length - 1];
+          if (!tags.includes("Stable")) tags.unshift("Stable");
+          if (bestVTag) {
+            setDynamicUrls((prev) => ({
+              ...prev,
+              [`${editionId}_Stable`]: bestVTag,
+            }));
+          }
+
+          setBranches((prev) => ({ ...prev, [editionId]: tags }));
+          branchesFetched.current.add(editionId);
         }
-
-        setBranches(prev => ({ ...prev, [editionId]: tags }));
-        branchesFetched.current.add(editionId);
+      } catch (e) {
+        console.error(`Failed to fetch branches for ${editionId}:`, e);
       }
-    } catch (e) {
-      console.error(`Failed to fetch branches for ${editionId}:`, e);
-    }
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
-    BASE_EDITIONS.forEach(e => fetchBranchesForEdition(e.id, e.url));
+    BASE_EDITIONS.forEach((e) => fetchBranchesForEdition(e.id, e.url));
   }, [fetchBranchesForEdition]);
 
-  const cycleBranch = useCallback((editionId: string) => {
-    const available = branches[editionId] || ["Stable"];
-    if (available.length <= 1) return;
-    setSelectedBranches(prev => {
-      const current = prev[editionId] || available[0];
-      let currentIndex = available.indexOf(current);
-      let nextIndex = currentIndex;
-      let nextBranch = current;
-      do {
-        nextIndex = (nextIndex + 1) % available.length;
-        nextBranch = available[nextIndex];
-      } while (nextBranch.startsWith("v") && nextIndex !== currentIndex);
-      const oldInstanceId =
-        current === "Stable" ? editionId : `${editionId}_${current}`;
-      const newInstanceId =
-        nextBranch === "Stable" ? editionId : `${editionId}_${nextBranch}`;
-      if (profile === oldInstanceId) {
-        setProfile(newInstanceId);
-      }
-      return { ...prev, [editionId]: nextBranch };
-    });
-  }, [branches, profile, setProfile]);
+  const cycleBranch = useCallback(
+    (editionId: string) => {
+      const available = branches[editionId] || ["Stable"];
+      if (available.length <= 1) return;
+      setSelectedBranches((prev) => {
+        const current = prev[editionId] || available[0];
+        let currentIndex = available.indexOf(current);
+        let nextIndex = currentIndex;
+        let nextBranch = current;
+        do {
+          nextIndex = (nextIndex + 1) % available.length;
+          nextBranch = available[nextIndex];
+        } while (nextBranch.startsWith("v") && nextIndex !== currentIndex);
+        const oldInstanceId =
+          current === "Stable" ? editionId : `${editionId}_${current}`;
+        const newInstanceId =
+          nextBranch === "Stable" ? editionId : `${editionId}_${nextBranch}`;
+        if (profile === oldInstanceId) {
+          setProfile(newInstanceId);
+        }
+        return { ...prev, [editionId]: nextBranch };
+      });
+    },
+    [branches, profile, setProfile],
+  );
 
   const editions = useMemo(() => {
-    return [...BASE_EDITIONS.map(e => {
-      const availableBranches = branches[e.id] || ["Stable"];
-      const selectedBranch = selectedBranches[e.id] || availableBranches[0];
-      let url = dynamicUrls[e.id] || e.url;
-      const defaultBranchFromUrl = e.url.includes("/releases/download/") 
-        ? e.url.split("/releases/download/")[1].split("/")[0] 
-        : "nightly";
-      const branchToUse = selectedBranch === "Stable" ? (dynamicUrls[`${e.id}_Stable`] || defaultBranchFromUrl) : selectedBranch;
-      if (e.url.includes("github.com")) {
-        const baseUrl = e.url.split("/releases/download/")[0];
-        const filename = e.url.split("/").pop();
-        url = `${baseUrl}/releases/download/${branchToUse}/${filename}`;
-      }
+    return [
+      ...BASE_EDITIONS.map((e) => {
+        const availableBranches = branches[e.id] || ["Stable"];
+        const selectedBranch = selectedBranches[e.id] || availableBranches[0];
+        let url = dynamicUrls[e.id] || e.url;
+        const defaultBranchFromUrl = e.url.includes("/releases/download/")
+          ? e.url.split("/releases/download/")[1].split("/")[0]
+          : "nightly";
+        const branchToUse =
+          selectedBranch === "Stable"
+            ? dynamicUrls[`${e.id}_Stable`] || defaultBranchFromUrl
+            : selectedBranch;
+        if (e.url.includes("github.com")) {
+          const baseUrl = e.url.split("/releases/download/")[0];
+          const filename = e.url.split("/").pop();
+          url = `${baseUrl}/releases/download/${branchToUse}/${filename}`;
+        }
 
-      return {
-        ...e,
-        url,
-        branches: availableBranches,
-        selectedBranch,
-        instanceId: selectedBranch === "Stable" ? e.id : `${e.id}_${selectedBranch}`
-      };
-    }), ...customEditions.map(e => ({ ...e, instanceId: e.id }))];
+        return {
+          ...e,
+          url,
+          branches: availableBranches,
+          selectedBranch,
+          instanceId:
+            selectedBranch === "Stable" ? e.id : `${e.id}_${selectedBranch}`,
+        };
+      }),
+      ...customEditions.map((e) => ({ ...e, instanceId: e.id })),
+    ];
   }, [customEditions, dynamicUrls, branches, selectedBranches]);
 
   const checkInstalls = useCallback(async () => {
@@ -231,19 +268,25 @@ export function useGameManager({
     setInstalls(results.filter((id): id is string => id !== null));
   }, [editions]);
 
-  const [updatesAvailable, setUpdatesAvailable] = useState<Record<string, boolean>>({});
+  const [updatesAvailable, setUpdatesAvailable] = useState<
+    Record<string, boolean>
+  >({});
   const checkForGameUpdates = useCallback(async () => {
     const checks = await Promise.all(
       editions.map(async (edition) => {
-        if (!installs.includes(edition.instanceId)) return [edition.instanceId, false] as const;
+        if (!installs.includes(edition.instanceId))
+          return [edition.instanceId, false] as const;
         try {
-          const isUpdate = await TauriService.checkGameUpdate(edition.instanceId, edition.url);
+          const isUpdate = await TauriService.checkGameUpdate(
+            edition.instanceId,
+            edition.url,
+          );
           return [edition.instanceId, isUpdate] as const;
         } catch (e) {
           console.error(e);
           return [edition.instanceId, false] as const;
         }
-      })
+      }),
     );
 
     const newUpdates: Record<string, boolean> = {};
@@ -252,12 +295,16 @@ export function useGameManager({
     }
     setUpdatesAvailable(newUpdates);
 
-    const updatedGames = editions.filter(e => newUpdates[e.id]);
+    const updatedGames = editions.filter((e) => newUpdates[e.id]);
     if (updatedGames.length > 0) {
       if (updatedGames.length === 1) {
-        setGameUpdateMessage(`An update is available for ${updatedGames[0].name}!`);
+        setGameUpdateMessage(
+          `An update is available for ${updatedGames[0].name}!`,
+        );
       } else {
-        setGameUpdateMessage(`Updates are available for ${updatedGames.length} versions!`);
+        setGameUpdateMessage(
+          `Updates are available for ${updatedGames.length} versions!`,
+        );
       }
     } else {
       setGameUpdateMessage(null);
@@ -378,7 +425,15 @@ export function useGameManager({
   }, [profile]);
 
   const addCustomEdition = useCallback(
-    (edition: { name: string; desc: string; url: string; path?: string; category?: string[]; logo?: string; id?: string }) => {
+    (edition: {
+      name: string;
+      desc: string;
+      url: string;
+      path?: string;
+      category?: string[];
+      logo?: string;
+      id?: string;
+    }) => {
       const id = edition.id || `custom_${Date.now()}`;
       const newEdition = {
         ...edition,
@@ -400,7 +455,10 @@ export function useGameManager({
   );
 
   const updateCustomEdition = useCallback(
-    (id: string, updated: { name: string; desc: string; url: string; path?: string }) => {
+    (
+      id: string,
+      updated: { name: string; desc: string; url: string; path?: string },
+    ) => {
       setCustomEditions(
         customEditions.map((e) => (e.id === id ? { ...e, ...updated } : e)),
       );
@@ -409,18 +467,27 @@ export function useGameManager({
   );
 
   const addToSteam = useCallback(
-    async (id: string, name: string, titleImage: string, panoramaImage: string) => {
+    async (
+      id: string,
+      name: string,
+      titleImage: string,
+      panoramaImage: string,
+    ) => {
       try {
         const titleBase64 = await imageUrlToBase64(titleImage);
         const panoramaBase64 = await imageUrlToBase64(panoramaImage);
         await TauriService.addToSteam(id, name, titleBase64, panoramaBase64);
-        setSteamSuccessMessage(`Added ${name} to Steam! (Restart Steam to see it)`);
+        setSteamSuccessMessage(
+          `Added ${name} to Steam! (Restart Steam to see it)`,
+        );
       } catch (e: any) {
         console.error(e);
-        setError(typeof e === "string" ? e : e.message || "Failed to add to Steam");
+        setError(
+          typeof e === "string" ? e : e.message || "Failed to add to Steam",
+        );
       }
     },
-    [setError, setSteamSuccessMessage]
+    [setError, setSteamSuccessMessage],
   );
 
   return {

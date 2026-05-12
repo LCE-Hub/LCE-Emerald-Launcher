@@ -54,7 +54,12 @@ export default function App() {
   const audio = useAudio();
   const game = useGame();
   const { skinUrl, setSkinUrl, capeUrl } = useSkin();
-  const { friendRequestMessage, gameInviteMessage, clearFriendRequestMessage, clearGameInviteMessage } = useLceLiveNotifications();
+  const {
+    friendRequestMessage,
+    gameInviteMessage,
+    clearFriendRequestMessage,
+    clearGameInviteMessage,
+  } = useLceLiveNotifications();
   const [showSetup, setShowSetup] = useState(true);
   const [displayIsDay, setDisplayIsDay] = useState(config.isDayTime);
   useEffect(() => {
@@ -67,7 +72,7 @@ export default function App() {
   const selectedVersionName = selectedEdition?.name || "";
   const hasAnyInstall = game.installs.length > 0;
   const titleImage = hasAnyInstall
-    ? (selectedEdition?.titleImage || "/images/MenuTitle.png")
+    ? selectedEdition?.titleImage || "/images/MenuTitle.png"
     : "/images/MenuTitle.png";
 
   useEffect(() => {
@@ -127,7 +132,7 @@ export default function App() {
               {...backgroundFade}
             >
               <PanoramaBackground
-                profile={config.profile}
+                profile={selectedEdition.panorama}
                 isDay={displayIsDay}
               />
             </motion.div>
@@ -163,7 +168,10 @@ export default function App() {
           message={updateMessage}
           onClose={clearUpdateMessage}
           onClick={() =>
-            TauriService.openUrl(updateUrl || "https://github.com/LCE-Hub/LCE-Emerald-Launcher/releases/latest")
+            TauriService.openUrl(
+              updateUrl ||
+                "https://github.com/LCE-Hub/LCE-Emerald-Launcher/releases/latest",
+            )
           }
           title="Update Available!"
           variant="update"
@@ -300,36 +308,39 @@ export default function App() {
                       </motion.div>
                     )}
 
-                    {isUiHidden && !displayIsDay && activeView == "devtools" && (
-                      <motion.div
-                        key="secret-swf-btn"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        className="absolute inset-0 z-[100] flex items-center justify-center pointer-events-none"
-                      >
-                        <button
-                          onClick={() => {
-                            audio.playPressSound();
-                            setIsUiHidden(false);
-                            setActiveView("swf-editor");
-                          }}
-                          className="pointer-events-auto hover:scale-110 active:scale-95 transition-transform outline-none bg-transparent border-none flex flex-col items-center gap-2 group"
+                    {isUiHidden &&
+                      !displayIsDay &&
+                      activeView == "devtools" && (
+                        <motion.div
+                          key="secret-swf-btn"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          className="absolute inset-0 z-[100] flex items-center justify-center pointer-events-none"
                         >
-                          <img
-                            src="/images/tools/pck.png"
-                            className="w-16 h-16 cursor-pointer object-contain opacity-50 group-hover:opacity-100 drop-shadow-[0_4px_4px_rgba(0,0,0,1)] grayscale group-hover:grayscale-0"
-                            style={{ imageRendering: "pixelated" }}
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = "/images/Button_Background.png";
+                          <button
+                            onClick={() => {
+                              audio.playPressSound();
+                              setIsUiHidden(false);
+                              setActiveView("swf-editor");
                             }}
-                          />
-                          <span className="text-[#FFFF55] text-sm mc-text-shadow opacity-0 group-hover:opacity-100 transition-opacity">
-                            SWF Editor
-                          </span>
-                        </button>
-                      </motion.div>
-                    )}
+                            className="pointer-events-auto hover:scale-110 active:scale-95 transition-transform outline-none bg-transparent border-none flex flex-col items-center gap-2 group"
+                          >
+                            <img
+                              src="/images/tools/pck.png"
+                              className="w-16 h-16 cursor-pointer object-contain opacity-50 group-hover:opacity-100 drop-shadow-[0_4px_4px_rgba(0,0,0,1)] grayscale group-hover:grayscale-0"
+                              style={{ imageRendering: "pixelated" }}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src =
+                                  "/images/Button_Background.png";
+                              }}
+                            />
+                            <span className="text-[#FFFF55] text-sm mc-text-shadow opacity-0 group-hover:opacity-100 transition-opacity">
+                              SWF Editor
+                            </span>
+                          </button>
+                        </motion.div>
+                      )}
                   </>
                 )}
               </AnimatePresence>

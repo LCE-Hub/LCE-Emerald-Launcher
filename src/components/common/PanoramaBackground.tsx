@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useUI } from '../../context/LauncherContext';
+import React, { useEffect, useRef, useState } from "react";
+import { useUI } from "../../context/LauncherContext";
 
 interface PanoramaProps {
   profile: string;
@@ -8,10 +8,9 @@ interface PanoramaProps {
 
 const PanoramaBackground = React.memo(({ profile, isDay }: PanoramaProps) => {
   const { isWindowVisible } = useUI();
-  const PANORAMA_PROFILES = ['legacy_evolved', 'vanilla_tu19', '360revived', 'vanilla_tu24'];
   const baseId = profile;
-  const profileId = PANORAMA_PROFILES.includes(baseId) ? baseId : 'vanilla_tu19';
-  const currentPanorama = `/panorama/${profileId}_Panorama_Background_${isDay ? 'Day' : 'Night'}.png`;
+  const profileId = baseId ? baseId : "vanilla_tu19";
+  const currentPanorama = `/panorama/${profileId}_Panorama_Background_${isDay ? "Day" : "Night"}.png`;
   const [bgWidth, setBgWidth] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -30,10 +29,10 @@ const PanoramaBackground = React.memo(({ profile, isDay }: PanoramaProps) => {
     };
 
     updateWidth();
-    window.addEventListener('resize', updateWidth);
+    window.addEventListener("resize", updateWidth);
     return () => {
       active = false;
-      window.removeEventListener('resize', updateWidth);
+      window.removeEventListener("resize", updateWidth);
     };
   }, [currentPanorama]);
 
@@ -41,23 +40,26 @@ const PanoramaBackground = React.memo(({ profile, isDay }: PanoramaProps) => {
     <>
       {bgWidth && (
         <style>{`
-          @keyframes panoramaLoop { 
-            0% { transform: translate3d(0, 0, 0); } 
-            100% { transform: translate3d(-${bgWidth}px, 0, 0); } 
+          @keyframes panoramaLoop {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-${bgWidth}px, 0, 0); }
           }
         `}</style>
       )}
 
-      <div ref={containerRef} className="absolute inset-0 overflow-hidden pointer-events-none transition-opacity duration-500">
+      <div
+        ref={containerRef}
+        className="absolute inset-0 overflow-hidden pointer-events-none transition-opacity duration-500"
+      >
         {isWindowVisible && (
           <div
             className="absolute top-0 left-0 h-full will-change-transform"
             style={{
-              width: bgWidth ? `calc(100vw + ${bgWidth}px)` : '200vw',
+              width: bgWidth ? `calc(100vw + ${bgWidth}px)` : "200vw",
               backgroundImage: `url("${currentPanorama}")`,
-              backgroundSize: bgWidth ? `${bgWidth}px 100%` : 'auto 100%',
-              backgroundRepeat: 'repeat-x',
-              animation: bgWidth ? 'panoramaLoop 140s linear infinite' : 'none'
+              backgroundSize: bgWidth ? `${bgWidth}px 100%` : "auto 100%",
+              backgroundRepeat: "repeat-x",
+              animation: bgWidth ? "panoramaLoop 140s linear infinite" : "none",
             }}
           />
         )}
