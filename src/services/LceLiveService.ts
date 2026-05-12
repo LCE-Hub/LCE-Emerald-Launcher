@@ -78,6 +78,14 @@ export class LceLiveService {
         return this._session.account.displayName || this._session.account.username || "Unknown";
     }
 
+    get apiBaseUrl(): string {
+        return this.baseUrl;
+    }
+
+    get accessToken(): string | null {
+        return this._session?.accessToken || null;
+    }
+
     public generateDeviceId(): string {
         let id = localStorage.getItem("lcelive_device_id");
         if (!id) {

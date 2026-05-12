@@ -8,9 +8,10 @@ use steam_shortcuts_util::{Shortcut, parse_shortcuts, shortcuts_to_bytes};
 use std::process::Stdio;
 
 use tauri::{AppHandle, Emitter, State, Manager};
-use futures_util::StreamExt;
+use futures_util::{StreamExt, SinkExt};
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio_util::sync::CancellationToken;
 use tauri_plugin_opener::OpenerExt;
 use serde::{Deserialize, Serialize};
@@ -96,6 +97,11 @@ pub struct HttpResponse {
 
 pub struct DownloadState { pub token: Arc<Mutex<Option<CancellationToken>>> }
 pub struct GameState { pub child: Arc<Mutex<Option<tokio::process::Child>>> }
+
+pub struct ProxyGuard {
+    pub cancel_token: Arc<Mutex<Option<CancellationToken>>>,
+    pub local_port: Arc<Mutex<Option<u16>>>,
+}
 
 #[derive(Serialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -1892,6 +1898,346 @@ async fn http_proxy_request(method: String, url: String, body: Option<String>, h
     })
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct P2pEndpoint {
+    pub ip: String,
+    pub port: u16,
+}
+
+fn ws_base_url(api_base_url: &str) -> String {
+    if api_base_url.starts_with("https") {
+        api_base_url.replace("https", "wss")
+    } else {
+        api_base_url.replace("http", "ws")
+    }
+}
+
+async fn stun_discover_impl() -> Result<P2pEndpoint, String> {
+    let socket = tokio::net::UdpSocket::bind("0.0.0.0:0").await.map_err(|e| e.to_string())?;
+    let stun_addr: std::net::SocketAddr = "stun.l.google.com:19302".parse::<std::net::SocketAddr>().map_err(|e| e.to_string())?;
+
+    let magic_cookie: u32 = 0x2112A442;
+    let mut trans_id = [0u8; 12];
+    rand::Rng::fill(&mut rand::thread_rng(), &mut trans_id);
+
+    let mut req = Vec::with_capacity(20);
+    req.extend_from_slice(&0x0001u16.to_be_bytes());
+    req.extend_from_slice(&0x0000u16.to_be_bytes());
+    req.extend_from_slice(&magic_cookie.to_be_bytes());
+    req.extend_from_slice(&trans_id);
+
+    socket.send_to(&req, stun_addr).await.map_err(|e| e.to_string())?;
+
+    let mut buf = [0u8; 512];
+    socket.recv_from(&mut buf).await.map_err(|e| e.to_string())?;
+
+    let msg_type = u16::from_be_bytes([buf[0], buf[1]]);
+    let _len = u16::from_be_bytes([buf[2], buf[3]]) as usize;
+    let rcvd_cookie = u32::from_be_bytes([buf[4], buf[5], buf[6], buf[7]]);
+
+    if msg_type != 0x0101 || rcvd_cookie != magic_cookie {
+        return Err("Invalid STUN response".into());
+    }
+
+    let mut pos = 20;
+    while pos + 4 <= buf.len() {
+        let attr_type = u16::from_be_bytes([buf[pos], buf[pos+1]]);
+        let attr_len = u16::from_be_bytes([buf[pos+2], buf[pos+3]]) as usize;
+        pos += 4;
+        if attr_type == 0x0020 && attr_len >= 8 && pos + 8 <= buf.len() {
+            let _family = buf[pos+1];
+            let xport = u16::from_be_bytes([buf[pos+2], buf[pos+3]]);
+            let port = xport ^ (magic_cookie >> 16) as u16;
+            let ip_bytes = [
+                buf[pos+4] ^ (magic_cookie >> 24) as u8,
+                buf[pos+5] ^ (magic_cookie >> 16) as u8,
+                buf[pos+6] ^ (magic_cookie >> 8) as u8,
+                buf[pos+7] ^ magic_cookie as u8,
+            ];
+            return Ok(P2pEndpoint {
+                ip: format!("{}.{}.{}.{}", ip_bytes[0], ip_bytes[1], ip_bytes[2], ip_bytes[3]),
+                port,
+            });
+        }
+        pos += attr_len;
+    }
+
+    Err("No XOR-MAPPED-ADDRESS in STUN response".into())
+}
+
+#[tauri::command]
+async fn stun_discover() -> Result<P2pEndpoint, String> {
+    stun_discover_impl().await
+}
+
+async fn run_relay_proxy(
+    proxy_state: &ProxyGuard,
+    ws_url: &str,
+    auth_token: &str,
+    cancel: CancellationToken,
+) -> Result<u16, String> {
+    let url_str = ws_url.to_string();
+    let req = http::Request::builder()
+        .uri(url_str.as_str())
+        .header("Authorization", format!("Bearer {}", auth_token))
+        .header("User-Agent", "MCLCE-LceLive/1.0")
+        .body(())
+        .map_err(|e| format!("Failed to build WS request: {}", e))?;
+
+    let (ws_stream, _) = tokio_tungstenite::connect_async(req)
+        .await
+        .map_err(|e| format!("Relay WS connect failed: {}", e))?;
+
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+        .await
+        .map_err(|e| format!("Bind failed: {}", e))?;
+    let local_port = listener.local_addr().map_err(|e| e.to_string())?.port();
+
+    {
+        let mut port = proxy_state.local_port.lock().await;
+        *port = Some(local_port);
+    }
+
+    let (tcp_stream, _) = tokio::select! {
+        result = listener.accept() => result.map_err(|e| format!("Accept failed: {}", e))?,
+        _ = cancel.cancelled() => return Err("Proxy cancelled".into()),
+    };
+
+    let (tcp_read, tcp_write) = tcp_stream.into_split();
+    let (ws_write, ws_read) = ws_stream.split();
+
+    let cancel_ws = cancel.clone();
+    let forward_tcp = tokio::spawn(async move {
+        let mut ws_write = ws_write;
+        let mut tcp_read = tcp_read;
+        let mut buf = [0u8; 65536];
+        loop {
+            tokio::select! {
+                result = tcp_read.read(&mut buf) => {
+                    match result {
+                        Ok(0) | Err(_) => break,
+                        Ok(n) => {
+                            if ws_write.send(tokio_tungstenite::tungstenite::Message::Binary(buf[..n].to_vec())).await.is_err() {
+                                break;
+                            }
+                        }
+                    }
+                }
+                _ = cancel_ws.cancelled() => break,
+            }
+        }
+    });
+
+    let cancel_tcp = cancel.clone();
+    let forward_ws = tokio::spawn(async move {
+        let ws_read = ws_read;
+        let mut tcp_write = tcp_write;
+        tokio::pin!(ws_read);
+        loop {
+            tokio::select! {
+                result = ws_read.next() => {
+                    match result {
+                        Some(Ok(tokio_tungstenite::tungstenite::Message::Binary(data))) => {
+                            if tcp_write.write_all(&data).await.is_err() {
+                                break;
+                            }
+                        }
+                        Some(Ok(tokio_tungstenite::tungstenite::Message::Close(_))) | None => break,
+                        _ => {}
+                    }
+                }
+                _ = cancel_tcp.cancelled() => break,
+            }
+        }
+    });
+
+    tokio::select! {
+        _ = forward_tcp => {},
+        _ = forward_ws => {},
+        _ = cancel.cancelled() => {},
+    }
+
+    Ok(local_port)
+}
+
+async fn run_direct_proxy(
+    proxy_state: &ProxyGuard,
+    target_ip: &str,
+    target_port: u16,
+    cancel: CancellationToken,
+) -> Result<u16, String> {
+    let remote = tokio::net::TcpStream::connect(format!("{}:{}", target_ip, target_port))
+        .await
+        .map_err(|e| format!("Direct TCP connect failed: {}", e))?;
+
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+        .await
+        .map_err(|e| format!("Bind failed: {}", e))?;
+    let local_port = listener.local_addr().map_err(|e| e.to_string())?.port();
+
+    {
+        let mut port = proxy_state.local_port.lock().await;
+        *port = Some(local_port);
+    }
+
+    let (local_stream, _) = tokio::select! {
+        result = listener.accept() => result.map_err(|e| format!("Accept failed: {}", e))?,
+        _ = cancel.cancelled() => return Err("Proxy cancelled".into()),
+    };
+
+    let (mut a_read, mut a_write) = remote.into_split();
+    let (mut b_read, mut b_write) = local_stream.into_split();
+    let cancel_a = cancel.clone();
+
+    let task_a = tokio::spawn(async move {
+        let mut buf = [0u8; 65536];
+        loop {
+            tokio::select! {
+                result = a_read.read(&mut buf) => {
+                    match result {
+                        Ok(0) | Err(_) => break,
+                        Ok(n) => {
+                            if b_write.write_all(&buf[..n]).await.is_err() { break; }
+                        }
+                    }
+                }
+                _ = cancel_a.cancelled() => break,
+            }
+        }
+    });
+
+    let cancel_b = cancel.clone();
+    let task_b = tokio::spawn(async move {
+        let mut buf = [0u8; 65536];
+        loop {
+            tokio::select! {
+                result = b_read.read(&mut buf) => {
+                    match result {
+                        Ok(0) | Err(_) => break,
+                        Ok(n) => {
+                            if a_write.write_all(&buf[..n]).await.is_err() { break; }
+                        }
+                    }
+                }
+                _ = cancel_b.cancelled() => break,
+            }
+        }
+    });
+
+    tokio::select! {
+        _ = task_a => {},
+        _ = task_b => {},
+        _ = cancel.cancelled() => {},
+    }
+
+    Ok(local_port)
+}
+
+#[tauri::command]
+async fn start_direct_proxy(
+    proxy_state: State<'_, ProxyGuard>,
+    target_ip: String,
+    target_port: u16,
+) -> Result<u16, String> {
+    let cancel = CancellationToken::new();
+    {
+        let mut token = proxy_state.cancel_token.lock().await;
+        if let Some(old) = token.take() {
+            old.cancel();
+        }
+        *token = Some(cancel.clone());
+    }
+
+    let local_port = run_direct_proxy(&proxy_state, &target_ip, target_port, cancel).await?;
+    Ok(local_port)
+}
+
+#[tauri::command]
+async fn start_relay_proxy(
+    proxy_state: State<'_, ProxyGuard>,
+    api_base_url: String,
+    access_token: String,
+    session_id: String,
+) -> Result<u16, String> {
+    let ws_base = ws_base_url(&api_base_url);
+    let ws_url = format!("{}/api/relay/ws?sessionId={}&role=joiner", ws_base, session_id);
+
+    let cancel = CancellationToken::new();
+    {
+        let mut token = proxy_state.cancel_token.lock().await;
+        if let Some(old) = token.take() {
+            old.cancel();
+        }
+        *token = Some(cancel.clone());
+    }
+
+    let local_port = run_relay_proxy(&proxy_state, &ws_url, &access_token, cancel).await?;
+    Ok(local_port)
+}
+
+#[tauri::command]
+async fn stop_proxy(proxy_state: State<'_, ProxyGuard>) -> Result<(), String> {
+    let mut token = proxy_state.cancel_token.lock().await;
+    if let Some(t) = token.take() {
+        t.cancel();
+    }
+    let mut port = proxy_state.local_port.lock().await;
+    *port = None;
+    Ok(())
+}
+
+#[tauri::command]
+async fn join_game(
+    app: AppHandle,
+    game_state: State<'_, GameState>,
+    proxy_state: State<'_, ProxyGuard>,
+    api_base_url: String,
+    access_token: String,
+    host_ip: String,
+    host_port: u16,
+    session_id: String,
+    instance_id: String,
+) -> Result<(), String> {
+    let cancel = CancellationToken::new();
+    {
+        let mut token = proxy_state.cancel_token.lock().await;
+        if let Some(old) = token.take() {
+            old.cancel();
+        }
+        *token = Some(cancel.clone());
+    }
+
+    let ws_base = ws_base_url(&api_base_url);
+    let relay_url = format!("{}/api/relay/ws?sessionId={}&role=joiner", ws_base, session_id);
+
+    let host_ip_clone = host_ip.clone();
+    let cancel_clone = cancel.clone();
+    let proxy_state_ref: &ProxyGuard = &*proxy_state;
+    let proxy_fut = async move {
+        let direct = tokio::time::timeout(
+            std::time::Duration::from_secs(3),
+            run_direct_proxy(proxy_state_ref, &host_ip_clone, host_port, cancel_clone.clone()),
+        ).await;
+
+        match direct {
+            Ok(Ok(port)) => Ok(port),
+            _ => {
+                run_relay_proxy(proxy_state_ref, &relay_url, &access_token, cancel_clone).await
+            }
+        }
+    };
+
+    let proxy_port = proxy_fut.await?;
+
+    let server = McServer {
+        name: host_ip.clone(),
+        ip: "127.0.0.1".into(),
+        port: proxy_port,
+    };
+
+    launch_game(app, game_state, instance_id, vec![server]).await
+}
+
 #[tauri::command]
 fn get_instance_path(app: tauri::AppHandle, instance_id: String) -> String {
     get_instance_working_dir(&app, &instance_id).to_string_lossy().to_string()
@@ -1904,10 +2250,11 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(DownloadState { token: Arc::new(Mutex::new(None)) })
         .manage(GameState { child: Arc::new(Mutex::new(None)) })
+        .manage(ProxyGuard { cancel_token: Arc::new(Mutex::new(None)), local_port: Arc::new(Mutex::new(None)) })
         .plugin(tauri_plugin_gamepad::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_drpc::init())
-        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, pick_folder, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast, download_logo, pick_file, save_file_dialog, write_binary_file, read_binary_file, read_screenshot_as_data_url, add_to_steam, http_proxy_request, get_instance_path])
+        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, pick_folder, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast, download_logo, pick_file, save_file_dialog, write_binary_file, read_binary_file, read_screenshot_as_data_url, add_to_steam, http_proxy_request, get_instance_path, stun_discover, start_direct_proxy, start_relay_proxy, stop_proxy, join_game])
         .setup(|app| {
             let args: Vec<String> = std::env::args().collect();
             if args.len() > 1 && !args[1].starts_with('-') {

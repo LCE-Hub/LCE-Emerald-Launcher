@@ -24,6 +24,10 @@ tokio = { version = "1", features = ["full"] }
 futures-util = "0.3"
 tokio-util = { version = "0.7.18", features = ["rt"] }
 base64 = "0.21"
+tokio-tungstenite = { version = "0.21", default-features = false, features = ["connect", "native-tls"] }
+url = "2"
+rand = "0.8"
+http = "1"
 rfd = "0.15"
 libc = "0.2"
 image = "0.24"

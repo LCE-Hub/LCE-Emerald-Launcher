@@ -1,15 +1,18 @@
 import { useState, useEffect, useRef, useMemo, memo } from "react";
 import { motion } from "framer-motion";
-import { useUI, useConfig, useAudio } from "../../context/LauncherContext";
+import { useUI, useConfig, useAudio, useGame } from "../../context/LauncherContext";
 import { lceLiveService, LceLiveAccount, FriendRequest, GameInvite } from "../../services/LceLiveService";
+import ChooseInstanceModal from "../modals/ChooseInstanceModal";
 
 const LceLiveView = memo(function LceLiveView() {
   const { setActiveView } = useUI();
   const { animationsEnabled } = useConfig();
   const { playPressSound, playBackSound } = useAudio();
+  const { editions, installs } = useGame();
   const [isSignedIn, setIsSignedIn] = useState(lceLiveService.signedIn);
   const [currentTab, setCurrentTab] = useState<"friends" | "requests" | "invites" | "device_link">("friends");
   const [focusIndex, setFocusIndex] = useState<number | null>(0);
+  const [acceptInvite, setAcceptInvite] = useState<GameInvite | null>(null);
   const [friends, setFriends] = useState<LceLiveAccount[]>([]);
   const [incomingReqs, setIncomingReqs] = useState<FriendRequest[]>([]);
   const [outgoingReqs, setOutgoingReqs] = useState<FriendRequest[]>([]);
@@ -153,7 +156,7 @@ const LceLiveView = memo(function LceLiveView() {
           id: `inv_${inv.inviteId}`,
           type: "invite",
           label: typeof inv.from === 'string' ? "Unknown" : inv.from.displayName,
-          onClick: () => handleAction(() => lceLiveService.acceptGameInvite(inv.inviteId)),
+          onClick: () => { playPressSound(); setAcceptInvite(inv); },
           onClickSecondary: () => handleAction(() => lceLiveService.declineGameInvite(inv.inviteId))
         });
       });
@@ -426,6 +429,16 @@ const LceLiveView = memo(function LceLiveView() {
           </div>
         </div>
       )}
+
+      <ChooseInstanceModal
+        isOpen={acceptInvite !== null}
+        onClose={() => { setAcceptInvite(null); fetchSocialData(); }}
+        playPressSound={playPressSound}
+        playBackSound={playBackSound}
+        editions={editions}
+        installs={installs}
+        invite={acceptInvite}
+      />
     </motion.div>
   );
 });

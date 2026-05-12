@@ -237,6 +237,33 @@ export class TauriService {
     return invoke("add_to_steam", { instanceId, name, titleBase64, panoramaBase64 });
   }
 
+  static async stunDiscover(): Promise<{ ip: string; port: number }> {
+    return invoke("stun_discover");
+  }
+
+  static async startDirectProxy(targetIp: string, targetPort: number): Promise<number> {
+    return invoke("start_direct_proxy", { targetIp, targetPort });
+  }
+
+  static async startRelayProxy(apiBaseUrl: string, accessToken: string, sessionId: string): Promise<number> {
+    return invoke("start_relay_proxy", { apiBaseUrl, accessToken, sessionId });
+  }
+
+  static async stopProxy(): Promise<void> {
+    return invoke("stop_proxy");
+  }
+
+  static async joinGame(
+    apiBaseUrl: string,
+    accessToken: string,
+    hostIp: string,
+    hostPort: number,
+    sessionId: string,
+    instanceId: string,
+  ): Promise<void> {
+    return invoke("join_game", { apiBaseUrl, accessToken, hostIp, hostPort, sessionId, instanceId });
+  }
+
   static async httpProxyRequest(
     method: string,
     url: string,
