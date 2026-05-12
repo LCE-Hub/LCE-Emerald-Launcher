@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo, memo } from "react";
 import { motion } from "framer-motion";
 import { useUI, useConfig, useAudio, useGame } from "../../context/LauncherContext";
 import { lceLiveService, LceLiveAccount, FriendRequest, GameInvite } from "../../services/LceLiveService";
+import { TauriService } from "../../services/TauriService";
 import ChooseInstanceModal from "../modals/ChooseInstanceModal";
 
 const LceLiveView = memo(function LceLiveView() {
@@ -19,6 +20,12 @@ const LceLiveView = memo(function LceLiveView() {
   const [invites, setInvites] = useState<GameInvite[]>([]);
   const [linkData, setLinkData] = useState<any>(null);
   const [linkError, setLinkError] = useState<string | null>(null);
+  const [isHosting, setIsHosting] = useState(false);
+  const [hostStatus, setHostStatus] = useState("");
+  const [hostIp, setHostIp] = useState("");
+  const [hostPort, setHostPort] = useState(19132);
+  const [isDiscovering, setIsDiscovering] = useState(false);
+  const [invitedFriends, setInvitedFriends] = useState<Set<string>>(new Set());
   const [isAddingFriend, setIsAddingFriend] = useState(false);
   const [addFriendUsername, setAddFriendUsername] = useState("");
   const addFriendInputRef = useRef<HTMLInputElement>(null);
@@ -115,6 +122,50 @@ const LceLiveView = memo(function LceLiveView() {
     }
   };
 
+  const handleStartHosting = async () => {
+    playPressSound();
+    setIsDiscovering(true);
+    setHostStatus("Discovering external IP...");
+    try {
+      const endpoint = await TauriService.stunDiscover();
+      setHostIp(endpoint.ip);
+      setHostPort(19132);
+      setIsHosting(true);
+      setHostStatus(`Hosting at ${endpoint.ip}:19132`);
+      setInvitedFriends(new Set());
+    } catch (e: any) {
+      const msg = typeof e === 'string' ? e : e?.message || "Unknown error";
+      alert("STUN discovery failed: " + msg);
+      setHostStatus("");
+    } finally {
+      setIsDiscovering(false);
+    }
+  };
+
+  const handleStopHosting = async () => {
+    playPressSound();
+    try {
+      await lceLiveService.deactivateGameInvites();
+    } catch (e: any) {
+      console.warn("Deactivate invites failed", e);
+    }
+    setIsHosting(false);
+    setHostStatus("");
+    setHostIp("");
+    setInvitedFriends(new Set());
+  };
+
+  const handleInviteFriend = async (friend: LceLiveAccount) => {
+    playPressSound();
+    const name = lceLiveService.displayUsername;
+    try {
+      await lceLiveService.sendGameInvite(friend.accountId, hostIp, hostPort, name);
+      setInvitedFriends(prev => new Set(prev).add(friend.accountId));
+    } catch (e: any) {
+      alert("Failed to send invite: " + e.message);
+    }
+  };
+
   type MenuItem = {
     id: string;
     type: "button" | "friend" | "request_in" | "request_out" | "invite";
@@ -130,6 +181,13 @@ const LceLiveView = memo(function LceLiveView() {
         items.push({ id: "link_retry", type: "button", label: "Restart Link", onClick: () => { setLinkData(null); playPressSound(); } });
       }
     } else if (currentTab === "friends") {
+      if (!isDiscovering) {
+        if (!isHosting) {
+          items.push({ id: "host_game", type: "button", label: "Host Game", onClick: handleStartHosting });
+        } else {
+          items.push({ id: "stop_hosting", type: "button", label: "Stop Hosting", onClick: handleStopHosting });
+        }
+      }
       items.push({ id: "add_friend", type: "button", label: "Add Friend", onClick: () => { playPressSound(); setIsAddingFriend(true); setAddFriendUsername(""); } });
       items.push({ id: "sign_out", type: "button", label: "Sign Out", onClick: handleLogout });
       friends.forEach(f => {
@@ -137,7 +195,8 @@ const LceLiveView = memo(function LceLiveView() {
           id: `friend_${f.accountId}`,
           type: "friend",
           label: f.displayName,
-          onClick: () => handleAction(() => lceLiveService.removeFriend(f.accountId))
+          onClick: isHosting ? () => handleInviteFriend(f) : () => handleAction(() => lceLiveService.removeFriend(f.accountId)),
+          onClickSecondary: isHosting ? () => handleAction(() => lceLiveService.removeFriend(f.accountId)) : undefined
         });
       });
     } else if (currentTab === "requests") {
@@ -163,7 +222,7 @@ const LceLiveView = memo(function LceLiveView() {
     }
 
     return items;
-  }, [currentTab, friends, incomingReqs, invites, linkData, playPressSound]);
+  }, [currentTab, friends, incomingReqs, invites, linkData, playPressSound, isHosting, isDiscovering]);
 
   const tabs = ["friends", "requests", "invites"];
   useEffect(() => {
@@ -260,7 +319,7 @@ const LceLiveView = memo(function LceLiveView() {
     return (
       <div className="flex flex-col h-full space-y-4">
         {topButtons.length > 0 && (
-          <div className="flex gap-4">
+          <div className="flex gap-4 flex-wrap">
             {topButtons.map(btn => {
               const idx = menuItems.indexOf(btn);
               const isFocused = focusIndex === idx;
@@ -281,6 +340,11 @@ const LceLiveView = memo(function LceLiveView() {
                 </button>
               );
             })}
+          </div>
+        )}
+        {hostStatus && (
+          <div className="text-center text-sm text-[#FFFF55] mc-text-shadow py-1 tracking-wider">
+            {hostStatus}
           </div>
         )}
 
@@ -315,8 +379,16 @@ const LceLiveView = memo(function LceLiveView() {
                         </div>
                       </div>
                       <div className="flex space-x-3 pr-2 shrink-0">
-                        {item.type === "friend" && (
+                        {item.type === "friend" && !isHosting && (
                           <button className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow transition-transform ${isFocused ? "text-white scale-105 shadow-md" : "text-gray-300"}`} style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }} onClick={item.onClick}>REMOVE</button>
+                        )}
+                        {item.type === "friend" && isHosting && (
+                          <>
+                            <button className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow transition-transform ${isFocused ? "text-white scale-105 shadow-md" : "text-gray-300"}`} style={{ backgroundImage: "url('/images/button_highlighted.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }} onClick={item.onClick}>
+                              {invitedFriends.has(item.id.replace("friend_", "")) ? "INVITED" : "INVITE"}
+                            </button>
+                            <button className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow transition-transform ${isFocused ? "text-white scale-105 shadow-md" : "text-gray-300"}`} style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }} onClick={(e) => { e.stopPropagation(); item.onClickSecondary?.(); }}>REMOVE</button>
+                          </>
                         )}
                         {(item.type === "request_in" || item.type === "invite") && (
                           <>

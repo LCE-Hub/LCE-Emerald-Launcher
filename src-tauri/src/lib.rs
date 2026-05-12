@@ -1914,7 +1914,10 @@ fn ws_base_url(api_base_url: &str) -> String {
 
 async fn stun_discover_impl() -> Result<P2pEndpoint, String> {
     let socket = tokio::net::UdpSocket::bind("0.0.0.0:0").await.map_err(|e| e.to_string())?;
-    let stun_addr: std::net::SocketAddr = "stun.l.google.com:19302".parse::<std::net::SocketAddr>().map_err(|e| e.to_string())?;
+    let stun_addr = tokio::net::lookup_host("stun.l.google.com:19302").await
+        .map_err(|e| format!("STUN DNS lookup failed: {}", e))?
+        .next()
+        .ok_or_else(|| "STUN DNS returned no addresses".to_string())?;
 
     let magic_cookie: u32 = 0x2112A442;
     let mut trans_id = [0u8; 12];
@@ -1926,17 +1929,20 @@ async fn stun_discover_impl() -> Result<P2pEndpoint, String> {
     req.extend_from_slice(&magic_cookie.to_be_bytes());
     req.extend_from_slice(&trans_id);
 
-    socket.send_to(&req, stun_addr).await.map_err(|e| e.to_string())?;
+    socket.send_to(&req, stun_addr).await.map_err(|e| format!("STUN send: {}", e))?;
 
     let mut buf = [0u8; 512];
-    socket.recv_from(&mut buf).await.map_err(|e| e.to_string())?;
+    tokio::time::timeout(
+        std::time::Duration::from_secs(5),
+        socket.recv_from(&mut buf)
+    ).await.map_err(|_| "STUN request timed out (5s)".to_string())?
+     .map_err(|e| format!("STUN recv: {}", e))?;
 
     let msg_type = u16::from_be_bytes([buf[0], buf[1]]);
-    let _len = u16::from_be_bytes([buf[2], buf[3]]) as usize;
     let rcvd_cookie = u32::from_be_bytes([buf[4], buf[5], buf[6], buf[7]]);
 
     if msg_type != 0x0101 || rcvd_cookie != magic_cookie {
-        return Err("Invalid STUN response".into());
+        return Err(format!("Invalid STUN response (type=0x{:04X}, cookie=0x{:08X})", msg_type, rcvd_cookie));
     }
 
     let mut pos = 20;

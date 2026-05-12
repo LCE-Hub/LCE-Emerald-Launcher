@@ -252,8 +252,16 @@ export class LceLiveService {
     async getPendingRequests(): Promise<PendingRequests> {
         const data = await this.request("GET", "/api/social/requests");
         return {
-            incoming: data.incoming || [],
-            outgoing: data.outgoing || []
+            incoming: (data.incoming || []).map((r: any) => ({
+                accountId: r.requesterUserId || r.accountId || r.userId,
+                username: r.requesterUsername || r.username,
+                displayName: r.requesterDisplayName || r.displayName
+            })),
+            outgoing: (data.outgoing || []).map((r: any) => ({
+                accountId: r.targetUserId || r.accountId || r.userId,
+                username: r.targetUsername || r.username,
+                displayName: r.targetDisplayName || r.displayName
+            }))
         };
     }
 
