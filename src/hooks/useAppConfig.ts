@@ -18,6 +18,7 @@ export function useAppConfig() {
   const [linuxRunner, setLinuxRunner] = useState<string | undefined>();
   const [perfBoost, setPerfBoost] = useState(false);
   const [customEditions, setCustomEditions] = useState<any[]>([]);
+  const [mangohudEnabled, setMangohudEnabled] = useState(false);
   useEffect(() => {
     TauriService.loadConfig().then((config) => {
       if (config.username) setUsername(config.username);
@@ -33,6 +34,7 @@ export function useAppConfig() {
       if (config.musicVol !== undefined && config.musicVol !== null) setMusicVol(config.musicVol);
       if (config.sfxVol !== undefined && config.sfxVol !== null) setSfxVol(config.sfxVol);
       if (config.legacyMode !== undefined) setLegacyMode(config.legacyMode);
+      if (config.mangohudEnabled !== undefined) setMangohudEnabled(config.mangohudEnabled);
       setIsLoaded(true);
     });
   }, []);
@@ -52,9 +54,10 @@ export function useAppConfig() {
         musicVol,
         sfxVol,
         legacyMode,
+        mangohudEnabled,
       }).catch(console.error);
     }
-  }, [username, theme, linuxRunner, perfBoost, profile, customEditions, animationsEnabled, vfxEnabled, rpcEnabled, musicVol, sfxVol, legacyMode, isLoaded]);
+  }, [username, theme, linuxRunner, perfBoost, profile, customEditions, animationsEnabled, vfxEnabled, rpcEnabled, musicVol, sfxVol, legacyMode, mangohudEnabled, isLoaded]);
 
   return {
     username,
@@ -88,5 +91,7 @@ export function useAppConfig() {
     isLoaded,
     hasCompletedSetup,
     setHasCompletedSetup,
+    mangohudEnabled,
+    setMangohudEnabled,
   };
 }

@@ -39,6 +39,7 @@ export interface AppConfig {
   musicVol?: number;
   sfxVol?: number;
   legacyMode?: boolean;
+  mangohudEnabled?: boolean;
 }
 
 export interface ThemePalette {

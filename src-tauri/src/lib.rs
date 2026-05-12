@@ -60,6 +60,7 @@ pub struct AppConfig {
     pub music_vol: Option<u32>,
     pub sfx_vol: Option<u32>,
     pub legacy_mode: Option<bool>,
+    pub mangohud_enabled: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -257,6 +258,7 @@ fn load_config(app: AppHandle) -> AppConfig {
         music_vol: Some(50),
         sfx_vol: Some(100),
         legacy_mode: Some(false),
+        mangohud_enabled: None,
     }
 }
 
@@ -1348,23 +1350,49 @@ async fn launch_game(app: AppHandle, state: State<'_, GameState>, instance_id: S
         if let Some(runner_id) = config.linux_runner {
             let runners = get_available_runners(app.clone());
             if let Some(runner) = runners.into_iter().find(|r| r.id == runner_id) {
-                let mut cmd = if runner.r#type == "proton" {
-                    let proton_exe = PathBuf::from(&runner.path).join("proton");
-                    let mut c = tokio::process::Command::new(proton_exe);
-                    let compat_data = working_dir.join("proton_prefix");
-                    fs::create_dir_all(&compat_data).map_err(|e| e.to_string())?;
-                    if std::env::var("STEAM_COMPAT_CLIENT_INSTALL_PATH").is_err() {
-                        c.env("STEAM_COMPAT_CLIENT_INSTALL_PATH", "");
-                    }
-                    c.env("STEAM_COMPAT_DATA_PATH", compat_data.to_str().unwrap());
-                    if std::env::var("SteamAppId").is_err() {
-                        c.env("SteamAppId", "480");
-                    }
-                    c.arg("run");
-                    c
+                let is_proton = runner.r#type == "proton";
+                let program = if is_proton {
+                    PathBuf::from(&runner.path).join("proton").to_string_lossy().to_string()
                 } else {
-                    tokio::process::Command::new(runner.path)
+                    runner.path.clone()
                 };
+                let mut args: Vec<String> = Vec::new();
+                if is_proton {
+                    args.push("run".to_string());
+                }
+                let compat_data = if is_proton {
+                    let cd = working_dir.join("proton_prefix");
+                    fs::create_dir_all(&cd).map_err(|e| e.to_string())?;
+                    Some(cd)
+                } else {
+                    None
+                };
+
+                let mangohud = config.mangohud_enabled.unwrap_or(false);
+                let (prog, extra_args): (&str, &[&str]) = if mangohud {
+                    ("mangohud", &[&program])
+                } else {
+                    (&program, &[])
+                };
+
+                let mut cmd = tokio::process::Command::new(prog);
+                for a in extra_args {
+                    cmd.arg(a);
+                }
+                for a in &args {
+                    cmd.arg(a);
+                }
+
+                if is_proton {
+                    let cd = compat_data.as_ref().unwrap();
+                    if std::env::var("STEAM_COMPAT_CLIENT_INSTALL_PATH").is_err() {
+                        cmd.env("STEAM_COMPAT_CLIENT_INSTALL_PATH", "");
+                    }
+                    cmd.env("STEAM_COMPAT_DATA_PATH", cd.to_str().unwrap());
+                    if std::env::var("SteamAppId").is_err() {
+                        cmd.env("SteamAppId", "480");
+                    }
+                }
 
                 #[cfg(unix)]
                 {

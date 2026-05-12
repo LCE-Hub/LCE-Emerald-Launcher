@@ -65,7 +65,7 @@ export function LauncherProvider({ children }: { children: React.ReactNode }) {
     configRaw.username, configRaw.theme, configRaw.layout, configRaw.vfxEnabled,
     configRaw.rpcEnabled, configRaw.musicVol, configRaw.sfxVol, configRaw.isDayTime,
     configRaw.profile, configRaw.linuxRunner, configRaw.perfBoost, configRaw.customEditions,
-    configRaw.legacyMode, configRaw.animationsEnabled
+    configRaw.legacyMode, configRaw.animationsEnabled, configRaw.mangohudEnabled
   ]);
 
   const game = useMemo(() => gameRaw, [
@@ -129,13 +129,15 @@ export function LauncherProvider({ children }: { children: React.ReactNode }) {
         musicVol: config.musicVol,
         sfxVol: config.sfxVol,
         legacyMode: config.legacyMode,
+        mangohudEnabled: config.mangohudEnabled,
       }).catch(console.error);
     }
   }, [
     config.username, skinSync.skinBase64, config.theme, config.linuxRunner,
     config.perfBoost, config.customEditions, config.profile,
     config.vfxEnabled, config.animationsEnabled,
-    config.rpcEnabled, config.musicVol, config.sfxVol, config.legacyMode, config.isLoaded
+    config.rpcEnabled, config.musicVol, config.sfxVol, config.legacyMode,
+    config.mangohudEnabled, config.isLoaded
   ]);
 
   useEffect(() => {

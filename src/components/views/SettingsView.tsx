@@ -30,6 +30,8 @@ const SettingsView = memo(function SettingsView() {
     setRpcEnabled,
     legacyMode,
     setLegacyMode,
+    mangohudEnabled,
+    setMangohudEnabled,
   } = useConfig();
   const {
     currentTrack,
@@ -89,6 +91,11 @@ const SettingsView = memo(function SettingsView() {
   const handleLegacyToggle = () => {
     playPressSound();
     setLegacyMode(!legacyMode);
+  };
+
+  const handleMangohudToggle = () => {
+    playPressSound();
+    setMangohudEnabled(!mangohudEnabled);
   };
 
   const handleRunnerToggle = () => {
@@ -345,6 +352,12 @@ const SettingsView = memo(function SettingsView() {
           onClick: handleRunnerToggle,
         });
         items.push({
+          id: "mangohud",
+          label: `MangoHud: ${mangohudEnabled ? "ON" : "OFF"}`,
+          type: "button",
+          onClick: handleMangohudToggle,
+        });
+        items.push({
           id: "download_runner",
           label: isRunnerDownloading
             ? `Downloading Runner... ${Math.floor(runnerDownloadProgress || 0)}%`
@@ -408,6 +421,7 @@ const SettingsView = memo(function SettingsView() {
     animationsEnabled,
     layout,
     isLinux,
+    mangohudEnabled,
     selectedRunnerName,
     isRunnerDownloading,
     runnerDownloadProgress,
@@ -422,6 +436,7 @@ const SettingsView = memo(function SettingsView() {
     handleLayoutToggle,
     handleRunnerToggle,
     handlePerfToggle,
+    handleMangohudToggle,
     handleResetSetup,
     stopGame,
     downloadRunner,
