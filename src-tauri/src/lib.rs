@@ -2014,64 +2014,66 @@ async fn run_relay_proxy(
         *port = Some(local_port);
     }
 
-    let (tcp_stream, _) = tokio::select! {
-        result = listener.accept() => result.map_err(|e| format!("Accept failed: {}", e))?,
-        _ = cancel.cancelled() => return Err("Proxy cancelled".into()),
-    };
+    tokio::spawn(async move {
+        let (tcp_stream, _) = tokio::select! {
+            result = listener.accept() => result.map_err(|e| format!("Accept failed: {}", e)).unwrap(),
+            _ = cancel.cancelled() => return,
+        };
 
-    let (tcp_read, tcp_write) = tcp_stream.into_split();
-    let (ws_write, ws_read) = ws_stream.split();
+        let (tcp_read, tcp_write) = tcp_stream.into_split();
+        let (ws_write, ws_read) = ws_stream.split();
 
-    let cancel_ws = cancel.clone();
-    let forward_tcp = tokio::spawn(async move {
-        let mut ws_write = ws_write;
-        let mut tcp_read = tcp_read;
-        let mut buf = [0u8; 65536];
-        loop {
-            tokio::select! {
-                result = tcp_read.read(&mut buf) => {
-                    match result {
-                        Ok(0) | Err(_) => break,
-                        Ok(n) => {
-                            if ws_write.send(tokio_tungstenite::tungstenite::Message::Binary(buf[..n].to_vec())).await.is_err() {
-                                break;
+        let cancel_ws = cancel.clone();
+        let forward_tcp = tokio::spawn(async move {
+            let mut ws_write = ws_write;
+            let mut tcp_read = tcp_read;
+            let mut buf = [0u8; 65536];
+            loop {
+                tokio::select! {
+                    result = tcp_read.read(&mut buf) => {
+                        match result {
+                            Ok(0) | Err(_) => break,
+                            Ok(n) => {
+                                if ws_write.send(tokio_tungstenite::tungstenite::Message::Binary(buf[..n].to_vec())).await.is_err() {
+                                    break;
+                                }
                             }
                         }
                     }
+                    _ = cancel_ws.cancelled() => break,
                 }
-                _ = cancel_ws.cancelled() => break,
             }
-        }
-    });
+        });
 
-    let cancel_tcp = cancel.clone();
-    let forward_ws = tokio::spawn(async move {
-        let ws_read = ws_read;
-        let mut tcp_write = tcp_write;
-        tokio::pin!(ws_read);
-        loop {
-            tokio::select! {
-                result = ws_read.next() => {
-                    match result {
-                        Some(Ok(tokio_tungstenite::tungstenite::Message::Binary(data))) => {
-                            if tcp_write.write_all(&data).await.is_err() {
-                                break;
+        let cancel_tcp = cancel.clone();
+        let forward_ws = tokio::spawn(async move {
+            let ws_read = ws_read;
+            let mut tcp_write = tcp_write;
+            tokio::pin!(ws_read);
+            loop {
+                tokio::select! {
+                    result = ws_read.next() => {
+                        match result {
+                            Some(Ok(tokio_tungstenite::tungstenite::Message::Binary(data))) => {
+                                if tcp_write.write_all(&data).await.is_err() {
+                                    break;
+                                }
                             }
+                            Some(Ok(tokio_tungstenite::tungstenite::Message::Close(_))) | None => break,
+                            _ => {}
                         }
-                        Some(Ok(tokio_tungstenite::tungstenite::Message::Close(_))) | None => break,
-                        _ => {}
                     }
+                    _ = cancel_tcp.cancelled() => break,
                 }
-                _ = cancel_tcp.cancelled() => break,
             }
+        });
+
+        tokio::select! {
+            _ = forward_tcp => {},
+            _ = forward_ws => {},
+            _ = cancel.cancelled() => {},
         }
     });
-
-    tokio::select! {
-        _ = forward_tcp => {},
-        _ = forward_ws => {},
-        _ = cancel.cancelled() => {},
-    }
 
     Ok(local_port)
 }
