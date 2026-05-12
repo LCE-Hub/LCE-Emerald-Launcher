@@ -48,17 +48,37 @@ const HomeView = memo(function HomeView() {
           : isGameRunning
             ? stopGame
             : isDownloading
-              ? () => { }
+              ? () => {}
               : isInstalled
                 ? handleLaunch
                 : () => toggleInstall(profile),
         isDanger: isGameRunning,
         disabled: isDownloading,
       },
-      { label: "Help & Options", action: () => setActiveView("settings"), disabled: false, id: "settings" },
-      { label: "Versions", action: () => setActiveView("versions"), disabled: false, id: "versions" },
-      { label: "Workshop", action: () => setActiveView("workshop"), disabled: false, id: "workshop" },
-      { label: "Developer Tools", action: () => setActiveView("devtools"), disabled: false, id: "devtools" },
+      {
+        label: "Help & Options",
+        action: () => setActiveView("settings"),
+        disabled: false,
+        id: "settings",
+      },
+      {
+        label: "Versions",
+        action: () => setActiveView("versions"),
+        disabled: false,
+        id: "versions",
+      },
+      {
+        label: "Workshop",
+        action: () => setActiveView("workshop"),
+        disabled: false,
+        id: "workshop",
+      },
+      {
+        label: "Developer Tools",
+        action: () => setActiveView("devtools"),
+        disabled: false,
+        id: "devtools",
+      },
     ],
     [
       isDownloading,
@@ -111,7 +131,9 @@ const HomeView = memo(function HomeView() {
       {buttons.map((btn: any, i: number) => (
         <div key={i} className="relative w-full group">
           <button
-            onMouseEnter={() => isFocusedSection && !btn.disabled && setMenuFocus(i)}
+            onMouseEnter={() =>
+              isFocusedSection && !btn.disabled && setMenuFocus(i)
+            }
             onMouseLeave={() => setMenuFocus(null)}
             onClick={() => {
               if (isFocusedSection && !btn.disabled) {
@@ -134,13 +156,18 @@ const HomeView = memo(function HomeView() {
           >
             <div className="w-full h-full flex items-center justify-center relative">
               <span>{btn.label}</span>
-              {btn.id === "versions" && Object.values(updatesAvailable || {}).some((v) => v) && (
-                <img
-                  src="/images/Update_Icon.png"
-                  className="absolute right-4 w-6 h-6 object-contain"
-                  style={{ imageRendering: "pixelated", filter: "drop-shadow(0 0 2px rgba(255, 255, 0, 0.8)) sepia(100%) saturate(500%) hue-rotate(5deg) brightness(1.2)" }}
-                />
-              )}
+              {btn.id === "versions" &&
+                Object.values(updatesAvailable || {}).some((v) => v) && (
+                  <img
+                    src="/images/Update_Icon.png"
+                    className="absolute right-4 w-6 h-6 object-contain"
+                    style={{
+                      imageRendering: "pixelated",
+                      filter:
+                        "drop-shadow(0 0 2px rgba(255, 255, 0, 0.8)) sepia(100%) saturate(500%) hue-rotate(5deg) brightness(1.2)",
+                    }}
+                  />
+                )}
             </div>
           </button>
         </div>
@@ -150,7 +177,7 @@ const HomeView = memo(function HomeView() {
         <div className="pt-4 flex flex-col items-center w-full gap-3">
           <div className="flex gap-8">
             <a
-              href="https://discord.gg/NPMp9JhGYH"
+              href="https://discord.gg/cQVKhQXcCx"
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => {
