@@ -28,7 +28,7 @@ const LceLiveView = memo(function LceLiveView() {
   const [acceptInvite, setAcceptInvite] = useState<GameInvite | null>(null);
   const [friends, setFriends] = useState<LceLiveAccount[]>([]);
   const [incomingReqs, setIncomingReqs] = useState<FriendRequest[]>([]);
-  const [outgoingReqs, setOutgoingReqs] = useState<FriendRequest[]>([]);
+  const [_outgoingReqs, setOutgoingReqs] = useState<FriendRequest[]>([]);
   const [invites, setInvites] = useState<GameInvite[]>([]);
   const [linkData, setLinkData] = useState<any>(null);
   const [linkError, setLinkError] = useState<string | null>(null);
@@ -50,7 +50,6 @@ const LceLiveView = memo(function LceLiveView() {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fetchSocialData = async () => {
-    console.log(outgoingReqs); //neo: dont judge. typescript wanted a use so i provided a use.
     if (!lceLiveService.signedIn) return;
     try {
       const [f, reqs, invs] = await Promise.all([
