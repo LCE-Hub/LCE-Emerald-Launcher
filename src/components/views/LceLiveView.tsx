@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, memo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   useUI,
   useConfig,
@@ -47,6 +47,7 @@ const LceLiveView = memo(function LceLiveView() {
   const [isAddingFriend, setIsAddingFriend] = useState(false);
   const [addFriendUsername, setAddFriendUsername] = useState("");
   const addFriendInputRef = useRef<HTMLInputElement>(null);
+  const [errorModal, setErrorModal] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fetchSocialData = async () => {
@@ -140,7 +141,7 @@ const LceLiveView = memo(function LceLiveView() {
       await action();
       fetchSocialData();
     } catch (e: any) {
-      alert("Error: " + e.message);
+      setErrorModal(e.message || "An error occurred");
     }
   };
 
@@ -164,7 +165,7 @@ const LceLiveView = memo(function LceLiveView() {
       setHostSessionId("");
     } catch (e: any) {
       const msg = typeof e === "string" ? e : e?.message || "Unknown error";
-      alert("STUN discovery failed: " + msg);
+      setErrorModal("STUN discovery failed: " + msg);
       setHostStatus("");
     } finally {
       setIsDiscovering(false);
@@ -238,7 +239,7 @@ const LceLiveView = memo(function LceLiveView() {
       }
     } catch (e: any) {
       const msg = typeof e === "string" ? e : e?.message || "Unknown error";
-      alert("Failed to send invite: " + msg);
+      setErrorModal("Failed to send invite: " + msg);
     }
   };
 
@@ -359,6 +360,13 @@ const LceLiveView = memo(function LceLiveView() {
   const tabs = ["friends", "requests", "invites"];
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (errorModal) {
+        if (e.key === "Escape" || e.key === "Enter") {
+          setErrorModal(null);
+        }
+        return;
+      }
+
       if (isAddingFriend) {
         if (e.key === "Escape") {
           setIsAddingFriend(false);
@@ -446,6 +454,7 @@ const LceLiveView = memo(function LceLiveView() {
     setActiveView,
     isAddingFriend,
     addFriendUsername,
+    errorModal,
     showHostMethodPicker,
     hostMethodPick,
     handleHostDirect,
@@ -795,68 +804,112 @@ const LceLiveView = memo(function LceLiveView() {
         </div>
       </div>
 
-      {isAddingFriend && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-black/60">
-          <div
-            className="p-8 flex flex-col items-center max-w-xl w-full shadow-[0_0_30px_rgba(0,0,0,0.8)] relative rounded border-4 border-[#222]"
-            style={{
-              backgroundImage: "url('/images/background.png')",
-              backgroundSize: "100% 100%",
-              backgroundRepeat: "no-repeat",
-              imageRendering: "pixelated",
-            }}
+      <AnimatePresence>
+        {isAddingFriend && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm outline-none border-none"
           >
-            <h3 className="text-4xl text-[#2a2a2a] mb-8 tracking-widest uppercase font-bold mc-text-shadow-light">
-              Add Friend
-            </h3>
-            <input
-              ref={addFriendInputRef}
-              type="text"
-              className="bg-black/10 border-4 border-[#222] text-[#2a2a2a] p-4 w-full text-3xl font-bold font-mojangles outline-none focus:bg-black/15 transition-colors placeholder:text-[#555] mb-10 shadow-inner rounded"
-              placeholder="Username"
-              value={addFriendUsername}
-              onChange={(e) => setAddFriendUsername(e.target.value)}
-            />
-            <div className="flex gap-6 w-full">
+            <div
+              className="relative w-[420px] p-8 flex flex-col items-center shadow-2xl"
+              style={{
+                backgroundImage: "url('/images/frame_background.png')",
+                backgroundSize: "100% 100%",
+                imageRendering: "pixelated",
+              }}
+            >
+              <h2 className="text-[#FFFF55] text-3xl mc-text-shadow mb-6 border-b-2 border-[#373737] pb-2 w-full text-center uppercase tracking-widest">
+                Add Friend
+              </h2>
+              <input
+                ref={addFriendInputRef}
+                type="text"
+                className="bg-black/20 border-4 border-[#555] text-white p-4 w-full text-2xl font-bold outline-none focus:border-[#FFFF55] transition-colors placeholder:text-[#888] mb-6 mc-text-shadow"
+                placeholder="Username"
+                value={addFriendUsername}
+                onChange={(e) => setAddFriendUsername(e.target.value)}
+              />
+              <div className="flex gap-4 w-full">
+                <button
+                  className="h-12 flex-1 flex items-center justify-center text-white mc-text-shadow text-xl font-bold uppercase tracking-widest transition-transform hover:text-[#FFFF55] hover:scale-105 outline-none border-none"
+                  style={{
+                    backgroundImage: "url('/images/button_highlighted.png')",
+                    backgroundSize: "100% 100%",
+                    imageRendering: "pixelated",
+                  }}
+                  onClick={() => {
+                    playPressSound();
+                    if (addFriendUsername.trim() !== "") {
+                      handleAction(() =>
+                        lceLiveService.sendFriendRequest(
+                          addFriendUsername.trim(),
+                        ),
+                      );
+                      setIsAddingFriend(false);
+                    }
+                  }}
+                >
+                  Send
+                </button>
+                <button
+                  className="h-12 flex-1 flex items-center justify-center text-white mc-text-shadow text-xl font-bold uppercase tracking-widest transition-transform hover:text-[#FFFF55] hover:scale-105 outline-none border-none"
+                  style={{
+                    backgroundImage: "url('/images/Button_Background.png')",
+                    backgroundSize: "100% 100%",
+                    imageRendering: "pixelated",
+                  }}
+                  onClick={() => {
+                    setIsAddingFriend(false);
+                    playBackSound();
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {errorModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 backdrop-blur-sm outline-none border-none"
+          >
+            <div
+              className="relative w-[400px] p-8 flex flex-col items-center shadow-2xl"
+              style={{
+                backgroundImage: "url('/images/frame_background.png')",
+                backgroundSize: "100% 100%",
+                imageRendering: "pixelated",
+              }}
+            >
+              <h2 className="text-[#FFFF55] text-2xl mc-text-shadow mb-4 border-b-2 border-[#373737] pb-2 w-full text-center uppercase tracking-widest">
+                Error
+              </h2>
+              <p className="text-white text-lg mc-text-shadow text-center mb-6">
+                {errorModal}
+              </p>
               <button
-                className="h-12 flex-1 flex items-center justify-center text-white mc-text-shadow text-xl font-bold uppercase tracking-widest transition-transform hover:text-[#FFFF55] hover:scale-105 shadow-md outline-none"
+                className="h-12 w-48 flex items-center justify-center text-white mc-text-shadow text-xl font-bold uppercase tracking-widest transition-transform hover:text-[#FFFF55] hover:scale-105 outline-none border-none"
                 style={{
                   backgroundImage: "url('/images/button_highlighted.png')",
                   backgroundSize: "100% 100%",
                   imageRendering: "pixelated",
                 }}
-                onClick={() => {
-                  playPressSound();
-                  if (addFriendUsername.trim() !== "") {
-                    handleAction(() =>
-                      lceLiveService.sendFriendRequest(
-                        addFriendUsername.trim(),
-                      ),
-                    );
-                    setIsAddingFriend(false);
-                  }
-                }}
+                onClick={() => setErrorModal(null)}
               >
-                Send
-              </button>
-              <button
-                className="h-12 flex-1 flex items-center justify-center text-white mc-text-shadow text-xl font-bold uppercase tracking-widest transition-transform hover:text-[#FFFF55] hover:scale-105 shadow-md outline-none"
-                style={{
-                  backgroundImage: "url('/images/Button_Background.png')",
-                  backgroundSize: "100% 100%",
-                  imageRendering: "pixelated",
-                }}
-                onClick={() => {
-                  setIsAddingFriend(false);
-                  playBackSound();
-                }}
-              >
-                Cancel
+                OK
               </button>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <ChooseInstanceModal
         isOpen={acceptInvite !== null}
