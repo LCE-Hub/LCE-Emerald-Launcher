@@ -1,7 +1,17 @@
 import { useState, useEffect, useRef, useMemo, memo } from "react";
 import { motion } from "framer-motion";
-import { useUI, useConfig, useAudio, useGame } from "../../context/LauncherContext";
-import { lceLiveService, LceLiveAccount, FriendRequest, GameInvite } from "../../services/LceLiveService";
+import {
+  useUI,
+  useConfig,
+  useAudio,
+  useGame,
+} from "../../context/LauncherContext";
+import {
+  lceLiveService,
+  LceLiveAccount,
+  FriendRequest,
+  GameInvite,
+} from "../../services/LceLiveService";
 import { TauriService } from "../../services/TauriService";
 import ChooseInstanceModal from "../modals/ChooseInstanceModal";
 
@@ -11,7 +21,9 @@ const LceLiveView = memo(function LceLiveView() {
   const { playPressSound, playBackSound } = useAudio();
   const { editions, installs } = useGame();
   const [isSignedIn, setIsSignedIn] = useState(lceLiveService.signedIn);
-  const [currentTab, setCurrentTab] = useState<"friends" | "requests" | "invites" | "device_link">("friends");
+  const [currentTab, setCurrentTab] = useState<
+    "friends" | "requests" | "invites" | "device_link"
+  >("friends");
   const [focusIndex, setFocusIndex] = useState<number | null>(0);
   const [acceptInvite, setAcceptInvite] = useState<GameInvite | null>(null);
   const [friends, setFriends] = useState<LceLiveAccount[]>([]);
@@ -26,6 +38,12 @@ const LceLiveView = memo(function LceLiveView() {
   const [hostPort, setHostPort] = useState(19132);
   const [isDiscovering, setIsDiscovering] = useState(false);
   const [invitedFriends, setInvitedFriends] = useState<Set<string>>(new Set());
+  const [showHostMethodPicker, setShowHostMethodPicker] = useState(false);
+  const [hostSessionId, setHostSessionId] = useState<string>("");
+  const [hostMethodPick, setHostMethodPick] = useState<"direct" | "relay">(
+    "direct",
+  );
+  const [relayStarted, setRelayStarted] = useState(false);
   const [isAddingFriend, setIsAddingFriend] = useState(false);
   const [addFriendUsername, setAddFriendUsername] = useState("");
   const addFriendInputRef = useRef<HTMLInputElement>(null);
@@ -38,7 +56,7 @@ const LceLiveView = memo(function LceLiveView() {
       const [f, reqs, invs] = await Promise.all([
         lceLiveService.getFriends(),
         lceLiveService.getPendingRequests(),
-        lceLiveService.getGameInvites()
+        lceLiveService.getGameInvites(),
       ]);
       setFriends(f);
       setIncomingReqs(reqs.incoming);
@@ -85,18 +103,23 @@ const LceLiveView = memo(function LceLiveView() {
 
     startLink();
     if (linkData?.deviceCode) {
-      pollInterval = setInterval(async () => {
-        try {
-          const res = await lceLiveService.pollDeviceLink(linkData.deviceCode);
-          if (res.isLinked && mounted) {
-            setIsSignedIn(true);
-            setLinkData(null);
-            clearInterval(pollInterval);
+      pollInterval = setInterval(
+        async () => {
+          try {
+            const res = await lceLiveService.pollDeviceLink(
+              linkData.deviceCode,
+            );
+            if (res.isLinked && mounted) {
+              setIsSignedIn(true);
+              setLinkData(null);
+              clearInterval(pollInterval);
+            }
+          } catch (e: any) {
+            console.warn("Poll failed", e);
           }
-        } catch (e: any) {
-          console.warn("Poll failed", e);
-        }
-      }, Math.max(linkData.intervalSeconds * 1000, 2000));
+        },
+        Math.max(linkData.intervalSeconds * 1000, 2000),
+      );
     }
 
     return () => {
@@ -122,19 +145,26 @@ const LceLiveView = memo(function LceLiveView() {
     }
   };
 
-  const handleStartHosting = async () => {
+  const handleStartHosting = () => {
     playPressSound();
+    setRelayStarted(false);
+    setShowHostMethodPicker(true);
+  };
+
+  const handleHostDirect = async () => {
+    setShowHostMethodPicker(false);
     setIsDiscovering(true);
     setHostStatus("Discovering external IP...");
     try {
       const endpoint = await TauriService.stunDiscover();
       setHostIp(endpoint.ip);
-      setHostPort(19132);
+      setHostPort(25565);
       setIsHosting(true);
-      setHostStatus(`Hosting at ${endpoint.ip}:19132`);
+      setHostStatus(`Hosting at ${endpoint.ip}:25565`);
       setInvitedFriends(new Set());
+      setHostSessionId("");
     } catch (e: any) {
-      const msg = typeof e === 'string' ? e : e?.message || "Unknown error";
+      const msg = typeof e === "string" ? e : e?.message || "Unknown error";
       alert("STUN discovery failed: " + msg);
       setHostStatus("");
     } finally {
@@ -142,27 +172,74 @@ const LceLiveView = memo(function LceLiveView() {
     }
   };
 
+  const handleHostRelay = async () => {
+    setShowHostMethodPicker(false);
+    setIsDiscovering(true);
+    setHostStatus("Discovering external IP for invite...");
+    const sessionId = crypto.randomUUID();
+    setHostSessionId(sessionId);
+    try {
+      const endpoint = await TauriService.stunDiscover();
+      setHostIp(endpoint.ip);
+      setHostPort(25565);
+    } catch {
+      setHostIp("127.0.0.1");
+      setHostPort(25565);
+    }
+    setRelayStarted(false);
+    setIsHosting(true);
+    setHostStatus("Relay ready - invite friends to activate");
+    setInvitedFriends(new Set());
+    setIsDiscovering(false);
+  };
+
   const handleStopHosting = async () => {
     playPressSound();
     try {
+      await TauriService.stopProxy();
       await lceLiveService.deactivateGameInvites();
     } catch (e: any) {
-      console.warn("Deactivate invites failed", e);
+      console.warn("Stop hosting failed", e);
     }
     setIsHosting(false);
     setHostStatus("");
     setHostIp("");
     setInvitedFriends(new Set());
+    setHostSessionId("");
+    setRelayStarted(false);
   };
 
   const handleInviteFriend = async (friend: LceLiveAccount) => {
     playPressSound();
     const name = lceLiveService.displayUsername;
     try {
-      await lceLiveService.sendGameInvite(friend.accountId, hostIp, hostPort, name);
-      setInvitedFriends(prev => new Set(prev).add(friend.accountId));
+      await lceLiveService.sendGameInvite(
+        friend.accountId,
+        hostIp,
+        hostPort,
+        name,
+        hostSessionId || undefined,
+      );
+      setInvitedFriends((prev) => new Set(prev).add(friend.accountId));
+      if (hostSessionId && !relayStarted) {
+        setRelayStarted(true);
+        setHostStatus("Connecting relay...");
+        const baseUrl = lceLiveService.apiBaseUrl;
+        const accessToken = lceLiveService.accessToken ?? "";
+        TauriService.startHostRelay(baseUrl, accessToken, hostSessionId, 25565)
+          .then(() => setHostStatus("Relay active"))
+          .catch((relayErr: any) => {
+            const relayMsg =
+              typeof relayErr === "string"
+                ? relayErr
+                : relayErr?.message || "Unknown error";
+            console.warn("Relay failed:", relayMsg);
+            setHostStatus("Relay disconnected");
+          });
+      }
     } catch (e: any) {
-      alert("Failed to send invite: " + e.message);
+      const msg = typeof e === "string" ? e : e?.message || "Unknown error";
+      alert("Failed to send invite: " + msg);
     }
   };
 
@@ -178,51 +255,107 @@ const LceLiveView = memo(function LceLiveView() {
     const items: MenuItem[] = [];
     if (currentTab === "device_link") {
       if (linkData) {
-        items.push({ id: "link_retry", type: "button", label: "Restart Link", onClick: () => { setLinkData(null); playPressSound(); } });
+        items.push({
+          id: "link_retry",
+          type: "button",
+          label: "Restart Link",
+          onClick: () => {
+            setLinkData(null);
+            playPressSound();
+          },
+        });
       }
     } else if (currentTab === "friends") {
-      if (!isDiscovering) {
+      if (!isDiscovering && !showHostMethodPicker) {
         if (!isHosting) {
-          items.push({ id: "host_game", type: "button", label: "Host Game", onClick: handleStartHosting });
+          items.push({
+            id: "host_game",
+            type: "button",
+            label: "Host Game",
+            onClick: handleStartHosting,
+          });
         } else {
-          items.push({ id: "stop_hosting", type: "button", label: "Stop Hosting", onClick: handleStopHosting });
+          items.push({
+            id: "stop_hosting",
+            type: "button",
+            label: "Stop Hosting",
+            onClick: handleStopHosting,
+          });
         }
       }
-      items.push({ id: "add_friend", type: "button", label: "Add Friend", onClick: () => { playPressSound(); setIsAddingFriend(true); setAddFriendUsername(""); } });
-      items.push({ id: "sign_out", type: "button", label: "Sign Out", onClick: handleLogout });
-      friends.forEach(f => {
+      items.push({
+        id: "add_friend",
+        type: "button",
+        label: "Add Friend",
+        onClick: () => {
+          playPressSound();
+          setIsAddingFriend(true);
+          setAddFriendUsername("");
+        },
+      });
+      items.push({
+        id: "sign_out",
+        type: "button",
+        label: "Sign Out",
+        onClick: handleLogout,
+      });
+      friends.forEach((f) => {
         items.push({
           id: `friend_${f.accountId}`,
           type: "friend",
           label: f.displayName,
-          onClick: isHosting ? () => handleInviteFriend(f) : () => handleAction(() => lceLiveService.removeFriend(f.accountId)),
-          onClickSecondary: isHosting ? () => handleAction(() => lceLiveService.removeFriend(f.accountId)) : undefined
+          onClick: isHosting
+            ? () => handleInviteFriend(f)
+            : () =>
+                handleAction(() => lceLiveService.removeFriend(f.accountId)),
+          onClickSecondary: isHosting
+            ? () => handleAction(() => lceLiveService.removeFriend(f.accountId))
+            : undefined,
         });
       });
     } else if (currentTab === "requests") {
-      incomingReqs.forEach(r => {
+      incomingReqs.forEach((r) => {
         items.push({
           id: `req_in_${r.accountId}`,
           type: "request_in",
           label: r.displayName,
-          onClick: () => handleAction(() => lceLiveService.acceptFriendRequest(r.accountId)),
-          onClickSecondary: () => handleAction(() => lceLiveService.declineFriendRequest(r.accountId))
+          onClick: () =>
+            handleAction(() => lceLiveService.acceptFriendRequest(r.accountId)),
+          onClickSecondary: () =>
+            handleAction(() =>
+              lceLiveService.declineFriendRequest(r.accountId),
+            ),
         });
       });
     } else if (currentTab === "invites") {
-      invites.forEach(inv => {
+      invites.forEach((inv) => {
         items.push({
           id: `inv_${inv.inviteId}`,
           type: "invite",
-          label: typeof inv.from === 'string' ? "Unknown" : inv.from.displayName,
-          onClick: () => { playPressSound(); setAcceptInvite(inv); },
-          onClickSecondary: () => handleAction(() => lceLiveService.declineGameInvite(inv.inviteId))
+          label:
+            typeof inv.from === "string" ? "Unknown" : inv.from.displayName,
+          onClick: () => {
+            playPressSound();
+            setAcceptInvite(inv);
+          },
+          onClickSecondary: () =>
+            handleAction(() => lceLiveService.declineGameInvite(inv.inviteId)),
         });
       });
     }
 
     return items;
-  }, [currentTab, friends, incomingReqs, invites, linkData, playPressSound, isHosting, isDiscovering]);
+  }, [
+    currentTab,
+    friends,
+    incomingReqs,
+    invites,
+    linkData,
+    playPressSound,
+    isHosting,
+    isDiscovering,
+    showHostMethodPicker,
+  ]);
 
   const tabs = ["friends", "requests", "invites"];
   useEffect(() => {
@@ -233,9 +366,34 @@ const LceLiveView = memo(function LceLiveView() {
           playBackSound();
         } else if (e.key === "Enter") {
           if (addFriendUsername.trim() !== "") {
-            handleAction(() => lceLiveService.sendFriendRequest(addFriendUsername.trim()));
+            handleAction(() =>
+              lceLiveService.sendFriendRequest(addFriendUsername.trim()),
+            );
             setIsAddingFriend(false);
           }
+        }
+        return;
+      }
+
+      if (showHostMethodPicker) {
+        if (e.key === "Escape" || e.key === "Backspace") {
+          setShowHostMethodPicker(false);
+          playBackSound();
+        } else if (
+          e.key === "ArrowLeft" ||
+          e.key === "ArrowRight" ||
+          e.key === "q" ||
+          e.key === "Q" ||
+          e.key === "e" ||
+          e.key === "E"
+        ) {
+          setHostMethodPick((prev: "direct" | "relay") =>
+            prev === "direct" ? "relay" : "direct",
+          );
+          playPressSound();
+        } else if (e.key === "Enter") {
+          if (hostMethodPick === "direct") handleHostDirect();
+          else handleHostRelay();
         }
         return;
       }
@@ -267,9 +425,13 @@ const LceLiveView = memo(function LceLiveView() {
       const itemCount = menuItems.length;
       if (itemCount > 0) {
         if (e.key === "ArrowDown") {
-          setFocusIndex((prev) => (prev === null || prev >= itemCount - 1 ? 0 : prev + 1));
+          setFocusIndex((prev) =>
+            prev === null || prev >= itemCount - 1 ? 0 : prev + 1,
+          );
         } else if (e.key === "ArrowUp") {
-          setFocusIndex((prev) => (prev === null || prev <= 0 ? itemCount - 1 : prev - 1));
+          setFocusIndex((prev) =>
+            prev === null || prev <= 0 ? itemCount - 1 : prev - 1,
+          );
         } else if (e.key === "Enter" && focusIndex !== null) {
           menuItems[focusIndex]?.onClick();
         }
@@ -277,20 +439,34 @@ const LceLiveView = memo(function LceLiveView() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [focusIndex, menuItems, currentTab, playBackSound, setActiveView, isAddingFriend, addFriendUsername]);
+  }, [
+    focusIndex,
+    menuItems,
+    currentTab,
+    playBackSound,
+    setActiveView,
+    isAddingFriend,
+    addFriendUsername,
+    showHostMethodPicker,
+    hostMethodPick,
+    handleHostDirect,
+    handleHostRelay,
+  ]);
 
   useEffect(() => {
     if (isAddingFriend && addFriendInputRef.current) {
       addFriendInputRef.current.focus();
     } else if (focusIndex !== null) {
-      const el = containerRef.current?.querySelector(`[data-index="${focusIndex}"]`) as HTMLElement;
+      const el = containerRef.current?.querySelector(
+        `[data-index="${focusIndex}"]`,
+      ) as HTMLElement;
       if (el) {
         el.focus();
         if (scrollRef.current) {
           const rect = el.getBoundingClientRect();
           const scrollRect = scrollRef.current.getBoundingClientRect();
           if (rect.bottom > scrollRect.bottom || rect.top < scrollRect.top) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
           }
         }
       }
@@ -301,46 +477,105 @@ const LceLiveView = memo(function LceLiveView() {
       return (
         <div className="flex flex-col items-center justify-center space-y-6 flex-1 text-center py-20">
           {!linkData ? (
-            <p className="text-xl text-[#2a2a2a] font-bold">{linkError || "Starting device link..."}</p>
+            <p className="text-xl text-[#2a2a2a] font-bold">
+              {linkError || "Starting device link..."}
+            </p>
           ) : (
             <>
-              <p className="text-2xl text-[#2a2a2a] font-bold">Open this link in your browser:</p>
-              <p className="text-[#111] text-3xl font-bold tracking-widest break-words bg-black/10 px-6 py-2 rounded shadow-inner">{linkData.verificationUri}</p>
-              <p className="text-2xl text-[#2a2a2a] font-bold mt-8">And enter the code:</p>
-              <p className="text-[#111] text-6xl tracking-[0.2em] font-bold mt-2 bg-black/10 px-8 py-4 rounded shadow-inner">{linkData.userCode}</p>
+              <p className="text-2xl text-[#2a2a2a] font-bold">
+                Open this link in your browser:
+              </p>
+              <p className="text-[#111] text-3xl font-bold tracking-widest break-words bg-black/10 px-6 py-2 rounded shadow-inner">
+                {linkData.verificationUri}
+              </p>
+              <p className="text-2xl text-[#2a2a2a] font-bold mt-8">
+                And enter the code:
+              </p>
+              <p className="text-[#111] text-6xl tracking-[0.2em] font-bold mt-2 bg-black/10 px-8 py-4 rounded shadow-inner">
+                {linkData.userCode}
+              </p>
             </>
           )}
         </div>
       );
     }
 
-    const topButtons = menuItems.filter(m => m.type === "button");
-    const listItems = menuItems.filter(m => m.type !== "button");
+    const topButtons = menuItems.filter((m) => m.type === "button");
+    const listItems = menuItems.filter((m) => m.type !== "button");
     return (
       <div className="flex flex-col h-full space-y-4">
-        {topButtons.length > 0 && (
+        {showHostMethodPicker ? (
           <div className="flex gap-4 flex-wrap">
-            {topButtons.map(btn => {
-              const idx = menuItems.indexOf(btn);
-              const isFocused = focusIndex === idx;
-              return (
-                <button
-                  key={btn.id}
-                  data-index={idx}
-                  onMouseEnter={() => setFocusIndex(idx)}
-                  onClick={btn.onClick}
-                  className={`flex-1 h-12 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${isFocused ? "text-[#FFFF55] mc-text-shadow scale-[1.02] z-10 relative drop-shadow-md" : "text-white mc-text-shadow hover:text-gray-200"}`}
-                  style={{
-                    backgroundImage: isFocused ? "url('/images/button_highlighted.png')" : "url('/images/Button_Background.png')",
-                    backgroundSize: "100% 100%",
-                    imageRendering: "pixelated"
-                  }}
-                >
-                  {btn.label}
-                </button>
-              );
-            })}
+            <button
+              onClick={handleHostDirect}
+              className={`flex-1 h-12 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${hostMethodPick === "direct" ? "text-[#FFFF55] mc-text-shadow scale-[1.02] z-10 relative drop-shadow-md" : "text-white mc-text-shadow hover:text-gray-200"}`}
+              style={{
+                backgroundImage:
+                  hostMethodPick === "direct"
+                    ? "url('/images/button_highlighted.png')"
+                    : "url('/images/Button_Background.png')",
+                backgroundSize: "100% 100%",
+                imageRendering: "pixelated",
+              }}
+            >
+              Direct (STUN)
+            </button>
+            <button
+              onClick={handleHostRelay}
+              className={`flex-1 h-12 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${hostMethodPick === "relay" ? "text-[#FFFF55] mc-text-shadow scale-[1.02] z-10 relative drop-shadow-md" : "text-white mc-text-shadow hover:text-gray-200"}`}
+              style={{
+                backgroundImage:
+                  hostMethodPick === "relay"
+                    ? "url('/images/button_highlighted.png')"
+                    : "url('/images/Button_Background.png')",
+                backgroundSize: "100% 100%",
+                imageRendering: "pixelated",
+              }}
+            >
+              Relay
+            </button>
+            <button
+              onClick={() => {
+                setShowHostMethodPicker(false);
+                playBackSound();
+              }}
+              className="flex-1 h-12 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all text-white mc-text-shadow hover:text-gray-200"
+              style={{
+                backgroundImage: "url('/images/Button_Background.png')",
+                backgroundSize: "100% 100%",
+                imageRendering: "pixelated",
+              }}
+            >
+              Cancel
+            </button>
           </div>
+        ) : (
+          topButtons.length > 0 && (
+            <div className="flex gap-4 flex-wrap">
+              {topButtons.map((btn) => {
+                const idx = menuItems.indexOf(btn);
+                const isFocused = focusIndex === idx;
+                return (
+                  <button
+                    key={btn.id}
+                    data-index={idx}
+                    onMouseEnter={() => setFocusIndex(idx)}
+                    onClick={btn.onClick}
+                    className={`flex-1 h-12 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${isFocused ? "text-[#FFFF55] mc-text-shadow scale-[1.02] z-10 relative drop-shadow-md" : "text-white mc-text-shadow hover:text-gray-200"}`}
+                    style={{
+                      backgroundImage: isFocused
+                        ? "url('/images/button_highlighted.png')"
+                        : "url('/images/Button_Background.png')",
+                      backgroundSize: "100% 100%",
+                      imageRendering: "pixelated",
+                    }}
+                  >
+                    {btn.label}
+                  </button>
+                );
+              })}
+            </div>
+          )
         )}
         {hostStatus && (
           <div className="text-center text-sm text-[#FFFF55] mc-text-shadow py-1 tracking-wider">
@@ -350,7 +585,13 @@ const LceLiveView = memo(function LceLiveView() {
 
         <div className="flex flex-col flex-1 bg-black/5 shadow-inner rounded overflow-hidden border-4 border-[#222]">
           <div className="bg-black/10 px-4 py-3 text-[#2a2a2a] font-bold tracking-widest uppercase border-b-4 border-[#222] flex justify-between shadow-sm z-10">
-            <span>{currentTab === "friends" ? "Joinable Friends" : currentTab === "requests" ? "Pending Requests" : "Game Invites"}</span>
+            <span>
+              {currentTab === "friends"
+                ? "Joinable Friends"
+                : currentTab === "requests"
+                  ? "Pending Requests"
+                  : "Game Invites"}
+            </span>
             <span className="text-[#111]">{listItems.length}</span>
           </div>
 
@@ -361,7 +602,7 @@ const LceLiveView = memo(function LceLiveView() {
               </div>
             ) : (
               <div className="flex flex-col p-2 space-y-2">
-                {listItems.map(item => {
+                {listItems.map((item) => {
                   const idx = menuItems.indexOf(item);
                   const isFocused = focusIndex === idx;
                   return (
@@ -374,26 +615,104 @@ const LceLiveView = memo(function LceLiveView() {
                     >
                       <div className="flex items-center w-full">
                         <div className="flex flex-col ml-2 flex-1 min-w-0">
-                          <span className="text-[#2a2a2a] font-bold text-2xl truncate pr-4">{item.label}</span>
-                          <span className="text-[#555] text-base font-bold truncate">@{menuItems.find(m => m.id === item.id)?.type === "friend" ? friends.find(f => `friend_${f.accountId}` === item.id)?.username : item.type === "request_in" ? incomingReqs.find(f => `req_in_${f.accountId}` === item.id)?.username : "Invite"}</span>
+                          <span className="text-[#2a2a2a] font-bold text-2xl truncate pr-4">
+                            {item.label}
+                          </span>
+                          <span className="text-[#555] text-base font-bold truncate">
+                            @
+                            {menuItems.find((m) => m.id === item.id)?.type ===
+                            "friend"
+                              ? friends.find(
+                                  (f) => `friend_${f.accountId}` === item.id,
+                                )?.username
+                              : item.type === "request_in"
+                                ? incomingReqs.find(
+                                    (f) => `req_in_${f.accountId}` === item.id,
+                                  )?.username
+                                : "Invite"}
+                          </span>
                         </div>
                       </div>
                       <div className="flex space-x-3 pr-2 shrink-0">
                         {item.type === "friend" && !isHosting && (
-                          <button className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow transition-transform ${isFocused ? "text-white scale-105 shadow-md" : "text-gray-300"}`} style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }} onClick={item.onClick}>REMOVE</button>
+                          <button
+                            className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow transition-transform ${isFocused ? "text-white scale-105 shadow-md" : "text-gray-300"}`}
+                            style={{
+                              backgroundImage:
+                                "url('/images/Button_Background.png')",
+                              backgroundSize: "100% 100%",
+                              imageRendering: "pixelated",
+                            }}
+                            onClick={item.onClick}
+                          >
+                            REMOVE
+                          </button>
                         )}
                         {item.type === "friend" && isHosting && (
                           <>
-                            <button className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow transition-transform ${isFocused ? "text-white scale-105 shadow-md" : "text-gray-300"}`} style={{ backgroundImage: "url('/images/button_highlighted.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }} onClick={item.onClick}>
-                              {invitedFriends.has(item.id.replace("friend_", "")) ? "INVITED" : "INVITE"}
+                            <button
+                              className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow transition-transform ${isFocused ? "text-white scale-105 shadow-md" : "text-gray-300"}`}
+                              style={{
+                                backgroundImage:
+                                  "url('/images/button_highlighted.png')",
+                                backgroundSize: "100% 100%",
+                                imageRendering: "pixelated",
+                              }}
+                              onClick={item.onClick}
+                            >
+                              {invitedFriends.has(
+                                item.id.replace("friend_", ""),
+                              )
+                                ? "INVITED"
+                                : "INVITE"}
                             </button>
-                            <button className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow transition-transform ${isFocused ? "text-white scale-105 shadow-md" : "text-gray-300"}`} style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }} onClick={(e) => { e.stopPropagation(); item.onClickSecondary?.(); }}>REMOVE</button>
+                            <button
+                              className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow transition-transform ${isFocused ? "text-white scale-105 shadow-md" : "text-gray-300"}`}
+                              style={{
+                                backgroundImage:
+                                  "url('/images/Button_Background.png')",
+                                backgroundSize: "100% 100%",
+                                imageRendering: "pixelated",
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                item.onClickSecondary?.();
+                              }}
+                            >
+                              REMOVE
+                            </button>
                           </>
                         )}
-                        {(item.type === "request_in" || item.type === "invite") && (
+                        {(item.type === "request_in" ||
+                          item.type === "invite") && (
                           <>
-                            <button className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow transition-transform ${isFocused ? "text-white scale-105 shadow-md" : "text-gray-300"}`} style={{ backgroundImage: "url('/images/button_highlighted.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }} onClick={item.onClick}>ACCEPT</button>
-                            <button className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow transition-transform ${isFocused ? "text-white scale-105 shadow-md" : "text-gray-300"}`} style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }} onClick={(e) => { e.stopPropagation(); item.onClickSecondary?.(); }}>DECLINE</button>
+                            <button
+                              className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow transition-transform ${isFocused ? "text-white scale-105 shadow-md" : "text-gray-300"}`}
+                              style={{
+                                backgroundImage:
+                                  "url('/images/button_highlighted.png')",
+                                backgroundSize: "100% 100%",
+                                imageRendering: "pixelated",
+                              }}
+                              onClick={item.onClick}
+                            >
+                              ACCEPT
+                            </button>
+                            <button
+                              className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow transition-transform ${isFocused ? "text-white scale-105 shadow-md" : "text-gray-300"}`}
+                              style={{
+                                backgroundImage:
+                                  "url('/images/Button_Background.png')",
+                                backgroundSize: "100% 100%",
+                                imageRendering: "pixelated",
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                item.onClickSecondary?.();
+                              }}
+                            >
+                              DECLINE
+                            </button>
                           </>
                         )}
                       </div>
@@ -420,7 +739,10 @@ const LceLiveView = memo(function LceLiveView() {
     >
       <div className="w-full max-w-5xl h-full flex flex-col mt-[4vh] mb-[4vh] relative drop-shadow-2xl">
         {currentTab !== "device_link" && (
-          <div className="flex z-10 space-x-2 px-12 relative w-full items-end" style={{ marginBottom: "-4px" }}>
+          <div
+            className="flex z-10 space-x-2 px-12 relative w-full items-end"
+            style={{ marginBottom: "-4px" }}
+          >
             {tabs.map((t) => (
               <button
                 key={t}
@@ -432,12 +754,28 @@ const LceLiveView = memo(function LceLiveView() {
                   backgroundPosition: "bottom",
                   imageRendering: "pixelated",
                 }}
-                onClick={() => { setCurrentTab(t as any); setFocusIndex(0); playPressSound(); }}
+                onClick={() => {
+                  setCurrentTab(t as any);
+                  setFocusIndex(0);
+                  playPressSound();
+                }}
               >
                 <div className="flex items-center justify-center">
                   {t}
-                  {t === "requests" && incomingReqs.length > 0 && <span className={`ml-3 text-white text-base px-3 py-1 rounded-full shadow-inner border-2 font-normal ${currentTab === t ? "bg-[#d72f2f] border-[#8a1a1a]" : "bg-[#a81f1f] border-[#111]"}`}>{incomingReqs.length}</span>}
-                  {t === "invites" && invites.length > 0 && <span className={`ml-3 text-white text-base px-3 py-1 rounded-full shadow-inner border-2 font-normal ${currentTab === t ? "bg-[#30872a] border-[#1b5e16]" : "bg-[#23681d] border-[#111]"}`}>{invites.length}</span>}
+                  {t === "requests" && incomingReqs.length > 0 && (
+                    <span
+                      className={`ml-3 text-white text-base px-3 py-1 rounded-full shadow-inner border-2 font-normal ${currentTab === t ? "bg-[#d72f2f] border-[#8a1a1a]" : "bg-[#a81f1f] border-[#111]"}`}
+                    >
+                      {incomingReqs.length}
+                    </span>
+                  )}
+                  {t === "invites" && invites.length > 0 && (
+                    <span
+                      className={`ml-3 text-white text-base px-3 py-1 rounded-full shadow-inner border-2 font-normal ${currentTab === t ? "bg-[#30872a] border-[#1b5e16]" : "bg-[#23681d] border-[#111]"}`}
+                    >
+                      {invites.length}
+                    </span>
+                  )}
                 </div>
               </button>
             ))}
@@ -469,31 +807,50 @@ const LceLiveView = memo(function LceLiveView() {
               imageRendering: "pixelated",
             }}
           >
-            <h3 className="text-4xl text-[#2a2a2a] mb-8 tracking-widest uppercase font-bold mc-text-shadow-light">Add Friend</h3>
+            <h3 className="text-4xl text-[#2a2a2a] mb-8 tracking-widest uppercase font-bold mc-text-shadow-light">
+              Add Friend
+            </h3>
             <input
               ref={addFriendInputRef}
               type="text"
               className="bg-black/10 border-4 border-[#222] text-[#2a2a2a] p-4 w-full text-3xl font-bold font-mojangles outline-none focus:bg-black/15 transition-colors placeholder:text-[#555] mb-10 shadow-inner rounded"
               placeholder="Username"
               value={addFriendUsername}
-              onChange={e => setAddFriendUsername(e.target.value)}
+              onChange={(e) => setAddFriendUsername(e.target.value)}
             />
             <div className="flex gap-6 w-full">
-              <button className="h-12 flex-1 flex items-center justify-center text-white mc-text-shadow text-xl font-bold uppercase tracking-widest transition-transform hover:text-[#FFFF55] hover:scale-105 shadow-md outline-none"
-                style={{ backgroundImage: "url('/images/button_highlighted.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
+              <button
+                className="h-12 flex-1 flex items-center justify-center text-white mc-text-shadow text-xl font-bold uppercase tracking-widest transition-transform hover:text-[#FFFF55] hover:scale-105 shadow-md outline-none"
+                style={{
+                  backgroundImage: "url('/images/button_highlighted.png')",
+                  backgroundSize: "100% 100%",
+                  imageRendering: "pixelated",
+                }}
                 onClick={() => {
                   playPressSound();
                   if (addFriendUsername.trim() !== "") {
-                    handleAction(() => lceLiveService.sendFriendRequest(addFriendUsername.trim()));
+                    handleAction(() =>
+                      lceLiveService.sendFriendRequest(
+                        addFriendUsername.trim(),
+                      ),
+                    );
                     setIsAddingFriend(false);
                   }
                 }}
               >
                 Send
               </button>
-              <button className="h-12 flex-1 flex items-center justify-center text-white mc-text-shadow text-xl font-bold uppercase tracking-widest transition-transform hover:text-[#FFFF55] hover:scale-105 shadow-md outline-none"
-                style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
-                onClick={() => { setIsAddingFriend(false); playBackSound(); }}
+              <button
+                className="h-12 flex-1 flex items-center justify-center text-white mc-text-shadow text-xl font-bold uppercase tracking-widest transition-transform hover:text-[#FFFF55] hover:scale-105 shadow-md outline-none"
+                style={{
+                  backgroundImage: "url('/images/Button_Background.png')",
+                  backgroundSize: "100% 100%",
+                  imageRendering: "pixelated",
+                }}
+                onClick={() => {
+                  setIsAddingFriend(false);
+                  playBackSound();
+                }}
               >
                 Cancel
               </button>
@@ -504,7 +861,10 @@ const LceLiveView = memo(function LceLiveView() {
 
       <ChooseInstanceModal
         isOpen={acceptInvite !== null}
-        onClose={() => { setAcceptInvite(null); fetchSocialData(); }}
+        onClose={() => {
+          setAcceptInvite(null);
+          fetchSocialData();
+        }}
         playPressSound={playPressSound}
         playBackSound={playBackSound}
         editions={editions}

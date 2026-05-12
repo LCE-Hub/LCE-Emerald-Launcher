@@ -2066,6 +2066,104 @@ async fn run_relay_proxy(
     Ok(local_port)
 }
 
+async fn run_host_relay(
+    _proxy_state: &ProxyGuard,
+    ws_url: &str,
+    auth_token: &str,
+    game_port: u16,
+    cancel: CancellationToken,
+) -> Result<(), String> {
+    use tokio_tungstenite::tungstenite::client::IntoClientRequest;
+
+    let mut request = ws_url
+        .into_client_request()
+        .map_err(|e| format!("Failed to build WS request: {}", e))?;
+    request.headers_mut().insert(
+        http::header::AUTHORIZATION,
+        format!("Bearer {}", auth_token)
+            .parse()
+            .map_err(|_| "Invalid auth header value".to_string())?,
+    );
+    request.headers_mut().insert(
+        http::header::USER_AGENT,
+        "MCLCE-LceLive/1.0"
+            .parse()
+            .map_err(|_| "Invalid UA header value".to_string())?,
+    );
+
+    let (ws_stream, _) = tokio_tungstenite::connect_async(request)
+        .await
+        .map_err(|e| format!("Host relay WS connect failed: {}", e))?;
+
+    let game_stream = loop {
+        match tokio::net::TcpStream::connect(format!("127.0.0.1:{}", game_port)).await {
+            Ok(stream) => break stream,
+            Err(_) => {
+                tokio::select! {
+                    _ = cancel.cancelled() => return Err("Host relay cancelled".into()),
+                    _ = tokio::time::sleep(std::time::Duration::from_secs(2)) => {}
+                }
+            }
+        }
+    };
+
+    let (game_read, game_write) = game_stream.into_split();
+    let (ws_write, ws_read) = ws_stream.split();
+
+    let cancel_ws = cancel.clone();
+    let forward_game = tokio::spawn(async move {
+        let mut ws_write = ws_write;
+        let mut game_read = game_read;
+        let mut buf = [0u8; 65536];
+        loop {
+            tokio::select! {
+                result = game_read.read(&mut buf) => {
+                    match result {
+                        Ok(0) | Err(_) => break,
+                        Ok(n) => {
+                            if ws_write.send(tokio_tungstenite::tungstenite::Message::Binary(buf[..n].to_vec())).await.is_err() {
+                                break;
+                            }
+                        }
+                    }
+                }
+                _ = cancel_ws.cancelled() => break,
+            }
+        }
+    });
+
+    let cancel_ws2 = cancel.clone();
+    let forward_ws = tokio::spawn(async move {
+        let ws_read = ws_read;
+        let mut game_write = game_write;
+        tokio::pin!(ws_read);
+        loop {
+            tokio::select! {
+                result = ws_read.next() => {
+                    match result {
+                        Some(Ok(tokio_tungstenite::tungstenite::Message::Binary(data))) => {
+                            if game_write.write_all(&data).await.is_err() {
+                                break;
+                            }
+                        }
+                        Some(Ok(tokio_tungstenite::tungstenite::Message::Close(_))) | None => break,
+                        _ => {}
+                    }
+                }
+                _ = cancel_ws2.cancelled() => break,
+            }
+        }
+    });
+
+    tokio::select! {
+        _ = forward_game => {},
+        _ = forward_ws => {},
+        _ = cancel.cancelled() => {},
+    }
+
+    Ok(())
+}
+
 async fn run_direct_proxy(
     proxy_state: &ProxyGuard,
     target_ip: &str,
@@ -2182,6 +2280,29 @@ async fn start_relay_proxy(
 }
 
 #[tauri::command]
+async fn start_host_relay(
+    proxy_state: State<'_, ProxyGuard>,
+    api_base_url: String,
+    access_token: String,
+    session_id: String,
+    game_port: u16,
+) -> Result<(), String> {
+    let ws_base = ws_base_url(&api_base_url);
+    let ws_url = format!("{}/api/relay/ws?sessionId={}&role=host", ws_base, session_id);
+
+    let cancel = CancellationToken::new();
+    {
+        let mut token = proxy_state.cancel_token.lock().await;
+        if let Some(old) = token.take() {
+            old.cancel();
+        }
+        *token = Some(cancel.clone());
+    }
+
+    run_host_relay(&proxy_state, &ws_url, &access_token, game_port, cancel).await
+}
+
+#[tauri::command]
 async fn stop_proxy(proxy_state: State<'_, ProxyGuard>) -> Result<(), String> {
     let mut token = proxy_state.cancel_token.lock().await;
     if let Some(t) = token.take() {
@@ -2260,7 +2381,7 @@ pub fn run() {
         .plugin(tauri_plugin_gamepad::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_drpc::init())
-        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, pick_folder, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast, download_logo, pick_file, save_file_dialog, write_binary_file, read_binary_file, read_screenshot_as_data_url, add_to_steam, http_proxy_request, get_instance_path, stun_discover, start_direct_proxy, start_relay_proxy, stop_proxy, join_game])
+        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, pick_folder, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast, download_logo, pick_file, save_file_dialog, write_binary_file, read_binary_file, read_screenshot_as_data_url, add_to_steam, http_proxy_request, get_instance_path, stun_discover, start_direct_proxy, start_relay_proxy, start_host_relay, stop_proxy, join_game])
         .setup(|app| {
             let args: Vec<String> = std::env::args().collect();
             if args.len() > 1 && !args[1].starts_with('-') {

@@ -249,6 +249,10 @@ export class TauriService {
     return invoke("start_relay_proxy", { apiBaseUrl, accessToken, sessionId });
   }
 
+  static async startHostRelay(apiBaseUrl: string, accessToken: string, sessionId: string, gamePort: number): Promise<void> {
+    return invoke("start_host_relay", { apiBaseUrl, accessToken, sessionId, gamePort });
+  }
+
   static async stopProxy(): Promise<void> {
     return invoke("stop_proxy");
   }
