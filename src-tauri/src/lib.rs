@@ -1982,15 +1982,25 @@ async fn run_relay_proxy(
     auth_token: &str,
     cancel: CancellationToken,
 ) -> Result<u16, String> {
-    let url_str = ws_url.to_string();
-    let req = http::Request::builder()
-        .uri(url_str.as_str())
-        .header("Authorization", format!("Bearer {}", auth_token))
-        .header("User-Agent", "MCLCE-LceLive/1.0")
-        .body(())
-        .map_err(|e| format!("Failed to build WS request: {}", e))?;
+    use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 
-    let (ws_stream, _) = tokio_tungstenite::connect_async(req)
+    let mut request = ws_url
+        .into_client_request()
+        .map_err(|e| format!("Failed to build WS request: {}", e))?;
+    request.headers_mut().insert(
+        http::header::AUTHORIZATION,
+        format!("Bearer {}", auth_token)
+            .parse()
+            .map_err(|_| "Invalid auth header value".to_string())?,
+    );
+    request.headers_mut().insert(
+        http::header::USER_AGENT,
+        "MCLCE-LceLive/1.0"
+            .parse()
+            .map_err(|_| "Invalid UA header value".to_string())?,
+    );
+
+    let (ws_stream, _) = tokio_tungstenite::connect_async(request)
         .await
         .map_err(|e| format!("Relay WS connect failed: {}", e))?;
 
