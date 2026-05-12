@@ -687,11 +687,9 @@ const SettingsView = memo(function SettingsView() {
                     </div>
                   )}
                   <span
-                    className={`tracking-widest text-xl mc-text-shadow ${isSmall ? "text-xs" : item.label.length > 25 ? "text-base" : "text-lg"} truncate text-left capitalize`}
+                    className={`tracking-widest text-xl mc-text-shadow ${isSmall ? "text-xs" : item.label.length > 25 ? "text-base" : "text-lg"} truncate text-left`}
                   >
-                    {isToggle
-                      ? item.label.split(":")[0].toLowerCase()
-                      : item.label.toLowerCase()}
+                    {isToggle ? item.label.split(":")[0] : item.label}
                   </span>
                 </button>
               );
