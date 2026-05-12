@@ -1,5 +1,6 @@
 use std::fs;
 use std::io::Write;
+use std::net::UdpSocket;
 use std::path::PathBuf;
 use std::process::Command;
 use steam_shortcuts_util::{Shortcut, parse_shortcuts, shortcuts_to_bytes};
@@ -10,6 +11,7 @@ use std::process::Stdio;
 use tauri::{AppHandle, Emitter, State, Manager};
 use futures_util::{StreamExt, SinkExt};
 use std::sync::Arc;
+use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::Mutex;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio_util::sync::CancellationToken;
@@ -932,6 +934,124 @@ async fn download_and_install(app: AppHandle, state: State<'_, DownloadState>, u
     Ok("Success".into())
 }
 
+#[repr(C, packed)]
+struct LanBroadcastPacket {
+    magic: u32,
+    net_version: u16,
+    game_port: u16,
+    host_name: [u16; 32],
+    player_count: u8,
+    max_players: u8,
+    game_host_settings: u32,
+    texture_pack_parent_id: u32,
+    sub_texture_pack_id: u8,
+    is_joinable: u8,
+}
+
+const LAN_FORWARD_BASE_PORT: u16 = 61000;
+
+struct LanServicesGuard(CancellationToken);
+impl Drop for LanServicesGuard {
+    fn drop(&mut self) {
+        self.0.cancel();
+    }
+}
+
+fn start_lan_broadcast(servers: &[(McServer, u16)], cancel: CancellationToken) {
+    for (server, broadcast_port) in servers {
+        let cancel = cancel.clone();
+        let name = server.name.clone();
+        let port = *broadcast_port;
+        std::thread::spawn(move || {
+            let socket = match UdpSocket::bind("0.0.0.0:0") {
+                Ok(s) => s,
+                Err(e) => {
+                    eprintln!("[Emerald] LAN broadcast socket bind failed: {e}");
+                    return;
+                }
+            };
+            if let Err(e) = socket.set_broadcast(true) {
+                eprintln!("[Emerald] LAN broadcast set_broadcast failed: {e}");
+                return;
+            }
+
+            let mut host_name = [0u16; 32];
+            for (i, c) in name.encode_utf16().take(31).enumerate() {
+                host_name[i] = c;
+            }
+
+            let packet = LanBroadcastPacket {
+                magic: 0x4D434C4E,
+                net_version: 170,
+                game_port: port,
+                host_name,
+                player_count: 0,
+                max_players: 8,
+                game_host_settings: 0,
+                texture_pack_parent_id: 0,
+                sub_texture_pack_id: 0,
+                is_joinable: 1,
+            };
+
+            let packet_bytes = unsafe {
+                std::slice::from_raw_parts(
+                    &packet as *const LanBroadcastPacket as *const u8,
+                    std::mem::size_of::<LanBroadcastPacket>(),
+                )
+            };
+
+            while !cancel.is_cancelled() {
+                if let Err(e) = socket.send_to(packet_bytes, "255.255.255.255:25566") {
+                    eprintln!("[Emerald] LAN broadcast send failed: {e}");
+                }
+                std::thread::sleep(std::time::Duration::from_secs(1));
+            }
+        });
+    }
+}
+
+async fn run_tcp_forwarder(
+    listen_port: u16,
+    target_host: String,
+    target_port: u16,
+    cancel: CancellationToken,
+) {
+    let addr = format!("127.0.0.1:{listen_port}");
+    let listener = match TcpListener::bind(&addr).await {
+        Ok(l) => l,
+        Err(e) => {
+            eprintln!("[Emerald] Forwarder bind failed on {addr}: {e}");
+            return;
+        }
+    };
+
+    loop {
+        tokio::select! {
+            _ = cancel.cancelled() => break,
+            result = listener.accept() => {
+                let (mut client, _) = match result {
+                    Ok(c) => c,
+                    Err(e) => {
+                        eprintln!("[Emerald] Forwarder accept failed: {e}");
+                        continue;
+                    }
+                };
+                let target = format!("{target_host}:{target_port}");
+                tokio::spawn(async move {
+                    let mut server = match TcpStream::connect(&target).await {
+                        Ok(s) => s,
+                        Err(e) => {
+                            eprintln!("[Emerald] Forwarder connect to {target} failed: {e}");
+                            return;
+                        }
+                    };
+                    let _ = tokio::io::copy_bidirectional(&mut client, &mut server).await;
+                });
+            }
+        }
+    }
+}
+
 fn ensure_server_list(instance_dir: &PathBuf, servers: Vec<McServer>) {
     let servers_db = instance_dir.join("servers.db");
     let mut all_servers = Vec::new();
@@ -1340,7 +1460,29 @@ async fn launch_game(app: AppHandle, state: State<'_, GameState>, instance_id: S
     perform_instance_sync(&app, &instance_id).await?;
     let working_dir = get_instance_working_dir(&app, &instance_id);
     let config = load_config(app.clone());
-    ensure_server_list(&working_dir, servers);
+    let _lan_services: Option<LanServicesGuard> = if !servers.is_empty() {
+        let cancel = CancellationToken::new();
+        let servers_with_ports: Vec<(McServer, u16)> = servers
+            .into_iter()
+            .enumerate()
+            .map(|(i, s)| (s, LAN_FORWARD_BASE_PORT + i as u16))
+            .collect();
+
+        for (server, fp) in &servers_with_ports {
+            let cancel = cancel.clone();
+            let host = server.ip.clone();
+            let port = server.port;
+            let fp = *fp;
+            tokio::spawn(async move {
+                run_tcp_forwarder(fp, host, port, cancel).await;
+            });
+        }
+
+        start_lan_broadcast(&servers_with_ports, cancel.clone());
+        Some(LanServicesGuard(cancel))
+    } else {
+        None
+    };
     let game_exe = working_dir.join("Minecraft.Client.exe");
     if !game_exe.exists() {
         return Err("Game executable not found in instance folder.".into());
