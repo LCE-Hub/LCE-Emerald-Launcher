@@ -3,7 +3,7 @@ import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 export function useUpdateCheck() {
   const [updateMessage, setUpdateMessage] = useState<string | null>(null);
-  const [updateUrl, setUpdateUrl] = useState<string | null>(null);
+  const [updateUrl, _setUpdateUrl] = useState<string | null>(null);
   const checkUpdates = useCallback(async () => {
     try {
       const update = await check();
