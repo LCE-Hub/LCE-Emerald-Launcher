@@ -55,7 +55,6 @@ const HomeView = memo(function HomeView() {
         isDanger: isGameRunning,
         disabled: isDownloading,
       },
-      { label: "LCELive", action: () => setActiveView("lcelive"), disabled: false, id: "lcelive" },
       { label: "Help & Options", action: () => setActiveView("settings"), disabled: false, id: "settings" },
       { label: "Versions", action: () => setActiveView("versions"), disabled: false, id: "versions" },
       { label: "Workshop", action: () => setActiveView("workshop"), disabled: false, id: "workshop" },

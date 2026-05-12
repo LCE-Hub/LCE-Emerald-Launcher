@@ -256,6 +256,9 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
         } else if (focusIndex === 4) {
           playPressSound();
           setActiveView('screenshots');
+        } else if (focusIndex === 5) {
+          playPressSound();
+          setActiveView('lcelive');
         }
       }
     };
@@ -345,6 +348,16 @@ const SkinViewer = memo(function SkinViewer({ username, setUsername, playPressSo
           title="Screenshots"
         >
           <img src="/images/Screenshots_Icon.png" alt="Screenshots" className="w-8 h-8 object-contain" style={{ imageRendering: 'pixelated' }} />
+        </button>
+        <button
+          data-focus="5" tabIndex={0}
+          onMouseEnter={() => isFocusedSection && setFocusIndex(5)}
+          onClick={() => { playPressSound(); setActiveView('lcelive'); }}
+          className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none transition-all ${isFocusedSection && focusIndex === 5 ? 'scale-110' : ''}`}
+          style={isFocusedSection && focusIndex === 5 ? { backgroundImage: "url('/images/Button_Square_Highlighted.png')" } : {}}
+          title="LCELive"
+        >
+          <img src="/images/friends.png" alt="LCELive" className="w-8 h-8 object-contain" style={{ imageRendering: 'pixelated' }} />
         </button>
       </div>
     </motion.div>
