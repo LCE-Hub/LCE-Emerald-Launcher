@@ -28,7 +28,7 @@ const LceLiveView = memo(function LceLiveView() {
   const [acceptInvite, setAcceptInvite] = useState<GameInvite | null>(null);
   const [friends, setFriends] = useState<LceLiveAccount[]>([]);
   const [incomingReqs, setIncomingReqs] = useState<FriendRequest[]>([]);
-  const [_outgoingReqs, setOutgoingReqs] = useState<FriendRequest[]>([]);
+  const [outgoingReqs, setOutgoingReqs] = useState<FriendRequest[]>([]);
   const [invites, setInvites] = useState<GameInvite[]>([]);
   const [linkData, setLinkData] = useState<any>(null);
   const [linkError, setLinkError] = useState<string | null>(null);
@@ -327,6 +327,17 @@ const LceLiveView = memo(function LceLiveView() {
             ),
         });
       });
+      outgoingReqs.forEach((r) => {
+        items.push({
+          id: `req_out_${r.accountId}`,
+          type: "request_out",
+          label: r.displayName,
+          onClick: () =>
+            handleAction(() =>
+              lceLiveService.declineFriendRequest(r.accountId),
+            ),
+        });
+      });
     } else if (currentTab === "invites") {
       invites.forEach((inv) => {
         items.push({
@@ -349,6 +360,7 @@ const LceLiveView = memo(function LceLiveView() {
     currentTab,
     friends,
     incomingReqs,
+    outgoingReqs,
     invites,
     linkData,
     playPressSound,
@@ -637,7 +649,11 @@ const LceLiveView = memo(function LceLiveView() {
                                 ? incomingReqs.find(
                                     (f) => `req_in_${f.accountId}` === item.id,
                                   )?.username
-                                : "Invite"}
+                                : item.type === "request_out"
+                                  ? outgoingReqs.find(
+                                      (f) => `req_out_${f.accountId}` === item.id,
+                                    )?.username
+                                  : "Invite"}
                           </span>
                         </div>
                       </div>
@@ -690,6 +706,20 @@ const LceLiveView = memo(function LceLiveView() {
                               REMOVE
                             </button>
                           </>
+                        )}
+                        {item.type === "request_out" && (
+                          <button
+                            className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow transition-transform ${isFocused ? "text-white scale-105 shadow-md" : "text-gray-300"}`}
+                            style={{
+                              backgroundImage:
+                                "url('/images/Button_Background.png')",
+                              backgroundSize: "100% 100%",
+                              imageRendering: "pixelated",
+                            }}
+                            onClick={item.onClick}
+                          >
+                            CANCEL
+                          </button>
                         )}
                         {(item.type === "request_in" ||
                           item.type === "invite") && (
