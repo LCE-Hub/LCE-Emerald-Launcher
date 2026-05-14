@@ -2470,7 +2470,7 @@ async fn join_game(
     api_base_url: String,
     access_token: String,
     host_ip: String,
-    host_port: u16,
+    _host_port: u16,
     session_id: String,
     instance_id: String,
 ) -> Result<(), String> {
@@ -2486,21 +2486,10 @@ async fn join_game(
     let ws_base = ws_base_url(&api_base_url);
     let relay_url = format!("{}/api/relay/ws?sessionId={}&role=joiner", ws_base, session_id);
 
-    let host_ip_clone = host_ip.clone();
     let cancel_clone = cancel.clone();
     let proxy_state_ref: &ProxyGuard = &*proxy_state;
     let proxy_fut = async move {
-        let direct = tokio::time::timeout(
-            std::time::Duration::from_secs(3),
-            run_direct_proxy(proxy_state_ref, &host_ip_clone, host_port, cancel_clone.clone()),
-        ).await;
-
-        match direct {
-            Ok(Ok(port)) => Ok(port),
-            _ => {
-                run_relay_proxy(proxy_state_ref, &relay_url, &access_token, cancel_clone).await
-            }
-        }
+        run_relay_proxy(proxy_state_ref, &relay_url, &access_token, cancel_clone).await
     };
 
     let proxy_port = proxy_fut.await?;

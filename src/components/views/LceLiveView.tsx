@@ -36,7 +36,6 @@ const LceLiveView = memo(function LceLiveView() {
   const [isHosting, setIsHosting] = useState(false);
   const [hostIp, setHostIp] = useState("");
   const [hostPort, setHostPort] = useState(19132);
-  const [isDiscovering, setIsDiscovering] = useState(false);
   const [invitedFriends, setInvitedFriends] = useState<Set<string>>(new Set());
   const [hostSessionId, setHostSessionId] = useState<string>("");
   const [relayStarted, setRelayStarted] = useState(false);
@@ -172,32 +171,13 @@ const LceLiveView = memo(function LceLiveView() {
 
   useEffect(() => {
     if (!isGameRunning || isHosting) return;
-    let cancelled = false;
-    setIsDiscovering(true);
     const sessionId = crypto.randomUUID();
     setHostSessionId(sessionId);
+    setHostIp("0.0.0.0");
+    setHostPort(25565);
     setRelayStarted(false);
     setInvitedFriends(new Set());
-    TauriService.stunDiscover()
-      .then((endpoint) => {
-        if (cancelled) return;
-        setHostIp(endpoint.ip);
-        setHostPort(25565);
-        setIsHosting(true);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setHostIp("127.0.0.1");
-        setHostPort(25565);
-        setIsHosting(true);
-      })
-      .finally(() => {
-        if (!cancelled) setIsDiscovering(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
+    setIsHosting(true);
   }, [isGameRunning]);
 
   useEffect(() => {
@@ -222,18 +202,8 @@ const LceLiveView = memo(function LceLiveView() {
         setRelayStarted(true);
         const baseUrl = lceLiveService.apiBaseUrl;
         const accessToken = lceLiveService.accessToken ?? "";
-        TauriService.startHostRelay(
-          baseUrl,
-          accessToken,
-          hostSessionId,
-          25565,
-        ).catch((relayErr: any) => {
-          const relayMsg =
-            typeof relayErr === "string"
-              ? relayErr
-              : relayErr?.message || "Unknown error";
-          console.warn("Relay failed:", relayMsg);
-        });
+        TauriService.startHostRelay(baseUrl, accessToken, hostSessionId, 25565)
+          .catch(() => console.warn("Relay failed"));
       }
     } catch (e: any) {
       const msg = typeof e === "string" ? e : e?.message || "Unknown error";
@@ -347,7 +317,6 @@ const LceLiveView = memo(function LceLiveView() {
     playPressSound,
     isGameRunning,
     isHosting,
-    isDiscovering,
   ]);
 
   const tabs = ["friends", "requests", "invites"];
