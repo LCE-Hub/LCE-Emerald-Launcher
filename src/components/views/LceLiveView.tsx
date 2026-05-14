@@ -14,6 +14,7 @@ import {
 } from "../../services/LceLiveService";
 import { TauriService } from "../../services/TauriService";
 import ChooseInstanceModal from "../modals/ChooseInstanceModal";
+import QRCode from "qrcode";
 
 const LceLiveView = memo(function LceLiveView() {
   const { setActiveView } = useUI();
@@ -43,6 +44,7 @@ const LceLiveView = memo(function LceLiveView() {
   const [addFriendUsername, setAddFriendUsername] = useState("");
   const addFriendInputRef = useRef<HTMLInputElement>(null);
   const [errorModal, setErrorModal] = useState<string | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fetchSocialData = async () => {
@@ -122,6 +124,20 @@ const LceLiveView = memo(function LceLiveView() {
       if (pollInterval) clearInterval(pollInterval);
     };
   }, [currentTab, linkData]);
+
+  useEffect(() => {
+    if (!linkData?.verificationUri || !linkData?.userCode) return;
+    const authUrl = `${linkData.verificationUri}?code=${linkData.userCode}`;
+    QRCode.toDataURL(authUrl, { width: 200, margin: 1 }, (err, url) => {
+      if (!err) setQrDataUrl(url);
+    });
+  }, [linkData]);
+
+  const openAuthUrl = useCallback(() => {
+    if (!linkData?.verificationUri || !linkData?.userCode) return;
+    const authUrl = `${linkData.verificationUri}?code=${linkData.userCode}`;
+    TauriService.openUrl(authUrl);
+  }, [linkData]);
 
   const handleLogout = () => {
     playPressSound();
@@ -433,26 +449,48 @@ const LceLiveView = memo(function LceLiveView() {
   const renderContent = () => {
     if (currentTab === "device_link") {
       return (
-        <div className="flex flex-col items-center justify-center space-y-6 flex-1 text-center py-20">
+        <div className="flex flex-col items-center justify-center flex-1 text-center py-12">
           {!linkData ? (
-            <p className="text-xl text-[#2a2a2a] font-bold">
+            <p className="text-lg text-[#2a2a2a] font-bold">
               {linkError || "Starting device link..."}
             </p>
           ) : (
-            <>
-              <p className="text-2xl text-[#2a2a2a] font-bold">
-                Open this link in your browser:
-              </p>
-              <p className="text-[#111] text-3xl font-bold tracking-widest break-words bg-black/10 px-6 py-2 rounded shadow-inner">
-                {linkData.verificationUri}
-              </p>
-              <p className="text-2xl text-[#2a2a2a] font-bold mt-8">
-                And enter the code:
-              </p>
-              <p className="text-[#111] text-6xl tracking-[0.2em] font-bold mt-2 bg-black/10 px-8 py-4 rounded shadow-inner">
-                {linkData.userCode}
-              </p>
-            </>
+            <div className="flex items-start justify-center gap-10 w-full max-w-2xl">
+              <div className="flex flex-col items-center space-y-4 flex-1 min-w-0">
+                <p className="text-lg text-[#2a2a2a] font-bold">
+                  Open this link in your browser:
+                </p>
+                <p className="text-[#111] text-base font-bold tracking-widest break-all bg-black/10 px-4 py-2 rounded shadow-inner">
+                  {linkData.verificationUri}
+                </p>
+                <p className="text-lg text-[#2a2a2a] font-bold">
+                  And enter the code:
+                </p>
+                <p className="text-[#111] text-4xl tracking-[0.2em] font-bold bg-black/10 px-6 py-3 rounded shadow-inner">
+                  {linkData.userCode}
+                </p>
+              </div>
+              <div className="flex flex-col items-center gap-3 shrink-0">
+                {qrDataUrl && (
+                  <img
+                    src={qrDataUrl}
+                    alt="QR Code"
+                    className="w-48 h-48 image-rendering-pixelated"
+                  />
+                )}
+                <button
+                  onClick={openAuthUrl}
+                  className="h-10 px-6 flex items-center justify-center text-white mc-text-shadow text-base font-bold uppercase tracking-widest outline-none border-none hover:text-[#FFFF55] transition-colors"
+                  style={{
+                    backgroundImage: "url('/images/button_highlighted.png')",
+                    backgroundSize: "100% 100%",
+                    imageRendering: "pixelated",
+                  }}
+                >
+                  Open in Browser
+                </button>
+              </div>
+            </div>
           )}
         </div>
       );
