@@ -11,7 +11,6 @@ use std::process::Stdio;
 use tauri::{AppHandle, Emitter, State, Manager};
 use futures_util::{StreamExt, SinkExt};
 use std::sync::Arc;
-use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::Mutex;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio_util::sync::CancellationToken;
@@ -948,8 +947,6 @@ struct LanBroadcastPacket {
     is_joinable: u8,
 }
 
-const LAN_FORWARD_BASE_PORT: u16 = 61000;
-
 struct LanServicesGuard(CancellationToken);
 impl Drop for LanServicesGuard {
     fn drop(&mut self) {
@@ -1008,107 +1005,6 @@ fn start_lan_broadcast(servers: &[(McServer, u16)], cancel: CancellationToken) {
             }
         });
     }
-}
-
-async fn run_tcp_forwarder(
-    listen_port: u16,
-    target_host: String,
-    target_port: u16,
-    cancel: CancellationToken,
-) {
-    let addr = format!("127.0.0.1:{listen_port}");
-    let listener = match TcpListener::bind(&addr).await {
-        Ok(l) => l,
-        Err(e) => {
-            eprintln!("[Emerald] Forwarder bind failed on {addr}: {e}");
-            return;
-        }
-    };
-
-    loop {
-        tokio::select! {
-            _ = cancel.cancelled() => break,
-            result = listener.accept() => {
-                let (mut client, _) = match result {
-                    Ok(c) => c,
-                    Err(e) => {
-                        eprintln!("[Emerald] Forwarder accept failed: {e}");
-                        continue;
-                    }
-                };
-                let target = format!("{target_host}:{target_port}");
-                tokio::spawn(async move {
-                    let mut server = match TcpStream::connect(&target).await {
-                        Ok(s) => s,
-                        Err(e) => {
-                            eprintln!("[Emerald] Forwarder connect to {target} failed: {e}");
-                            return;
-                        }
-                    };
-                    let _ = tokio::io::copy_bidirectional(&mut client, &mut server).await;
-                });
-            }
-        }
-    }
-}
-
-fn ensure_server_list(instance_dir: &PathBuf, servers: Vec<McServer>) {
-    let servers_db = instance_dir.join("servers.db");
-    let mut all_servers = Vec::new();
-    if let Ok(content) = fs::read(&servers_db) {
-        if content.len() >= 12 && &content[0..4] == b"MCSV" {
-            let count = u32::from_le_bytes(content[8..12].try_into().unwrap_or([0; 4]));
-            let mut pos = 12;
-            for _ in 0..count {
-                if pos + 2 > content.len() { break; }
-                let ip_len = u16::from_le_bytes(content[pos..pos+2].try_into().unwrap_or([0; 2])) as usize;
-                pos += 2;
-                if pos + ip_len > content.len() { break; }
-                let ip = String::from_utf8_lossy(&content[pos..pos+ip_len]).to_string();
-                pos += ip_len;
-                if pos + 2 > content.len() { break; }
-                let port = u16::from_le_bytes(content[pos..pos+2].try_into().unwrap_or([0; 2]));
-                pos += 2;
-                if pos + 2 > content.len() { break; }
-                let name_len = u16::from_le_bytes(content[pos..pos+2].try_into().unwrap_or([0; 2])) as usize;
-                pos += 2;
-                if pos + name_len > content.len() { break; }
-                let name = String::from_utf8_lossy(&content[pos..pos+name_len]).to_string();
-                pos += name_len;
-
-                all_servers.push(McServer { name, ip, port });
-            }
-        }
-    }
-
-    for s in servers {
-        all_servers.push(s);
-    }
-
-    let mut unique_servers = Vec::new();
-    let mut seen: std::collections::HashSet<(String, u16)> = std::collections::HashSet::new();
-    for s in all_servers {
-        let key = (s.ip.clone(), s.port);
-        if seen.insert(key) {
-            unique_servers.push(s);
-        }
-    }
-
-    let mut file_content = Vec::new();
-    file_content.extend_from_slice(b"MCSV");
-    file_content.extend_from_slice(&1u32.to_le_bytes());
-    file_content.extend_from_slice(&(unique_servers.len() as u32).to_le_bytes());
-    for server in unique_servers {
-        let ip_bytes = server.ip.as_bytes();
-        let name_bytes = server.name.as_bytes();
-        file_content.extend_from_slice(&(ip_bytes.len() as u16).to_le_bytes());
-        file_content.extend_from_slice(ip_bytes);
-        file_content.extend_from_slice(&server.port.to_le_bytes());
-        file_content.extend_from_slice(&(name_bytes.len() as u16).to_le_bytes());
-        file_content.extend_from_slice(name_bytes);
-    }
-    let _ = fs::create_dir_all(instance_dir);
-    let _ = fs::write(&servers_db, file_content);
 }
 
 fn perform_dlc_sync(app: &AppHandle, instance_dir: &PathBuf) -> Result<(), String> {
@@ -1460,23 +1356,27 @@ async fn launch_game(app: AppHandle, state: State<'_, GameState>, instance_id: S
     perform_instance_sync(&app, &instance_id).await?;
     let working_dir = get_instance_working_dir(&app, &instance_id);
     let config = load_config(app.clone());
-    let _lan_services: Option<LanServicesGuard> = if !servers.is_empty() {
+    let _lan_services: Option<LanServicesGuard> = if servers.iter().any(|s| s.ip == "127.0.0.1") {
         let cancel = CancellationToken::new();
         let servers_with_ports: Vec<(McServer, u16)> = servers
-            .into_iter()
-            .enumerate()
-            .map(|(i, s)| (s, LAN_FORWARD_BASE_PORT + i as u16))
+            .iter()
+            .map(|s| (s.clone(), s.port))
             .collect();
 
-        for (server, fp) in &servers_with_ports {
-            let cancel = cancel.clone();
-            let host = server.ip.clone();
-            let port = server.port;
-            let fp = *fp;
-            tokio::spawn(async move {
-                run_tcp_forwarder(fp, host, port, cancel).await;
-            });
+        let mut buf = b"MCSV".to_vec();
+        buf.extend_from_slice(&1u32.to_le_bytes());
+        buf.extend_from_slice(&(servers_with_ports.len() as u32).to_le_bytes());
+        for (server, _) in &servers_with_ports {
+            let ip_bytes = server.ip.as_bytes();
+            buf.extend_from_slice(&(ip_bytes.len() as u16).to_le_bytes());
+            buf.extend_from_slice(ip_bytes);
+            buf.extend_from_slice(&server.port.to_le_bytes());
+            let name_bytes = server.name.as_bytes();
+            buf.extend_from_slice(&(name_bytes.len() as u16).to_le_bytes());
+            buf.extend_from_slice(name_bytes);
         }
+        let _ = fs::create_dir_all(&working_dir);
+        let _ = fs::write(working_dir.join("servers.db"), &buf);
 
         start_lan_broadcast(&servers_with_ports, cancel.clone());
         Some(LanServicesGuard(cancel))
