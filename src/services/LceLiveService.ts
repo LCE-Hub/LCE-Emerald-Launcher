@@ -122,35 +122,27 @@ export class LceLiveService {
     }
   }
 
-  private async request(
+  private async performAuthenticatedRequest(
     method: string,
     path: string,
-    body?: any,
-    authed: boolean = true,
+    bodyStr: string | null,
     retryCount: number = 0,
-  ): Promise<any> {
-    if (authed && this._session?.refreshToken && retryCount === 0) {
-      try {
-        await this.refreshSession(); //neo: i do this on every request only because it doesnt always return 401
-      } catch (err) {}
+  ): Promise<{ status: number; body: string }> {
+    const accessToken = this._session?.accessToken;
+    if (!accessToken) {
+      throw new Error("Not signed in to LCELive.");
     }
 
     const headers: Record<string, string> = {
       Accept: "application/json",
       "User-Agent": "MCLCE-LceLive/1.0",
+      Authorization: `Bearer ${accessToken}`,
     };
-
-    if (body) {
+    if (bodyStr) {
       headers["Content-Type"] = "application/json";
     }
 
-    if (authed && this._session?.accessToken) {
-      headers["Authorization"] = `Bearer ${this._session.accessToken}`;
-    }
-
-    const bodyStr = body ? JSON.stringify(body) : null;
-
-    let res;
+    let res: { status: number; body: string };
     try {
       res = await TauriService.httpProxyRequest(
         method,
@@ -164,16 +156,55 @@ export class LceLiveService {
 
     if (
       res.status === 401 &&
-      authed &&
       this._session?.refreshToken &&
       retryCount < MAX_REFRESH_RETRIES
     ) {
       try {
         await this.refreshSession();
-        return this.request(method, path, body, authed, retryCount + 1);
+        return this.performAuthenticatedRequest(
+          method,
+          path,
+          bodyStr,
+          retryCount + 1,
+        );
       } catch (err) {
         this.logoutLocal();
         throw new Error("Session expired. Please log in again.");
+      }
+    }
+
+    return res;
+  }
+
+  private async request(
+    method: string,
+    path: string,
+    body?: any,
+    authed: boolean = true,
+  ): Promise<any> {
+    const bodyStr = body ? JSON.stringify(body) : null;
+
+    let res: { status: number; body: string };
+    if (authed) {
+      res = await this.performAuthenticatedRequest(method, path, bodyStr);
+    } else {
+      const headers: Record<string, string> = {
+        Accept: "application/json",
+        "User-Agent": "MCLCE-LceLive/1.0",
+      };
+      if (bodyStr) {
+        headers["Content-Type"] = "application/json";
+      }
+
+      try {
+        res = await TauriService.httpProxyRequest(
+          method,
+          `${this.baseUrl}${path}`,
+          bodyStr,
+          headers,
+        );
+      } catch (e) {
+        throw new Error(`Network error when calling ${path}: ${e}`);
       }
     }
 
