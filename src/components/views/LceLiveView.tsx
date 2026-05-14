@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, memo } from "react";
+import { useState, useEffect, useRef, useMemo, memo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useUI,
@@ -19,7 +19,7 @@ const LceLiveView = memo(function LceLiveView() {
   const { setActiveView } = useUI();
   const { animationsEnabled } = useConfig();
   const { playPressSound, playBackSound } = useAudio();
-  const { editions, installs } = useGame();
+  const { editions, installs, isGameRunning } = useGame();
   const [isSignedIn, setIsSignedIn] = useState(lceLiveService.signedIn);
   const [currentTab, setCurrentTab] = useState<
     "friends" | "requests" | "invites" | "device_link"
@@ -33,16 +33,11 @@ const LceLiveView = memo(function LceLiveView() {
   const [linkData, setLinkData] = useState<any>(null);
   const [linkError, setLinkError] = useState<string | null>(null);
   const [isHosting, setIsHosting] = useState(false);
-  const [hostStatus, setHostStatus] = useState("");
   const [hostIp, setHostIp] = useState("");
   const [hostPort, setHostPort] = useState(19132);
   const [isDiscovering, setIsDiscovering] = useState(false);
   const [invitedFriends, setInvitedFriends] = useState<Set<string>>(new Set());
-  const [showHostMethodPicker, setShowHostMethodPicker] = useState(false);
   const [hostSessionId, setHostSessionId] = useState<string>("");
-  const [hostMethodPick, setHostMethodPick] = useState<"direct" | "relay">(
-    "direct",
-  );
   const [relayStarted, setRelayStarted] = useState(false);
   const [isAddingFriend, setIsAddingFriend] = useState(false);
   const [addFriendUsername, setAddFriendUsername] = useState("");
@@ -145,56 +140,7 @@ const LceLiveView = memo(function LceLiveView() {
     }
   };
 
-  const handleStartHosting = () => {
-    playPressSound();
-    setRelayStarted(false);
-    setShowHostMethodPicker(true);
-  };
-
-  const handleHostDirect = async () => {
-    setShowHostMethodPicker(false);
-    setIsDiscovering(true);
-    setHostStatus("Discovering external IP...");
-    try {
-      const endpoint = await TauriService.stunDiscover();
-      setHostIp(endpoint.ip);
-      setHostPort(25565);
-      setIsHosting(true);
-      setHostStatus(`Hosting at ${endpoint.ip}:25565`);
-      setInvitedFriends(new Set());
-      setHostSessionId("");
-    } catch (e: any) {
-      const msg = typeof e === "string" ? e : e?.message || "Unknown error";
-      setErrorModal("STUN discovery failed: " + msg);
-      setHostStatus("");
-    } finally {
-      setIsDiscovering(false);
-    }
-  };
-
-  const handleHostRelay = async () => {
-    setShowHostMethodPicker(false);
-    setIsDiscovering(true);
-    setHostStatus("Discovering external IP for invite...");
-    const sessionId = crypto.randomUUID();
-    setHostSessionId(sessionId);
-    try {
-      const endpoint = await TauriService.stunDiscover();
-      setHostIp(endpoint.ip);
-      setHostPort(25565);
-    } catch {
-      setHostIp("127.0.0.1");
-      setHostPort(25565);
-    }
-    setRelayStarted(false);
-    setIsHosting(true);
-    setHostStatus("Relay ready - invite friends to activate");
-    setInvitedFriends(new Set());
-    setIsDiscovering(false);
-  };
-
-  const handleStopHosting = async () => {
-    playPressSound();
+  const stopHosting = useCallback(async () => {
     try {
       await TauriService.stopProxy();
       await lceLiveService.deactivateGameInvites();
@@ -202,12 +148,47 @@ const LceLiveView = memo(function LceLiveView() {
       console.warn("Stop hosting failed", e);
     }
     setIsHosting(false);
-    setHostStatus("");
     setHostIp("");
     setInvitedFriends(new Set());
     setHostSessionId("");
     setRelayStarted(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isGameRunning || isHosting) return;
+    let cancelled = false;
+    setIsDiscovering(true);
+    const sessionId = crypto.randomUUID();
+    setHostSessionId(sessionId);
+    setRelayStarted(false);
+    setInvitedFriends(new Set());
+    TauriService.stunDiscover()
+      .then((endpoint) => {
+        if (cancelled) return;
+        setHostIp(endpoint.ip);
+        setHostPort(25565);
+        setIsHosting(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setHostIp("127.0.0.1");
+        setHostPort(25565);
+        setIsHosting(true);
+      })
+      .finally(() => {
+        if (!cancelled) setIsDiscovering(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isGameRunning]);
+
+  useEffect(() => {
+    if (!isGameRunning && isHosting) {
+      stopHosting();
+    }
+  }, [isGameRunning, isHosting, stopHosting]);
 
   const handleInviteFriend = async (friend: LceLiveAccount) => {
     playPressSound();
@@ -223,19 +204,20 @@ const LceLiveView = memo(function LceLiveView() {
       setInvitedFriends((prev) => new Set(prev).add(friend.accountId));
       if (hostSessionId && !relayStarted) {
         setRelayStarted(true);
-        setHostStatus("Connecting relay...");
         const baseUrl = lceLiveService.apiBaseUrl;
         const accessToken = lceLiveService.accessToken ?? "";
-        TauriService.startHostRelay(baseUrl, accessToken, hostSessionId, 25565)
-          .then(() => setHostStatus("Relay active"))
-          .catch((relayErr: any) => {
-            const relayMsg =
-              typeof relayErr === "string"
-                ? relayErr
-                : relayErr?.message || "Unknown error";
-            console.warn("Relay failed:", relayMsg);
-            setHostStatus("Relay disconnected");
-          });
+        TauriService.startHostRelay(
+          baseUrl,
+          accessToken,
+          hostSessionId,
+          25565,
+        ).catch((relayErr: any) => {
+          const relayMsg =
+            typeof relayErr === "string"
+              ? relayErr
+              : relayErr?.message || "Unknown error";
+          console.warn("Relay failed:", relayMsg);
+        });
       }
     } catch (e: any) {
       const msg = typeof e === "string" ? e : e?.message || "Unknown error";
@@ -266,23 +248,6 @@ const LceLiveView = memo(function LceLiveView() {
         });
       }
     } else if (currentTab === "friends") {
-      if (!isDiscovering && !showHostMethodPicker) {
-        if (!isHosting) {
-          items.push({
-            id: "host_game",
-            type: "button",
-            label: "Host Game",
-            onClick: handleStartHosting,
-          });
-        } else {
-          items.push({
-            id: "stop_hosting",
-            type: "button",
-            label: "Stop Hosting",
-            onClick: handleStopHosting,
-          });
-        }
-      }
       items.push({
         id: "add_friend",
         type: "button",
@@ -304,11 +269,11 @@ const LceLiveView = memo(function LceLiveView() {
           id: `friend_${f.accountId}`,
           type: "friend",
           label: f.displayName,
-          onClick: isHosting
+          onClick: isGameRunning
             ? () => handleInviteFriend(f)
             : () =>
                 handleAction(() => lceLiveService.removeFriend(f.accountId)),
-          onClickSecondary: isHosting
+          onClickSecondary: isGameRunning
             ? () => handleAction(() => lceLiveService.removeFriend(f.accountId))
             : undefined,
         });
@@ -364,9 +329,9 @@ const LceLiveView = memo(function LceLiveView() {
     invites,
     linkData,
     playPressSound,
+    isGameRunning,
     isHosting,
     isDiscovering,
-    showHostMethodPicker,
   ]);
 
   const tabs = ["friends", "requests", "invites"];
@@ -390,29 +355,6 @@ const LceLiveView = memo(function LceLiveView() {
             );
             setIsAddingFriend(false);
           }
-        }
-        return;
-      }
-
-      if (showHostMethodPicker) {
-        if (e.key === "Escape" || e.key === "Backspace") {
-          setShowHostMethodPicker(false);
-          playBackSound();
-        } else if (
-          e.key === "ArrowLeft" ||
-          e.key === "ArrowRight" ||
-          e.key === "q" ||
-          e.key === "Q" ||
-          e.key === "e" ||
-          e.key === "E"
-        ) {
-          setHostMethodPick((prev: "direct" | "relay") =>
-            prev === "direct" ? "relay" : "direct",
-          );
-          playPressSound();
-        } else if (e.key === "Enter") {
-          if (hostMethodPick === "direct") handleHostDirect();
-          else handleHostRelay();
         }
         return;
       }
@@ -467,10 +409,6 @@ const LceLiveView = memo(function LceLiveView() {
     isAddingFriend,
     addFriendUsername,
     errorModal,
-    showHostMethodPicker,
-    hostMethodPick,
-    handleHostDirect,
-    handleHostRelay,
   ]);
 
   useEffect(() => {
@@ -524,85 +462,32 @@ const LceLiveView = memo(function LceLiveView() {
     const listItems = menuItems.filter((m) => m.type !== "button");
     return (
       <div className="flex flex-col h-full space-y-4">
-        {showHostMethodPicker ? (
+        {topButtons.length > 0 && (
           <div className="flex gap-4 flex-wrap">
-            <button
-              onClick={handleHostDirect}
-              className={`flex-1 h-12 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${hostMethodPick === "direct" ? "text-[#FFFF55] mc-text-shadow scale-[1.02] z-10 relative drop-shadow-md" : "text-white mc-text-shadow hover:text-gray-200"}`}
-              style={{
-                backgroundImage:
-                  hostMethodPick === "direct"
-                    ? "url('/images/button_highlighted.png')"
-                    : "url('/images/Button_Background.png')",
-                backgroundSize: "100% 100%",
-                imageRendering: "pixelated",
-              }}
-            >
-              Direct (STUN)
-            </button>
-            <button
-              onClick={handleHostRelay}
-              className={`flex-1 h-12 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${hostMethodPick === "relay" ? "text-[#FFFF55] mc-text-shadow scale-[1.02] z-10 relative drop-shadow-md" : "text-white mc-text-shadow hover:text-gray-200"}`}
-              style={{
-                backgroundImage:
-                  hostMethodPick === "relay"
-                    ? "url('/images/button_highlighted.png')"
-                    : "url('/images/Button_Background.png')",
-                backgroundSize: "100% 100%",
-                imageRendering: "pixelated",
-              }}
-            >
-              Relay
-            </button>
-            <button
-              onClick={() => {
-                setShowHostMethodPicker(false);
-                playBackSound();
-              }}
-              className="flex-1 h-12 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all text-white mc-text-shadow hover:text-gray-200"
-              style={{
-                backgroundImage: "url('/images/Button_Background.png')",
-                backgroundSize: "100% 100%",
-                imageRendering: "pixelated",
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
-          topButtons.length > 0 && (
-            <div className="flex gap-4 flex-wrap">
-              {topButtons.map((btn) => {
-                const idx = menuItems.indexOf(btn);
-                const isFocused = focusIndex === idx;
-                return (
-                  <button
-                    key={btn.id}
-                    data-index={idx}
-                    onMouseEnter={() => setFocusIndex(idx)}
-                    onClick={btn.onClick}
-                    className={`flex-1 h-12 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${isFocused ? "text-[#FFFF55] mc-text-shadow scale-[1.02] z-10 relative drop-shadow-md" : "text-white mc-text-shadow hover:text-gray-200"}`}
-                    style={{
-                      backgroundImage: isFocused
-                        ? "url('/images/button_highlighted.png')"
-                        : "url('/images/Button_Background.png')",
-                      backgroundSize: "100% 100%",
-                      imageRendering: "pixelated",
-                    }}
-                  >
-                    {btn.label}
-                  </button>
-                );
-              })}
-            </div>
-          )
-        )}
-        {hostStatus && (
-          <div className="text-center text-sm text-[#FFFF55] mc-text-shadow py-1 tracking-wider">
-            {hostStatus}
+            {topButtons.map((btn) => {
+              const idx = menuItems.indexOf(btn);
+              const isFocused = focusIndex === idx;
+              return (
+                <button
+                  key={btn.id}
+                  data-index={idx}
+                  onMouseEnter={() => setFocusIndex(idx)}
+                  onClick={btn.onClick}
+                  className={`flex-1 h-12 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${isFocused ? "text-[#FFFF55] mc-text-shadow scale-[1.02] z-10 relative drop-shadow-md" : "text-white mc-text-shadow hover:text-gray-200"}`}
+                  style={{
+                    backgroundImage: isFocused
+                      ? "url('/images/button_highlighted.png')"
+                      : "url('/images/Button_Background.png')",
+                    backgroundSize: "100% 100%",
+                    imageRendering: "pixelated",
+                  }}
+                >
+                  {btn.label}
+                </button>
+              );
+            })}
           </div>
         )}
-
         <div className="flex flex-col flex-1 bg-black/5 shadow-inner rounded overflow-hidden border-4 border-[#222]">
           <div className="bg-black/10 px-4 py-3 text-[#2a2a2a] font-bold tracking-widest uppercase border-b-4 border-[#222] flex justify-between shadow-sm z-10">
             <span>
@@ -651,14 +536,15 @@ const LceLiveView = memo(function LceLiveView() {
                                   )?.username
                                 : item.type === "request_out"
                                   ? outgoingReqs.find(
-                                      (f) => `req_out_${f.accountId}` === item.id,
+                                      (f) =>
+                                        `req_out_${f.accountId}` === item.id,
                                     )?.username
                                   : "Invite"}
                           </span>
                         </div>
                       </div>
                       <div className="flex space-x-3 pr-2 shrink-0">
-                        {item.type === "friend" && !isHosting && (
+                        {item.type === "friend" && !isGameRunning && (
                           <button
                             className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow transition-transform ${isFocused ? "text-white scale-105 shadow-md" : "text-gray-300"}`}
                             style={{
@@ -672,7 +558,7 @@ const LceLiveView = memo(function LceLiveView() {
                             REMOVE
                           </button>
                         )}
-                        {item.type === "friend" && isHosting && (
+                        {item.type === "friend" && isGameRunning && (
                           <>
                             <button
                               className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow transition-transform ${isFocused ? "text-white scale-105 shadow-md" : "text-gray-300"}`}

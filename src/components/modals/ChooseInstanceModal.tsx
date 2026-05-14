@@ -25,13 +25,10 @@ export default function ChooseInstanceModal({
   const [error, setError] = useState<string>("");
   const [isJoining, setIsJoining] = useState(false);
   const [focusIndex, setFocusIndex] = useState(0);
-  const [connectionMethod, setConnectionMethod] = useState<"direct" | "relay">("direct");
 
   const validInstances = editions.filter((e: any) =>
     installs.includes(e.instanceId)
   );
-
-  const hasRelay = !!(invite?.signalingSessionId);
 
   useEffect(() => {
     if (!isOpen) {
@@ -40,7 +37,6 @@ export default function ChooseInstanceModal({
       setError("");
       setIsJoining(false);
       setFocusIndex(0);
-      setConnectionMethod("direct");
     }
   }, [isOpen]);
 
@@ -61,26 +57,11 @@ export default function ChooseInstanceModal({
       const hostIp = inviteData.hostIp || (typeof invite.from !== 'string' && (invite as any).from?.hostIp);
       const hostPort = inviteData.hostPort || invite.hostPort;
       const sessionId = inviteData.signalingSessionId || invite.signalingSessionId || "";
+      const baseUrl = lceLiveService.apiBaseUrl;
+      const accessToken = lceLiveService.accessToken ?? "";
 
-      if (connectionMethod === "relay") {
-        if (!sessionId) {
-          throw new Error("Relay connection is not available for this invite.");
-        }
-        setStatus("Connecting via relay...");
-        const baseUrl = lceLiveService.apiBaseUrl;
-        const accessToken = lceLiveService.accessToken ?? "";
-        const port = await TauriService.startRelayProxy(baseUrl, accessToken, sessionId);
-        setStatus("Launching game...");
-        await TauriService.launchGame(selectedInstance, [
-          { name: invite.hostName || "LCELive Game", ip: "127.0.0.1", port }
-        ]);
-      } else {
-        setStatus("Launching game...");
-        await TauriService.stopProxy();
-        await TauriService.launchGame(selectedInstance, [
-          { name: invite.hostName || "LCELive Game", ip: hostIp, port: hostPort }
-        ]);
-      }
+      setStatus("Connecting (try direct, fallback relay)...");
+      await TauriService.joinGame(baseUrl, accessToken, hostIp, hostPort, sessionId, selectedInstance);
       onClose();
     } catch (e: any) {
       setError(e.toString());
@@ -180,42 +161,6 @@ export default function ChooseInstanceModal({
                 No installed instances available. Install a version first.
               </p>
             )}
-
-            <div className="w-full mb-3 flex flex-col items-center gap-1">
-              <span className="text-gray-400 text-xs mc-text-shadow uppercase tracking-wider">
-                Connection Method
-              </span>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setConnectionMethod("direct")}
-                  className={`px-4 py-1.5 text-sm font-bold mc-text-shadow uppercase tracking-wider outline-none border-none transition-all ${
-                    connectionMethod === "direct"
-                      ? "text-[#FFFF55] bg-white/15 border-l-2 border-[#FFFF55]"
-                      : "text-gray-400 bg-black/20 hover:bg-black/30 border-l-2 border-transparent"
-                  }`}
-                  style={{ imageRendering: "pixelated" }}
-                >
-                  Direct
-                </button>
-                <button
-                  onClick={() => hasRelay && setConnectionMethod("relay")}
-                  className={`px-4 py-1.5 text-sm font-bold mc-text-shadow uppercase tracking-wider outline-none border-none transition-all ${
-                    connectionMethod === "relay"
-                      ? "text-[#FFFF55] bg-white/15 border-l-2 border-[#FFFF55]"
-                      : hasRelay
-                        ? "text-gray-400 bg-black/20 hover:bg-black/30 border-l-2 border-transparent"
-                        : "text-gray-600 bg-black/10 border-l-2 border-transparent cursor-not-allowed"
-                  }`}
-                  style={{ imageRendering: "pixelated" }}
-                  title={!hasRelay ? "Relay not available for this invite" : "Connect via LCELive relay server"}
-                >
-                  Relay
-                </button>
-              </div>
-              {!hasRelay && (
-                <span className="text-gray-600 text-[10px] mc-text-shadow">Relay not available for this invite</span>
-              )}
-            </div>
 
             {error && (
               <div className="text-red-500 text-center mc-text-shadow uppercase text-xs tracking-widest mb-3">
