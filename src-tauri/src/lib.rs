@@ -1356,28 +1356,12 @@ async fn launch_game(app: AppHandle, state: State<'_, GameState>, instance_id: S
     perform_instance_sync(&app, &instance_id).await?;
     let working_dir = get_instance_working_dir(&app, &instance_id);
     let config = load_config(app.clone());
-    let _lan_services: Option<LanServicesGuard> = if servers.iter().any(|s| s.ip == "127.0.0.1") {
+    let _lan_services: Option<LanServicesGuard> = if !servers.is_empty() {
         let cancel = CancellationToken::new();
         let servers_with_ports: Vec<(McServer, u16)> = servers
             .iter()
             .map(|s| (s.clone(), s.port))
             .collect();
-
-        let mut buf = b"MCSV".to_vec();
-        buf.extend_from_slice(&1u32.to_le_bytes());
-        buf.extend_from_slice(&(servers_with_ports.len() as u32).to_le_bytes());
-        for (server, _) in &servers_with_ports {
-            let ip_bytes = server.ip.as_bytes();
-            buf.extend_from_slice(&(ip_bytes.len() as u16).to_le_bytes());
-            buf.extend_from_slice(ip_bytes);
-            buf.extend_from_slice(&server.port.to_le_bytes());
-            let name_bytes = server.name.as_bytes();
-            buf.extend_from_slice(&(name_bytes.len() as u16).to_le_bytes());
-            buf.extend_from_slice(name_bytes);
-        }
-        let _ = fs::create_dir_all(&working_dir);
-        let _ = fs::write(working_dir.join("servers.db"), &buf);
-
         start_lan_broadcast(&servers_with_ports, cancel.clone());
         Some(LanServicesGuard(cancel))
     } else {
@@ -2442,49 +2426,18 @@ async fn stop_proxy(proxy_state: State<'_, ProxyGuard>) -> Result<(), String> {
 async fn join_game(
     app: AppHandle,
     game_state: State<'_, GameState>,
-    proxy_state: State<'_, ProxyGuard>,
-    api_base_url: String,
-    access_token: String,
+    _proxy_state: State<'_, ProxyGuard>,
+    _api_base_url: String,
+    _access_token: String,
     host_ip: String,
     host_port: u16,
-    session_id: String,
+    _session_id: String,
     instance_id: String,
 ) -> Result<(), String> {
-    let cancel = CancellationToken::new();
-    {
-        let mut token = proxy_state.cancel_token.lock().await;
-        if let Some(old) = token.take() {
-            old.cancel();
-        }
-        *token = Some(cancel.clone());
-    }
-
-    let ws_base = ws_base_url(&api_base_url);
-    let relay_url = format!("{}/api/relay/ws?sessionId={}&role=joiner", ws_base, session_id);
-
-    let host_ip_clone = host_ip.clone();
-    let cancel_clone = cancel.clone();
-    let proxy_state_ref: &ProxyGuard = &*proxy_state;
-    let proxy_fut = async move {
-        let direct = tokio::time::timeout(
-            std::time::Duration::from_secs(3),
-            run_direct_proxy(proxy_state_ref, &host_ip_clone, host_port, cancel_clone.clone()),
-        ).await;
-
-        match direct {
-            Ok(Ok(port)) => Ok(port),
-            _ => {
-                run_relay_proxy(proxy_state_ref, &relay_url, &access_token, cancel_clone).await
-            }
-        }
-    };
-
-    let proxy_port = proxy_fut.await?;
-
     let server = McServer {
         name: host_ip.clone(),
-        ip: "127.0.0.1".into(),
-        port: proxy_port,
+        ip: host_ip,
+        port: host_port,
     };
 
     launch_game(app, game_state, instance_id, vec![server]).await
