@@ -2021,6 +2021,7 @@ async fn run_relay_proxy(
 ) -> Result<u16, String> {
     use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 
+    eprintln!("[Emerald] Joiner relay: connecting WS...");
     let mut request = ws_url
         .into_client_request()
         .map_err(|e| format!("Failed to build WS request: {}", e))?;
@@ -2040,11 +2041,13 @@ async fn run_relay_proxy(
     let (ws_stream, _) = tokio_tungstenite::connect_async(request)
         .await
         .map_err(|e| format!("Relay WS connect failed: {}", e))?;
+    eprintln!("[Emerald] Joiner relay: WS connected");
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
         .await
         .map_err(|e| format!("Bind failed: {}", e))?;
     let local_port = listener.local_addr().map_err(|e| e.to_string())?.port();
+    eprintln!("[Emerald] Joiner relay: bound on 127.0.0.1:{}", local_port);
 
     {
         let mut port = proxy_state.local_port.lock().await;
@@ -2052,11 +2055,19 @@ async fn run_relay_proxy(
     }
 
     tokio::spawn(async move {
+        eprintln!("[Emerald] Joiner relay: waiting for TCP accept on port {}...", local_port);
         let (tcp_stream, _) = tokio::select! {
-            result = listener.accept() => result.map_err(|e| format!("Accept failed: {}", e)).unwrap(),
-            _ = cancel.cancelled() => return,
+            result = listener.accept() => {
+                eprintln!("[Emerald] Joiner relay: TCP accepted");
+                result.map_err(|e| format!("Accept failed: {}", e)).unwrap()
+            },
+            _ = cancel.cancelled() => {
+                eprintln!("[Emerald] Joiner relay: cancelled before accept");
+                return;
+            },
         };
 
+        eprintln!("[Emerald] Joiner relay: starting forwarders");
         let (tcp_read, tcp_write) = tcp_stream.into_split();
         let (ws_write, ws_read) = ws_stream.split();
 
@@ -2069,15 +2080,27 @@ async fn run_relay_proxy(
                 tokio::select! {
                     result = tcp_read.read(&mut buf) => {
                         match result {
-                            Ok(0) | Err(_) => break,
+                            Ok(0) => {
+                                eprintln!("[Emerald] Joiner relay: TCP→WS EOF");
+                                break;
+                            },
+                            Err(e) => {
+                                eprintln!("[Emerald] Joiner relay: TCP→WS read error: {e}");
+                                break;
+                            },
                             Ok(n) => {
+                                eprintln!("[Emerald] Joiner relay: TCP→WS forwarding {} bytes", n);
                                 if ws_write.send(tokio_tungstenite::tungstenite::Message::Binary(buf[..n].to_vec())).await.is_err() {
+                                    eprintln!("[Emerald] Joiner relay: TCP→WS send error");
                                     break;
                                 }
                             }
                         }
                     }
-                    _ = cancel_ws.cancelled() => break,
+                    _ = cancel_ws.cancelled() => {
+                        eprintln!("[Emerald] Joiner relay: TCP→WS cancelled");
+                        break;
+                    },
                 }
             }
         });
@@ -2092,24 +2115,41 @@ async fn run_relay_proxy(
                     result = ws_read.next() => {
                         match result {
                             Some(Ok(tokio_tungstenite::tungstenite::Message::Binary(data))) => {
+                                eprintln!("[Emerald] Joiner relay: WS→TCP forwarding {} bytes", data.len());
                                 if tcp_write.write_all(&data).await.is_err() {
+                                    eprintln!("[Emerald] Joiner relay: WS→TCP write error");
                                     break;
                                 }
                             }
-                            Some(Ok(tokio_tungstenite::tungstenite::Message::Close(_))) | None => break,
+                            Some(Ok(tokio_tungstenite::tungstenite::Message::Close(_))) => {
+                                eprintln!("[Emerald] Joiner relay: WS→TCP close frame");
+                                break;
+                            }
+                            None => {
+                                eprintln!("[Emerald] Joiner relay: WS→TCP stream ended");
+                                break;
+                            }
+                            Some(Err(e)) => {
+                                eprintln!("[Emerald] Joiner relay: WS→TCP error: {e}");
+                                break;
+                            }
                             _ => {}
                         }
                     }
-                    _ = cancel_tcp.cancelled() => break,
+                    _ = cancel_tcp.cancelled() => {
+                        eprintln!("[Emerald] Joiner relay: WS→TCP cancelled");
+                        break;
+                    },
                 }
             }
         });
 
         tokio::select! {
-            _ = forward_tcp => {},
-            _ = forward_ws => {},
-            _ = cancel.cancelled() => {},
+            _ = forward_tcp => eprintln!("[Emerald] Joiner relay: forward_tcp done"),
+            _ = forward_ws => eprintln!("[Emerald] Joiner relay: forward_ws done"),
+            _ = cancel.cancelled() => eprintln!("[Emerald] Joiner relay: cancelled"),
         }
+        eprintln!("[Emerald] Joiner relay: relay task ended");
     });
 
     Ok(local_port)
@@ -2124,6 +2164,7 @@ async fn run_host_relay(
 ) -> Result<(), String> {
     use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 
+    eprintln!("[Emerald] Host relay: connecting WS...");
     let mut request = ws_url
         .into_client_request()
         .map_err(|e| format!("Failed to build WS request: {}", e))?;
@@ -2143,11 +2184,17 @@ async fn run_host_relay(
     let (ws_stream, _) = tokio_tungstenite::connect_async(request)
         .await
         .map_err(|e| format!("Host relay WS connect failed: {}", e))?;
+    eprintln!("[Emerald] Host relay: WS connected");
 
+    eprintln!("[Emerald] Host relay: connecting to game 127.0.0.1:{}...", game_port);
     let game_stream = loop {
         match tokio::net::TcpStream::connect(format!("127.0.0.1:{}", game_port)).await {
-            Ok(stream) => break stream,
-            Err(_) => {
+            Ok(stream) => {
+                eprintln!("[Emerald] Host relay: connected to game");
+                break stream;
+            },
+            Err(e) => {
+                eprintln!("[Emerald] Host relay: game connect failed (retrying): {e}");
                 tokio::select! {
                     _ = cancel.cancelled() => return Err("Host relay cancelled".into()),
                     _ = tokio::time::sleep(std::time::Duration::from_secs(2)) => {}
@@ -2156,6 +2203,7 @@ async fn run_host_relay(
         }
     };
 
+    eprintln!("[Emerald] Host relay: starting forwarders");
     let (game_read, game_write) = game_stream.into_split();
     let (ws_write, ws_read) = ws_stream.split();
 
@@ -2168,15 +2216,27 @@ async fn run_host_relay(
             tokio::select! {
                 result = game_read.read(&mut buf) => {
                     match result {
-                        Ok(0) | Err(_) => break,
+                        Ok(0) => {
+                            eprintln!("[Emerald] Host relay: game→WS EOF");
+                            break;
+                        },
+                        Err(e) => {
+                            eprintln!("[Emerald] Host relay: game→WS read error: {e}");
+                            break;
+                        },
                         Ok(n) => {
+                            eprintln!("[Emerald] Host relay: game→WS forwarding {} bytes", n);
                             if ws_write.send(tokio_tungstenite::tungstenite::Message::Binary(buf[..n].to_vec())).await.is_err() {
+                                eprintln!("[Emerald] Host relay: game→WS send error");
                                 break;
                             }
                         }
                     }
                 }
-                _ = cancel_ws.cancelled() => break,
+                _ = cancel_ws.cancelled() => {
+                    eprintln!("[Emerald] Host relay: game→WS cancelled");
+                    break;
+                },
             }
         }
     });
@@ -2191,23 +2251,39 @@ async fn run_host_relay(
                 result = ws_read.next() => {
                     match result {
                         Some(Ok(tokio_tungstenite::tungstenite::Message::Binary(data))) => {
+                            eprintln!("[Emerald] Host relay: WS→game forwarding {} bytes", data.len());
                             if game_write.write_all(&data).await.is_err() {
+                                eprintln!("[Emerald] Host relay: WS→game write error");
                                 break;
                             }
                         }
-                        Some(Ok(tokio_tungstenite::tungstenite::Message::Close(_))) | None => break,
+                        Some(Ok(tokio_tungstenite::tungstenite::Message::Close(_))) => {
+                            eprintln!("[Emerald] Host relay: WS→game close frame");
+                            break;
+                        }
+                        None => {
+                            eprintln!("[Emerald] Host relay: WS→game stream ended");
+                            break;
+                        }
+                        Some(Err(e)) => {
+                            eprintln!("[Emerald] Host relay: WS→game error: {e}");
+                            break;
+                        }
                         _ => {}
                     }
                 }
-                _ = cancel_ws2.cancelled() => break,
+                _ = cancel_ws2.cancelled() => {
+                    eprintln!("[Emerald] Host relay: WS→game cancelled");
+                    break;
+                },
             }
         }
     });
 
     tokio::select! {
-        _ = forward_game => {},
-        _ = forward_ws => {},
-        _ = cancel.cancelled() => {},
+        _ = forward_game => eprintln!("[Emerald] Host relay: forward_game done"),
+        _ = forward_ws => eprintln!("[Emerald] Host relay: forward_ws done"),
+        _ = cancel.cancelled() => eprintln!("[Emerald] Host relay: cancelled"),
     }
 
     Ok(())
