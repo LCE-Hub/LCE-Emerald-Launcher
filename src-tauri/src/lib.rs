@@ -2027,11 +2027,11 @@ async fn run_relay_proxy(
         .map_err(|e| format!("Relay WS connect failed: {}", e))?;
     eprintln!("[Emerald] Joiner relay: WS connected");
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:0")
         .await
         .map_err(|e| format!("Bind failed: {}", e))?;
     let local_port = listener.local_addr().map_err(|e| e.to_string())?.port();
-    eprintln!("[Emerald] Joiner relay: bound on 127.0.0.1:{}", local_port);
+    eprintln!("[Emerald] Joiner relay: bound on 0.0.0.0:{}", local_port);
 
     {
         let mut port = proxy_state.local_port.lock().await;
@@ -2283,7 +2283,7 @@ async fn run_direct_proxy(
         .await
         .map_err(|e| format!("Direct TCP connect failed: {}", e))?;
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:0")
         .await
         .map_err(|e| format!("Bind failed: {}", e))?;
     let local_port = listener.local_addr().map_err(|e| e.to_string())?.port();
