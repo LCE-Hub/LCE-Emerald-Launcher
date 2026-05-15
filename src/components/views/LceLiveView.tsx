@@ -332,11 +332,11 @@ const LceLiveView = memo(function LceLiveView() {
     } else if (currentTab === "requests") {
       incomingReqs.forEach((r) => {
         items.push({
-          id: `req_in_${r.accountId}`,
+          id: `req_in_${r.username}`,
           type: "request_in",
           label: r.displayName,
           onClick: () =>
-            handleAction(() => lceLiveService.acceptFriendRequest(r.accountId)),
+            handleAction(() => lceLiveService.sendFriendRequest(r.username)),
           onClickSecondary: () =>
             handleAction(() =>
               lceLiveService.declineFriendRequest(r.accountId),
@@ -345,7 +345,7 @@ const LceLiveView = memo(function LceLiveView() {
       });
       outgoingReqs.forEach((r) => {
         items.push({
-          id: `req_out_${r.accountId}`,
+          id: `req_out_${r.username}`,
           type: "request_out",
           label: r.displayName,
           onClick: () =>
@@ -416,13 +416,9 @@ const LceLiveView = memo(function LceLiveView() {
           setFocusIndex(0);
           playBackSound();
         } else if (e.key === "ArrowDown") {
-          setFocusIndex((prev) =>
-            prev === null || prev >= 2 ? 0 : prev + 1,
-          );
+          setFocusIndex((prev) => (prev === null || prev >= 2 ? 0 : prev + 1));
         } else if (e.key === "ArrowUp") {
-          setFocusIndex((prev) =>
-            prev === null || prev <= 0 ? 2 : prev - 1,
-          );
+          setFocusIndex((prev) => (prev === null || prev <= 0 ? 2 : prev - 1));
         } else if (e.key === "Enter") {
           if (focusIndex === 0) handleHostRelay();
           else if (focusIndex === 1) handleHostDirect();
@@ -921,9 +917,10 @@ const LceLiveView = memo(function LceLiveView() {
                 onClick={handleHostRelay}
                 className={`w-full h-14 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${focusIndex === 0 ? "text-[#FFFF55] mc-text-shadow scale-[1.02]" : "text-white mc-text-shadow hover:text-[#FFFF55]"}`}
                 style={{
-                  backgroundImage: focusIndex === 0
-                    ? "url('/images/button_highlighted.png')"
-                    : "url('/images/Button_Background.png')",
+                  backgroundImage:
+                    focusIndex === 0
+                      ? "url('/images/button_highlighted.png')"
+                      : "url('/images/Button_Background.png')",
                   backgroundSize: "100% 100%",
                   imageRendering: "pixelated",
                 }}
@@ -936,9 +933,10 @@ const LceLiveView = memo(function LceLiveView() {
                 onClick={handleHostDirect}
                 className={`w-full h-14 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${focusIndex === 1 ? "text-[#FFFF55] mc-text-shadow scale-[1.02]" : "text-white mc-text-shadow hover:text-[#FFFF55]"}`}
                 style={{
-                  backgroundImage: focusIndex === 1
-                    ? "url('/images/button_highlighted.png')"
-                    : "url('/images/Button_Background.png')",
+                  backgroundImage:
+                    focusIndex === 1
+                      ? "url('/images/button_highlighted.png')"
+                      : "url('/images/Button_Background.png')",
                   backgroundSize: "100% 100%",
                   imageRendering: "pixelated",
                 }}
@@ -955,9 +953,10 @@ const LceLiveView = memo(function LceLiveView() {
                 }}
                 className={`w-full h-14 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${focusIndex === 2 ? "text-[#FFFF55] mc-text-shadow scale-[1.02]" : "text-white mc-text-shadow hover:text-[#FFFF55]"}`}
                 style={{
-                  backgroundImage: focusIndex === 2
-                    ? "url('/images/button_highlighted.png')"
-                    : "url('/images/Button_Background.png')",
+                  backgroundImage:
+                    focusIndex === 2
+                      ? "url('/images/button_highlighted.png')"
+                      : "url('/images/Button_Background.png')",
                   backgroundSize: "100% 100%",
                   imageRendering: "pixelated",
                 }}
