@@ -41,9 +41,6 @@ const LceLiveView = memo(function LceLiveView() {
   const [invitedFriends, setInvitedFriends] = useState<Set<string>>(new Set());
   const [showHostMethodPicker, setShowHostMethodPicker] = useState(false);
   const [hostSessionId, setHostSessionId] = useState<string>("");
-  const [hostMethodPick, setHostMethodPick] = useState<"direct" | "relay">(
-    "direct",
-  );
   const [relayStarted, setRelayStarted] = useState(false);
   const [isAddingFriend, setIsAddingFriend] = useState(false);
   const [addFriendUsername, setAddFriendUsername] = useState("");
@@ -165,10 +162,12 @@ const LceLiveView = memo(function LceLiveView() {
     playPressSound();
     setRelayStarted(false);
     setShowHostMethodPicker(true);
+    setFocusIndex(0);
   };
 
   const handleHostDirect = async () => {
     setShowHostMethodPicker(false);
+    setFocusIndex(0);
     setIsDiscovering(true);
     setHostStatus("Discovering external IP...");
     try {
@@ -190,6 +189,7 @@ const LceLiveView = memo(function LceLiveView() {
 
   const handleHostRelay = async () => {
     setShowHostMethodPicker(false);
+    setFocusIndex(0);
     setIsDiscovering(true);
     setHostStatus("Discovering external IP for invite...");
     const sessionId = crypto.randomUUID();
@@ -413,22 +413,24 @@ const LceLiveView = memo(function LceLiveView() {
       if (showHostMethodPicker) {
         if (e.key === "Escape" || e.key === "Backspace") {
           setShowHostMethodPicker(false);
+          setFocusIndex(0);
           playBackSound();
-        } else if (
-          e.key === "ArrowLeft" ||
-          e.key === "ArrowRight" ||
-          e.key === "q" ||
-          e.key === "Q" ||
-          e.key === "e" ||
-          e.key === "E"
-        ) {
-          setHostMethodPick((prev: "direct" | "relay") =>
-            prev === "direct" ? "relay" : "direct",
+        } else if (e.key === "ArrowDown") {
+          setFocusIndex((prev) =>
+            prev === null || prev >= 2 ? 0 : prev + 1,
           );
-          playPressSound();
+        } else if (e.key === "ArrowUp") {
+          setFocusIndex((prev) =>
+            prev === null || prev <= 0 ? 2 : prev - 1,
+          );
         } else if (e.key === "Enter") {
-          if (hostMethodPick === "direct") handleHostDirect();
-          else handleHostRelay();
+          if (focusIndex === 0) handleHostRelay();
+          else if (focusIndex === 1) handleHostDirect();
+          else if (focusIndex === 2) {
+            setShowHostMethodPicker(false);
+            setFocusIndex(0);
+            playBackSound();
+          }
         }
         return;
       }
@@ -484,7 +486,6 @@ const LceLiveView = memo(function LceLiveView() {
     addFriendUsername,
     errorModal,
     showHostMethodPicker,
-    hostMethodPick,
     handleHostDirect,
     handleHostRelay,
   ]);
@@ -562,78 +563,31 @@ const LceLiveView = memo(function LceLiveView() {
     const listItems = menuItems.filter((m) => m.type !== "button");
     return (
       <div className="flex flex-col h-full space-y-4">
-        {showHostMethodPicker ? (
+        {topButtons.length > 0 && (
           <div className="flex gap-4 flex-wrap">
-            <button
-              onClick={handleHostDirect}
-              className={`flex-1 h-12 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${hostMethodPick === "direct" ? "text-[#FFFF55] mc-text-shadow scale-[1.02] z-10 relative drop-shadow-md" : "text-white mc-text-shadow hover:text-gray-200"}`}
-              style={{
-                backgroundImage:
-                  hostMethodPick === "direct"
-                    ? "url('/images/button_highlighted.png')"
-                    : "url('/images/Button_Background.png')",
-                backgroundSize: "100% 100%",
-                imageRendering: "pixelated",
-              }}
-            >
-              Direct (STUN)
-            </button>
-            <button
-              onClick={handleHostRelay}
-              className={`flex-1 h-12 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${hostMethodPick === "relay" ? "text-[#FFFF55] mc-text-shadow scale-[1.02] z-10 relative drop-shadow-md" : "text-white mc-text-shadow hover:text-gray-200"}`}
-              style={{
-                backgroundImage:
-                  hostMethodPick === "relay"
-                    ? "url('/images/button_highlighted.png')"
-                    : "url('/images/Button_Background.png')",
-                backgroundSize: "100% 100%",
-                imageRendering: "pixelated",
-              }}
-            >
-              Relay
-            </button>
-            <button
-              onClick={() => {
-                setShowHostMethodPicker(false);
-                playBackSound();
-              }}
-              className="flex-1 h-12 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all text-white mc-text-shadow hover:text-gray-200"
-              style={{
-                backgroundImage: "url('/images/Button_Background.png')",
-                backgroundSize: "100% 100%",
-                imageRendering: "pixelated",
-              }}
-            >
-              Cancel
-            </button>
+            {topButtons.map((btn) => {
+              const idx = menuItems.indexOf(btn);
+              const isFocused = focusIndex === idx;
+              return (
+                <button
+                  key={btn.id}
+                  data-index={idx}
+                  onMouseEnter={() => setFocusIndex(idx)}
+                  onClick={btn.onClick}
+                  className={`flex-1 h-12 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${isFocused ? "text-[#FFFF55] mc-text-shadow scale-[1.02] z-10 relative drop-shadow-md" : "text-white mc-text-shadow hover:text-gray-200"}`}
+                  style={{
+                    backgroundImage: isFocused
+                      ? "url('/images/button_highlighted.png')"
+                      : "url('/images/Button_Background.png')",
+                    backgroundSize: "100% 100%",
+                    imageRendering: "pixelated",
+                  }}
+                >
+                  {btn.label}
+                </button>
+              );
+            })}
           </div>
-        ) : (
-          topButtons.length > 0 && (
-            <div className="flex gap-4 flex-wrap">
-              {topButtons.map((btn) => {
-                const idx = menuItems.indexOf(btn);
-                const isFocused = focusIndex === idx;
-                return (
-                  <button
-                    key={btn.id}
-                    data-index={idx}
-                    onMouseEnter={() => setFocusIndex(idx)}
-                    onClick={btn.onClick}
-                    className={`flex-1 h-12 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${isFocused ? "text-[#FFFF55] mc-text-shadow scale-[1.02] z-10 relative drop-shadow-md" : "text-white mc-text-shadow hover:text-gray-200"}`}
-                    style={{
-                      backgroundImage: isFocused
-                        ? "url('/images/button_highlighted.png')"
-                        : "url('/images/Button_Background.png')",
-                      backgroundSize: "100% 100%",
-                      imageRendering: "pixelated",
-                    }}
-                  >
-                    {btn.label}
-                  </button>
-                );
-              })}
-            </div>
-          )
         )}
         {hostStatus && (
           <div className="text-center text-sm text-[#FFFF55] mc-text-shadow py-1 tracking-wider">
@@ -689,7 +643,8 @@ const LceLiveView = memo(function LceLiveView() {
                                   )?.username
                                 : item.type === "request_out"
                                   ? outgoingReqs.find(
-                                      (f) => `req_out_${f.accountId}` === item.id,
+                                      (f) =>
+                                        `req_out_${f.accountId}` === item.id,
                                     )?.username
                                   : "Invite"}
                           </span>
@@ -936,6 +891,79 @@ const LceLiveView = memo(function LceLiveView() {
                   Cancel
                 </button>
               </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showHostMethodPicker && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[105] flex items-center justify-center bg-black/80 backdrop-blur-sm outline-none border-none"
+          >
+            <div
+              className="relative w-[420px] p-8 flex flex-col items-center shadow-2xl gap-4"
+              style={{
+                backgroundImage: "url('/images/frame_background.png')",
+                backgroundSize: "100% 100%",
+                imageRendering: "pixelated",
+              }}
+            >
+              <h2 className="text-[#FFFF55] text-3xl mc-text-shadow mb-2 border-b-2 border-[#373737] pb-2 w-full text-center uppercase tracking-widest">
+                Host Game
+              </h2>
+              <button
+                data-index={0}
+                onMouseEnter={() => setFocusIndex(0)}
+                onClick={handleHostRelay}
+                className={`w-full h-14 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${focusIndex === 0 ? "text-[#FFFF55] mc-text-shadow scale-[1.02]" : "text-white mc-text-shadow hover:text-[#FFFF55]"}`}
+                style={{
+                  backgroundImage: focusIndex === 0
+                    ? "url('/images/button_highlighted.png')"
+                    : "url('/images/Button_Background.png')",
+                  backgroundSize: "100% 100%",
+                  imageRendering: "pixelated",
+                }}
+              >
+                Relay
+              </button>
+              <button
+                data-index={1}
+                onMouseEnter={() => setFocusIndex(1)}
+                onClick={handleHostDirect}
+                className={`w-full h-14 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${focusIndex === 1 ? "text-[#FFFF55] mc-text-shadow scale-[1.02]" : "text-white mc-text-shadow hover:text-[#FFFF55]"}`}
+                style={{
+                  backgroundImage: focusIndex === 1
+                    ? "url('/images/button_highlighted.png')"
+                    : "url('/images/Button_Background.png')",
+                  backgroundSize: "100% 100%",
+                  imageRendering: "pixelated",
+                }}
+              >
+                Direct (STUN)
+              </button>
+              <button
+                data-index={2}
+                onMouseEnter={() => setFocusIndex(2)}
+                onClick={() => {
+                  setShowHostMethodPicker(false);
+                  setFocusIndex(0);
+                  playBackSound();
+                }}
+                className={`w-full h-14 flex items-center justify-center text-xl font-bold uppercase tracking-widest outline-none border-none transition-all ${focusIndex === 2 ? "text-[#FFFF55] mc-text-shadow scale-[1.02]" : "text-white mc-text-shadow hover:text-[#FFFF55]"}`}
+                style={{
+                  backgroundImage: focusIndex === 2
+                    ? "url('/images/button_highlighted.png')"
+                    : "url('/images/Button_Background.png')",
+                  backgroundSize: "100% 100%",
+                  imageRendering: "pixelated",
+                }}
+              >
+                Cancel
+              </button>
             </div>
           </motion.div>
         )}
