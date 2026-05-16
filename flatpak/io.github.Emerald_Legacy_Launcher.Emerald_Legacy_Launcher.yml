@@ -8,7 +8,7 @@ sdk-extensions:
 command: emerald-legacy-launcher
 finish-args:
   - --share=network
-	- --share=ipc
+  - --share=ipc
   - --device=input
   - --socket=x11
   - --socket=wayland
