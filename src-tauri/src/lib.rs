@@ -1775,10 +1775,19 @@ async fn add_to_steam(
     title_base64: String,
     panorama_base64: String,
 ) -> Result<(), String> {
-    let exe_path = std::env::current_exe().map_err(|e| e.to_string())?;
-    let exe_str = exe_path.to_string_lossy().to_string();
-    let launch_options = format!("\"{}\"", instance_id);
-    let start_dir = exe_path.parent().map(|p| p.to_string_lossy().to_string()).unwrap_or_default();
+    let in_flatpak = std::path::Path::new("/.flatpak-info").exists();
+    let (exe_str, launch_options, start_dir) = if in_flatpak {
+        (
+            "/usr/bin/flatpak".to_string(),
+            format!("run io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher \"{}\"", instance_id),
+            std::env::var("HOME").unwrap_or_default(),
+        )
+    } else {
+        let exe_path = std::env::current_exe().map_err(|e| e.to_string())?;
+        let s = exe_path.to_string_lossy().to_string();
+        let dir = exe_path.parent().map(|p| p.to_string_lossy().to_string()).unwrap_or_default();
+        (s, format!("\"{}\"", instance_id), dir)
+    };
     let app_id_32 = steam_shortcuts_util::app_id_generator::calculate_app_id(&exe_str, &name);
     //let app_id_64 = ((app_id_32 as u64) << 32) | 0x02000000; //neo: just in case we'll need later.
     let mut userdata_dirs: Vec<PathBuf> = Vec::new();
