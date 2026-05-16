@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
 use std::net::UdpSocket;
@@ -100,7 +101,7 @@ pub struct DownloadState { pub token: Arc<Mutex<Option<CancellationToken>>> }
 pub struct GameState { pub child: Arc<Mutex<Option<tokio::process::Child>>> }
 
 pub struct ProxyGuard {
-    pub cancel_token: Arc<Mutex<Option<CancellationToken>>>,
+    pub cancel_tokens: Arc<Mutex<HashMap<String, CancellationToken>>>,
     pub local_port: Arc<Mutex<Option<u16>>>,
 }
 
@@ -2353,15 +2354,19 @@ async fn start_direct_proxy(
     target_port: u16,
 ) -> Result<u16, String> {
     let cancel = CancellationToken::new();
+    let session_id = "__direct__".to_string();
     {
-        let mut token = proxy_state.cancel_token.lock().await;
-        if let Some(old) = token.take() {
-            old.cancel();
-        }
-        *token = Some(cancel.clone());
+        let mut tokens = proxy_state.cancel_tokens.lock().await;
+        tokens.insert(session_id.clone(), cancel.clone());
     }
 
     let local_port = run_direct_proxy(&proxy_state, &target_ip, target_port, cancel).await?;
+
+    {
+        let mut tokens = proxy_state.cancel_tokens.lock().await;
+        tokens.remove(&session_id);
+    }
+
     Ok(local_port)
 }
 
@@ -2377,14 +2382,17 @@ async fn start_relay_proxy(
 
     let cancel = CancellationToken::new();
     {
-        let mut token = proxy_state.cancel_token.lock().await;
-        if let Some(old) = token.take() {
-            old.cancel();
-        }
-        *token = Some(cancel.clone());
+        let mut tokens = proxy_state.cancel_tokens.lock().await;
+        tokens.insert(session_id.clone(), cancel.clone());
     }
 
     let local_port = run_relay_proxy(&proxy_state, &ws_url, &access_token, cancel).await?;
+
+    {
+        let mut tokens = proxy_state.cancel_tokens.lock().await;
+        tokens.remove(&session_id);
+    }
+
     Ok(local_port)
 }
 
@@ -2401,21 +2409,36 @@ async fn start_host_relay(
 
     let cancel = CancellationToken::new();
     {
-        let mut token = proxy_state.cancel_token.lock().await;
-        if let Some(old) = token.take() {
-            old.cancel();
-        }
-        *token = Some(cancel.clone());
+        let mut tokens = proxy_state.cancel_tokens.lock().await;
+        tokens.insert(session_id.clone(), cancel.clone());
     }
 
-    run_host_relay(&proxy_state, &ws_url, &access_token, game_port, cancel).await
+    let result = run_host_relay(&proxy_state, &ws_url, &access_token, game_port, cancel).await;
+
+    {
+        let mut tokens = proxy_state.cancel_tokens.lock().await;
+        tokens.remove(&session_id);
+    }
+
+    result
 }
 
 #[tauri::command]
-async fn stop_proxy(proxy_state: State<'_, ProxyGuard>) -> Result<(), String> {
-    let mut token = proxy_state.cancel_token.lock().await;
-    if let Some(t) = token.take() {
-        t.cancel();
+async fn stop_proxy(proxy_state: State<'_, ProxyGuard>, session_id: String) -> Result<(), String> {
+    let mut tokens = proxy_state.cancel_tokens.lock().await;
+    if let Some(token) = tokens.remove(&session_id) {
+        token.cancel();
+    }
+    let mut port = proxy_state.local_port.lock().await;
+    *port = None;
+    Ok(())
+}
+
+#[tauri::command]
+async fn stop_all_proxies(proxy_state: State<'_, ProxyGuard>) -> Result<(), String> {
+    let mut tokens = proxy_state.cancel_tokens.lock().await;
+    for (_, token) in tokens.drain() {
+        token.cancel();
     }
     let mut port = proxy_state.local_port.lock().await;
     *port = None;
@@ -2455,11 +2478,11 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(DownloadState { token: Arc::new(Mutex::new(None)) })
         .manage(GameState { child: Arc::new(Mutex::new(None)) })
-        .manage(ProxyGuard { cancel_token: Arc::new(Mutex::new(None)), local_port: Arc::new(Mutex::new(None)) })
+        .manage(ProxyGuard { cancel_tokens: Arc::new(Mutex::new(HashMap::new())), local_port: Arc::new(Mutex::new(None)) })
         .plugin(tauri_plugin_gamepad::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_drpc::init())
-        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, pick_folder, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast, download_logo, pick_file, save_file_dialog, write_binary_file, read_binary_file, read_screenshot_as_data_url, add_to_steam, http_proxy_request, get_instance_path, stun_discover, start_direct_proxy, start_relay_proxy, start_host_relay, stop_proxy, join_game])
+        .invoke_handler(tauri::generate_handler![setup_macos_runtime, launch_game, stop_game, check_game_installed, save_config, load_config, download_and_install, open_instance_folder, cancel_download, get_available_runners, get_external_palettes, import_theme, pick_folder, download_runner, delete_instance, sync_dlc, fetch_skin, workshop_install, workshop_uninstall, workshop_list_installed, get_screenshots, delete_screenshot, open_screenshot_folder, save_global_skin_pck, check_game_update, check_macos_runtime_installed, check_macos_runtime_installed_fast, download_logo, pick_file, save_file_dialog, write_binary_file, read_binary_file, read_screenshot_as_data_url, add_to_steam, http_proxy_request, get_instance_path, stun_discover, start_direct_proxy, start_relay_proxy, start_host_relay, stop_proxy, stop_all_proxies, join_game])
         .setup(|app| {
             let args: Vec<String> = std::env::args().collect();
             if args.len() > 1 && !args[1].starts_with('-') {

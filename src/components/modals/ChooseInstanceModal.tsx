@@ -69,7 +69,7 @@ export default function ChooseInstanceModal({
         ]);
       } else {
         setStatus("Launching game...");
-        await TauriService.stopProxy();
+        await TauriService.stopAllProxies();
         await TauriService.launchGame(selectedInstance, [
           { name: invite.hostName || "LCELive Game", ip: hostIp, port: hostPort }
         ]);

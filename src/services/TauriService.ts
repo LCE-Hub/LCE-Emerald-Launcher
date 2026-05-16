@@ -253,8 +253,12 @@ export class TauriService {
     return invoke("start_host_relay", { apiBaseUrl, accessToken, sessionId, gamePort });
   }
 
-  static async stopProxy(): Promise<void> {
-    return invoke("stop_proxy");
+  static async stopProxy(sessionId: string): Promise<void> {
+    return invoke("stop_proxy", { sessionId });
+  }
+
+  static async stopAllProxies(): Promise<void> {
+    return invoke("stop_all_proxies");
   }
 
   static async joinGame(

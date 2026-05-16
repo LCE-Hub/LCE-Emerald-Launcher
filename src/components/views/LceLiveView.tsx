@@ -40,8 +40,6 @@ const LceLiveView = memo(function LceLiveView() {
   const [isDiscovering, setIsDiscovering] = useState(false);
   const [invitedFriends, setInvitedFriends] = useState<Set<string>>(new Set());
   const [showHostMethodPicker, setShowHostMethodPicker] = useState(false);
-  const [hostSessionId, setHostSessionId] = useState<string>("");
-  const [relayStarted, setRelayStarted] = useState(false);
   const [isAddingFriend, setIsAddingFriend] = useState(false);
   const [addFriendUsername, setAddFriendUsername] = useState("");
   const addFriendInputRef = useRef<HTMLInputElement>(null);
@@ -160,7 +158,6 @@ const LceLiveView = memo(function LceLiveView() {
 
   const handleStartHosting = () => {
     playPressSound();
-    setRelayStarted(false);
     setShowHostMethodPicker(true);
     setFocusIndex(0);
   };
@@ -177,7 +174,6 @@ const LceLiveView = memo(function LceLiveView() {
       setIsHosting(true);
       setHostStatus(`Hosting at ${endpoint.ip}:25565`);
       setInvitedFriends(new Set());
-      setHostSessionId("");
     } catch (e: any) {
       const msg = typeof e === "string" ? e : e?.message || "Unknown error";
       setErrorModal("STUN discovery failed: " + msg);
@@ -192,8 +188,6 @@ const LceLiveView = memo(function LceLiveView() {
     setFocusIndex(0);
     setIsDiscovering(true);
     setHostStatus("Discovering external IP for invite...");
-    const sessionId = crypto.randomUUID();
-    setHostSessionId(sessionId);
     try {
       const endpoint = await TauriService.stunDiscover();
       setHostIp(endpoint.ip);
@@ -202,7 +196,6 @@ const LceLiveView = memo(function LceLiveView() {
       setHostIp("127.0.0.1");
       setHostPort(25565);
     }
-    setRelayStarted(false);
     setIsHosting(true);
     setHostStatus("Relay ready - invite friends to activate");
     setInvitedFriends(new Set());
@@ -212,7 +205,7 @@ const LceLiveView = memo(function LceLiveView() {
   const handleStopHosting = async () => {
     playPressSound();
     try {
-      await TauriService.stopProxy();
+      await TauriService.stopAllProxies();
       await lceLiveService.deactivateGameInvites();
     } catch (e: any) {
       console.warn("Stop hosting failed", e);
@@ -221,38 +214,37 @@ const LceLiveView = memo(function LceLiveView() {
     setHostStatus("");
     setHostIp("");
     setInvitedFriends(new Set());
-    setHostSessionId("");
-    setRelayStarted(false);
   };
 
   const handleInviteFriend = async (friend: LceLiveAccount) => {
     playPressSound();
     const name = lceLiveService.displayUsername;
+    const sessionId = crypto.randomUUID();
     try {
       await lceLiveService.sendGameInvite(
         friend.accountId,
         hostIp,
         hostPort,
         name,
-        hostSessionId || undefined,
+        sessionId,
       );
       setInvitedFriends((prev) => new Set(prev).add(friend.accountId));
-      if (hostSessionId && !relayStarted) {
-        setRelayStarted(true);
-        setHostStatus("Connecting relay...");
-        const baseUrl = lceLiveService.apiBaseUrl;
-        const accessToken = lceLiveService.accessToken ?? "";
-        TauriService.startHostRelay(baseUrl, accessToken, hostSessionId, 25565)
-          .then(() => setHostStatus("Relay active"))
-          .catch((relayErr: any) => {
-            const relayMsg =
-              typeof relayErr === "string"
-                ? relayErr
-                : relayErr?.message || "Unknown error";
-            console.warn("Relay failed:", relayMsg);
-            setHostStatus("Relay disconnected");
-          });
-      }
+      setHostStatus("Connecting relay...");
+      TauriService.startHostRelay(
+        lceLiveService.apiBaseUrl,
+        lceLiveService.accessToken ?? "",
+        sessionId,
+        25565,
+      )
+        .then(() => setHostStatus("Relay active"))
+        .catch((relayErr: any) => {
+          const relayMsg =
+            typeof relayErr === "string"
+              ? relayErr
+              : relayErr?.message || "Unknown error";
+          console.warn("Relay failed:", relayMsg);
+          setHostStatus("Relay disconnected");
+        });
     } catch (e: any) {
       const msg = typeof e === "string" ? e : e?.message || "Unknown error";
       setErrorModal("Failed to send invite: " + msg);
