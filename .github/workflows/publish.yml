@@ -1,4 +1,4 @@
-name: 'publish'
+name: "publish"
 
 on:
   workflow_dispatch:
@@ -20,14 +20,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest'
-            args: '--target aarch64-apple-darwin'
-          - platform: 'macos-latest'
-            args: '--target x86_64-apple-darwin'
-          - platform: 'ubuntu-22.04'
-            args: ''
-          - platform: 'windows-latest'
-            args: ''
+          - platform: "macos-latest"
+            args: "--target aarch64-apple-darwin"
+          - platform: "macos-latest"
+            args: "--target x86_64-apple-darwin"
+          - platform: "ubuntu-22.04"
+            args: ""
+          - platform: "windows-latest"
+            args: ""
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -47,7 +47,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -57,7 +57,7 @@ jobs:
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: './src-tauri -> target'
+          workspaces: "./src-tauri -> target"
 
       - name: install frontend dependencies
         run: pnpm install
@@ -67,14 +67,14 @@ jobs:
           # Create temporary directory for PKG creation
           mkdir -p pkg_temp/scripts
           cp scripts/postinstall.sh pkg_temp/scripts/
-          
+
           # Build the app first
           pnpm tauri build -- ${{ matrix.args }}
-          
+
           # Find the built app
           APP_PATH=$(find src-tauri/target/release/bundle/macos/ -name "*.app" | head -1)
           APP_NAME=$(basename "$APP_PATH")
-          
+
           # Create PKG with post-install script
           pkgbuild --root "$APP_PATH/.." \
                    --install-location /Applications \
@@ -84,7 +84,7 @@ jobs:
                    --install-location "/Applications" \
                    --root "$APP_PATH" \
                    "Emerald-Legacy-Launcher.pkg"
-          
+
           # Move PKG to bundle directory
           mkdir -p src-tauri/target/release/bundle/macos/
           mv "Emerald-Legacy-Launcher.pkg" src-tauri/target/release/bundle/macos/
@@ -96,7 +96,7 @@ jobs:
         with:
           uploadPlainBinary: true
           tagName: v__VERSION__
-          releaseName: 'Emerald v__VERSION__'
+          releaseName: "Emerald v__VERSION__"
           releaseBody: |
             # What to download?
             - `Emerald.Legacy.Launcher-*.rpm` for GNU/Linux (RHEL)
@@ -110,14 +110,14 @@ jobs:
             ---
             # Windows SmartScreen
             This software is completely safe. Because the launcher is unsigned, you will see a "Windows protected your PC" window. To proceed:
-            
+
             1. Click the **"More info"** link under the main text.
             2. Click the **"Run anyway"** button that appears.
             ---
             # macOS "Damaged" Error Fix
             The macOS builds now include automatic fixes for Gatekeeper quarantine issues. The app should launch without "application is damaged" errors.
 
-          releaseDraft: false
+          releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
 
