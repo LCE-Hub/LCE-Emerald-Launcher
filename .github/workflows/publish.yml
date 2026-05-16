@@ -85,7 +85,6 @@ jobs:
                    --scripts pkg_temp/scripts \
                    --identifier "com.emerald.legacy" \
                    --version "1.0.0" \
-                   --root "$APP_PATH" \
                    "Emerald-Legacy-Launcher.pkg"
           mv "Emerald-Legacy-Launcher.pkg" "$MACOS_BUNDLE_DIR/"
 
@@ -129,7 +128,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: '*'
+          pattern: "*"
           merge-multiple: true
           path: artifacts
 
