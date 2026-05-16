@@ -132,7 +132,7 @@ export default function App() {
               {...backgroundFade}
             >
               <PanoramaBackground
-                profile={selectedEdition.panorama}
+                profile={selectedEdition?.panorama}
                 isDay={displayIsDay}
               />
             </motion.div>
