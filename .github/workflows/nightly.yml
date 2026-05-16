@@ -14,12 +14,16 @@ jobs:
         include:
           - platform: 'macos-latest'
             args: '--target aarch64-apple-darwin'
+            artifact-name: macos-aarch64
           - platform: 'macos-latest'
             args: '--target x86_64-apple-darwin'
+            artifact-name: macos-x86_64
           - platform: 'ubuntu-22.04'
             args: ''
+            artifact-name: linux
           - platform: 'windows-latest'
             args: ''
+            artifact-name: windows
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -53,18 +57,34 @@ jobs:
 
       - name: install frontend dependencies
         run: pnpm install
-      - name: build and fix macOS
-        if: matrix.platform == 'macos-latest'
-        run: |
-          pnpm tauri build ${{ matrix.args }}
-          pnpm run post-build:macos
-      - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: build Tauri app
+        run: pnpm run tauri:build -- ${{ matrix.args }}
+
+      - name: upload build artifacts
+        uses: actions/upload-artifact@v4
         with:
-          tagName: nightly
-          releaseName: 'Emerald Nightly'
-          releaseBody: |
+          name: ${{ matrix.artifact-name }}
+          path: |
+            src-tauri/target/*/release/bundle/**/*
+
+  nightly-release:
+    needs: [nightly-tauri, nightly-flatpak]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: '*'
+          merge-multiple: true
+          path: artifacts
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nightly
+          name: 'Emerald Nightly'
+          body: |
             # Emerald Legacy Launcher (Nightly)
             # What to download?
             - `Emerald.Legacy.Launcher-*.rpm` for GNU/Linux (RHEL)
@@ -77,16 +97,17 @@ jobs:
             ---
             # Windows SmartScreen
             This software is completely safe. Because the launcher is unsigned, you will see a "Windows protected your PC" window. To proceed:
-            
+
             1. Click the **"More info"** link under the main text.
             2. Click the **"Run anyway"** button that appears.
             ---
             # macOS "Damaged" Error Fix
             The macOS builds now include automatic fixes for Gatekeeper quarantine issues. The app should launch without "application is damaged" errors.
-          
-          releaseDraft: false
+          files: artifacts/*
+          fail_on_unmatched_files: false
           prerelease: true
-          args: ${{ matrix.args }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   nightly-flatpak:
     runs-on: ubuntu-latest
@@ -104,9 +125,7 @@ jobs:
           bundle: io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.flatpak
           manifest-path: flatpak/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.yml
           cache-key: flatpak-builder-${{ github.sha }}
-      - uses: softprops/action-gh-release@v2
+      - uses: actions/upload-artifact@v4
         with:
-          files: io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.flatpak
-          tag_name: nightly
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: flatpak
+          path: io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.flatpak

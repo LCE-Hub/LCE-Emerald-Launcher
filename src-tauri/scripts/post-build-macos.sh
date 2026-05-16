@@ -5,6 +5,11 @@
 
 set -e
 
+if [[ "$(uname)" != "Darwin" ]]; then
+    echo "Not macOS, skipping post-build fixes"
+    exit 0
+fi
+
 APP_NAME="Emerald Legacy Launcher"
 BUNDLE_ID="com.emerald.legacy"
 BASE_DIR="src-tauri/target"

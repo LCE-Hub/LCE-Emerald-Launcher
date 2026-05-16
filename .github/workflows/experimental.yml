@@ -55,7 +55,7 @@ jobs:
         run: pnpm install
 
       - name: build Tauri app
-        run: pnpm tauri build -- ${{ matrix.args }}
+        run: pnpm run tauri:build -- ${{ matrix.args }}
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
@@ -65,23 +65,28 @@ jobs:
         run: |
           mkdir -p pkg_temp/scripts
           cp scripts/postinstall.sh pkg_temp/scripts/
-          APP_PATH=$(find src-tauri/target/release/bundle/macos/ -name "*.app" | head -1)
+          MACOS_BUNDLE_DIR=$(find src-tauri/target -path "*/release/bundle/macos" -type d | head -n 1)
+          APP_PATH=$(find "$MACOS_BUNDLE_DIR" -name "*.app" -type d | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "No .app found in $MACOS_BUNDLE_DIR"
+            exit 1
+          fi
           APP_NAME=$(basename "$APP_PATH")
           pkgbuild --root "$APP_PATH/.." \
                    --install-location /Applications \
                    --scripts pkg_temp/scripts \
                    --identifier "com.emerald.legacy" \
                    --version "1.0.0" \
-                   --install-location "/Applications" \
                    --root "$APP_PATH" \
                    "Emerald-Legacy-Launcher.pkg"
-          mv "Emerald-Legacy-Launcher.pkg" src-tauri/target/release/bundle/macos/
+          mv "Emerald-Legacy-Launcher.pkg" "$MACOS_BUNDLE_DIR/"
 
       - name: upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact-name }}
-          path: src-tauri/target/release/bundle/
+          path: |
+            src-tauri/target/*/release/bundle/**/*
 
   build-flatpak:
     runs-on: ubuntu-latest

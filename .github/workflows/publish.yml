@@ -61,65 +61,40 @@ jobs:
 
       - name: install frontend dependencies
         run: pnpm install
-      - name: Create PKG with post-install script
+
+      - name: build Tauri app
+        run: pnpm run tauri:build -- ${{ matrix.args }}
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+
+      - name: Create PKG with post-install script (macOS only)
         if: matrix.platform == 'macos-latest'
         run: |
-          # Create temporary directory for PKG creation
           mkdir -p pkg_temp/scripts
           cp scripts/postinstall.sh pkg_temp/scripts/
-
-          # Build the app first
-          pnpm tauri build -- ${{ matrix.args }}
-
-          # Find the built app
-          APP_PATH=$(find src-tauri/target/release/bundle/macos/ -name "*.app" | head -1)
+          MACOS_BUNDLE_DIR=$(find src-tauri/target -path "*/release/bundle/macos" -type d | head -n 1)
+          APP_PATH=$(find "$MACOS_BUNDLE_DIR" -name "*.app" -type d | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "No .app found in $MACOS_BUNDLE_DIR"
+            exit 1
+          fi
           APP_NAME=$(basename "$APP_PATH")
-
-          # Create PKG with post-install script
           pkgbuild --root "$APP_PATH/.." \
                    --install-location /Applications \
                    --scripts pkg_temp/scripts \
                    --identifier "com.emerald.legacy" \
                    --version "1.0.0" \
-                   --install-location "/Applications" \
                    --root "$APP_PATH" \
                    "Emerald-Legacy-Launcher.pkg"
+          mv "Emerald-Legacy-Launcher.pkg" "$MACOS_BUNDLE_DIR/"
 
-          # Move PKG to bundle directory
-          mkdir -p src-tauri/target/release/bundle/macos/
-          mv "Emerald-Legacy-Launcher.pkg" src-tauri/target/release/bundle/macos/
-      - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      - name: upload build artifacts
+        uses: actions/upload-artifact@v4
         with:
-          uploadPlainBinary: true
-          tagName: v__VERSION__
-          releaseName: "Emerald v__VERSION__"
-          releaseBody: |
-            # What to download?
-            - `Emerald.Legacy.Launcher-*.rpm` for GNU/Linux (RHEL)
-            - `Emerald.Legacy.Launcher-*.deb` for GNU/Linux (Debian+Ubuntu)
-            - `Emerald.Legacy.Launcher-*.AppImage` for GNU/Linux (Universal, Currently Broken)
-            - `Emerald.Legacy.Launcher-*_x64.dmg` for macOS (Intel)
-            - `Emerald.Legacy.Launcher-*_aarch64.dmg` for macOS (M-series)
-            - `Emerald.Legacy.Launcher-*.exe` for Windows (Setup)
-            - `Emerald.Legacy.Launcher-*.msi` for Windows (Setup)
-            - `Emerald.Legacy.Launcher.flatpak` for GNU/Linux (Flatpak, Recommended)
-            ---
-            # Windows SmartScreen
-            This software is completely safe. Because the launcher is unsigned, you will see a "Windows protected your PC" window. To proceed:
-
-            1. Click the **"More info"** link under the main text.
-            2. Click the **"Run anyway"** button that appears.
-            ---
-            # macOS "Damaged" Error Fix
-            The macOS builds now include automatic fixes for Gatekeeper quarantine issues. The app should launch without "application is damaged" errors.
-
-          releaseDraft: true
-          prerelease: false
-          args: ${{ matrix.args }}
+          name: ${{ matrix.platform }}
+          path: |
+            src-tauri/target/*/release/bundle/**/*
 
   publish-flatpak:
     needs: get-version
@@ -140,9 +115,49 @@ jobs:
           bundle: Emerald.Legacy.Launcher.flatpak
           manifest-path: flatpak/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.yml
           cache-key: flatpak-builder-${{ github.sha }}
+      - name: upload flatpak artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flatpak
+          path: Emerald.Legacy.Launcher.flatpak
+
+  publish-release:
+    needs: [get-version, publish-tauri, publish-flatpak]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: '*'
+          merge-multiple: true
+          path: artifacts
+
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.get-version.outputs.version }}
-          files: Emerald.Legacy.Launcher.flatpak
+          name: "Emerald v${{ needs.get-version.outputs.version }}"
+          body: |
+            # What to download?
+            - `Emerald.Legacy.Launcher-*.rpm` for GNU/Linux (RHEL)
+            - `Emerald.Legacy.Launcher-*.deb` for GNU/Linux (Debian+Ubuntu)
+            - `Emerald.Legacy.Launcher-*.AppImage` for GNU/Linux (Universal, Currently Broken)
+            - `Emerald.Legacy.Launcher-*_x64.dmg` for macOS (Intel)
+            - `Emerald.Legacy.Launcher-*_aarch64.dmg` for macOS (M-series)
+            - `Emerald.Legacy.Launcher-*.exe` for Windows (Setup)
+            - `Emerald.Legacy.Launcher-*.msi` for Windows (Setup)
+            - `Emerald.Legacy.Launcher.flatpak` for GNU/Linux (Flatpak, Recommended)
+            ---
+            # Windows SmartScreen
+            This software is completely safe. Because the launcher is unsigned, you will see a "Windows protected your PC" window. To proceed:
+
+            1. Click the **"More info"** link under the main text.
+            2. Click the **"Run anyway"** button that appears.
+            ---
+            # macOS "Damaged" Error Fix
+            The macOS builds now include automatic fixes for Gatekeeper quarantine issues. The app should launch without "application is damaged" errors.
+          files: artifacts/*
+          draft: true
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

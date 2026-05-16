@@ -58,8 +58,8 @@
       "entitlements": null,
       "exceptionDomain": "",
       "frameworks": [],
-      "signingIdentity": null,
-      "providerShortName": "Emerald"
+      "minimumSystemVersion": "10.15",
+      "signingIdentity": null
     }
   }
 }
