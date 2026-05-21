@@ -1115,20 +1115,11 @@ function PackageModal({
 
           <div className="flex flex-col p-6 gap-6 overflow-y-auto flex-1">
             <div className="space-y-4">
-              <div className="space-y-2">
-                <span className="text-[10px] text-[#666] mc-text-shadow uppercase tracking-[0.2em] font-bold">
-                  Project Description
-                </span>
-                <p className="text-sm text-[#C0C0C0] mc-text-shadow leading-relaxed italic opacity-90">
-                  {pkg.description}
-                </p>
-              </div>
-
               {pkg.extended_description &&
                 pkg.extended_description.trim() !== "" && (
                   <div className="space-y-2 bg-black/20 p-4 border border-[#333] rounded-sm">
                     <span className="text-[10px] text-[#555] mc-text-shadow uppercase tracking-[0.2em] font-bold">
-                      Additional Resources
+                      Plugin Description
                     </span>
                     <div className="text-sm text-[#A0A0A0] mc-text-shadow leading-relaxed workshop-markdown">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -1217,7 +1208,7 @@ function PackageModal({
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-[#888] mc-text-shadow">
-                          Game Version:
+                          Server Type:
                         </span>
                         <span className="text-[#55FF55] mc-text-shadow">
                           {pkg.game_version || "N/A"}
