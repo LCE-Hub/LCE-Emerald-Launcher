@@ -63,7 +63,7 @@ interface RegistryPackage {
   file_name?: string;
   file_size?: number;
   server_address?: string;
-  server_homepage?: string;
+  server_discord?: string;
   server_type?: string;
 }
 
@@ -72,7 +72,7 @@ interface ServerListing {
   server_type: string;
   server_address: string;
   server_owner: string;
-  server_homepage?: string;
+  server_discord?: string;
   console_version: string;
   server_icon: string;
 }
