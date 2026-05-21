@@ -197,7 +197,7 @@ const WorkshopView = memo(function WorkshopView() {
             name: s.server_name,
             author: s.server_owner,
             description: s.server_address,
-            extended_description: `**Type:** ${s.server_type}\n**Console:** ${s.console_version}\n**Owner:** ${s.server_owner}`,
+            extended_description: `**Server:** ${s.server_type}\n**Version:** ${s.console_version}\n**Owner:** ${s.server_owner}`,
             category: [s.server_type],
             thumbnail: `${SERVERS_BASE}${s.server_icon}`,
             version: s.console_version,
