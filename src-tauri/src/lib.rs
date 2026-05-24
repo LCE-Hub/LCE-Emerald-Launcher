@@ -4,7 +4,6 @@ mod config;
 mod util;
 mod platform;
 mod networking;
-pub mod console2lce;
 mod commands;
 use std::collections::HashMap;
 use std::sync::Arc;

@@ -48,7 +48,7 @@ class RPC {
     activity.setDetails(details);
     activity.setState(state);
     activity.setActivity(ActivityType.Playing);
-    activity.setParty(new Party(`emerald_${username}`, [1, 2]));
+		if (!state.startsWith("Logged")) {activity.setParty(new Party(`emerald_${username}`, [1, 2]));}
     const assets = new Assets();
     assets.setLargeImage("logo");
     assets.setLargeText("LCE Emerald Launcher");

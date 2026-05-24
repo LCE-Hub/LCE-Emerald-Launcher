@@ -294,14 +294,7 @@ export class TauriService {
   static async importWorld(
     inputPath: string,
     outputPath: string,
-    profile?: string,
-    preserveEntities?: boolean,
   ): Promise<string> {
-    return invoke("import_world", {
-      inputPath,
-      outputPath,
-      profile: profile ?? null,
-      preserveEntities: preserveEntities ?? null,
-    });
+    return invoke("import_world", { inputPath, outputPath });
   }
 }
