@@ -541,7 +541,7 @@ const SettingsView = memo(function SettingsView() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" || e.key === "Backspace") {
+      if (e.key === "Escape") {
         if (showModal) {
           playBackSound();
           setShowModal(null);
