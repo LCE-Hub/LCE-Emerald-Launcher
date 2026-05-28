@@ -110,6 +110,19 @@ Multiple distribution formats available:
 | `.AppImage` | Universal (no installation required) |
 | `.flatpak` | Universal with sandboxing (recommended over AppImage) |
 
+**AUR:**
+Special thanks to [AntiApple4life](https://aur.archlinux.org/packages?O=0&SeB=m&K=AntiApple4life) for the AUR packages!
+```bash
+# git version
+paru -S emerald-legacy-launcher-git # or yay
+
+# stable version
+paru -S emerald-legacy-launcher # or yay
+
+# binary stable version
+paru -S emerald-legacy-launcher-bin # or yay
+```
+
 **Flatpak Installation:**
 ```bash
 flatpak install emerald.flatpak
