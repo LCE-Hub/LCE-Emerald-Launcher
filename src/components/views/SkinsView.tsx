@@ -715,6 +715,7 @@ const SkinsView = memo(function SkinsView() {
           isFocusedSection={false}
           onNavigateRight={() => {}}
           hideControls
+          style={{ top: "45%" }}
         />
       </div>
 
