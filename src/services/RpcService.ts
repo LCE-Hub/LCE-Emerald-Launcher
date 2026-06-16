@@ -6,7 +6,6 @@ import {
   Timestamps,
   Button,
   Party,
-  Secrets,
 } from "tauri-plugin-drpc/activity";
 class RPC {
   private startTime: number = Date.now();
@@ -53,17 +52,12 @@ class RPC {
       activity.setParty(new Party(`emerald_${username}`, [1, 2]));
     }
     const assets = new Assets();
-    const secrets = new Secrets();
-    secrets.setJoin("neoappswashere"); //neo: dont ask.
     assets.setLargeImage("logo");
     assets.setLargeText("LCE Emerald Launcher");
     assets.setSmallImage("app-icon");
     assets.setSmallText(isPlaying ? "Playing" : "In Menus");
     activity.setAssets(assets);
     activity.setTimestamps(new Timestamps(this.startTime));
-    if (!state.startsWith("Logged")) {
-      activity.setSecrets(secrets); //neo: dont ask.
-    }
     activity.setButton([
       new Button("Discord", "https://discord.gg/cQVKhQXcCx"),
       new Button(
