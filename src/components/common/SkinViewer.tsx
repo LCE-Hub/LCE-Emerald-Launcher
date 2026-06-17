@@ -35,8 +35,11 @@ const SkinViewer = memo(function SkinViewer({
   const { legacyMode } = useConfig();
   const overlaysRef = useRef<THREE.Mesh[]>([]);
   const capeRef = useRef<THREE.Group | null>(null);
-  const capeOrigRef = useRef<{ y: number; rx: number; meshY: number } | null>(null);
+  const capeOrigRef = useRef<{ y: number; rx: number; meshY: number } | null>(
+    null,
+  );
   const playerGroupRef = useRef<THREE.Group | null>(null);
+  const easterEggRef = useRef<THREE.Group | null>(null);
   const requestRenderRef = useRef<(() => void) | null>(null);
   useEffect(() => {
     if (!mountRef.current) return;
@@ -207,6 +210,29 @@ const SkinViewer = memo(function SkinViewer({
       const head = createPart(8, 8, 8, headUv, hatUv);
       head.position.y = 10;
       playerGroup.add(head);
+      const easterEggGroup = new THREE.Group();
+      const earMat = new THREE.MeshLambertMaterial({ color: 0xffb6c1 });
+      const earGeo = new THREE.BoxGeometry(3.5, 3.5, 2);
+      const leftEar = new THREE.Mesh(earGeo, earMat);
+      leftEar.position.set(-5, 16, 0);
+      leftEar.renderOrder = 1;
+      leftEar.visible = false;
+      easterEggGroup.add(leftEar);
+      const rightEar = new THREE.Mesh(earGeo, earMat);
+      rightEar.position.set(5, 16, 0);
+      rightEar.renderOrder = 1;
+      rightEar.visible = false;
+      easterEggGroup.add(rightEar);
+      playerGroup.add(easterEggGroup);
+      easterEggRef.current = easterEggGroup;
+      {
+        const n = username.toLowerCase();
+        if (n === "deadmau5") {
+          easterEggGroup.children.forEach((child, i) => {
+            if (i < 2) child.visible = true;
+          });
+        }
+      }
       const bodyUv = {
         top: [20, 16, 8, 4],
         bottom: [28, 16, 8, 4],
@@ -350,8 +376,9 @@ const SkinViewer = memo(function SkinViewer({
         });
       }
 
+      const name = username.toLowerCase();
       playerGroup.rotation.y = -0.3;
-      if (username.toLowerCase() === "dinnerbone") {
+      if (name === "dinnerbone" || name === "grumm") {
         playerGroup.scale.y = -1;
         playerGroup.position.y = 1.5;
       }
@@ -403,6 +430,9 @@ const SkinViewer = memo(function SkinViewer({
       renderer.dispose();
       overlaysRef.current = [];
       capeRef.current = null;
+      capeOrigRef.current = null;
+      playerGroupRef.current = null;
+      easterEggRef.current = null;
       requestRenderRef.current = null;
     };
   }, [skinUrl, capeUrl]);
@@ -410,19 +440,33 @@ const SkinViewer = memo(function SkinViewer({
   useEffect(() => {
     const group = playerGroupRef.current;
     if (!group) return;
-    const isDinnerbone = username.toLowerCase() === "dinnerbone";
-    group.scale.y = isDinnerbone ? -1 : 1;
-    group.position.y = isDinnerbone ? 1.5 : -1.5;
+    const name = username.toLowerCase();
+    const flip = name === "dinnerbone" || name === "grumm";
+    group.scale.y = flip ? -1 : 1;
+    group.position.y = flip ? 1.5 : -1.5;
     const cape = capeRef.current;
     const orig = capeOrigRef.current;
     if (cape && orig) {
-      cape.position.y = isDinnerbone ? -orig.y : orig.y;
-      cape.rotation.x = isDinnerbone ? -orig.rx : orig.rx;
+      cape.position.y = flip ? -orig.y : orig.y;
+      cape.rotation.x = flip ? -orig.rx : orig.rx;
       cape.children.forEach((child) => {
         if (child instanceof THREE.Mesh) {
-          child.position.y = isDinnerbone ? -orig.meshY : orig.meshY;
+          child.position.y = flip ? -orig.meshY : orig.meshY;
         }
       });
+    }
+    const egg = easterEggRef.current;
+    if (egg) {
+      egg.children.forEach((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.visible = false;
+        }
+      });
+      if (name === "deadmau5") {
+        egg.children.forEach((child, i) => {
+          if (i < 2) child.visible = true;
+        });
+      }
     }
     requestRenderRef.current?.();
   }, [username]);
