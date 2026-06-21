@@ -75,13 +75,17 @@ interface RegistryPackage {
 }
 
 interface ServerListing {
-  server_name: string;
-  server_type: string;
-  server_address: string;
-  server_owner: string;
-  server_discord?: string;
-  console_version: string;
-  server_icon: string;
+  id: string;
+  owner: string;
+  name: string;
+  short_descripton: string
+  description: string;
+  discord?: string;
+  version: string;
+  type: string;
+  ip: string;
+  port: string;
+  icon: string;
 }
 
 interface LCEOnlineAddon {
@@ -246,20 +250,20 @@ const WorkshopView = memo(function WorkshopView({
   useEffect(() => {
     fetch(`${LCEONLINE_BASE}/servers`)
       .then((r) => r.json())
-      .then((data: { servers: ServerListing[] }) => {
+      .then((data: ServerListing[]) => {
         setServerListings(
-          data.servers.map((s) => ({
-            id: s.server_name.toLowerCase().replace(/\s+/g, "-"),
-            name: s.server_name,
-            author: s.server_owner,
-            description: s.server_address,
-            extended_description: `**Server:** ${s.server_type}\n**Version:** ${s.console_version}\n**Owner:** ${s.server_owner}`,
-            category: [s.server_type],
-            thumbnail: `${s.server_icon}`,
-            version: s.console_version,
-            server_address: s.server_address,
-            server_discord: s.server_discord ?? "",
-            server_type: s.server_type,
+          data.map((s) => ({
+            id: s.id,
+            name: s.name,
+            author: s.owner,
+            description: s.ip,
+            extended_description: `**Server:** ${s.type}\n**Version:** ${s.version}\n**Owner:** ${s.owner}`,
+            category: [s.type],
+            thumbnail: `${s.icon}`,
+            version: s.version,
+            server_address: s.ip,
+            server_discord: s.discord ?? "",
+            server_type: s.type,
           })),
         );
       })
@@ -1494,7 +1498,7 @@ function PackageModal({
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-[#888] mc-text-shadow">
-                          Console:
+                          Version:
                         </span>
                         <span className="text-white mc-text-shadow">
                           {pkg.version}
