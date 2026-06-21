@@ -259,7 +259,7 @@ const WorkshopView = memo(function WorkshopView({
             description: s.ip,
             extended_description: `**Server:** ${s.type}\n**Version:** ${s.version}\n**Owner:** ${s.owner}`,
             category: [s.type],
-            thumbnail: `${s.icon}`,
+            thumbnail: s.icon,
             version: s.version,
             server_address: s.ip,
             server_discord: s.discord ?? "",
