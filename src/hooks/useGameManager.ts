@@ -44,6 +44,7 @@ const BASE_EDITIONS = [
     titleImage: "/images/minecraft_title_revelations.png",
     supportsSlimSkins: false,
     panorama: "vanilla_tu24",
+    logo: "/images/revelations.png",
   },
   {
     id: "360revived",

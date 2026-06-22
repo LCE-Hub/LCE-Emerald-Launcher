@@ -159,6 +159,9 @@ const VersionsView = memo(function VersionsView() {
                 handleCancelDownload();
               }
             }
+          } else if (focusBtn === 1 && !isInstalled) {
+            playPressSound();
+            setOpenMenuId(openMenuId === edition.id ? null : edition.id);
           } else if (focusBtn === 2) {
             playPressSound();
             cycleBranch(edition.id);
@@ -393,7 +396,7 @@ const VersionsView = memo(function VersionsView() {
                   </div>
 
                   <div className="flex items-center gap-2 flex-shrink-0 relative">
-                    {!isInstalled ? (
+                    {!isInstalled && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -439,46 +442,45 @@ const VersionsView = memo(function VersionsView() {
                           }}
                         />
                       </button>
-                    ) : (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          playPressSound();
-                          setOpenMenuId(
-                            openMenuId === edition.id ? null : edition.id,
-                          );
-                        }}
-                        onMouseEnter={() =>
-                          setHoveredBtn({ row: i, btn: "menu" })
-                        }
-                        onMouseLeave={() => setHoveredBtn(null)}
-                        className="w-9 h-9 flex flex-col items-center justify-center gap-1 transition-colors relative"
-                        style={{
-                          backgroundImage:
-                            (hoveredBtn?.row === i &&
-                              hoveredBtn?.btn === "menu") ||
-                            (focusIndex === i &&
-                              (focusBtn === 0 || focusBtn === 1))
-                              ? "url('/images/Button_Square_Highlighted.png')"
-                              : "url('/images/Button_Square.png')",
-                          backgroundSize: "100% 100%",
-                          imageRendering: "pixelated",
-                          filter: updatesAvailable?.[edition.instanceId]
-                            ? "drop-shadow(0 0 4px rgba(255,255,0,0.8))"
-                            : "none",
-                        }}
-                      >
-                        <div
-                          className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`}
-                        />
-                        <div
-                          className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`}
-                        />
-                        <div
-                          className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`}
-                        />
-                      </button>
                     )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        playPressSound();
+                        setOpenMenuId(
+                          openMenuId === edition.id ? null : edition.id,
+                        );
+                      }}
+                      onMouseEnter={() =>
+                        setHoveredBtn({ row: i, btn: "menu" })
+                      }
+                      onMouseLeave={() => setHoveredBtn(null)}
+                      className="w-9 h-9 flex flex-col items-center justify-center gap-1 transition-colors relative"
+                      style={{
+                        backgroundImage:
+                          (hoveredBtn?.row === i &&
+                            hoveredBtn?.btn === "menu") ||
+                          (focusIndex === i &&
+                            (focusBtn === 0 || focusBtn === 1))
+                            ? "url('/images/Button_Square_Highlighted.png')"
+                            : "url('/images/Button_Square.png')",
+                        backgroundSize: "100% 100%",
+                        imageRendering: "pixelated",
+                        filter: updatesAvailable?.[edition.instanceId]
+                          ? "drop-shadow(0 0 4px rgba(255,255,0,0.8))"
+                          : "none",
+                      }}
+                    >
+                      <div
+                        className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`}
+                      />
+                      <div
+                        className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`}
+                      />
+                      <div
+                        className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`}
+                      />
+                    </button>
 
                     {openMenuId === edition.id && (
                       <div
