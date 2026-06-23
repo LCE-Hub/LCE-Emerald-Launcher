@@ -24,6 +24,9 @@
 |-------------|---------------|----------|
 | <img width="1388" height="918" alt="image" src="https://github.com/user-attachments/assets/28269ade-db3b-4bff-ac15-e8a6eb53a69e" /> | <img width="1551" height="997" alt="image" src="https://github.com/user-attachments/assets/dca543ab-94cf-48ce-8e61-dfe92fe278a7" /> | <img width="1551" height="997" alt="image" src="https://github.com/user-attachments/assets/d7bc0ed2-3bf4-4704-83c3-75c716d13a65" /> |
 
+<a href="https://github.com/LCE-Hub/LCE-Emerald-Launcher/releases/latest">
+  <img src="https://raw.githubusercontent.com/rubenpgrady/get-it-on-github/refs/heads/main/get-it-on-github.png" style="width: 160px">
+</a>
 
 ---
 
@@ -69,10 +72,6 @@ LCE Emerald Launcher is the easiest way to play Minecraft Legacy Console Edition
 
 ## Installation
 
-<a href="https://github.com/LCE-Hub/LCE-Emerald-Launcher/releases">
-  <img src="https://raw.githubusercontent.com/rubenpgrady/get-it-on-github/refs/heads/main/get-it-on-github.png" style="width: 160px">
-</a>
-  
 ### Windows
 
 | Format | Best For |
