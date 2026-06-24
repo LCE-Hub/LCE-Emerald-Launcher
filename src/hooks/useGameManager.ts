@@ -521,6 +521,18 @@ export function useGameManager({
     [],
   );
 
+  const saveCustomPath = useCallback(
+    async (instanceId: string, path: string) => {
+      const config = await TauriService.loadConfig();
+      config.customPaths = {
+        ...config.customPaths,
+        [instanceId]: path,
+      };
+      await TauriService.saveConfig(config);
+    },
+    [],
+  );
+
   const addToSteam = useCallback(
     async (
       id: string,
@@ -578,5 +590,6 @@ export function useGameManager({
     cycleBranch,
     customizations,
     updateCustomization,
+    saveCustomPath,
   };
 }

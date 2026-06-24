@@ -44,6 +44,7 @@ pub struct AppConfig {
     pub apple_silicon_performance_boost: Option<bool>,
     pub custom_editions: Option<Vec<CustomEdition>>,
     pub customizations: Option<std::collections::HashMap<String, CustomizationEntry>>,
+    pub custom_paths: Option<std::collections::HashMap<String, String>>,
     pub profile: Option<String>,
     pub animations_enabled: Option<bool>,
     pub vfx_enabled: Option<bool>,

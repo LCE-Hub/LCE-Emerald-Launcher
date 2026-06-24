@@ -13,8 +13,7 @@ pub async fn download_and_install(
     url: String,
     instance_id: String,
 ) -> Result<String, String> {
-    let root = util::get_app_dir(&app);
-    let instance_dir = root.join("instances").join(&instance_id);
+    let instance_dir = util::get_instance_working_dir(&app, &instance_id);
     let token = CancellationToken::new();
     let child_token = token.clone();
     {
@@ -25,21 +24,18 @@ pub async fn download_and_install(
         *lock = Some(token);
     }
 
+    let root = util::get_app_dir(&app);
     let zip_path = root.join(format!("temp_{}.zip", instance_id));
     let response = reqwest::get(&url).await.map_err(|e| e.to_string())?;
     if !response.status().is_success() {
         return Err(format!("Download failed: {}", response.status()));
     }
 
+    let total_size = response.content_length().unwrap_or(0) as f64;
     let last_modified = response.headers().get(reqwest::header::LAST_MODIFIED)
         .and_then(|h| h.to_str().ok())
         .unwrap_or("")
         .to_string();
-    if !last_modified.is_empty() {
-        let _ = fs::write(instance_dir.join("update_timestamp.txt"), last_modified);
-    }
-
-    let total_size = response.content_length().unwrap_or(0) as f64;
     let mut file = fs::File::create(&zip_path).map_err(|e| e.to_string())?;
     let mut downloaded = 0.0;
     let mut stream = response.bytes_stream();
@@ -67,6 +63,7 @@ pub async fn download_and_install(
         "profile4.dat", "profile5.dat", "profile6.dat", "profile7.dat",
         "profile8.dat", "profile9.dat", "profile10.dat", "proton_prefix"
     ].iter().copied().collect();
+
     if !instance_dir.exists() {
         fs::create_dir_all(&instance_dir).map_err(|e| e.to_string())?;
     } else {
@@ -96,6 +93,10 @@ pub async fn download_and_install(
                 }
             }
         }
+    }
+
+    if !last_modified.is_empty() {
+        let _ = fs::write(instance_dir.join("update_timestamp.txt"), &last_modified);
     }
 
     #[cfg(target_os = "linux")]

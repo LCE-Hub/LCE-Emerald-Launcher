@@ -374,6 +374,11 @@ pub fn delete_instance(app: AppHandle, instance_id: String) -> Result<(), String
             }
         }
     }
+    if let Some(ref custom_paths) = config_val.custom_paths {
+        if custom_paths.contains_key(&instance_id) {
+            return Ok(());
+        }
+    }
     let dir = util::get_app_dir(&app).join("instances").join(&instance_id);
     if dir.exists() {
         let _ = fs::remove_dir_all(dir);

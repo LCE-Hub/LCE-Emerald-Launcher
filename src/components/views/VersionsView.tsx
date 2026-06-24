@@ -80,6 +80,7 @@ const VersionsView = memo(function VersionsView() {
     cycleBranch,
     customizations,
     updateCustomization,
+    saveCustomPath,
   } = useGame();
   const { isDayTime } = useConfig();
   const [focusIndex, setFocusIndex] = useState<number>(0);
@@ -506,6 +507,33 @@ const VersionsView = memo(function VersionsView() {
                               style={{ imageRendering: "pixelated" }}
                             />
                             Update Available!
+                          </button>
+                        )}
+                        {!isInstalled && (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              playPressSound();
+                              setOpenMenuId(null);
+                              try {
+                                const folder = await TauriService.pickFolder();
+                                if (folder) {
+                                  await saveCustomPath(edition.instanceId, folder);
+                                  toggleInstall(edition.instanceId);
+                                }
+                              } catch (err) {
+                                if (err !== "CANCELED") console.error(err);
+                              }
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs text-[#dddddd] flex items-center gap-2 mc-text-shadow"
+                          >
+                            <img
+                              src="/images/Download_Icon.png"
+                              alt=""
+                              className="w-3.5 h-3.5 object-contain"
+                              style={{ imageRendering: "pixelated" }}
+                            />
+                            Download to custom path
                           </button>
                         )}
                         {Array.isArray(edition.branches) &&

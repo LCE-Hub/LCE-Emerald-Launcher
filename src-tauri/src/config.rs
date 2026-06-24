@@ -22,6 +22,7 @@ pub fn load_config_raw(app: AppHandle) -> AppConfig {
         apple_silicon_performance_boost: None,
         custom_editions: None,
         customizations: None,
+        custom_paths: None,
         profile: Some("legacy_evolved".into()),
         animations_enabled: Some(true),
         vfx_enabled: Some(true),

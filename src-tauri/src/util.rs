@@ -22,6 +22,11 @@ pub fn get_instance_working_dir(app: &AppHandle, instance_id: &str) -> PathBuf {
             }
         }
     }
+    if let Some(ref custom_paths) = config.custom_paths {
+        if let Some(path) = custom_paths.get(instance_id) {
+            return PathBuf::from(path);
+        }
+    }
     root.join("instances").join(instance_id)
 }
 

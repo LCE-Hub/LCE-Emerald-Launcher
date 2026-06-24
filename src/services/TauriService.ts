@@ -46,6 +46,7 @@ export interface AppConfig {
   launchPrefix?: string;
   launchEnvVars?: Record<string, string>;
   customizations?: Record<string, { titleImage?: string; panorama?: string }>;
+  customPaths?: Record<string, string>;
   skipIntro?: boolean;
 }
 
