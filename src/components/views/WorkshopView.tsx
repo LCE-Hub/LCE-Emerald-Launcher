@@ -10,6 +10,8 @@ import React, {
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import {
   useUI,
   useAudio,
@@ -101,7 +103,7 @@ interface LCEOnlineAddon {
   downloads: number;
   download_url: string;
   file_size: number;
-  icon_url: string;
+  icon: string;
   has_icon: boolean;
   author: string;
 }
@@ -233,7 +235,7 @@ const WorkshopView = memo(function WorkshopView({
             description: a.short_description,
             extended_description: a.description,
             category: [a.category],
-            thumbnail: a.icon_url,
+            thumbnail: a.icon || "",
             version: "1.0",
             likes: a.likes,
             download_count: a.downloads,
@@ -259,7 +261,7 @@ const WorkshopView = memo(function WorkshopView({
             description: s.ip,
             extended_description: `**Server:** ${s.type}\n**Version:** ${s.version}\n**Owner:** ${s.owner}`,
             category: [s.type],
-            thumbnail: s.icon,
+            thumbnail: s.icon || "",
             version: s.version,
             server_address: s.ip,
             server_discord: s.discord ?? "",
@@ -1464,7 +1466,7 @@ function PackageModal({
                       Description
                     </span>
                     <div className="text-sm text-white mc-text-shadow leading-relaxed workshop-markdown">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, [rehypeSanitize, defaultSchema]]}>
                         {pkg.extended_description}
                       </ReactMarkdown>
                     </div>
