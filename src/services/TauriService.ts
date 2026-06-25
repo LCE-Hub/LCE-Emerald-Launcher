@@ -151,7 +151,11 @@ export class TauriService {
     servers: McServer[],
     extraArgs?: string[],
   ): Promise<void> {
-    return invoke("launch_game", { instanceId, servers, extraArgs: extraArgs ?? [] });
+    return invoke("launch_game", {
+      instanceId,
+      servers,
+      extraArgs: extraArgs ?? [],
+    });
   }
 
   static async stopGame(instanceId: string): Promise<void> {
@@ -173,7 +177,10 @@ export class TauriService {
     });
   }
 
-  static async workshopUninstall(instanceId: string, packageId: string): Promise<void> {
+  static async workshopUninstall(
+    instanceId: string,
+    packageId: string,
+  ): Promise<void> {
     return invoke("workshop_uninstall", { instanceId, packageId });
   }
 
@@ -227,7 +234,10 @@ export class TauriService {
     return invoke("save_global_skin_pck", { pckData: Array.from(pckData) });
   }
 
-  static async checkGameUpdate(instanceId: string, url: string): Promise<boolean> {
+  static async checkGameUpdate(
+    instanceId: string,
+    url: string,
+  ): Promise<boolean> {
     return invoke("check_game_update", { instanceId, url });
   }
 
@@ -239,7 +249,11 @@ export class TauriService {
     return invoke("pick_file", { title, filters });
   }
 
-  static async saveFileDialog(title: string, filename: string, filters: string[]): Promise<string> {
+  static async saveFileDialog(
+    title: string,
+    filename: string,
+    filters: string[],
+  ): Promise<string> {
     return invoke("save_file_dialog", { title, filename, filters });
   }
 
@@ -260,25 +274,47 @@ export class TauriService {
     instanceId: string,
     name: string,
     titleBase64: string,
-    panoramaBase64: string
+    panoramaBase64: string,
   ): Promise<void> {
-    return invoke("add_to_steam", { instanceId, name, titleBase64, panoramaBase64 });
+    return invoke("add_to_steam", {
+      instanceId,
+      name,
+      titleBase64,
+      panoramaBase64,
+    });
   }
 
   static async stunDiscover(): Promise<{ ip: string; port: number }> {
     return invoke("stun_discover");
   }
 
-  static async startDirectProxy(targetIp: string, targetPort: number): Promise<number> {
+  static async startDirectProxy(
+    targetIp: string,
+    targetPort: number,
+  ): Promise<number> {
     return invoke("start_direct_proxy", { targetIp, targetPort });
   }
 
-  static async startRelayProxy(apiBaseUrl: string, accessToken: string, sessionId: string): Promise<number> {
+  static async startRelayProxy(
+    apiBaseUrl: string,
+    accessToken: string,
+    sessionId: string,
+  ): Promise<number> {
     return invoke("start_relay_proxy", { apiBaseUrl, accessToken, sessionId });
   }
 
-  static async startHostRelay(apiBaseUrl: string, accessToken: string, sessionId: string, gamePort: number): Promise<void> {
-    return invoke("start_host_relay", { apiBaseUrl, accessToken, sessionId, gamePort });
+  static async startHostRelay(
+    apiBaseUrl: string,
+    accessToken: string,
+    sessionId: string,
+    gamePort: number,
+  ): Promise<void> {
+    return invoke("start_host_relay", {
+      apiBaseUrl,
+      accessToken,
+      sessionId,
+      gamePort,
+    });
   }
 
   static async stopProxy(sessionId: string): Promise<void> {
@@ -297,14 +333,21 @@ export class TauriService {
     sessionId: string,
     instanceId: string,
   ): Promise<void> {
-    return invoke("join_game", { apiBaseUrl, accessToken, hostIp, hostPort, sessionId, instanceId });
+    return invoke("join_game", {
+      apiBaseUrl,
+      accessToken,
+      hostIp,
+      hostPort,
+      sessionId,
+      instanceId,
+    });
   }
 
   static async httpProxyRequest(
     method: string,
     url: string,
     body: string | null,
-    headers: Record<string, string>
+    headers: Record<string, string>,
   ): Promise<{ status: number; body: string }> {
     return invoke("http_proxy_request", { method, url, body, headers });
   }
@@ -313,7 +356,10 @@ export class TauriService {
     return invoke("get_playtime", { instanceId });
   }
 
-  static async getPlaytimeDaily(instanceId: string, days: number): Promise<PlaytimeDayEntry[]> {
+  static async getPlaytimeDaily(
+    instanceId: string,
+    days: number,
+  ): Promise<PlaytimeDayEntry[]> {
     return invoke("get_playtime_daily", { instanceId, days });
   }
 
@@ -345,7 +391,9 @@ export class TauriService {
     return invoke("remove_plugin_dir", { pluginId });
   }
 
-  static async listDirectory(path: string): Promise<Array<{ name: string; is_dir: boolean }>> {
+  static async listDirectory(
+    path: string,
+  ): Promise<Array<{ name: string; is_dir: boolean }>> {
     return invoke("list_directory", { path });
   }
 
@@ -355,5 +403,4 @@ export class TauriService {
   ): Promise<string> {
     return invoke("import_world", { inputPath, outputPath });
   }
-
 }

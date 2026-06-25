@@ -59,11 +59,11 @@ const BASE_EDITIONS = [
   {
     id: "legacy_nether_fork",
     name: "Hellish Ends",
-    desc: "QoL, Random additions, and Nether/End dimensions overhaul (Modded build!)",
+    desc: "QoL, Random additions, and Nether/End/Aether dimensions overhaul (Modded build!)",
     url: "https://github.com/deadvoxelx/ThatModdedRepo/releases/download/nightly/LCEWindows64.zip",
     titleImage: "/images/minecraft_title_hellishends.png",
     supportsSlimSkins: false,
-    logo: "/images/netherrack_0.png",
+    logo: "/images/hellishEndsIcon.png",
     panorama: "vanilla_tu19",
   },
 ];
