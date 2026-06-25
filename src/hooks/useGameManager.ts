@@ -64,7 +64,7 @@ const BASE_EDITIONS = [
     titleImage: "/images/minecraft_title_hellishends.png",
     supportsSlimSkins: false,
     logo: "/images/hellishEndsIcon.png",
-    panorama: "vanilla_tu19",
+    panorama: "hellishends",
   },
 ];
 
