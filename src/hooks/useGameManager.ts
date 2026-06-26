@@ -30,7 +30,7 @@ const BASE_EDITIONS = [
     id: "legacy_evolved",
     name: "neoLegacy",
     desc: "Backporting newer title updates and Minigames back to LCE",
-    url: "https://bucket.ibatv.xyz/neolegacy/Release.zip", //neo: remember to change it after 1.4.0.
+    url: "https://git.neolegacy.dev/neoStudiosLCE/neoLegacy/releases/download/1.0.8b/neoLegacyWindows64.zip",
     titleImage: "/images/minecraft_title_neoLegacy.png",
     supportsSlimSkins: true,
     logo: "/images/neoLegacy.png",
@@ -66,12 +66,27 @@ const BASE_EDITIONS = [
     logo: "/images/hellishEndsIcon.png",
     panorama: "hellishends",
   },
+  {
+    id: "moon_edition",
+    name: "Minecraft: Moon Edition",
+    desc: "Galacticraft LCE port (Modded build!)",
+    url: "https://INTENTIONALLY_INVALID_LINK_BECAUSE_FUCK_YOU_THATS_WHY", //neo: placeholder for now
+    titleImage: "/images/minecraft_title_moon.png",
+    supportsSlimSkins: false,
+    logo: "/images/moonEdition.png",
+    panorama: "vanilla_tu19",
+  },
 ];
 
 const PARTNERSHIP_SERVERS = [
   {
     name: "Kowhaifans Clubhouse",
     ip: "lce.kowhaifan.net",
+    port: 25565,
+  },
+  {
+    name: "BluerNetwork",
+    ip: "bluer-network.ddns.net",
     port: 25565,
   },
 ];
