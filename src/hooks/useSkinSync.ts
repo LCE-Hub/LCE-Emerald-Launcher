@@ -27,7 +27,10 @@ export function useSkinSync({ username, profile, editions }: UseSkinSyncProps) {
   );
   const [capeBase64, setCapeBase64] = useState<string | null>(null);
   useEffect(() => {
-    let cancelled = false;
+    let cancelled: Boolean = false;
+    let editionNotSupportSlimSkins: Boolean = !editions.find(
+      (edition: Edition) => edition.id === profile,
+    )?.supportsSlimSkins; //neo: the bang (!) for "not" here is not a typo. its a fix because neoLegacy supports 64x64 now, no need to remodel the arms
     if (!skinUrl) return;
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -35,7 +38,7 @@ export function useSkinSync({ username, profile, editions }: UseSkinSyncProps) {
       if (cancelled) return;
       const cvs = document.createElement("canvas");
       cvs.width = 64;
-      cvs.height = 32;
+      cvs.height = editionNotSupportSlimSkins ? 32 : 64;
       const ctx = cvs.getContext("2d");
       if (ctx) {
         ctx.drawImage(img, 0, 0);
@@ -46,12 +49,14 @@ export function useSkinSync({ username, profile, editions }: UseSkinSyncProps) {
           const skinBuf = await res.arrayBuffer();
           const isModernHeight = img.height === 64;
           const animValue = skinIsSlim
-            ? "0x00041800"
+            ? editionNotSupportSlimSkins
+              ? "0x00041800"
+              : "0x00080000"
             : isModernHeight
               ? "0x00040000"
               : "0x00000000";
           let boxes: PCKProperty[] = [];
-          if (skinIsSlim) {
+          if (skinIsSlim && editionNotSupportSlimSkins) {
             boxes.push({
               key: "BOX",
               value: "ARM0 -2 -2 -2 3 12 4 40 16 0 0 0",
