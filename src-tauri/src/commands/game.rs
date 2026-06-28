@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_opener::OpenerExt;
 use crate::commands::runners;
 use crate::config;
@@ -39,8 +39,7 @@ pub async fn launch_game(
         }
     }
     ensure_server_list(&working_dir, servers);
-
-    let ws_cancel = workshop_server::start().await;
+    let ws_cancel = workshop_server::start(app.clone()).await;
     let _ws_guard = workshop_server::Guard::new(ws_cancel.clone());
     {
         let mut lock = state.workshop_cancel.lock().await;
@@ -589,6 +588,7 @@ fn perform_dlc_sync(app: &AppHandle, instance_dir: &PathBuf) -> Result<(), Strin
                         } else {
                             fs::copy(entry.path(), &dest_path).map(|_| ())
                         } {
+                            let _ = app.emit("backend-error", format!("DLC Sync: Failed to copy {:?}: {}", entry.path(), e));
                             eprintln!("[DLC Sync] Failed to copy {:?} to {:?}: {}", entry.path(), dest_path, e);
                         } else {
                             println!("[DLC Sync] Copied to {:?}", dest_path);

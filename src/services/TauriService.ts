@@ -206,6 +206,18 @@ export class TauriService {
     );
   }
 
+  static onBackendError(callback: (message: string) => void) {
+    return listen<string>("backend-error", (event) =>
+      callback(event.payload),
+    );
+  }
+
+  static onDownloadRetry(callback: (attempt: number) => void) {
+    return listen<number>("download-retry", (event) =>
+      callback(event.payload),
+    );
+  }
+
   static async openUrl(url: string): Promise<void> {
     return invoke("plugin:opener|open_url", { url });
   }

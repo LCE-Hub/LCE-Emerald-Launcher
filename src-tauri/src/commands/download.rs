@@ -1,19 +1,18 @@
 use std::fs;
 use std::io::Write;
+use std::time::Duration;
 use futures_util::StreamExt;
 use tauri::{AppHandle, Emitter, State};
 use tokio_util::sync::CancellationToken;
 use crate::state::DownloadState;
 use crate::util;
-#[tauri::command]
-#[allow(non_snake_case)]
-pub async fn download_and_install(
-    app: AppHandle,
-    state: State<'_, DownloadState>,
-    url: String,
-    instance_id: String,
+async fn stream_download(
+    app: &AppHandle,
+    state: &DownloadState,
+    url: &str,
+    dest: &std::path::PathBuf,
+    progress_event: &str,
 ) -> Result<String, String> {
-    let instance_dir = util::get_instance_working_dir(&app, &instance_id);
     let token = CancellationToken::new();
     let child_token = token.clone();
     {
@@ -24,10 +23,9 @@ pub async fn download_and_install(
         *lock = Some(token);
     }
 
-    let root = util::get_app_dir(&app);
-    let zip_path = root.join(format!("temp_{}.zip", instance_id));
-    let response = reqwest::get(&url).await.map_err(|e| e.to_string())?;
+    let response = reqwest::get(url).await.map_err(|e| e.to_string())?;
     if !response.status().is_success() {
+        { *state.token.lock().await = None; }
         return Err(format!("Download failed: {}", response.status()));
     }
 
@@ -36,25 +34,80 @@ pub async fn download_and_install(
         .and_then(|h| h.to_str().ok())
         .unwrap_or("")
         .to_string();
-    let mut file = fs::File::create(&zip_path).map_err(|e| e.to_string())?;
+    let mut file = fs::File::create(dest).map_err(|e| e.to_string())?;
     let mut downloaded = 0.0;
     let mut stream = response.bytes_stream();
     while let Some(chunk) = stream.next().await {
         if child_token.is_cancelled() {
             drop(file);
-            let _ = fs::remove_file(&zip_path);
+            let _ = fs::remove_file(dest);
+            { *state.token.lock().await = None; }
             return Err("CANCELLED".into());
         }
         let chunk = chunk.map_err(|e| e.to_string())?;
         file.write_all(&chunk).map_err(|e| e.to_string())?;
         downloaded += chunk.len() as f64;
         if total_size > 0.0 {
-            let _ = app.emit("download-progress", downloaded / total_size * 100.0);
+            let _ = app.emit(progress_event, downloaded / total_size * 100.0);
         }
     }
 
     drop(file);
     { *state.token.lock().await = None; }
+    Ok(last_modified)
+}
+
+async fn download_with_retry(
+    app: &AppHandle,
+    state: &DownloadState,
+    url: &str,
+    dest: &std::path::PathBuf,
+    progress_event: &str,
+    max_retries: u32,
+) -> Result<String, String> {
+    let mut last_error = String::new();
+    for attempt in 1..=max_retries {
+        if attempt > 1 {
+            let backoff = Duration::from_secs(2u64.pow(attempt - 2));
+            let cancel = CancellationToken::new();
+            {
+                let mut lock = state.token.lock().await;
+                *lock = Some(cancel.clone());
+            }
+            let _ = app.emit("download-retry", attempt);
+            tokio::select! {
+                _ = tokio::time::sleep(backoff) => {}
+                _ = cancel.cancelled() => {
+                    let _ = fs::remove_file(dest);
+                    return Err("CANCELLED".into());
+                }
+            }
+        }
+        match stream_download(app, state, url, dest, progress_event).await {
+            Ok(result) => return Ok(result),
+            Err(e) if e == "CANCELLED" => return Err(e),
+            Err(e) => {
+                last_error = e;
+                let _ = fs::remove_file(dest);
+            }
+        }
+    }
+    let _ = app.emit("backend-error", format!("Download failed after {max_retries} attempts: {last_error}"));
+    Err(last_error)
+}
+
+#[tauri::command]
+#[allow(non_snake_case)]
+pub async fn download_and_install(
+    app: AppHandle,
+    state: State<'_, DownloadState>,
+    url: String,
+    instance_id: String,
+) -> Result<String, String> {
+    let instance_dir = util::get_instance_working_dir(&app, &instance_id);
+    let root = util::get_app_dir(&app);
+    let zip_path = root.join(format!("temp_{}.zip", instance_id));
+    let last_modified = download_with_retry(&app, &state, &url, &zip_path, "download-progress", 3).await?;
     let keep_list: std::collections::HashSet<&str> = [
         "Windows64", "Windows64Media", "uid.dat", "username.txt", "settings.dat",
         "servers.dat", "servers.txt", "server.properties", "options.txt", "servers.db",
@@ -192,43 +245,10 @@ pub async fn download_runner(
         let _ = fs::remove_dir_all(&runner_dir);
     }
     fs::create_dir_all(&runner_dir).map_err(|e| e.to_string())?;
-    let token = CancellationToken::new();
-    let child_token = token.clone();
-    {
-        let mut lock = state.token.lock().await;
-        if let Some(old_token) = lock.take() {
-            old_token.cancel();
-        }
-        *lock = Some(token);
-    }
 
     let tarball_path = runners_dir.join(format!("{}.tar.gz", name));
-    let response = reqwest::get(&url).await.map_err(|e| e.to_string())?;
-    if !response.status().is_success() {
-        return Err(format!("Download failed: {}", response.status()));
-    }
+    download_with_retry(&app, &state, &url, &tarball_path, "runner-download-progress", 3).await?;
 
-    let total_size = response.content_length().unwrap_or(0) as f64;
-    let mut file = fs::File::create(&tarball_path).map_err(|e| e.to_string())?;
-    let mut downloaded = 0.0;
-    let mut stream = response.bytes_stream();
-    while let Some(chunk) = stream.next().await {
-        if child_token.is_cancelled() {
-            drop(file);
-            let _ = fs::remove_file(&tarball_path);
-            let _ = fs::remove_dir_all(&runner_dir);
-            return Err("CANCELLED".into());
-        }
-        let chunk = chunk.map_err(|e| e.to_string())?;
-        file.write_all(&chunk).map_err(|e| e.to_string())?;
-        downloaded += chunk.len() as f64;
-        if total_size > 0.0 {
-            let _ = app.emit("runner-download-progress", downloaded / total_size * 100.0);
-        }
-    }
-
-    drop(file);
-    { *state.token.lock().await = None; }
     let status = std::process::Command::new("tar")
         .args(["-zxf", tarball_path.to_str().unwrap(), "-C", runner_dir.to_str().unwrap(), "--strip-components=1"])
         .status()

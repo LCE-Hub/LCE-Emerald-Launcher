@@ -364,9 +364,17 @@ export function useGameManager({
     const unlistenRunner = TauriService.onRunnerDownloadProgress((p) =>
       setRunnerDownloadProgress(p),
     );
+    const unlistenError = TauriService.onBackendError((msg) => {
+      setError(msg);
+    });
+    const unlistenRetry = TauriService.onDownloadRetry((attempt) => {
+      setError(`Download failed, retrying (${attempt}/3)...`);
+    });
     return () => {
       unlistenDownload.then((u) => u());
       unlistenRunner.then((u) => u());
+      unlistenError.then((u) => u());
+      unlistenRetry.then((u) => u());
     };
   }, [customEditions, checkInstalls]);
 

@@ -142,6 +142,7 @@ pub fn run() {
                         match game::launch_game(app_handle_clone.clone(), state, instance_id, Vec::new(), vec![]).await {
                             Ok(_) => app_handle_clone.exit(0),
                             Err(e) => {
+                                let _ = app_handle_clone.emit("backend-error", format!("Auto-launch: {e}"));
                                 eprintln!("Auto-launch error: {}", e);
                                 app_handle_clone.exit(1);
                             }
