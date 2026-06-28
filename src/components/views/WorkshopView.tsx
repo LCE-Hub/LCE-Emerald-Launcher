@@ -1208,13 +1208,7 @@ function PackageCard({
             </div>
           )}
         </div>
-      ) : (
-          <div className="w-full aspect-square flex items-center justify-center bg-black/50 border-b border-[#333]">
-            <span className="text-[#555] text-sm mc-text-shadow uppercase tracking-widest">
-              No Image
-            </span>
-          </div>
-      )}
+      ) : null}
       <div className="flex flex-col p-3 gap-1 relative bg-gradient-to-b from-transparent to-black/20">
         <span
           className={`text-base mc-text-shadow leading-tight truncate font-bold tracking-wide ${focused ? "text-[#FFFF55]" : "text-white"}`}
@@ -1463,11 +1457,16 @@ function PackageModal({
 
           <div className="flex flex-col p-6 gap-6 overflow-y-auto flex-1">
             <div className="space-y-4">
+              {pkg.description && pkg.description.trim() !== "" && (
+                <p className="text-sm text-[#CCCCCC] mc-text-shadow leading-relaxed">
+                  {pkg.description}
+                </p>
+              )}
               {pkg.extended_description &&
                 pkg.extended_description.trim() !== "" && (
                   <div className="space-y-2 p-4 border border-[#444] bg-black/40">
                     <span className="text-[10px] text-[#AAAAAA] mc-text-shadow uppercase tracking-[0.2em] font-bold">
-                      Description
+                      Details
                     </span>
                     <div className="text-sm text-white mc-text-shadow leading-relaxed workshop-markdown">
                       <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, [rehypeSanitize, defaultSchema]]}>
