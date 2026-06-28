@@ -1,7 +1,8 @@
 use std::fs;
 use serde::Serialize;
-use tauri::AppHandle;
+use tauri::{AppHandle, Emitter};
 use crate::util;
+use super::download::DownloadProgress;
 #[derive(Serialize)]
 pub struct GitEntry {
     pub name: String,
@@ -180,7 +181,8 @@ pub async fn download_dlc_files(
 
     fs::create_dir_all(&dlc_dest).map_err(|e| e.to_string())?;
     let client = reqwest::Client::new();
-    for file_path in &files_to_download {
+    let total = files_to_download.len();
+    for (i, file_path) in files_to_download.iter().enumerate() {
         let raw_url = get_raw_url(&host, &owner, &repo, &branch, file_path, is_github);
         let response = client.get(&raw_url)
             .header("User-Agent", "Emerald-Launcher")
@@ -199,6 +201,10 @@ pub async fn download_dlc_files(
             fs::create_dir_all(parent).map_err(|e| e.to_string())?;
         }
         fs::write(&dest_path, &bytes).map_err(|e| format!("Failed to write {}: {}", file_path, e))?;
+        let _ = app.emit("download-progress", DownloadProgress {
+            instance_id: format!("dlc:{}", dlc_folder),
+            percent: ((i + 1) as f64 / total as f64) * 100.0,
+        });
     }
 
     Ok(())

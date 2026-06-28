@@ -19,7 +19,7 @@ const HomeView = memo(function HomeView() {
     editions,
     installs,
     toggleInstall,
-    downloadingId,
+    downloadingIds,
     isGameRunning,
     stopGame,
     updatesAvailable,
@@ -30,7 +30,7 @@ const HomeView = memo(function HomeView() {
   const selectedEdition = editions.find((e: Edition) => e.id === profile);
   const selectedVersionName = selectedEdition?.name || "Game";
   const isInstalled = installs.includes(profile);
-  const isDownloading = downloadingId === profile;
+  const isDownloading = downloadingIds.includes(profile);
   const [menuFocus, setMenuFocus] = useState<number | null>(null);
 
   const hasAnyInstall = installs.length > 0;

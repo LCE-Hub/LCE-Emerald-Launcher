@@ -132,8 +132,8 @@ export function useGameManager({
 }: GameManagerProps) {
   const [installs, setInstalls] = useState<string[]>([]);
   const [isGameRunning, setIsGameRunning] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<Record<string, number>>({});
+  const [downloadingIds, setDownloadingIds] = useState<string[]>([]);
   const [isRunnerDownloading, setIsRunnerDownloading] = useState(false);
   const [runnerDownloadProgress, setRunnerDownloadProgress] = useState<
     number | null
@@ -359,8 +359,8 @@ export function useGameManager({
 
   useEffect(() => {
     checkInstalls();
-    const unlistenDownload = TauriService.onDownloadProgress((p) =>
-      setDownloadProgress(p),
+    const unlistenDownload = TauriService.onDownloadProgress((data) =>
+      setDownloadProgress((prev) => ({ ...prev, [data.instanceId]: data.percent })),
     );
     const unlistenRunner = TauriService.onRunnerDownloadProgress((p) =>
       setRunnerDownloadProgress(p),
@@ -406,19 +406,23 @@ export function useGameManager({
 
   const toggleInstall = useCallback(
     async (id: string) => {
-      if (downloadingId) return;
+      if (downloadingIds.includes(id)) return;
       const edition = editions.find((e) => e.instanceId === id);
       if (!edition) return;
       setError(null);
       try {
-        setDownloadingId(id);
-        setDownloadProgress(0);
+        setDownloadingIds((prev) => [...prev, id]);
+        setDownloadProgress((prev) => ({ ...prev, [id]: 0 }));
         await TauriService.downloadAndInstall(edition.url, id);
         await TauriService.syncDlc(id);
         await checkInstalls();
         setProfile(id);
-        setDownloadProgress(null);
-        setDownloadingId(null);
+        setDownloadProgress((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+        setDownloadingIds((prev) => prev.filter((did) => did !== id));
       } catch (e: unknown) {
         console.error(e);
         setError(
@@ -428,11 +432,15 @@ export function useGameManager({
               ? e
               : "Failed to install version",
         );
-        setDownloadProgress(null);
-        setDownloadingId(null);
+        setDownloadProgress((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+        setDownloadingIds((prev) => prev.filter((did) => did !== id));
       }
     },
-    [downloadingId, editions, checkInstalls, setProfile],
+    [downloadingIds, editions, checkInstalls, setProfile],
   );
 
   const handleUninstall = useCallback(
@@ -443,18 +451,21 @@ export function useGameManager({
     [checkInstalls],
   );
 
-  const handleCancelDownload = useCallback(async () => {
-    if (!downloadingId) return;
+  const handleCancelDownload = useCallback(async (id: string) => {
     try {
-      await TauriService.cancelDownload();
-      await TauriService.deleteInstance(downloadingId);
-      setDownloadingId(null);
-      setDownloadProgress(null);
+      await TauriService.cancelDownload(id);
+      await TauriService.deleteInstance(id);
+      setDownloadProgress((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      setDownloadingIds((prev) => prev.filter((did) => did !== id));
       await checkInstalls();
     } catch (e) {
       console.error(e);
     }
-  }, [downloadingId, checkInstalls]);
+  }, [checkInstalls]);
 
   const handleLaunch = useCallback(async () => {
     if (isGameRunning) return;
@@ -589,7 +600,7 @@ export function useGameManager({
     installs,
     isGameRunning,
     downloadProgress,
-    downloadingId,
+    downloadingIds,
     isRunnerDownloading,
     runnerDownloadProgress,
     error,

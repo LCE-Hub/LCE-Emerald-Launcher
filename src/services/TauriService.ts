@@ -131,8 +131,8 @@ export class TauriService {
     return invoke("delete_instance", { instanceId });
   }
 
-  static async cancelDownload(): Promise<void> {
-    return invoke("cancel_download");
+  static async cancelDownload(instanceId: string): Promise<void> {
+    return invoke("cancel_download", { instanceId });
   }
 
   static async setupMacosRuntime(): Promise<void> {
@@ -188,8 +188,8 @@ export class TauriService {
     return invoke("workshop_list_installed");
   }
 
-  static onDownloadProgress(callback: (percent: number) => void) {
-    return listen<number>("download-progress", (event) =>
+  static onDownloadProgress(callback: (data: { instanceId: string; percent: number }) => void) {
+    return listen<{ instanceId: string; percent: number }>("download-progress", (event) =>
       callback(event.payload),
     );
   }

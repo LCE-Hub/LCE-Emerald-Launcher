@@ -9,8 +9,8 @@ interface DiscordRPCProps {
   activeView: string;
   isGameRunning: boolean;
   isWindowVisible: boolean;
-  downloadProgress: number | null;
-  downloadingId: string | null;
+  downloadProgress: Record<string, number>;
+  downloadingIds: string[];
   editions: Edition[];
 }
 
@@ -23,15 +23,18 @@ export function useDiscordRPC({
   isGameRunning,
   isWindowVisible,
   downloadProgress,
-  downloadingId,
+  downloadingIds,
   editions,
 }: DiscordRPCProps) {
   useEffect(() => {
     const updateRPC = async () => {
       if (!rpcEnabled || showIntro || !username) return;
-      if (!isWindowVisible && !isGameRunning && downloadProgress === null)
+      if (
+        !isWindowVisible &&
+        !isGameRunning &&
+        Object.keys(downloadProgress).length === 0
+      )
         return;
-
       const version = editions.find((e) => e.id === profile);
       const versionName = version ? version.name : "Unknown Version";
       let details = "In Menus";
@@ -41,10 +44,16 @@ export function useDiscordRPC({
 
       if (isGameRunning) {
         details = `Playing ${versionName}`;
-      } else if (downloadProgress !== null) {
+      } else if (downloadingIds.length > 0) {
+        const firstId = downloadingIds[0];
+        const pct = downloadProgress[firstId];
         const downloadingName =
-          editions.find((e) => e.id === downloadingId)?.name || "Game Files";
-        details = `Downloading ${downloadingName} (${downloadProgress.toFixed(0)}%)`;
+          editions.find((e) => e.id === firstId)?.name || "Game Files";
+        const extra =
+          downloadingIds.length > 1
+            ? ` +${downloadingIds.length - 1} more`
+            : "";
+        details = `Downloading ${downloadingName}${extra} (${(pct ?? 0).toFixed(0)}%)`;
       } else {
         const tabNames: Record<string, string> = {
           main: "Main Menu",
@@ -78,8 +87,8 @@ export function useDiscordRPC({
     activeView,
     isGameRunning,
     isWindowVisible,
-    Math.floor(downloadProgress || 0),
-    downloadingId,
+    downloadProgress,
+    downloadingIds,
     editions,
   ]);
 }

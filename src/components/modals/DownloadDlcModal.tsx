@@ -28,6 +28,7 @@ export default function DownloadDlcModal({
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState<string[]>([]);
+  const [dlcProgress, setDlcProgress] = useState<Record<string, number>>({});
   const [focusIndex, setFocusIndex] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
   const [branch, repoUrl] = officialDLC.includes(":")
@@ -82,6 +83,7 @@ export default function DownloadDlcModal({
       setError(null);
       setDownloading(false);
       setDownloaded([]);
+      setDlcProgress({});
       setFocusIndex(0);
       fetchDlcs();
     }
@@ -148,23 +150,46 @@ export default function DownloadDlcModal({
     playPressSound();
     setDownloading(true);
     setDownloaded([]);
-    for (const dlc of selected) {
-      try {
-        await TauriService.downloadDlcFiles(
-          instanceId,
-          repoUrl,
-          branch,
-          dlc.name,
-        );
-        setDownloaded((prev) => [...prev, dlc.name]);
-      } catch (e) {
+    setDlcProgress({});
+    const initialProgress: Record<string, number> = {};
+    selected.forEach((dlc) => {
+      initialProgress[dlc.name] = 0;
+    });
+    setDlcProgress(initialProgress);
+    const unlisten = await TauriService.onDownloadProgress((data) => {
+      if (data.instanceId.startsWith("dlc:")) {
+        const name = data.instanceId.slice(4);
+        setDlcProgress((prev) => {
+          if (prev[name] === undefined) return prev;
+          return { ...prev, [name]: data.percent };
+        });
+        if (data.percent >= 100) {
+          setDownloaded((prev) =>
+            prev.includes(name) ? prev : [...prev, name],
+          );
+        }
+      }
+    });
+
+    const results = await Promise.allSettled(
+      selected.map((dlc) =>
+        TauriService.downloadDlcFiles(instanceId, repoUrl, branch, dlc.name),
+      ),
+    );
+
+    unlisten();
+    const succeeded: string[] = [];
+    for (let i = 0; i < results.length; i++) {
+      const r = results[i];
+      if (r.status === "fulfilled") {
+        succeeded.push(selected[i].name);
+      } else {
         setError(
-          `Failed to download ${dlc.name}: ${e instanceof Error ? e.message : String(e)}`,
+          `Failed to download ${selected[i].name}: ${r.reason instanceof Error ? r.reason.message : String(r.reason)}`,
         );
-        setDownloading(false);
-        return;
       }
     }
+    setDownloaded(succeeded);
     setDownloading(false);
   };
 
@@ -204,13 +229,13 @@ export default function DownloadDlcModal({
           </div>
         )}
 
-        {!loading && !error && dlcList.length === 0 && (
+        {!loading && !error && dlcList.length === 0 && !downloading && (
           <div className="text-white text-sm mc-text-shadow mb-4 py-8">
             No DLC folders found in the repository.
           </div>
         )}
 
-        {!loading && dlcList.length > 0 && (
+        {!loading && dlcList.length > 0 && !downloading && (
           <>
             <div className="flex items-center justify-between w-full mb-2 gap-2">
               <span className="text-white text-[10px] mc-text-shadow uppercase tracking-widest">
@@ -270,10 +295,39 @@ export default function DownloadDlcModal({
           </>
         )}
 
+        {downloading && (
+          <div className="w-full max-h-[40vh] overflow-y-auto custom-scrollbar border border-[#373737] bg-black/20 flex flex-col gap-2 p-3">
+            {dlcList
+              .filter((d) => d.selected)
+              .map((dlc) => {
+                const pct = dlcProgress[dlc.name] ?? 0;
+                const isDone = downloaded.includes(dlc.name);
+                return (
+                  <div key={dlc.name} className="flex items-center gap-2">
+                    <span className="text-[11px] text-white mc-text-shadow w-7 text-right shrink-0">
+                      {isDone ? "100" : Math.floor(pct)}%
+                    </span>
+                    <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                      <span className="text-[10px] text-gray-300 mc-text-shadow truncate">
+                        {dlc.name}
+                      </span>
+                      <div className="h-2 border border-white/30 bg-black/60">
+                        <div
+                          className="h-full bg-[#FFFF55]"
+                          style={{ width: `${isDone ? 100 : pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        )}
+
         <div className="flex items-center justify-center gap-4 mt-4">
           {downloading && (
             <div className="text-[#FFFF55] text-sm mc-text-shadow">
-              Downloading... ({downloaded.length}/{selectedCount})
+              Downloaded {downloaded.length}/{selectedCount}
             </div>
           )}
         </div>

@@ -116,7 +116,7 @@ export default function App() {
       {
         isGameRunning: game.isGameRunning,
         downloadProgress: game.downloadProgress,
-        downloadingId: game.downloadingId,
+        downloadingIds: game.downloadingIds,
       },
       game.installs,
     );
@@ -124,7 +124,7 @@ export default function App() {
     config,
     game.isGameRunning,
     game.downloadProgress,
-    game.downloadingId,
+    game.downloadingIds,
     game.installs,
     config.isLoaded,
   ]);
@@ -367,7 +367,7 @@ export default function App() {
 
         <DownloadOverlay
           downloadProgress={game.downloadProgress}
-          downloadingId={game.downloadingId}
+          downloadingIds={game.downloadingIds}
           editions={game.editions}
         />
 

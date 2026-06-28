@@ -3,7 +3,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_util::sync::CancellationToken;
 pub struct DownloadState {
-    pub token: Arc<Mutex<Option<CancellationToken>>>,
+    pub tokens: Arc<Mutex<HashMap<String, CancellationToken>>>,
 }
 
 pub struct GameState {

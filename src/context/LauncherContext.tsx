@@ -72,7 +72,7 @@ export function LauncherProvider({ children }: { children: React.ReactNode }) {
 
   const game = useMemo(() => gameRaw, [
     gameRaw.installs, gameRaw.isGameRunning, gameRaw.downloadProgress,
-    gameRaw.downloadingId, gameRaw.editions, gameRaw.isRunnerDownloading,
+    gameRaw.downloadingIds, gameRaw.editions, gameRaw.isRunnerDownloading,
     gameRaw.runnerDownloadProgress, gameRaw.error, gameRaw.updateCustomEdition,
     gameRaw.handleUninstall, gameRaw.handleCancelDownload, gameRaw.gameUpdateMessage, configRaw.profile,
     gameRaw.updatesAvailable, gameRaw.addToSteam, gameRaw.steamSuccessMessage,
@@ -94,7 +94,7 @@ export function LauncherProvider({ children }: { children: React.ReactNode }) {
     activeView,
     isGameRunning: game.isGameRunning,
     downloadProgress: game.downloadProgress,
-    downloadingId: game.downloadingId,
+    downloadingIds: game.downloadingIds,
     editions: game.editions,
     isWindowVisible,
   });

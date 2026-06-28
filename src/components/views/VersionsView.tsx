@@ -74,7 +74,7 @@ const VersionsView = memo(function VersionsView() {
     deleteCustomEdition: onDeleteEdition,
     addCustomEdition: onAddEdition,
     updateCustomEdition: onUpdateEdition,
-    downloadingId,
+    downloadingIds,
     downloadProgress,
     updatesAvailable,
     addToSteam,
@@ -150,17 +150,17 @@ const VersionsView = memo(function VersionsView() {
         if (focusIndex < editions.length) {
           const edition = editions[focusIndex];
           const isInstalled = installedVersions.includes(edition.instanceId);
-          const isDownloading = downloadingId === edition.instanceId;
+          const isDownloading = downloadingIds.includes(edition.instanceId);
           if (focusBtn === 0) {
             if (isInstalled) {
               playPressSound();
               setOpenMenuId(openMenuId === edition.id ? null : edition.id);
             } else {
-              if (!isDownloading && !downloadingId) {
+              if (!isDownloading) {
                 playPressSound();
                 toggleInstall(edition.instanceId);
-              } else if (isDownloading) {
-                handleCancelDownload();
+              } else {
+                handleCancelDownload(edition.instanceId);
               }
             }
           } else if (focusBtn === 1 && !isInstalled) {
@@ -190,7 +190,7 @@ const VersionsView = memo(function VersionsView() {
     focusBtn,
     editions,
     installedVersions,
-    downloadingId,
+    downloadingIds,
     ITEM_COUNT,
     playPressSound,
     playBackSound,
@@ -285,7 +285,7 @@ const VersionsView = memo(function VersionsView() {
                 hasAnyInstall && selectedProfile === edition.instanceId;
               const isFocused = focusIndex === i;
               const isCustom = edition.id.startsWith("custom_");
-              const isDownloading = downloadingId === edition.instanceId;
+              const isDownloading = downloadingIds.includes(edition.instanceId);
               const isComingSoon = edition.comingSoon;
 
               return (
@@ -302,7 +302,7 @@ const VersionsView = memo(function VersionsView() {
                   <div className="w-6 flex items-center justify-center flex-shrink-0">
                     {isDownloading ? (
                       <span className="text-xs text-gray-400 font-bold">
-                        {Math.floor(downloadProgress || 0)}%
+                        {Math.floor(downloadProgress[edition.instanceId] || 0)}%
                       </span>
                     ) : edition.logo ? (
                       edition.logo.startsWith("http") ||
@@ -404,10 +404,10 @@ const VersionsView = memo(function VersionsView() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (!isDownloading && !downloadingId) {
+                          if (!isDownloading) {
                             toggleInstall(edition.instanceId);
-                          } else if (isDownloading) {
-                            handleCancelDownload();
+                          } else {
+                            handleCancelDownload(edition.instanceId);
                           }
                         }}
                         onMouseEnter={() =>
@@ -415,9 +415,7 @@ const VersionsView = memo(function VersionsView() {
                         }
                         onMouseLeave={() => setHoveredBtn(null)}
                         className={`w-9 h-9 flex items-center justify-center ${
-                          isDownloading || (!!downloadingId && !isInstalled)
-                            ? "opacity-50"
-                            : ""
+                          isDownloading ? "opacity-50" : ""
                         }`}
                         style={{
                           backgroundImage:
