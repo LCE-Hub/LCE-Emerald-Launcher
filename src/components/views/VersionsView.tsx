@@ -6,6 +6,7 @@ import SetUidModal from "../modals/SetUidModal";
 import ImportWorldModal from "../modals/ImportWorldModal";
 import PlaytimeModal from "../modals/PlaytimeModal";
 import CustomizeModal from "../modals/CustomizeModal";
+import DownloadDlcModal from "../modals/DownloadDlcModal";
 import {
   useUI,
   useConfig,
@@ -103,6 +104,8 @@ const VersionsView = memo(function VersionsView() {
   } | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [deleteConfirmEdition, setDeleteConfirmEdition] = useState<Edition | null>(null);
+  const [isDlcModalOpen, setIsDlcModalOpen] = useState(false);
+  const [dlcTargetEdition, setDlcTargetEdition] = useState<Edition | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const ITEM_COUNT = editions.length + 3;
@@ -536,6 +539,33 @@ const VersionsView = memo(function VersionsView() {
                             Download to custom path
                           </button>
                         )}
+                        {edition.officialDLC && isInstalled ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playPressSound();
+                              setDlcTargetEdition(edition);
+                              setIsDlcModalOpen(true);
+                              setOpenMenuId(null);
+                            }}
+                            className="w-full text-left px-3 py-2 text-[10px] text-[#dddddd] flex items-center gap-2 mc-text-shadow"
+                          >
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              className="w-3.5 h-3.5"
+                            >
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                              <polyline points="17 8 12 3 7 8" />
+                              <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
+                            Download DLC
+                          </button>
+                        ) : null}
                         {Array.isArray(edition.branches) &&
                           edition.branches.length > 0 && (
                             <button
@@ -933,6 +963,16 @@ const VersionsView = memo(function VersionsView() {
             updateCustomization(customizeTarget.instanceId, updates);
           }
         }}
+      />
+
+      <DownloadDlcModal
+        isOpen={isDlcModalOpen}
+        onClose={() => { setIsDlcModalOpen(false); setDlcTargetEdition(null); }}
+        playPressSound={playPressSound}
+        playBackSound={playBackSound}
+        editionName={dlcTargetEdition?.name ?? ""}
+        instanceId={dlcTargetEdition?.instanceId ?? ""}
+        officialDLC={dlcTargetEdition?.officialDLC ?? ""}
       />
 
       {deleteConfirmEdition && (

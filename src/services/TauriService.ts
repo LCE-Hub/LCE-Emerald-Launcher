@@ -409,6 +409,23 @@ export class TauriService {
     return invoke("list_directory", { path });
   }
 
+  static async listGitDirectory(
+    repoUrl: string,
+    branch: string,
+    path: string,
+  ): Promise<Array<{ name: string; is_dir: boolean }>> {
+    return invoke("list_git_directory", { repoUrl, branch, path });
+  }
+
+  static async downloadDlcFiles(
+    instanceId: string,
+    repoUrl: string,
+    branch: string,
+    dlcFolder: string,
+  ): Promise<void> {
+    return invoke("download_dlc_files", { instanceId, repoUrl, branch, dlcFolder });
+  }
+
   static async importWorld(
     inputPath: string,
     outputPath: string,

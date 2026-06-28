@@ -12,6 +12,7 @@ export interface Edition {
   instanceId: string;
   comingSoon?: boolean;
   category?: string[];
+  officialDLC?: string;
 }
 
 export interface CustomEditionInput {

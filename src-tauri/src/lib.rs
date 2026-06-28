@@ -12,6 +12,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tauri::{Emitter, Manager};
 use commands::config as config_cmds;
+use commands::dlc;
 use commands::download;
 use commands::file_dialogs;
 use commands::game;
@@ -62,6 +63,8 @@ pub fn run() {
         .plugin(tauri_plugin_drpc::init())
         .invoke_handler(tauri::generate_handler![
             macos_setup::setup_macos_runtime,
+            dlc::list_git_directory,
+            dlc::download_dlc_files,
             game::launch_game,
             game::stop_game,
             game::check_game_installed,

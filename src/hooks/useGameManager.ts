@@ -35,6 +35,7 @@ const BASE_EDITIONS = [
     supportsSlimSkins: true,
     logo: "/images/neoLegacy.png",
     panorama: "legacy_evolved",
+    officialDLC: "main:https://git.neolegacy.dev/neoStudiosLCE/DLCs", //neo: format is {branch}:{git_url}
   },
   {
     id: "revelations",
