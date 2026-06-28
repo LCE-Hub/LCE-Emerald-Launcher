@@ -14,20 +14,19 @@ export const AppHeader = memo(function AppHeader({ playPressSound, uiFade }: App
     <motion.div
       key="header"
       {...uiFade}
-      data-tauri-drag-region
       className="h-10 w-full flex justify-between items-center px-1 absolute top-0 left-0 z-50 bg-gradient-to-b from-black/80 to-transparent"
     >
       <div
         data-tauri-drag-region
-        className="pl-3 flex items-center justify-center gap-1.5 pointer-events-none h-full pt-0.5"
+        className="flex-1 h-full flex items-center pl-3 gap-1.5 pt-0.5"
       >
         <img
           src="/images/icon.png"
           alt="Icon"
-          className="w-4 h-4 object-contain block"
+          className="w-4 h-4 object-contain block pointer-events-none"
           style={{ imageRendering: "pixelated" }}
         />
-        <span className="text-xs text-gray-300 mc-text-shadow opacity-90 tracking-wide leading-none block pt-[1px]">
+        <span className="text-xs text-gray-300 mc-text-shadow opacity-90 tracking-wide leading-none block pt-[1px] pointer-events-none">
           Emerald Legacy Launcher
         </span>
       </div>
