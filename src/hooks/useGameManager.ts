@@ -51,7 +51,7 @@ const BASE_EDITIONS = [
     id: "360revived",
     name: "360 Revived",
     desc: "PC port of Xbox 360 Edition TU19",
-    url: "https://github.com/BluTac10/360Revived/releases/download/nightly/LCEWindows64.zip",
+    url: "https://github.com/BlackHoleSpirit/360-Revived/releases/download/nightly/360-Revived.zip",
     titleImage: "/images/minecraft_title_360revived.png",
     supportsSlimSkins: false,
     logo: "/images/360_revived.png",
