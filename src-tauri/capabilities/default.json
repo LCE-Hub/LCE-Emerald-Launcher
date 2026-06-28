@@ -1,9 +1,7 @@
 {
   "identifier": "default",
   "description": "Default permissions",
-  "windows": [
-    "main"
-  ],
+  "windows": ["main"],
   "permissions": [
     "core:default",
     "core:app:default",
@@ -41,6 +39,7 @@
       ]
     },
     "process:default",
-    "deep-link:default"
+    "deep-link:default",
+    "core:window:allow-start-dragging"
   ]
 }
