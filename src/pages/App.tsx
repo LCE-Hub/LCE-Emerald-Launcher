@@ -550,18 +550,19 @@ export default function App() {
             >
               <AnimatePresence mode="wait">
                 {activeView === "main" && (
-                  <SkinViewer
-                    key="skin-viewer"
-                    username={config.username}
-                    setUsername={config.setUsername}
-                    playPressSound={audio.playPressSound}
-                    skinUrl={skinUrl}
-                    capeUrl={config.legacyMode ? null : capeUrl}
-                    setSkinUrl={setSkinUrl}
-                    setActiveView={setActiveView}
-                    isFocusedSection={focusSection === "skin"}
-                    onNavigateRight={onNavigateToMenu}
-                  />
+                    <SkinViewer
+                      key="skin-viewer"
+                      username={config.username}
+                      setUsername={config.setUsername}
+                      playPressSound={audio.playPressSound}
+                      skinUrl={skinUrl}
+                      capeUrl={config.legacyMode ? null : capeUrl}
+                      setSkinUrl={setSkinUrl}
+                      setActiveView={setActiveView}
+                      setIsUiHidden={setIsUiHidden}
+                      isFocusedSection={focusSection === "skin"}
+                      onNavigateRight={onNavigateToMenu}
+                    />
                 )}
               </AnimatePresence>
 

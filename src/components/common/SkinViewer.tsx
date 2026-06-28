@@ -11,6 +11,7 @@ interface SkinViewerProps {
   capeUrl?: string | null;
   setSkinUrl: (url: string) => void;
   setActiveView: (view: string) => void;
+  setIsUiHidden: (hidden: boolean) => void;
   isFocusedSection: boolean;
   onNavigateRight: () => void;
   hideControls?: boolean;
@@ -24,6 +25,7 @@ const SkinViewer = memo(function SkinViewer({
   skinUrl,
   capeUrl,
   setActiveView,
+  setIsUiHidden,
   isFocusedSection,
   onNavigateRight,
   hideControls,
@@ -529,6 +531,121 @@ const SkinViewer = memo(function SkinViewer({
       if (el && document.activeElement?.tagName !== "INPUT") el.focus();
     }
   }, [isFocusedSection, focusIndex]);
+
+  const touhouOverlayRef = useRef<HTMLDivElement | null>(null);
+  const touhouBlobUrlRef = useRef<string | null>(null);
+  const touhouAudioRef = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => {
+    const GIF_URL =
+      "https://raw.githubusercontent.com/neoapps-dev/neoapps-dev/main/badapple_small.gif";
+    const MP3_URL =
+      "https://raw.githubusercontent.com/Soldr/bad-apple-but-its-node.js/master/bad-apple.mp3";
+
+    const stopAudio = () => {
+      if (touhouAudioRef.current) {
+        touhouAudioRef.current.pause();
+        touhouAudioRef.current.src = "";
+        touhouAudioRef.current = null;
+      }
+    };
+
+    if (username === "TOUHOU") {
+      if (!touhouOverlayRef.current) {
+        setIsUiHidden(true);
+        const overlay = document.createElement("div");
+        overlay.style.cssText =
+          "position:fixed;inset:0;z-index:99999;background:#000;display:flex;align-items:center;justify-content:center;cursor:pointer";
+        const spinner = document.createElement("div");
+        spinner.textContent = "Loading...";
+        spinner.style.cssText =
+          "color:#fff;font-family:'Mojangles',monospace;font-size:24px;letter-spacing:4px";
+        overlay.appendChild(spinner);
+        document.body.appendChild(overlay);
+        const img = document.createElement("img");
+        img.style.cssText = "width:100%;height:100%;object-fit:contain";
+        const audio = new Audio(MP3_URL);
+        audio.loop = true;
+        audio.volume = 0.5;
+        touhouAudioRef.current = audio;
+        const audioReady = new Promise<void>((resolve) => {
+          if (audio.readyState >= 3) resolve();
+          else {
+            audio.oncanplaythrough = () => resolve();
+            audio.onerror = () => resolve();
+          }
+        });
+
+        const gifReady = fetch(GIF_URL)
+          .then((r) => r.arrayBuffer())
+          .then((buf) => {
+            const blob = new Blob([buf], { type: "image/gif" });
+            const url = URL.createObjectURL(blob);
+            touhouBlobUrlRef.current = url;
+            img.src = url;
+            return new Promise<void>((resolve) => {
+              if (img.complete) resolve();
+              else {
+                img.onload = () => resolve();
+                img.onerror = () => resolve();
+              }
+            });
+          })
+          .catch(() => {
+            img.src = GIF_URL;
+            return new Promise<void>((resolve) => {
+              if (img.complete) resolve();
+              else {
+                img.onload = () => resolve();
+                img.onerror = () => resolve();
+              }
+            });
+          });
+
+        Promise.all([gifReady, audioReady]).then(() => {
+          spinner.remove();
+          overlay.appendChild(img);
+          audio.currentTime = 2; //neo: you know.
+          audio.play().catch(() => {});
+        });
+
+        const cleanup = () => {
+          stopAudio();
+          setIsUiHidden(false);
+          if (overlay.parentNode) overlay.remove();
+          touhouOverlayRef.current = null;
+          if (touhouBlobUrlRef.current) {
+            URL.revokeObjectURL(touhouBlobUrlRef.current);
+            touhouBlobUrlRef.current = null;
+          }
+        };
+        overlay.onclick = cleanup;
+        touhouOverlayRef.current = overlay;
+      }
+    } else {
+      if (touhouOverlayRef.current) {
+        stopAudio();
+        touhouOverlayRef.current.remove();
+        touhouOverlayRef.current = null;
+        if (touhouBlobUrlRef.current) {
+          URL.revokeObjectURL(touhouBlobUrlRef.current);
+          touhouBlobUrlRef.current = null;
+        }
+        setIsUiHidden(false);
+      }
+    }
+    return () => {
+      stopAudio();
+      if (touhouOverlayRef.current) {
+        touhouOverlayRef.current.remove();
+        touhouOverlayRef.current = null;
+        if (touhouBlobUrlRef.current) {
+          URL.revokeObjectURL(touhouBlobUrlRef.current);
+          touhouBlobUrlRef.current = null;
+        }
+        setIsUiHidden(false);
+      }
+    };
+  }, [username, setIsUiHidden]);
 
   return (
     <motion.div
