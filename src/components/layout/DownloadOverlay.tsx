@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { memo } from "react";
+import { ScreenshotImage } from "../common/ScreenshotImage";
 import type { Edition } from "../../types/edition";
 
 interface DownloadOverlayProps {
@@ -33,12 +34,37 @@ export const DownloadOverlay = memo(function DownloadOverlay({ downloadProgress,
           return (
             <div key={id} className="flex items-center gap-2.5">
               {edition?.logo ? (
-                <img
-                  src={edition.logo}
-                  alt=""
-                  className="w-6 h-6 object-contain shrink-0"
-                  style={{ imageRendering: "pixelated" }}
-                />
+                edition.logo.startsWith("http") || edition.logo.startsWith("/images") ? (
+                  <img
+                    src={edition.logo}
+                    alt=""
+                    className="w-6 h-6 object-contain shrink-0"
+                    style={{ imageRendering: "pixelated" }}
+                  />
+                ) : (
+                  <ScreenshotImage
+                    path={edition.logo}
+                    alt=""
+                    className="w-6 h-6 object-contain shrink-0"
+                    style={{ imageRendering: "pixelated" }}
+                  />
+                )
+              ) : edition?.titleImage ? (
+                edition.titleImage.startsWith("http") || edition.titleImage.startsWith("/images") ? (
+                  <img
+                    src={edition.titleImage}
+                    alt=""
+                    className="w-6 h-6 object-contain shrink-0"
+                    style={{ imageRendering: "pixelated" }}
+                  />
+                ) : (
+                  <ScreenshotImage
+                    path={edition.titleImage}
+                    alt=""
+                    className="w-6 h-6 object-contain shrink-0"
+                    style={{ imageRendering: "pixelated" }}
+                  />
+                )
               ) : (
                 <div className="w-6 h-6 flex items-center justify-center border border-[#555] bg-black/40 shrink-0">
                   <svg className="w-3 h-3 text-[#FFFF55]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
