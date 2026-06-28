@@ -149,7 +149,7 @@ const CreditsView = memo(function CreditsView() {
         },
         {
           name: "Hellish Ends",
-          icon: "",
+          icon: "/images/hellishEndsIcon.png",
           roles: [
             {
               role: "Founder",
@@ -161,7 +161,7 @@ const CreditsView = memo(function CreditsView() {
         },
         {
           name: "Revelations",
-          icon: "",
+          icon: "/images/revelations.png",
           roles: [
             {
               role: "Founder",
@@ -176,6 +176,16 @@ const CreditsView = memo(function CreditsView() {
             {
               role: "Founder",
               members: [{ name: "TBD", url: "#" }],
+            },
+          ],
+        },
+        {
+          name: "Minecraft: Moon Edition",
+          icon: "/images/moonEdition.png",
+          roles: [
+            {
+              role: "Founder",
+              members: [{ name: "BlazinBlaze", url: "#" }],
             },
           ],
         },
