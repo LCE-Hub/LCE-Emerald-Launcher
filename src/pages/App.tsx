@@ -23,6 +23,7 @@ import PanoramaBackground from "../components/common/PanoramaBackground";
 import { ClickParticles } from "../components/common/ClickParticles";
 import { CinematicIntro } from "../components/common/CinematicIntro";
 import { DownloadOverlay } from "../components/layout/DownloadOverlay";
+import { AppHeader } from "../components/layout/AppHeader";
 import { AchievementToast } from "../components/common/AchievementToast";
 import {
   useUI,
@@ -34,12 +35,14 @@ import {
 import { TauriService } from "../services/TauriService";
 import { useLceLiveNotifications } from "../hooks/useLceLiveNotifications";
 import { usePluginViews } from "../plugins/PluginContext";
+import { usePlatform } from "../hooks/usePlatform";
 import { PluginManager } from "../plugins/PluginManager";
 import { PluginViewContainer } from "../components/plugins/PluginViewContainer";
 import type { Edition } from "../types/edition";
 import type { ToastOptions } from "../plugins/types";
 import pkg from "../../package.json";
 import { getCurrent, onOpenUrl } from "@tauri-apps/plugin-deep-link";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 export default function App() {
   const ui = useUI();
@@ -152,7 +155,11 @@ export default function App() {
           return;
         }
 
-        if (action === "lcelive" && parts.length >= 2 && parts[1] === "addfriend") {
+        if (
+          action === "lcelive" &&
+          parts.length >= 2 &&
+          parts[1] === "addfriend"
+        ) {
           const username = parsed.searchParams.get("username");
           if (username) {
             setActiveView("lcelive");
@@ -243,6 +250,19 @@ export default function App() {
       if (unlistenEvent) unlistenEvent();
     };
   }, [queueDeepLink]);
+  const { isMac } = usePlatform();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  useEffect(() => {
+    const appWindow = getCurrentWindow();
+    if (!isMac) appWindow.setDecorations(false);
+    const checkFs = async () => setIsFullscreen(await appWindow.isFullscreen());
+    checkFs();
+    const unlisten = appWindow.onResized(checkFs);
+    return () => {
+      unlisten.then((fn: () => void) => fn());
+    };
+  }, [isMac]);
+  const showHeader = !isMac || isFullscreen;
   useEffect(() => {
     if (config.isLoaded) {
       const setupCompleted =
@@ -341,6 +361,9 @@ export default function App() {
         </div>
 
         {config.vfxEnabled && <ClickParticles />}
+        {showHeader && (
+          <AppHeader playPressSound={audio.playPressSound} uiFade={uiFade} />
+        )}
 
         <DownloadOverlay
           downloadProgress={game.downloadProgress}
@@ -393,10 +416,10 @@ export default function App() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex flex-col h-full z-10 w-full relative"
+          className={`flex flex-col h-full z-10 w-full relative ${showHeader ? "pt-12" : ""}`}
         >
           {!config.legacyMode && (
-            <motion.div {...uiFade} className="absolute top-4 left-8 z-50">
+            <motion.div {...uiFade} className="absolute top-10 left-8 z-50">
               <button
                 onClick={() => {
                   audio.playPressSound();
