@@ -66,7 +66,7 @@ LCE Emerald Launcher is the easiest way to play Minecraft Legacy Console Edition
 | **Controller Support** | Full gamepad navigation support (keyboard support included) |
 | **Discord Rich Presence** | Show your current activity and game status on Discord |
 | **Workshop** | Community content like DLCs, Textures, Skins and more |
-| **Free Multiplayer** | Powered by LCELive, Emerald provides a free multiplayer service so you can play with anyone without port forwaring! |
+| **Free Multiplayer** | Powered by LCELive, Emerald provides a free multiplayer service so you can play with anyone without port forwarding! |
 
 ---
 
