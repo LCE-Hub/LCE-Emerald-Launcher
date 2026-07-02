@@ -5,6 +5,7 @@ import HomeView from "../components/views/HomeView";
 import SettingsView from "../components/views/SettingsView";
 import VersionsView from "../components/views/VersionsView";
 import DevtoolsView from "../components/views/DevtoolsView";
+import GuidesView from "../components/views/GuidesView";
 import SkinsView from "../components/views/SkinsView";
 import WorkshopView from "../components/views/WorkshopView";
 import SetupView from "../components/views/SetupView";
@@ -584,6 +585,9 @@ export default function App() {
                   )}
                   {activeView === "devtools" && (
                     <DevtoolsView key="devtools-view" />
+                  )}
+                  {activeView === "guides" && (
+                    <GuidesView key="guides-view" />
                   )}
                   {activeView === "pck-editor" && (
                     <PckEditorView key="pck-editor-view" />

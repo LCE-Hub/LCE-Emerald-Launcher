@@ -60,7 +60,7 @@ const DEFAULT_SKINS: SavedSkin[] = [
 ];
 
 const SkinsView = memo(function SkinsView() {
-  const { setActiveView } = useUI();
+  const { setActiveView, setIsUiHidden } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { skinUrl, setSkinUrl, setSkinIsSlim, capeUrl, setCapeUrl } = useSkin();
 
@@ -712,6 +712,7 @@ const SkinsView = memo(function SkinsView() {
           setSkinUrl={setSkinUrl}
           capeUrl={capeUrl}
           setActiveView={setActiveView}
+          setIsUiHidden={setIsUiHidden}
           isFocusedSection={false}
           onNavigateRight={() => {}}
           hideControls
