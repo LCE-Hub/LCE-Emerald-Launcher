@@ -41,6 +41,7 @@ export const useGamepad = ({ playSfx, isWindowVisible }: UseGamepadProps) => {
   };
 
   const update = useCallback(() => {
+    focusedRef.current = document.hasFocus();
     if (!focusedRef.current) {
       requestRef.current = requestAnimationFrame(update);
       return;
