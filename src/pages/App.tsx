@@ -15,6 +15,7 @@ import LocEditorView from "../components/views/LocEditorView";
 import GrfEditorView from "../components/views/GrfEditorView";
 import ColEditorView from "../components/views/ColEditorView";
 import OptionsEditorView from "../components/views/OptionsEditorView";
+import ModelEditorView from "../components/views/ModelEditorView";
 import ScreenshotsView from "../components/views/ScreenshotsView";
 import SwfView from "../components/views/SwfView";
 import LceLiveView from "../components/views/LceLiveView";
@@ -606,6 +607,9 @@ export default function App() {
                   )}
                   {activeView === "options-editor" && (
                     <OptionsEditorView key="options-editor-view" />
+                  )}
+                  {activeView === "model-editor" && (
+                    <ModelEditorView key="model-editor-view" />
                   )}
                   {activeView === "swf-editor" && (
                     <SwfView key="swf-editor-view" />

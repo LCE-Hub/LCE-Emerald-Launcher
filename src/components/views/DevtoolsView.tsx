@@ -16,7 +16,8 @@ const DEV_TOOLS: DevTool[] = [
   { id: "loc", name: "LOC Editor", view: "loc-editor", comingSoon: false },
   { id: "grf", name: "GRF Editor", view: "grf-editor", comingSoon: false },
   { id: "col", name: "COL Editor", view: "col-editor", comingSoon: false },
-  { id: "options", name: "Options Editor", view: "options-editor", comingSoon: false }
+  { id: "options", name: "Options Editor", view: "options-editor", comingSoon: false },
+  { id: "model", name: "Model Editor", view: "model-editor", comingSoon: false }
 ];
 
 export default function DevtoolsView() {
@@ -111,6 +112,17 @@ export default function DevtoolsView() {
                   alt={tool.name}
                   className="w-12 h-12 object-contain opacity-50 grayscale"
                   style={{ imageRendering: "pixelated" }}
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    target.style.display = "none";
+                    const parent = target.parentElement;
+                    if (parent && !parent.querySelector(".tool-fallback")) {
+                      const fallback = document.createElement("span");
+                      fallback.className = "tool-fallback text-2xl text-white/30 mc-text-shadow uppercase font-bold";
+                      fallback.textContent = tool.name.charAt(0);
+                      parent.appendChild(fallback);
+                    }
+                  }}
                 />
                 {tool.comingSoon && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/60">
