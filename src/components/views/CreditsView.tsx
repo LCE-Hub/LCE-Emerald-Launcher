@@ -94,7 +94,7 @@ const CreditsView = memo(function CreditsView() {
                 {
                   role: "Active Maintainer",
                   members: [
-                    { name: "Huckle", url: "https://github.com/TheHuckleDev" }
+                    { name: "Huckle", url: "https://github.com/TheHuckleDev" },
                     { name: "Andi_pog", url: "https://github.com/Andi-pog" },
                     {
                       name: "LordCambion",
@@ -144,7 +144,7 @@ const CreditsView = memo(function CreditsView() {
               role: "Founder",
               members: [
                 { name: "BluTac10", url: "https://github.com/BluTac10" },
-                { name: "TheGrimReaper", url: "#" }
+                { name: "TheGrimReaper", url: "#" },
               ],
             },
           ],
