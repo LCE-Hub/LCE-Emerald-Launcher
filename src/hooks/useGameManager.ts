@@ -75,7 +75,7 @@ const BASE_EDITIONS = [
     titleImage: "/images/minecraft_title_moon.png",
     supportsSlimSkins: false,
     logo: "/images/moonEdition.png",
-    panorama: "vanilla_tu19",
+    panorama: "moonedition",
   },
 ];
 
@@ -132,7 +132,9 @@ export function useGameManager({
 }: GameManagerProps) {
   const [installs, setInstalls] = useState<string[]>([]);
   const [isGameRunning, setIsGameRunning] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState<Record<string, number>>({});
+  const [downloadProgress, setDownloadProgress] = useState<
+    Record<string, number>
+  >({});
   const [downloadingIds, setDownloadingIds] = useState<string[]>([]);
   const [isRunnerDownloading, setIsRunnerDownloading] = useState(false);
   const [runnerDownloadProgress, setRunnerDownloadProgress] = useState<
@@ -360,7 +362,10 @@ export function useGameManager({
   useEffect(() => {
     checkInstalls();
     const unlistenDownload = TauriService.onDownloadProgress((data) =>
-      setDownloadProgress((prev) => ({ ...prev, [data.instanceId]: data.percent })),
+      setDownloadProgress((prev) => ({
+        ...prev,
+        [data.instanceId]: data.percent,
+      })),
     );
     const unlistenRunner = TauriService.onRunnerDownloadProgress((p) =>
       setRunnerDownloadProgress(p),
@@ -451,21 +456,24 @@ export function useGameManager({
     [checkInstalls],
   );
 
-  const handleCancelDownload = useCallback(async (id: string) => {
-    try {
-      await TauriService.cancelDownload(id);
-      await TauriService.deleteInstance(id);
-      setDownloadProgress((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-      setDownloadingIds((prev) => prev.filter((did) => did !== id));
-      await checkInstalls();
-    } catch (e) {
-      console.error(e);
-    }
-  }, [checkInstalls]);
+  const handleCancelDownload = useCallback(
+    async (id: string) => {
+      try {
+        await TauriService.cancelDownload(id);
+        await TauriService.deleteInstance(id);
+        setDownloadProgress((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+        setDownloadingIds((prev) => prev.filter((did) => did !== id));
+        await checkInstalls();
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [checkInstalls],
+  );
 
   const handleLaunch = useCallback(async () => {
     if (isGameRunning) return;
