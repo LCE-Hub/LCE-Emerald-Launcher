@@ -25,7 +25,7 @@ async function imageUrlToBase64(url: string): Promise<string> {
     reader.readAsDataURL(blob);
   });
 }
-const BASE_EDITIONS = [
+export const BASE_EDITIONS = [
   {
     id: "legacy_evolved",
     name: "neoLegacy",

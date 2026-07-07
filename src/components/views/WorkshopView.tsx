@@ -25,6 +25,7 @@ import {
   type CustomEdition,
 } from "../../services/TauriService";
 import { PluginManager } from "../../plugins/PluginManager";
+import { BASE_EDITIONS } from "../../hooks/useGameManager";
 const REGISTRY_URL =
   "https://raw.githubusercontent.com/LCE-Hub/LCE-Workshop/refs/heads/main/registry.json";
 const VERSIONS_URL =
@@ -123,13 +124,6 @@ interface PluginRegistryEntry {
 }
 
 const COLS = 4;
-const BUILTIN_EDITIONS: Record<string, string> = {
-  revelations: "Revelations",
-  legacy_evolved: "neoLegacy",
-  "360revived": "360Revived",
-  legacy_nether_fork: "Hellish Ends",
-  moon_edition: "Minecraft: Moon Edition",
-};
 interface WorkshopViewProps {
   workshopTarget?: { id: string; type?: string } | null;
   onClearWorkshopTarget?: () => void;
@@ -1104,6 +1098,7 @@ const WorkshopView = memo(function WorkshopView({
             pkg={selectedPkg}
             allPackages={allPackages}
             versionPackages={versionPackages}
+            customEditions={config.customEditions || []}
             installedPkgs={installedPkgs}
             onClose={closeModal}
             playPressSound={playPressSound}
@@ -1247,6 +1242,7 @@ function PackageModal({
   pkg,
   allPackages,
   versionPackages,
+  customEditions,
   installedPkgs,
   onClose,
   playPressSound,
@@ -1263,6 +1259,7 @@ function PackageModal({
   pkg: RegistryPackage;
   allPackages: RegistryPackage[];
   versionPackages: RegistryPackage[];
+  customEditions: CustomEdition[];
   installedPkgs: InstalledWorkshopPackage[];
   onClose: () => void;
   playPressSound: () => void;
@@ -1713,15 +1710,17 @@ function PackageModal({
                 </span>
                 <div className="flex flex-wrap gap-1.5 mt-1">
                   {pkg.required_versions.map((verId) => {
-                    const builtin = BUILTIN_EDITIONS[verId];
+                    const builtin = BASE_EDITIONS.find((e) => e.id === verId);
                     const versionPkg = versionPackages.find((v) => v.id === verId);
-                    if (!builtin && !versionPkg) return null;
+                    const customEd = customEditions.find((e) => e.id === verId);
+                    const displayName = builtin?.name || customEd?.name || versionPkg?.name;
+                    if (!displayName) return null;
                     return (
                       <span
                         key={verId}
                         className="text-[10px] bg-black/60 border border-[#55AAFF]/40 px-2 py-0.5 text-[#55AAFF] mc-text-shadow uppercase tracking-widest"
                       >
-                        {builtin || versionPkg!.name}
+                        {displayName}
                       </span>
                     );
                   })}
