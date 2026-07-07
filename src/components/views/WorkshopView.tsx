@@ -74,6 +74,7 @@ interface RegistryPackage {
   main?: string;
   permissions?: string[];
   files?: string[];
+  dependencies?: string[];
 }
 
 interface ServerListing {
@@ -1093,6 +1094,8 @@ const WorkshopView = memo(function WorkshopView({
         {selectedPkg && (
           <PackageModal
             pkg={selectedPkg}
+            allPackages={allPackages}
+            installedPkgs={installedPkgs}
             onClose={closeModal}
             playPressSound={playPressSound}
             installedEntries={getInstalledEntries(
@@ -1233,6 +1236,8 @@ function PackageCard({
 
 function PackageModal({
   pkg,
+  allPackages,
+  installedPkgs,
   onClose,
   playPressSound,
   installedEntries,
@@ -1246,6 +1251,8 @@ function PackageModal({
   onToggleSave,
 }: {
   pkg: RegistryPackage;
+  allPackages: RegistryPackage[];
+  installedPkgs: InstalledWorkshopPackage[];
   onClose: () => void;
   playPressSound: () => void;
   installedEntries: InstalledWorkshopPackage[];
@@ -1272,9 +1279,16 @@ function PackageModal({
   >("install");
   const [showInstall, setShowInstall] = useState(false);
   const [showUninstall, setShowUninstall] = useState(false);
+  const [confirmingDeps, setConfirmingDeps] = useState(false);
   const hasInstalled = installedEntries.length > 0;
   const needsUpdate =
     hasInstalled && installedEntries.some((e) => e.version !== pkg.version);
+  const unresolvedDeps = useMemo(
+    () => (pkg.dependencies || []).filter(
+      (depId) => !installedPkgs.some((p) => p.packageId === depId),
+    ),
+    [pkg.dependencies, installedPkgs],
+  );
   const focusOptions: Array<"install" | "uninstall" | "close"> = isGameServerTab
     ? ["install", "close"]
     : isServerTab
@@ -1359,7 +1373,14 @@ function PackageModal({
     } else if (isPluginTab) {
       setShowInstall(true);
     } else {
-      setShowInstall(true);
+      const unresolvedDeps = (pkg.dependencies || []).filter(
+        (depId) => !installedPkgs.some((p) => p.packageId === depId),
+      );
+      if (unresolvedDeps.length > 0) {
+        setConfirmingDeps(true);
+      } else {
+        setShowInstall(true);
+      }
     }
   };
 
@@ -1647,6 +1668,32 @@ function PackageModal({
                   ))}
                 </div>
               </div>
+              {pkg.dependencies && pkg.dependencies.length > 0 && (
+                <div className="flex flex-col gap-1.5 mt-4 pt-4 border-t border-[#333]">
+                  <span className="text-[10px] text-[#FFAA33] mc-text-shadow uppercase tracking-[0.2em] font-bold">
+                    Required Dependencies
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {pkg.dependencies.map((depId) => {
+                      const dep = allPackages.find((p) => p.id === depId);
+                      const isDepInstalled = installedPkgs.some((p) => p.packageId === depId);
+                      return (
+                        <span
+                          key={depId}
+                          className={`text-[10px] border px-2 py-0.5 mc-text-shadow uppercase tracking-widest ${
+                            isDepInstalled
+                              ? "bg-[#003300] border-[#55FF55]/60 text-[#55FF55]"
+                              : "bg-black/60 border-[#FF8800]/40 text-[#FFAA33]"
+                          }`}
+                        >
+                          {dep?.name || depId}
+                          {isDepInstalled ? " (installed)" : ""}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
             {pkg.zips && Object.keys(pkg.zips).length > 0 && (
               <div className="flex flex-col gap-3 pt-4 border-t border-[#333]">
@@ -1727,9 +1774,93 @@ function PackageModal({
       </div>
 
       <AnimatePresence>
+        {confirmingDeps && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[250] flex items-center justify-center bg-black/80"
+            onClick={() => setConfirmingDeps(false)}
+          >
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 20, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              onClick={(e) => e.stopPropagation()}
+              className="flex flex-col w-[520px] font-['Mojangles'] text-white border-2 border-[#555] rounded-sm overflow-hidden"
+              style={{
+                backgroundImage: "url('/images/frame_background.png')",
+                backgroundSize: "100% 100%",
+                imageRendering: "pixelated",
+              }}
+            >
+              <div className="p-6 border-b border-[#555] bg-black/60">
+                <span className="text-2xl mc-text-shadow block font-bold tracking-wide text-[#FFAA33]">
+                  Dependencies Required
+                </span>
+                <span className="text-sm text-[#A0A0A0] mc-text-shadow uppercase tracking-widest opacity-80 mt-1">
+                  This package requires the following to be installed first
+                </span>
+              </div>
+              <div className="p-4 flex flex-col gap-2 max-h-[300px] overflow-y-auto">
+                {unresolvedDeps.map((depId) => {
+                  const dep = allPackages.find((p) => p.id === depId);
+                  return (
+                    <div
+                      key={depId}
+                      className="flex items-center justify-between p-3 border border-[#444] bg-black/20"
+                    >
+                      <span className="text-base mc-text-shadow text-white">
+                        {dep?.name || depId}
+                      </span>
+                      <span className="text-[10px] text-[#A0A0A0] mc-text-shadow uppercase tracking-widest">
+                        v{dep?.version || "?"}
+                      </span>
+                    </div>
+                  );
+                })}
+                <span className="text-xs text-[#888] mc-text-shadow mt-3 text-center">
+                  These will be installed automatically before the main package.
+                </span>
+              </div>
+              <div className="flex items-center gap-4 p-4 border-t border-[#555] bg-black/40">
+                <button
+                  onClick={() => setConfirmingDeps(false)}
+                  className="flex-1 h-10 flex items-center justify-center text-lg mc-text-shadow text-white"
+                  style={{
+                    backgroundImage: "url('/images/Button_Background.png')",
+                    backgroundSize: "100% 100%",
+                    imageRendering: "pixelated",
+                  }}
+                >
+                  CANCEL
+                </button>
+                <button
+                  onClick={() => {
+                    setConfirmingDeps(false);
+                    setShowInstall(true);
+                  }}
+                  className="flex-1 h-10 flex items-center justify-center text-lg mc-text-shadow text-[#FFFF55]"
+                  style={{
+                    backgroundImage: "url('/images/button_highlighted.png')",
+                    backgroundSize: "100% 100%",
+                    imageRendering: "pixelated",
+                  }}
+                >
+                  INSTALL
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
         {showInstall && (
           <InstallModal
             pkg={pkg}
+            allPackages={allPackages}
+            dependencies={unresolvedDeps}
             onClose={() => {
               setShowInstall(false);
               onInstallComplete();
@@ -1760,11 +1891,15 @@ function PackageModal({
 
 function InstallModal({
   pkg,
+  allPackages,
+  dependencies,
   onClose,
   playPressSound,
   isPluginTab,
 }: {
   pkg: RegistryPackage;
+  allPackages: RegistryPackage[];
+  dependencies: string[];
   onClose: () => void;
   playPressSound: () => void;
   isPluginTab?: boolean;
@@ -1873,11 +2008,31 @@ function InstallModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [availableEditions, focusedIdx, status, onClose, playPressSound]);
 
+  const installDeps = async (instanceId: string) => {
+    for (const depId of dependencies) {
+      const depPkg = allPackages.find((p) => p.id === depId);
+      if (!depPkg || !depPkg.zips) continue;
+      try {
+        await TauriService.workshopInstall(
+          instanceId,
+          depPkg.id,
+          depPkg.zips,
+          depPkg.version,
+        );
+      } catch (e) {
+        console.error(`Failed to install dependency ${depId}:`, e);
+      }
+    }
+  };
+
   const installTo = async (instanceId: string) => {
     setStatus("installing");
     setErrorMsg(null);
     playPressSound();
     try {
+      if (dependencies.length > 0) {
+        await installDeps(instanceId);
+      }
       await TauriService.workshopInstall(
         instanceId,
         pkg.id,
@@ -1934,13 +2089,34 @@ function InstallModal({
           {status === "installing" && (
             <div className="py-8 flex flex-col items-center justify-center gap-3">
               <span className="text-2xl text-[#FFFF55] mc-text-shadow animate-pulse">
-                Installing...
+                {dependencies.length > 0
+                  ? "Installing dependencies..."
+                  : isPluginTab
+                    ? "Installing..."
+                    : "Installing..."}
               </span>
               <span className="text-xs text-[#A0A0A0] mc-text-shadow">
                 {isPluginTab
                   ? "Downloading plugin files"
-                  : "Downloading and extracting assets"}
+                  : dependencies.length > 0
+                    ? "Downloading and extracting required dependencies"
+                    : "Downloading and extracting assets"}
               </span>
+              {dependencies.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 justify-center mt-2">
+                  {dependencies.map((depId) => {
+                    const dep = allPackages.find((p) => p.id === depId);
+                    return (
+                      <span
+                        key={depId}
+                        className="text-[10px] bg-black/60 border border-[#FF8800]/40 px-2 py-0.5 text-[#FFAA33] mc-text-shadow animate-pulse"
+                      >
+                        {dep?.name || depId}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
               {isPluginTab && pkg.permissions && pkg.permissions.length > 0 && (
                 <div className="flex flex-col gap-1.5 mt-2 w-full px-4">
                   <span className="text-[10px] text-[#888] mc-text-shadow uppercase tracking-[0.2em] font-bold text-center">
