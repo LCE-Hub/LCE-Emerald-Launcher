@@ -75,6 +75,7 @@ interface RegistryPackage {
   permissions?: string[];
   files?: string[];
   dependencies?: string[];
+  required_versions?: string[];
 }
 
 interface ServerListing {
@@ -122,6 +123,13 @@ interface PluginRegistryEntry {
 }
 
 const COLS = 4;
+const BUILTIN_EDITIONS: Record<string, string> = {
+  revelations: "Revelations",
+  legacy_evolved: "neoLegacy",
+  "360revived": "360Revived",
+  legacy_nether_fork: "Hellish Ends",
+  moon_edition: "Minecraft: Moon Edition",
+};
 interface WorkshopViewProps {
   workshopTarget?: { id: string; type?: string } | null;
   onClearWorkshopTarget?: () => void;
@@ -1095,6 +1103,7 @@ const WorkshopView = memo(function WorkshopView({
           <PackageModal
             pkg={selectedPkg}
             allPackages={allPackages}
+            versionPackages={versionPackages}
             installedPkgs={installedPkgs}
             onClose={closeModal}
             playPressSound={playPressSound}
@@ -1237,6 +1246,7 @@ function PackageCard({
 function PackageModal({
   pkg,
   allPackages,
+  versionPackages,
   installedPkgs,
   onClose,
   playPressSound,
@@ -1252,6 +1262,7 @@ function PackageModal({
 }: {
   pkg: RegistryPackage;
   allPackages: RegistryPackage[];
+  versionPackages: RegistryPackage[];
   installedPkgs: InstalledWorkshopPackage[];
   onClose: () => void;
   playPressSound: () => void;
@@ -1668,33 +1679,55 @@ function PackageModal({
                   ))}
                 </div>
               </div>
-              {pkg.dependencies && pkg.dependencies.length > 0 && (
-                <div className="flex flex-col gap-1.5 mt-4 pt-4 border-t border-[#333]">
-                  <span className="text-[10px] text-[#FFAA33] mc-text-shadow uppercase tracking-[0.2em] font-bold">
-                    Required Dependencies
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {pkg.dependencies.map((depId) => {
-                      const dep = allPackages.find((p) => p.id === depId);
-                      const isDepInstalled = installedPkgs.some((p) => p.packageId === depId);
-                      return (
-                        <span
-                          key={depId}
-                          className={`text-[10px] border px-2 py-0.5 mc-text-shadow uppercase tracking-widest ${
-                            isDepInstalled
-                              ? "bg-[#003300] border-[#55FF55]/60 text-[#55FF55]"
-                              : "bg-black/60 border-[#FF8800]/40 text-[#FFAA33]"
-                          }`}
-                        >
-                          {dep?.name || depId}
-                          {isDepInstalled ? " (installed)" : ""}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
+            {pkg.dependencies && pkg.dependencies.length > 0 && (
+              <div className="flex flex-col gap-1.5 pt-4 border-t border-[#333]">
+                <span className="text-[10px] text-[#FFAA33] mc-text-shadow uppercase tracking-[0.2em] font-bold">
+                  Required Dependencies
+                </span>
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {pkg.dependencies.map((depId) => {
+                    const dep = allPackages.find((p) => p.id === depId);
+                    const isDepInstalled = installedPkgs.some((p) => p.packageId === depId);
+                    return (
+                      <span
+                        key={depId}
+                        className={`text-[10px] border px-2 py-0.5 mc-text-shadow uppercase tracking-widest ${
+                          isDepInstalled
+                            ? "bg-[#003300] border-[#55FF55]/60 text-[#55FF55]"
+                            : "bg-black/60 border-[#FF8800]/40 text-[#FFAA33]"
+                        }`}
+                      >
+                        {dep?.name || depId}
+                        {isDepInstalled ? " (installed)" : ""}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {pkg.required_versions && pkg.required_versions.length > 0 && (
+              <div className="flex flex-col gap-1.5 pt-4 border-t border-[#333]">
+                <span className="text-[10px] text-[#55AAFF] mc-text-shadow uppercase tracking-[0.2em] font-bold">
+                  Required Editions
+                </span>
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {pkg.required_versions.map((verId) => {
+                    const builtin = BUILTIN_EDITIONS[verId];
+                    const versionPkg = versionPackages.find((v) => v.id === verId);
+                    if (!builtin && !versionPkg) return null;
+                    return (
+                      <span
+                        key={verId}
+                        className="text-[10px] bg-black/60 border border-[#55AAFF]/40 px-2 py-0.5 text-[#55AAFF] mc-text-shadow uppercase tracking-widest"
+                      >
+                        {builtin || versionPkg!.name}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             {pkg.zips && Object.keys(pkg.zips).length > 0 && (
               <div className="flex flex-col gap-3 pt-4 border-t border-[#333]">
                 <span className="text-[10px] text-[#666] mc-text-shadow uppercase tracking-[0.2em] font-bold">
