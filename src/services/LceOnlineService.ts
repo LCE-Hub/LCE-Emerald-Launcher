@@ -210,6 +210,39 @@ export class LceOnlineService {
       throw new Error(res);
     }
   }
+
+  async sendInvite(target: string): Promise<void> {
+    const res = await this.request<string>("POST", "/invite", target);
+    if (typeof res === "string" && res !== "Invite Sent") {
+      throw new Error(res);
+    }
+  }
+
+  async acceptInvite(from: string): Promise<string> {
+    const res = await this.request<string>("POST", "/acceptinvite", from);
+    if (typeof res !== "string") throw new Error("Failed to accept invite");
+    return res;
+  }
+
+  async declineInvite(from: string): Promise<void> {
+    try {
+      await this.request("POST", "/declineinvite", from);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "";
+      if (msg !== "Declined Invite") throw e;
+    }
+  }
+
+  async getInvites(): Promise<Array<{ from: string; sessionid: string }>> {
+    const res = await this.request<string>("GET", "/getinvites", null);
+    if (typeof res !== "string") return [];
+    try {
+      const parsed = JSON.parse(res);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
 }
 
 export const lceOnlineService = new LceOnlineService();

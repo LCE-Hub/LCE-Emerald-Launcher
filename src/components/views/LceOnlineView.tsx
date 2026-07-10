@@ -17,19 +17,20 @@ const LceOnlineView = memo(function LceOnlineView({
   const { playPressSound, playBackSound } = useAudio();
   const game = useGame();
   const [isSignedIn, setIsSignedIn] = useState(lceOnlineService.signedIn);
-  const [currentTab, setCurrentTab] = useState<"friends" | "requests">(
+  const [currentTab, setCurrentTab] = useState<"friends" | "requests" | "invites">(
     "friends",
   );
   const [focusIndex, setFocusIndex] = useState<number | null>(0);
   const [friends, setFriends] = useState<string[]>([]);
   const [incomingReqs, setIncomingReqs] = useState<string[]>([]);
   const [outgoingReqs, setOutgoingReqs] = useState<string[]>([]);
+  const [invites, setInvites] = useState<Array<{ from: string; sessionid: string }>>([]);
   const [isHosting, setIsHosting] = useState(false);
   const [isAddingFriend, setIsAddingFriend] = useState(false);
   const [addFriendUsername, setAddFriendUsername] = useState("");
   const addFriendInputRef = useRef<HTMLInputElement>(null);
   const [errorModal, setErrorModal] = useState<string | null>(null);
-  const [joinTarget, setJoinTarget] = useState<string | null>(null);
+  const [joinTarget, setJoinTarget] = useState<{ sessionId: string; hostName: string } | null>(null);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [authUsername, setAuthUsername] = useState("");
   const [authPassword, setAuthPassword] = useState("");
@@ -47,6 +48,12 @@ const LceOnlineView = memo(function LceOnlineView({
       setOutgoingReqs([]);
     } catch (e: unknown) {
       console.error(e);
+    }
+    try {
+      const invitesData = await lceOnlineService.getInvites();
+      setInvites(invitesData);
+    } catch {
+      setInvites([]);
     }
   };
 
@@ -120,7 +127,7 @@ const LceOnlineView = memo(function LceOnlineView({
 
   type MenuItem = {
     id: string;
-    type: "button" | "friend" | "request_in" | "request_out";
+    type: "button" | "friend" | "request_in" | "request_out" | "invite";
     label: string;
     onClick: () => void;
     onClickSecondary?: () => void;
@@ -166,10 +173,9 @@ const LceOnlineView = memo(function LceOnlineView({
           type: "friend",
           label: f,
           onClick: () => handleAction(() => lceOnlineService.removeFriend(f)),
-          onClickSecondary: () => {
-            playPressSound();
-            setJoinTarget(f);
-          },
+          onClickSecondary: isHosting
+            ? () => handleAction(() => lceOnlineService.sendInvite(f))
+            : undefined,
         });
       });
     } else if (currentTab === "requests") {
@@ -193,6 +199,21 @@ const LceOnlineView = memo(function LceOnlineView({
             handleAction(() => lceOnlineService.declineFriendRequest(r)),
         });
       });
+    } else if (currentTab === "invites") {
+      invites.forEach((inv) => {
+        items.push({
+          id: `invite_${inv.from}`,
+          type: "invite",
+          label: inv.from,
+          onClick: () =>
+            handleAction(async () => {
+              const sessionId = await lceOnlineService.acceptInvite(inv.from);
+              setJoinTarget({ sessionId, hostName: inv.from });
+            }),
+          onClickSecondary: () =>
+            handleAction(() => lceOnlineService.declineInvite(inv.from)),
+        });
+      });
     }
 
     return items;
@@ -201,11 +222,12 @@ const LceOnlineView = memo(function LceOnlineView({
     friends,
     incomingReqs,
     outgoingReqs,
+    invites,
     playPressSound,
     isHosting,
   ]);
 
-  const tabs: ("friends" | "requests")[] = ["friends", "requests"];
+  const tabs: ("friends" | "requests" | "invites")[] = ["friends", "requests", "invites"];
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (errorModal) {
@@ -455,21 +477,23 @@ const LceOnlineView = memo(function LceOnlineView({
                       <div className="flex space-x-3 pr-2 shrink-0">
                         {item.type === "friend" && (
                           <>
-                            <button
-                              className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow ${isFocused ? "text-white shadow-md" : "text-gray-300"}`}
-                              style={{
-                                backgroundImage:
-                                  "url('/images/button_highlighted.png')",
-                                backgroundSize: "100% 100%",
-                                imageRendering: "pixelated",
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                item.onClickSecondary?.();
-                              }}
-                            >
-                              JOIN
-                            </button>
+                            {item.onClickSecondary && (
+                              <button
+                                className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow ${isFocused ? "text-white shadow-md" : "text-gray-300"}`}
+                                style={{
+                                  backgroundImage:
+                                    "url('/images/button_highlighted.png')",
+                                  backgroundSize: "100% 100%",
+                                  imageRendering: "pixelated",
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  item.onClickSecondary?.();
+                                }}
+                              >
+                                INVITE
+                              </button>
+                            )}
                             <button
                               className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow ${isFocused ? "text-white shadow-md" : "text-gray-300"}`}
                               style={{
@@ -497,6 +521,37 @@ const LceOnlineView = memo(function LceOnlineView({
                           >
                             CANCEL
                           </button>
+                        )}
+                        {item.type === "invite" && (
+                          <>
+                            <button
+                              className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow ${isFocused ? "text-white shadow-md" : "text-gray-300"}`}
+                              style={{
+                                backgroundImage:
+                                  "url('/images/button_highlighted.png')",
+                                backgroundSize: "100% 100%",
+                                imageRendering: "pixelated",
+                              }}
+                              onClick={item.onClick}
+                            >
+                              ACCEPT
+                            </button>
+                            <button
+                              className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow ${isFocused ? "text-white shadow-md" : "text-gray-300"}`}
+                              style={{
+                                backgroundImage:
+                                  "url('/images/Button_Background.png')",
+                                backgroundSize: "100% 100%",
+                                imageRendering: "pixelated",
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                item.onClickSecondary?.();
+                              }}
+                            >
+                              DECLINE
+                            </button>
+                          </>
                         )}
                         {item.type === "request_in" && (
                           <>
@@ -581,6 +636,13 @@ const LceOnlineView = memo(function LceOnlineView({
                       className={`ml-3 text-white text-base px-3 py-1 rounded-full shadow-inner border-2 font-normal ${currentTab === t ? "bg-[#d72f2f] border-[#8a1a1a]" : "bg-[#a81f1f] border-[#111]"}`}
                     >
                       {incomingReqs.length}
+                    </span>
+                  )}
+                  {t === "invites" && invites.length > 0 && (
+                    <span
+                      className={`ml-3 text-white text-base px-3 py-1 rounded-full shadow-inner border-2 font-normal ${currentTab === t ? "bg-[#d72f2f] border-[#8a1a1a]" : "bg-[#a81f1f] border-[#111]"}`}
+                    >
+                      {invites.length}
                     </span>
                   )}
                 </div>
@@ -717,12 +779,12 @@ const LceOnlineView = memo(function LceOnlineView({
           editions={game.editions}
           installs={game.installs}
           invite={{
-            inviteId: joinTarget,
-            from: joinTarget,
+            inviteId: joinTarget.sessionId,
+            from: joinTarget.hostName,
             hostIp: "",
             hostPort: 0,
-            hostName: joinTarget,
-            signalingSessionId: joinTarget,
+            hostName: joinTarget.hostName,
+            signalingSessionId: joinTarget.sessionId,
             status: "pending",
           }}
         />
