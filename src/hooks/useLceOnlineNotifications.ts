@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { lceOnlineService } from "../services/LceOnlineService";
 export function useLceOnlineNotifications() {
   const [friendRequestMessage, setFriendRequestMessage] = useState<string | null>(null);
-  const [invites, setInvites] = useState<Array<{ from: string; sessionid: string }>>([]);
+  const [invites, setInvites] = useState<Array<{ inviteid: string; from: { uuid: string; username: string; }; sessionid: string; }>>([]);
   const seenRequests = useRef<Set<string>>(new Set());
   useEffect(() => {
     let pollInterval: ReturnType<typeof setInterval>;

@@ -7,7 +7,7 @@ import { TauriService } from "../../services/TauriService";
 interface LceOnlineViewProps {
   addFriendTarget?: string | null;
   onClearAddFriendTarget?: () => void;
-  invites?: Array<{ from: string; sessionid: string }>;
+  invites?: Array<{ inviteid: string; from: { uuid: string; username: string; }; sessionid: string; }>;
 }
 const LceOnlineView = memo(function LceOnlineView({
   addFriendTarget,
@@ -198,16 +198,16 @@ const LceOnlineView = memo(function LceOnlineView({
     } else if (currentTab === "invites") {
       invites.forEach((inv) => {
         items.push({
-          id: `invite_${inv.from}`,
+          id: `invite_${inv.inviteid}`,
           type: "invite",
-          label: inv.from,
+          label: inv.from.username,
           onClick: () =>
             handleAction(async () => {
-              const sessionId = await lceOnlineService.acceptInvite(inv.from);
-              setJoinTarget({ sessionId, hostName: inv.from });
+              const sessionId = await lceOnlineService.acceptInvite(inv.from.username);
+              setJoinTarget({ sessionId, hostName: inv.from.username });
             }),
           onClickSecondary: () =>
-            handleAction(() => lceOnlineService.declineInvite(inv.from)),
+            handleAction(() => lceOnlineService.declineInvite(inv.from.username)),
         });
       });
     }
