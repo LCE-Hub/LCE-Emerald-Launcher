@@ -234,21 +234,19 @@ const LceLiveView = memo(function LceLiveView({
   const handleInviteFriend = async (friend: LceLiveAccount) => {
     playPressSound();
     const name = lceLiveService.displayUsername;
-    const sessionId = crypto.randomUUID();
+    const hostUsername = lceLiveService.account?.username ?? name;
     try {
       await lceLiveService.sendGameInvite(
         friend.accountId,
         hostIp,
         hostPort,
         name,
-        sessionId,
+        hostUsername,
       );
       setInvitedFriends((prev) => new Set(prev).add(friend.accountId));
       setHostStatus("Connecting relay...");
       TauriService.startHostRelay(
-        lceLiveService.apiBaseUrl,
         lceLiveService.accessToken ?? "",
-        sessionId,
         25565,
       )
         .then(() => setHostStatus("Relay active"))

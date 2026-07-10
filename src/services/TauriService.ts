@@ -300,31 +300,19 @@ export class TauriService {
     return invoke("stun_discover");
   }
 
-  static async startDirectProxy(
-    targetIp: string,
-    targetPort: number,
-  ): Promise<number> {
-    return invoke("start_direct_proxy", { targetIp, targetPort });
-  }
-
   static async startRelayProxy(
-    apiBaseUrl: string,
-    accessToken: string,
-    sessionId: string,
+    authToken: string,
+    targetSession: string,
   ): Promise<number> {
-    return invoke("start_relay_proxy", { apiBaseUrl, accessToken, sessionId });
+    return invoke("start_relay_proxy", { authToken, targetSession });
   }
 
   static async startHostRelay(
-    apiBaseUrl: string,
-    accessToken: string,
-    sessionId: string,
+    authToken: string,
     gamePort: number,
   ): Promise<void> {
     return invoke("start_host_relay", {
-      apiBaseUrl,
-      accessToken,
-      sessionId,
+      authToken,
       gamePort,
     });
   }
@@ -339,18 +327,18 @@ export class TauriService {
 
   static async joinGame(
     apiBaseUrl: string,
-    accessToken: string,
+    authToken: string,
     hostIp: string,
     hostPort: number,
-    sessionId: string,
+    targetSession: string,
     instanceId: string,
   ): Promise<void> {
     return invoke("join_game", {
       apiBaseUrl,
-      accessToken,
+      authToken,
       hostIp,
       hostPort,
-      sessionId,
+      targetSession,
       instanceId,
     });
   }

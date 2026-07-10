@@ -23,7 +23,6 @@ use commands::runners;
 use commands::skin;
 use commands::steam;
 use commands::workshop;
-use networking::direct;
 use networking::relay;
 use networking::stun;
 use state::{DownloadState, GameState, ProxyGuard};
@@ -108,7 +107,6 @@ pub fn run() {
             game::restore_instance,
             commands::console2lce::import_world,
             stun::stun_discover,
-            direct::start_direct_proxy,
             relay::start_relay_proxy,
             relay::start_host_relay,
             relay::stop_proxy,

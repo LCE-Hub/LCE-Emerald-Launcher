@@ -71,7 +71,7 @@ export const BASE_EDITIONS = [
     id: "moon_edition",
     name: "Minecraft: Moon Edition",
     desc: "Galacticraft LCE port (Modded build!)",
-    url: "https://INTENTIONALLY_INVALID_LINK_BECAUSE_FUCK_YOU_THATS_WHY", //neo: placeholder for now
+    url: "https://github.com/blazin-blaze/moon-edition/releases/download/v1.0.1/moonEditionWindows64.zip",
     titleImage: "/images/minecraft_title_moon.png",
     supportsSlimSkins: false,
     logo: "/images/moonEdition.png",

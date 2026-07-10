@@ -44,14 +44,6 @@ pub fn copy_dir_all(src: impl AsRef<std::path::Path>, dst: impl AsRef<std::path:
     Ok(())
 }
 
-pub fn ws_base_url(api_base_url: &str) -> String {
-    if api_base_url.starts_with("https") {
-        api_base_url.replace("https", "wss")
-    } else {
-        api_base_url.replace("http", "ws")
-    }
-}
-
 #[cfg(unix)]
 pub fn unix_path_to_wine_z_path(unix_path: &PathBuf) -> String {
     let p = unix_path.to_string_lossy();

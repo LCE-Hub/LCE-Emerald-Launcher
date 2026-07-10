@@ -1,274 +1,205 @@
-use futures_util::{SinkExt, StreamExt};
 use tauri::State;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::{TcpListener, TcpStream};
 use tokio_util::sync::CancellationToken;
 use crate::state::ProxyGuard;
-use crate::util;
-async fn run_relay_proxy(
-    proxy_state: &ProxyGuard,
-    ws_url: &str,
-    auth_token: &str,
-    cancel: CancellationToken,
-) -> Result<u16, String> {
-    use tokio_tungstenite::tungstenite::client::IntoClientRequest;
-    eprintln!("[Emerald] Joiner relay: connecting WS...");
-    let mut request = ws_url
-        .into_client_request()
-        .map_err(|e| format!("Failed to build WS request: {}", e))?;
-    request.headers_mut().insert(
-        http::header::AUTHORIZATION,
-        format!("Bearer {}", auth_token)
-            .parse()
-            .map_err(|_| "Invalid auth header value".to_string())?,
-    );
-    request.headers_mut().insert(
-        http::header::USER_AGENT,
-        "MCLCE-LceLive/1.0"
-            .parse()
-            .map_err(|_| "Invalid UA header value".to_string())?,
-    );
-
-    let (ws_stream, _) = tokio_tungstenite::connect_async(request)
-        .await
-        .map_err(|e| format!("Relay WS connect failed: {}", e))?;
-    eprintln!("[Emerald] Joiner relay: WS connected");
-
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:61000")
-        .await
-        .map_err(|e| format!("Bind failed: {}", e))?;
-    let local_port = listener.local_addr().map_err(|e| e.to_string())?.port();
-    eprintln!("[Emerald] Joiner relay: bound on 0.0.0.0:{}", local_port);
-
-    {
-        let mut port = proxy_state.local_port.lock().await;
-        *port = Some(local_port);
+const PROXY_ADDR: &str = "proxy.mclegacyedition.xyz:2052"; //neo: yeah bro im hardcoding it
+async fn read_line(stream: &mut TcpStream) -> Result<String, String> {
+    let mut buf = Vec::new();
+    let mut byte = [0u8; 1];
+    loop {
+        stream.read_exact(&mut byte).await.map_err(|e| e.to_string())?;
+        if byte[0] == b'\n' { break; }
+        buf.push(byte[0]);
     }
+    String::from_utf8(buf).map_err(|e| e.to_string())
+}
 
-    tokio::spawn(async move {
-        eprintln!("[Emerald] Joiner relay: waiting for TCP accept on port {}...", local_port);
-        let (tcp_stream, _) = tokio::select! {
-            result = listener.accept() => {
-                eprintln!("[Emerald] Joiner relay: TCP accepted");
-                result.map_err(|e| format!("Accept failed: {}", e)).unwrap()
-            },
-            _ = cancel.cancelled() => {
-                eprintln!("[Emerald] Joiner relay: cancelled before accept");
-                return;
-            },
-        };
-
-        eprintln!("[Emerald] Joiner relay: starting forwarders");
-        let (tcp_read, tcp_write) = tcp_stream.into_split();
-        let (ws_write, ws_read) = ws_stream.split();
-        let cancel_ws = cancel.clone();
-        let forward_tcp = tokio::spawn(async move {
-            let mut ws_write = ws_write;
-            let mut tcp_read = tcp_read;
-            let mut buf = [0u8; 65536];
-            loop {
-                tokio::select! {
-                    result = tcp_read.read(&mut buf) => {
-                        match result {
-                            Ok(0) => { eprintln!("[Emerald] Joiner relay: TCP→WS EOF"); break; },
-                            Err(e) => { eprintln!("[Emerald] Joiner relay: TCP→WS read error: {e}"); break; },
-                            Ok(n) => {
-                                eprintln!("[Emerald] Joiner relay: TCP→WS forwarding {} bytes", n);
-                                if ws_write.send(tokio_tungstenite::tungstenite::Message::Binary(buf[..n].to_vec())).await.is_err() {
-                                    eprintln!("[Emerald] Joiner relay: TCP→WS send error"); break;
-                                }
-                            }
-                        }
-                    }
-                    _ = cancel_ws.cancelled() => { eprintln!("[Emerald] Joiner relay: TCP→WS cancelled"); break; },
-                }
-            }
-        });
-
-        let cancel_tcp = cancel.clone();
-        let forward_ws = tokio::spawn(async move {
-            let ws_read = ws_read;
-            let mut tcp_write = tcp_write;
-            tokio::pin!(ws_read);
-            loop {
-                tokio::select! {
-                    result = ws_read.next() => {
-                        match result {
-                            Some(Ok(tokio_tungstenite::tungstenite::Message::Binary(data))) => {
-                                eprintln!("[Emerald] Joiner relay: WS→TCP forwarding {} bytes", data.len());
-                                if tcp_write.write_all(&data).await.is_err() { break; }
-                            }
-                            Some(Ok(tokio_tungstenite::tungstenite::Message::Close(_))) => { break; }
-                            None => { break; }
-                            Some(Err(e)) => { eprintln!("[Emerald] Joiner relay: WS→TCP error: {e}"); break; }
-                            _ => {}
-                        }
-                    }
-                    _ = cancel_tcp.cancelled() => { break; },
-                }
-            }
-        });
-
-        tokio::select! {
-            _ = forward_tcp => eprintln!("[Emerald] Joiner relay: forward_tcp done"),
-            _ = forward_ws => eprintln!("[Emerald] Joiner relay: forward_ws done"),
-            _ = cancel.cancelled() => eprintln!("[Emerald] Joiner relay: cancelled"),
-        }
-        eprintln!("[Emerald] Joiner relay: relay task ended");
-    });
-
-    Ok(local_port)
+async fn write_line(stream: &mut TcpStream, line: &str) -> Result<(), String> {
+    let data = format!("{}\n", line);
+    stream.write_all(data.as_bytes()).await.map_err(|e| e.to_string())
 }
 
 async fn run_host_relay(
     _proxy_state: &ProxyGuard,
-    ws_url: &str,
+    proxy_addr: &str,
     auth_token: &str,
     game_port: u16,
     cancel: CancellationToken,
 ) -> Result<(), String> {
-    use tokio_tungstenite::tungstenite::client::IntoClientRequest;
-    eprintln!("[Emerald] Host relay: connecting WS...");
-    let mut request = ws_url
-        .into_client_request()
-        .map_err(|e| format!("Failed to build WS request: {}", e))?;
-    request.headers_mut().insert(
-        http::header::AUTHORIZATION,
-        format!("Bearer {}", auth_token)
-            .parse()
-            .map_err(|_| "Invalid auth header value".to_string())?,
-    );
-    request.headers_mut().insert(
-        http::header::USER_AGENT,
-        "MCLCE-LceLive/1.0"
-            .parse()
-            .map_err(|_| "Invalid UA header value".to_string())?,
-    );
-
-    let (ws_stream, _) = tokio_tungstenite::connect_async(request)
+    let mut host_conn = TcpStream::connect(proxy_addr)
         .await
-        .map_err(|e| format!("Host relay WS connect failed: {}", e))?;
-    eprintln!("[Emerald] Host relay: WS connected");
-    eprintln!("[Emerald] Host relay: connecting to game 127.0.0.1:{}...", game_port);
+        .map_err(|e| format!("Proxy connect failed: {}", e))?;
+
+    write_line(&mut host_conn, &format!("HOST {} 0", auth_token)).await?;
     let game_stream = loop {
-        match tokio::net::TcpStream::connect(format!("127.0.0.1:{}", game_port)).await {
-            Ok(stream) => { eprintln!("[Emerald] Host relay: connected to game"); break stream; },
-            Err(e) => {
-                eprintln!("[Emerald] Host relay: game connect failed (retrying): {e}");
+        match TcpStream::connect(format!("127.0.0.1:{}", game_port)).await {
+            Ok(s) => break s,
+            Err(_) => {
                 tokio::select! {
-                    _ = cancel.cancelled() => return Err("Host relay cancelled".into()),
-                    _ = tokio::time::sleep(std::time::Duration::from_secs(2)) => {}
+                    _ = cancel.cancelled() => return Err("Cancelled".into()),
+                    _ = tokio::time::sleep(std::time::Duration::from_secs(1)) => {}
                 }
             }
         }
     };
 
-    eprintln!("[Emerald] Host relay: starting forwarders");
-    let (game_read, game_write) = game_stream.into_split();
-    let (ws_write, ws_read) = ws_stream.split();
-    let cancel_ws = cancel.clone();
-    let forward_game = tokio::spawn(async move {
-        let mut ws_write = ws_write;
-        let mut game_read = game_read;
+    let client_line = read_line(&mut host_conn).await?;
+    let client_parts: Vec<&str> = client_line.split_whitespace().collect();
+    if client_parts.len() < 2 || client_parts[0] != "CLIENT" {
+        return Err(format!("Expected CLIENT, got: {}", client_line));
+    }
+    let joiner_id = client_parts[1];
+    let mut accept_conn = TcpStream::connect(proxy_addr)
+        .await
+        .map_err(|e| format!("Proxy connect failed: {}", e))?;
+    write_line(&mut accept_conn, &format!("ACCEPT {} 0 {}", auth_token, joiner_id)).await?;
+    let (mut g_read, mut g_write) = game_stream.into_split();
+    let (mut a_read, mut a_write) = accept_conn.into_split();
+    let c1 = cancel.clone();
+    let c2 = cancel.clone();
+    let t1 = tokio::spawn(async move {
         let mut buf = [0u8; 65536];
         loop {
             tokio::select! {
-                result = game_read.read(&mut buf) => {
-                    match result {
-                        Ok(0) => { eprintln!("[Emerald] Host relay: game→WS EOF"); break; },
-                        Err(e) => { eprintln!("[Emerald] Host relay: game→WS read error: {e}"); break; },
-                        Ok(n) => {
-                            eprintln!("[Emerald] Host relay: game→WS forwarding {} bytes", n);
-                            if ws_write.send(tokio_tungstenite::tungstenite::Message::Binary(buf[..n].to_vec())).await.is_err() { break; }
-                        }
+                r = g_read.read(&mut buf) => {
+                    match r {
+                        Ok(0) | Err(_) => break,
+                        Ok(n) => { if a_write.write_all(&buf[..n]).await.is_err() { break; } }
                     }
                 }
-                _ = cancel_ws.cancelled() => { break; },
+                _ = c1.cancelled() => break,
             }
         }
     });
 
-    let cancel_ws2 = cancel.clone();
-    let forward_ws = tokio::spawn(async move {
-        let ws_read = ws_read;
-        let mut game_write = game_write;
-        tokio::pin!(ws_read);
+    let t2 = tokio::spawn(async move {
+        let mut buf = [0u8; 65536];
         loop {
             tokio::select! {
-                result = ws_read.next() => {
-                    match result {
-                        Some(Ok(tokio_tungstenite::tungstenite::Message::Binary(data))) => {
-                            eprintln!("[Emerald] Host relay: WS→game forwarding {} bytes", data.len());
-                            if game_write.write_all(&data).await.is_err() { break; }
-                        }
-                        Some(Ok(tokio_tungstenite::tungstenite::Message::Close(_))) => { break; }
-                        None => { break; }
-                        Some(Err(e)) => { eprintln!("[Emerald] Host relay: WS→game error: {e}"); break; }
-                        _ => {}
+                r = a_read.read(&mut buf) => {
+                    match r {
+                        Ok(0) | Err(_) => break,
+                        Ok(n) => { if g_write.write_all(&buf[..n]).await.is_err() { break; } }
                     }
                 }
-                _ = cancel_ws2.cancelled() => { break; },
+                _ = c2.cancelled() => break,
             }
         }
     });
 
-    tokio::select! {
-        _ = forward_game => eprintln!("[Emerald] Host relay: forward_game done"),
-        _ = forward_ws => eprintln!("[Emerald] Host relay: forward_ws done"),
-        _ = cancel.cancelled() => eprintln!("[Emerald] Host relay: cancelled"),
-    }
-
+    let _ = tokio::join!(t1, t2);
     Ok(())
 }
 
-#[tauri::command]
-pub async fn start_relay_proxy(
-    proxy_state: State<'_, ProxyGuard>,
-    api_base_url: String,
-    access_token: String,
-    session_id: String,
+async fn run_relay_proxy(
+    proxy_state: &ProxyGuard,
+    proxy_addr: &str,
+    auth_token: &str,
+    target_session: &str,
+    cancel: CancellationToken,
 ) -> Result<u16, String> {
-    let ws_base = util::ws_base_url(&api_base_url);
-    let ws_url = format!("{}/api/relay/ws?sessionId={}&role=joiner", ws_base, session_id);
-    let cancel = CancellationToken::new();
+    let mut stream = TcpStream::connect(proxy_addr)
+        .await
+        .map_err(|e| format!("Proxy connect failed: {}", e))?;
+
+    write_line(&mut stream, &format!("JOIN {} 0 {}", auth_token, target_session)).await?;
+    let listener = TcpListener::bind("0.0.0.0:61000")
+        .await
+        .map_err(|e| format!("Bind failed: {}", e))?;
+    let local_port = listener.local_addr().map_err(|e| e.to_string())?.port();
     {
-        let mut tokens = proxy_state.cancel_tokens.lock().await;
-        tokens.insert(session_id.clone(), cancel.clone());
+        let mut port = proxy_state.local_port.lock().await;
+        *port = Some(local_port);
     }
 
-    let local_port = run_relay_proxy(&proxy_state, &ws_url, &access_token, cancel).await?;
+    let (local_stream, _) = tokio::select! {
+        r = listener.accept() => r.map_err(|e| format!("Accept failed: {}", e))?,
+        _ = cancel.cancelled() => return Err("Cancelled".into()),
+    };
 
-    {
-        let mut tokens = proxy_state.cancel_tokens.lock().await;
-        tokens.remove(&session_id);
-    }
+    let (mut l_read, mut l_write) = local_stream.into_split();
+    let (mut s_read, mut s_write) = stream.into_split();
+    let c1 = cancel.clone();
+    let c2 = cancel.clone();
+    let t1 = tokio::spawn(async move {
+        let mut buf = [0u8; 65536];
+        loop {
+            tokio::select! {
+                r = l_read.read(&mut buf) => {
+                    match r {
+                        Ok(0) | Err(_) => break,
+                        Ok(n) => { if s_write.write_all(&buf[..n]).await.is_err() { break; } }
+                    }
+                }
+                _ = c1.cancelled() => break,
+            }
+        }
+    });
 
+    let t2 = tokio::spawn(async move {
+        let mut buf = [0u8; 65536];
+        loop {
+            tokio::select! {
+                r = s_read.read(&mut buf) => {
+                    match r {
+                        Ok(0) | Err(_) => break,
+                        Ok(n) => { if l_write.write_all(&buf[..n]).await.is_err() { break; } }
+                    }
+                }
+                _ = c2.cancelled() => break,
+            }
+        }
+    });
+
+    let _ = tokio::join!(t1, t2);
     Ok(local_port)
 }
 
 #[tauri::command]
 pub async fn start_host_relay(
     proxy_state: State<'_, ProxyGuard>,
-    api_base_url: String,
-    access_token: String,
-    session_id: String,
+    auth_token: String,
     game_port: u16,
 ) -> Result<(), String> {
-    let ws_base = util::ws_base_url(&api_base_url);
-    let ws_url = format!("{}/api/relay/ws?sessionId={}&role=host", ws_base, session_id);
+    let addr = PROXY_ADDR;
     let cancel = CancellationToken::new();
+    let session_id = "__host__".to_string();
     {
         let mut tokens = proxy_state.cancel_tokens.lock().await;
         tokens.insert(session_id.clone(), cancel.clone());
     }
 
-    let result = run_host_relay(&proxy_state, &ws_url, &access_token, game_port, cancel).await;
-
+    let result = run_host_relay(&proxy_state, &addr, &auth_token, game_port, cancel).await;
     {
         let mut tokens = proxy_state.cancel_tokens.lock().await;
         tokens.remove(&session_id);
     }
 
     result
+}
+
+#[tauri::command]
+pub async fn start_relay_proxy(
+    proxy_state: State<'_, ProxyGuard>,
+    auth_token: String,
+    target_session: String,
+) -> Result<u16, String> {
+    let addr = PROXY_ADDR;
+    let cancel = CancellationToken::new();
+    let session_id = target_session.clone();
+    {
+        let mut tokens = proxy_state.cancel_tokens.lock().await;
+        tokens.insert(session_id.clone(), cancel.clone());
+    }
+
+    let local_port = run_relay_proxy(&proxy_state, &addr, &auth_token, &target_session, cancel).await?;
+    {
+        let mut tokens = proxy_state.cancel_tokens.lock().await;
+        tokens.remove(&session_id);
+    }
+
+    Ok(local_port)
 }
 
 #[tauri::command]
@@ -299,10 +230,10 @@ pub async fn join_game(
     game_state: State<'_, crate::state::GameState>,
     _proxy_state: State<'_, ProxyGuard>,
     _api_base_url: String,
-    _access_token: String,
+    _auth_token: String,
     host_ip: String,
     host_port: u16,
-    _session_id: String,
+    _target_session: String,
     instance_id: String,
 ) -> Result<(), String> {
     let server = crate::types::McServer {

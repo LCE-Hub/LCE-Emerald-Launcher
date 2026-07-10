@@ -62,9 +62,8 @@ export default function ChooseInstanceModal({
 
       if (sessionId) {
         setStatus("Connecting via relay...");
-        const baseUrl = lceLiveService.apiBaseUrl;
         const accessToken = lceLiveService.accessToken ?? "";
-        await TauriService.startRelayProxy(baseUrl, accessToken, sessionId);
+        await TauriService.startRelayProxy(accessToken, sessionId);
         setStatus("Launching game...");
         await TauriService.launchGame(
           selectedInstance,

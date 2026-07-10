@@ -209,6 +209,7 @@ const CreditsView = memo(function CreditsView() {
                 { name: "dr.av", url: "#" },
                 { name: "alreadywarned", url: "#" },
                 { name: "andrewjcf", url: "#" },
+                { name: "dille", url: "#" },
               ],
             },
           ],
