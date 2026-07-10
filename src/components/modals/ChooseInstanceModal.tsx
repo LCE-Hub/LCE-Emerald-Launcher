@@ -1,8 +1,17 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { TauriService } from "../../services/TauriService";
-import { lceLiveService, GameInvite } from "../../services/LceLiveService";
+import { lceOnlineService } from "../../services/LceOnlineService";
 import type { Edition } from "../../types/edition";
+interface GameInvite {
+  inviteId: string;
+  from: string | { displayName: string };
+  hostIp: string;
+  hostPort: number;
+  hostName: string;
+  signalingSessionId?: string;
+  status: string;
+}
 
 export default function ChooseInstanceModal({
   isOpen,
@@ -26,9 +35,8 @@ export default function ChooseInstanceModal({
   const [error, setError] = useState<string>("");
   const [isJoining, setIsJoining] = useState(false);
   const [focusIndex, setFocusIndex] = useState(0);
-
   const validInstances = editions.filter((e: Edition) =>
-    installs.includes(e.instanceId)
+    installs.includes(e.instanceId),
   );
 
   useEffect(() => {
@@ -52,29 +60,33 @@ export default function ChooseInstanceModal({
     playPressSound();
     setIsJoining(true);
     setError("");
-    setStatus("Accepting invite...");
+    setStatus("Launching game...");
     try {
-      const inviteData = await lceLiveService.acceptGameInvite(invite.inviteId) as Record<string, unknown>;
-      const fromIp = typeof invite.from !== 'string' ? (invite.from as unknown as Record<string, string>).hostIp : undefined;
-      const hostIp: string = (inviteData.hostIp as string) || fromIp || invite.hostIp;
-      const hostPort: number = (inviteData.hostPort as number) || invite.hostPort;
-      const sessionId = (inviteData.signalingSessionId as string) || invite.signalingSessionId || "";
-
+      const sessionId = invite.signalingSessionId || "";
       if (sessionId) {
         setStatus("Connecting via relay...");
-        const accessToken = lceLiveService.accessToken ?? "";
+        const accessToken = lceOnlineService.accessToken ?? "";
         await TauriService.startRelayProxy(accessToken, sessionId);
         setStatus("Launching game...");
         await TauriService.launchGame(
           selectedInstance,
-          [{ name: invite.hostName || "LCELive Game", ip: "127.0.0.1", port: 61000 }],
-          ["-ip", "127.0.0.1", "-port", "61000", "-quitondisconnect"]
+          [
+            {
+              name: invite.hostName || "LCE Online Game",
+              ip: "127.0.0.1",
+              port: 61000,
+            },
+          ],
+          ["-ip", "127.0.0.1", "-port", "61000", "-quitondisconnect"],
         );
       } else {
-        setStatus("Launching game...");
         await TauriService.stopAllProxies();
         await TauriService.launchGame(selectedInstance, [
-          { name: invite.hostName || "LCELive Game", ip: hostIp, port: hostPort }
+          {
+            name: invite.hostName || "LCE Online Game",
+            ip: invite.hostIp,
+            port: invite.hostPort,
+          },
         ]);
       }
       onClose();
@@ -102,13 +114,18 @@ export default function ChooseInstanceModal({
         setFocusIndex((prev) => (prev - 1 + max) % max);
       } else if (e.key === "Enter") {
         if (focusIndex === 0 && validInstances.length > 0) {
-          const currentIdx = validInstances.findIndex((i: Edition) => i.instanceId === selectedInstance);
+          const currentIdx = validInstances.findIndex(
+            (i: Edition) => i.instanceId === selectedInstance,
+          );
           const next = (currentIdx + 1) % validInstances.length;
           setSelectedInstance(validInstances[next].instanceId);
           playPressSound();
         } else if (focusIndex === 1 && !isJoining) {
           handleJoin();
-        } else if (focusIndex === (validInstances.length > 0 ? 2 : 1) && !isJoining) {
+        } else if (
+          focusIndex === (validInstances.length > 0 ? 2 : 1) &&
+          !isJoining
+        ) {
           onClose();
         }
       }
@@ -118,8 +135,11 @@ export default function ChooseInstanceModal({
   }, [isOpen, focusIndex, selectedInstance, validInstances, isJoining]);
 
   if (!isOpen) return null;
-
-  const hostName = invite ? (typeof invite.from === 'string' ? invite.from : invite.from.displayName) : "";
+  const hostName = invite
+    ? typeof invite.from === "string"
+      ? invite.from
+      : invite.from.displayName
+    : "";
 
   return (
     <motion.div
@@ -146,25 +166,41 @@ export default function ChooseInstanceModal({
             </p>
 
             {validInstances.length > 0 ? (
-              <div className="w-full mb-4 flex flex-col gap-2 max-h-[300px] overflow-y-auto"
-                style={{ scrollbarWidth: "thin", scrollbarColor: "#373737 transparent" }}>
+              <div
+                className="w-full mb-4 flex flex-col gap-2 max-h-[300px] overflow-y-auto"
+                style={{
+                  scrollbarWidth: "thin",
+                  scrollbarColor: "#373737 transparent",
+                }}
+              >
                 {validInstances.map((inst: Edition) => {
                   const isSelected = selectedInstance === inst.instanceId;
                   return (
                     <div
                       key={inst.instanceId}
-                      onClick={() => { playPressSound(); setSelectedInstance(inst.instanceId); }}
+                      onClick={() => {
+                        playPressSound();
+                        setSelectedInstance(inst.instanceId);
+                      }}
                       onMouseEnter={() => setFocusIndex(0)}
                       className={`w-full px-4 py-3 cursor-pointer flex items-center gap-3 transition-all outline-none border-none ${isSelected ? "bg-white/15 border-l-4 border-[#FFFF55]" : "bg-black/20 hover:bg-black/30 border-l-4 border-transparent"}`}
                       style={{ imageRendering: "pixelated" }}
                     >
-                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${isSelected ? "border-[#FFFF55]" : "border-gray-500"}`}>
-                        {isSelected && <div className="w-2 h-2 rounded-full bg-[#FFFF55]" />}
+                      <div
+                        className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${isSelected ? "border-[#FFFF55]" : "border-gray-500"}`}
+                      >
+                        {isSelected && (
+                          <div className="w-2 h-2 rounded-full bg-[#FFFF55]" />
+                        )}
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-white text-lg font-bold mc-text-shadow">{inst.name}</span>
+                        <span className="text-white text-lg font-bold mc-text-shadow">
+                          {inst.name}
+                        </span>
                         {inst.selectedBranch && (
-                          <span className="text-gray-400 text-xs">{inst.selectedBranch}</span>
+                          <span className="text-gray-400 text-xs">
+                            {inst.selectedBranch}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -189,10 +225,15 @@ export default function ChooseInstanceModal({
                   const cancelIdx = validInstances.length > 0 ? 2 : 1;
                   setFocusIndex(cancelIdx);
                 }}
-                onClick={() => { playBackSound(); onClose(); }}
+                onClick={() => {
+                  playBackSound();
+                  onClose();
+                }}
                 className={`w-32 h-10 flex items-center justify-center text-xl mc-text-shadow transition-colors outline-none border-none ${(() => {
                   const cancelIdx = validInstances.length > 0 ? 2 : 1;
-                  return focusIndex === cancelIdx ? "text-[#FFFF55]" : "text-white";
+                  return focusIndex === cancelIdx
+                    ? "text-[#FFFF55]"
+                    : "text-white";
                 })()}`}
                 style={{
                   backgroundImage: (() => {
@@ -213,9 +254,10 @@ export default function ChooseInstanceModal({
                   onClick={handleJoin}
                   className={`w-32 h-10 flex items-center justify-center text-xl mc-text-shadow transition-colors outline-none border-none ${focusIndex === 1 ? "text-[#FFFF55]" : "text-white"}`}
                   style={{
-                    backgroundImage: focusIndex === 1
-                      ? "url('/images/button_highlighted.png')"
-                      : "url('/images/Button_Background.png')",
+                    backgroundImage:
+                      focusIndex === 1
+                        ? "url('/images/button_highlighted.png')"
+                        : "url('/images/Button_Background.png')",
                     backgroundSize: "100% 100%",
                     imageRendering: "pixelated",
                   }}
@@ -232,7 +274,9 @@ export default function ChooseInstanceModal({
             </h2>
             <div className="flex flex-col items-center gap-4 py-8">
               <div className="w-12 h-12 border-4 border-[#FFFF55] border-t-transparent rounded-full animate-spin" />
-              <p className="text-white text-lg mc-text-shadow text-center">{status}</p>
+              <p className="text-white text-lg mc-text-shadow text-center">
+                {status}
+              </p>
             </div>
             {error && (
               <div className="text-red-500 text-center mc-text-shadow uppercase text-xs tracking-widest mb-3">

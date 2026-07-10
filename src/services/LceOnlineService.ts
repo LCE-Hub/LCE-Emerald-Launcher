@@ -1,0 +1,209 @@
+const SESSION_KEY = "lceonline_session";
+const SOCIAL_BASE_URL = "https://social.mclegacyedition.xyz";
+const AUTH_BASE_URL = "https://auth.mclegacyedition.xyz"; //neo: yeah bro im hardcoding all three
+import { TauriService } from "./TauriService";
+export interface LceOnlineAccount {
+  username: string;
+  displayName: string;
+}
+
+export interface SessionData {
+  accessToken: string;
+  account: LceOnlineAccount;
+}
+
+export interface FriendRequest {
+  username: string;
+  displayName: string;
+}
+
+export class LceOnlineService {
+  private _session: SessionData | null = null;
+  private baseUrl: string = SOCIAL_BASE_URL;
+
+  constructor() {
+    this.loadSession();
+  }
+
+  get signedIn(): boolean {
+    return this._session !== null;
+  }
+
+  get account(): LceOnlineAccount | null {
+    return this._session?.account || null;
+  }
+
+  get displayUsername(): string {
+    if (!this._session) return "Not signed in";
+    return (
+      this._session.account.displayName ||
+      this._session.account.username ||
+      "Unknown"
+    );
+  }
+
+  get accessToken(): string | null {
+    return this._session?.accessToken || null;
+  }
+
+  logoutLocal(): void {
+    this._session = null;
+    this.saveSession();
+  }
+
+  async login(username: string, password: string): Promise<void> {
+    const res = await this.request<{ body: string }>(
+      "POST",
+      "/login",
+      `${username}:${password}`,
+      AUTH_BASE_URL,
+    );
+    console.log("auth login response", res);
+    const pretoken =
+      res && typeof res === "object" && "body" in res
+        ? (res as any).body
+        : typeof res === "string"
+          ? res
+          : "";
+    const token = pretoken.split(":")[1];
+    this.loginWithToken(token, username);
+  }
+
+  async register(username: string, password: string): Promise<void> {
+    const res = await this.request<{ body: string }>(
+      "POST",
+      "/register",
+      `${username}:${password}`,
+      AUTH_BASE_URL,
+    );
+    console.log("auth register response", res);
+    const pretoken =
+      res && typeof res === "object" && "body" in res
+        ? (res as any).body
+        : typeof res === "string"
+          ? res
+          : "";
+    const token = pretoken.split(":")[1];
+    this.loginWithToken(token, username);
+  }
+
+  loginWithToken(token: string, username: string) {
+    this._session = {
+      accessToken: token,
+      account: { username, displayName: username },
+    };
+    this.saveSession();
+  }
+
+  private loadSession() {
+    try {
+      const data = localStorage.getItem(SESSION_KEY);
+      if (data) {
+        this._session = JSON.parse(data);
+      }
+    } catch (e) {
+      console.warn("Failed to load LCE Online session", e);
+    }
+  }
+
+  private saveSession() {
+    if (this._session) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(this._session));
+    } else {
+      localStorage.removeItem(SESSION_KEY);
+    }
+  }
+
+  private async request<T = any>(
+    method: string,
+    path: string,
+    body?: string | null,
+    baseUrl?: string,
+  ): Promise<T> {
+    const headers: Record<string, string> = {
+      Accept: "text/plain, application/json",
+      "User-Agent": "MCLCE-LCEOnline/1.0",
+    };
+
+    if (body) {
+      headers["Content-Type"] = "text/plain";
+    }
+
+    if (this._session?.accessToken) {
+      headers["Authorization"] = `Bearer ${this._session.accessToken}`;
+    }
+
+    const url = `${baseUrl || this.baseUrl}${path}`;
+    let res;
+    try {
+      res = await TauriService.httpProxyRequest(
+        method,
+        url,
+        body ?? null,
+        headers,
+      );
+    } catch (e) {
+      throw new Error(`Network error when calling ${path}: ${e}`);
+    }
+
+    let data;
+    try {
+      data = res.body ? JSON.parse(res.body) : {};
+    } catch {
+      data = res.body ?? {};
+    }
+
+    if (res.status >= 400) {
+      const errorMsg =
+        data.message ||
+        data.detail ||
+        data.title ||
+        data.error ||
+        data ||
+        `HTTP ${res.status}`;
+      throw new Error(errorMsg);
+    }
+
+    return data;
+  }
+
+  async getSocialLists(): Promise<{
+    friends: string[];
+    requests: string[];
+    blocked: string[];
+  }> {
+    const raw: string = await this.request<string>(
+      "POST",
+      "/getSocialLists",
+      null,
+    );
+    if (typeof raw !== "string") {
+      return { friends: [], requests: [], blocked: [] };
+    }
+    const withoutPrefix = raw.startsWith("-") ? raw.slice(1) : raw;
+    const parts = withoutPrefix.split("|");
+    return {
+      friends: parts[0] ? parts[0].split(",").filter(Boolean) : [],
+      requests: parts[1] ? parts[1].split(",").filter(Boolean) : [],
+      blocked: parts[2] ? parts[2].split(",").filter(Boolean) : [],
+    };
+  }
+
+  async sendFriendRequest(target: string): Promise<void> {
+    await this.request("POST", "/sendrequest", target);
+  }
+
+  async acceptFriendRequest(from: string): Promise<void> {
+    await this.request("POST", "/acceptrequest", from);
+  }
+
+  async declineFriendRequest(from: string): Promise<void> {
+    await this.request("POST", "/declinerequest", from);
+  }
+
+  async removeFriend(from: string): Promise<void> {
+    await this.request("POST", "/removefriend", from);
+  }
+}
+
+export const lceOnlineService = new LceOnlineService();

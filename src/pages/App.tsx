@@ -18,7 +18,7 @@ import OptionsEditorView from "../components/views/OptionsEditorView";
 import ModelEditorView from "../components/views/ModelEditorView";
 import ScreenshotsView from "../components/views/ScreenshotsView";
 import SwfView from "../components/views/SwfView";
-import LceLiveView from "../components/views/LceLiveView";
+import LceOnlineView from "../components/views/LceOnlineView";
 import CreditsView from "../components/views/CreditsView";
 import SkinViewer from "../components/common/SkinViewer";
 import PanoramaBackground from "../components/common/PanoramaBackground";
@@ -35,7 +35,7 @@ import {
   useSkin,
 } from "../context/LauncherContext";
 import { TauriService } from "../services/TauriService";
-import { useLceLiveNotifications } from "../hooks/useLceLiveNotifications";
+import { useLceOnlineNotifications } from "../hooks/useLceOnlineNotifications";
 import { usePluginViews } from "../plugins/PluginContext";
 import { usePlatform } from "../hooks/usePlatform";
 import { PluginManager } from "../plugins/PluginManager";
@@ -67,12 +67,10 @@ export default function App() {
   const game = useGame();
   const skin = useSkin();
   const { skinUrl, setSkinUrl, capeUrl } = skin;
-  const notifications = useLceLiveNotifications();
+  const notifications = useLceOnlineNotifications();
   const {
     friendRequestMessage,
-    gameInviteMessage,
     clearFriendRequestMessage,
-    clearGameInviteMessage,
   } = notifications;
   const [showSetup, setShowSetup] = useState(false);
   const [isSetupChecked, setIsSetupChecked] = useState(false);
@@ -158,13 +156,13 @@ export default function App() {
         }
 
         if (
-          action === "lcelive" &&
+          action === "lceonline" &&
           parts.length >= 2 &&
           parts[1] === "addfriend"
         ) {
           const username = parsed.searchParams.get("username");
           if (username) {
-            setActiveView("lcelive");
+            setActiveView("lceonline");
             setAddFriendTarget(username);
             return;
           }
@@ -614,9 +612,9 @@ export default function App() {
                   {activeView === "swf-editor" && (
                     <SwfView key="swf-editor-view" />
                   )}
-                  {activeView === "lcelive" && (
-                    <LceLiveView
-                      key="lcelive-view"
+                  {activeView === "lceonline" && (
+                    <LceOnlineView
+                      key="lceonline-view"
                       addFriendTarget={addFriendTarget}
                       onClearAddFriendTarget={() => setAddFriendTarget(null)}
                     />
@@ -662,22 +660,12 @@ export default function App() {
           onClose={clearFriendRequestMessage}
           onClick={() => {
             clearFriendRequestMessage();
-            setActiveView("lcelive");
+            setActiveView("lceonline");
           }}
           title="Friend Request"
           variant="update"
         />
 
-        <AchievementToast
-          message={gameInviteMessage}
-          onClose={clearGameInviteMessage}
-          onClick={() => {
-            clearGameInviteMessage();
-            setActiveView("lcelive");
-          }}
-          title="Game Invite"
-          variant="update"
-        />
       </div>
     </MotionConfig>
   );

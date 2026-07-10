@@ -507,7 +507,7 @@ const SkinViewer = memo(function SkinViewer({
           setActiveView("screenshots");
         } else if (focusIndex === 3) {
           playPressSound();
-          setActiveView("lcelive");
+          setActiveView("lceonline");
         }
       }
     };
@@ -749,7 +749,7 @@ const SkinViewer = memo(function SkinViewer({
             onMouseEnter={() => isFocusedSection && setFocusIndex(3)}
             onClick={() => {
               playPressSound();
-              setActiveView("lcelive");
+              setActiveView("lceonline");
             }}
             className={`mc-sq-btn w-12 h-12 flex items-center justify-center outline-none border-none ${isFocusedSection && focusIndex === 3 ? "" : ""}`}
             style={
@@ -760,11 +760,11 @@ const SkinViewer = memo(function SkinViewer({
                   }
                 : {}
             }
-            title="LCELive"
+            title="LCE Online"
           >
             <img
               src="/images/friends.png"
-              alt="LCELive"
+              alt="LCE Online"
               className="w-8 h-8 object-contain"
               style={{ imageRendering: "pixelated" }}
             />

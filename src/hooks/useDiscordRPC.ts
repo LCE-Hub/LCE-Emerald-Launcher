@@ -62,7 +62,7 @@ export function useDiscordRPC({
           devtools: "Developing for LCE",
           skins: "Changing Skins",
           workshop: "Browsing Workshop",
-          lcelive: "Browsing Friends",
+          lceonline: "Browsing Friends",
           "pck-editor": "Editing a PCK file",
           "options-editor": "Editing Options Files",
           "arc-editor": "Editing an ARC file",
