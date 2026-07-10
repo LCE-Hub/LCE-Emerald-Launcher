@@ -444,7 +444,7 @@ const LceOnlineView = memo(function LceOnlineView({
         <div className="flex flex-col flex-1 bg-black/5 shadow-inner rounded overflow-hidden border-4 border-[#222]">
           <div className="bg-black/10 px-4 py-3 text-[#2a2a2a] font-bold tracking-widest uppercase border-b-4 border-[#222] flex justify-between shadow-sm z-10">
             <span>
-              {currentTab === "friends" ? "Friends" : "Pending Requests"}
+              {currentTab === "friends" ? "Friends" : currentTab === "invites" ? "Invites" : "Pending Requests"}
             </span>
             <span className="text-[#111]">{listItems.length}</span>
           </div>
