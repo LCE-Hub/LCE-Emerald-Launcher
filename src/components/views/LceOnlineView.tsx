@@ -82,10 +82,12 @@ const LceOnlineView = memo(function LceOnlineView({
   const handleStartHosting = async () => {
     playPressSound();
     try {
-      await TauriService.startHostRelay(lceOnlineService.accessToken ?? "", 25565);
+      const token = lceOnlineService.accessToken ?? "";
+      if (!token) return;
+      TauriService.startHostRelay(token, 25565).catch(() => {});
       setIsHosting(true);
     } catch (e: unknown) {
-      setErrorModal(e instanceof Error ? e.message : "Failed to start relay");
+      setErrorModal(e instanceof Error ? e.message : "Failed to start hosting");
     }
   };
 
