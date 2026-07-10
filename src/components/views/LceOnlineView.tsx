@@ -7,10 +7,12 @@ import { TauriService } from "../../services/TauriService";
 interface LceOnlineViewProps {
   addFriendTarget?: string | null;
   onClearAddFriendTarget?: () => void;
+  invites?: Array<{ from: string; sessionid: string }>;
 }
 const LceOnlineView = memo(function LceOnlineView({
   addFriendTarget,
   onClearAddFriendTarget,
+  invites: invitesProp,
 }: LceOnlineViewProps) {
   const { setActiveView } = useUI();
   const { animationsEnabled } = useConfig();
@@ -24,7 +26,7 @@ const LceOnlineView = memo(function LceOnlineView({
   const [friends, setFriends] = useState<string[]>([]);
   const [incomingReqs, setIncomingReqs] = useState<string[]>([]);
   const [outgoingReqs, setOutgoingReqs] = useState<string[]>([]);
-  const [invites, setInvites] = useState<Array<{ from: string; sessionid: string }>>([]);
+  const invites = invitesProp ?? [];
   const [isHosting, setIsHosting] = useState(false);
   const [isAddingFriend, setIsAddingFriend] = useState(false);
   const [addFriendUsername, setAddFriendUsername] = useState("");
@@ -48,12 +50,6 @@ const LceOnlineView = memo(function LceOnlineView({
       setOutgoingReqs([]);
     } catch (e: unknown) {
       console.error(e);
-    }
-    try {
-      const invitesData = await lceOnlineService.getInvites();
-      setInvites(invitesData);
-    } catch {
-      setInvites([]);
     }
   };
 

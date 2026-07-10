@@ -71,6 +71,7 @@ export default function App() {
   const {
     friendRequestMessage,
     clearFriendRequestMessage,
+    invites,
   } = notifications;
   const [showSetup, setShowSetup] = useState(false);
   const [isSetupChecked, setIsSetupChecked] = useState(false);
@@ -617,6 +618,7 @@ export default function App() {
                       key="lceonline-view"
                       addFriendTarget={addFriendTarget}
                       onClearAddFriendTarget={() => setAddFriendTarget(null)}
+                      invites={invites}
                     />
                   )}
                   {activeView === "skins" && <SkinsView key="skins-view" />}
