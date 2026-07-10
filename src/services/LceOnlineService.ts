@@ -233,15 +233,9 @@ export class LceOnlineService {
     }
   }
 
-  async getInvites(): Promise<Array<{ from: string; sessionid: string }>> {
+  async getInvites(): Promise<Array<{ inviteid: string; from: { uuid: string; username: string; }; sessionid: string; }>> {
     const res = await this.request<string>("GET", "/getinvites", null);
-    if (typeof res !== "string") return [];
-    try {
-      const parsed = JSON.parse(res);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
+    return Array.isArray(res) ? res : [];
   }
 }
 
