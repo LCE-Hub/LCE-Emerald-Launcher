@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUI, useConfig, useAudio } from "../../context/LauncherContext";
+import { useUI, useConfig, useAudio, useGame } from "../../context/LauncherContext";
+import ChooseInstanceModal from "../modals/ChooseInstanceModal";
 import { lceOnlineService } from "../../services/LceOnlineService";
 import { TauriService } from "../../services/TauriService";
 interface LceOnlineViewProps {
@@ -14,6 +15,7 @@ const LceOnlineView = memo(function LceOnlineView({
   const { setActiveView } = useUI();
   const { animationsEnabled } = useConfig();
   const { playPressSound, playBackSound } = useAudio();
+  const game = useGame();
   const [isSignedIn, setIsSignedIn] = useState(lceOnlineService.signedIn);
   const [currentTab, setCurrentTab] = useState<"friends" | "requests">(
     "friends",
@@ -27,6 +29,7 @@ const LceOnlineView = memo(function LceOnlineView({
   const [addFriendUsername, setAddFriendUsername] = useState("");
   const addFriendInputRef = useRef<HTMLInputElement>(null);
   const [errorModal, setErrorModal] = useState<string | null>(null);
+  const [joinTarget, setJoinTarget] = useState<string | null>(null);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [authUsername, setAuthUsername] = useState("");
   const [authPassword, setAuthPassword] = useState("");
@@ -161,6 +164,10 @@ const LceOnlineView = memo(function LceOnlineView({
           type: "friend",
           label: f,
           onClick: () => handleAction(() => lceOnlineService.removeFriend(f)),
+          onClickSecondary: () => {
+            playPressSound();
+            setJoinTarget(f);
+          },
         });
       });
     } else if (currentTab === "requests") {
@@ -445,18 +452,35 @@ const LceOnlineView = memo(function LceOnlineView({
                       </div>
                       <div className="flex space-x-3 pr-2 shrink-0">
                         {item.type === "friend" && (
-                          <button
-                            className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow ${isFocused ? "text-white shadow-md" : "text-gray-300"}`}
-                            style={{
-                              backgroundImage:
-                                "url('/images/Button_Background.png')",
-                              backgroundSize: "100% 100%",
-                              imageRendering: "pixelated",
-                            }}
-                            onClick={item.onClick}
-                          >
-                            REMOVE
-                          </button>
+                          <>
+                            <button
+                              className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow ${isFocused ? "text-white shadow-md" : "text-gray-300"}`}
+                              style={{
+                                backgroundImage:
+                                  "url('/images/button_highlighted.png')",
+                                backgroundSize: "100% 100%",
+                                imageRendering: "pixelated",
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                item.onClickSecondary?.();
+                              }}
+                            >
+                              JOIN
+                            </button>
+                            <button
+                              className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow ${isFocused ? "text-white shadow-md" : "text-gray-300"}`}
+                              style={{
+                                backgroundImage:
+                                  "url('/images/Button_Background.png')",
+                                backgroundSize: "100% 100%",
+                                imageRendering: "pixelated",
+                              }}
+                              onClick={item.onClick}
+                            >
+                              REMOVE
+                            </button>
+                          </>
                         )}
                         {item.type === "request_out" && (
                           <button
@@ -682,6 +706,25 @@ const LceOnlineView = memo(function LceOnlineView({
           </motion.div>
         )}
       </AnimatePresence>
+      {joinTarget && (
+        <ChooseInstanceModal
+          isOpen={true}
+          onClose={() => setJoinTarget(null)}
+          playPressSound={playPressSound}
+          playBackSound={playBackSound}
+          editions={game.editions}
+          installs={game.installs}
+          invite={{
+            inviteId: joinTarget,
+            from: joinTarget,
+            hostIp: "",
+            hostPort: 0,
+            hostName: joinTarget,
+            signalingSessionId: joinTarget,
+            status: "pending",
+          }}
+        />
+      )}
     </motion.div>
   );
 });

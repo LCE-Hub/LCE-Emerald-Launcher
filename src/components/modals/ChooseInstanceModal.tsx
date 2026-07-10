@@ -66,7 +66,10 @@ export default function ChooseInstanceModal({
       if (sessionId) {
         setStatus("Connecting via relay...");
         const accessToken = lceOnlineService.accessToken ?? "";
-        await TauriService.startRelayProxy(accessToken, sessionId);
+        const relayPromise = TauriService.startRelayProxy(
+          accessToken,
+          sessionId,
+        );
         setStatus("Launching game...");
         await TauriService.launchGame(
           selectedInstance,
@@ -79,6 +82,7 @@ export default function ChooseInstanceModal({
           ],
           ["-ip", "127.0.0.1", "-port", "61000", "-quitondisconnect"],
         );
+        await relayPromise;
       } else {
         await TauriService.stopAllProxies();
         await TauriService.launchGame(selectedInstance, [
