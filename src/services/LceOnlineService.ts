@@ -52,38 +52,32 @@ export class LceOnlineService {
   }
 
   async login(username: string, password: string): Promise<void> {
-    const res = await this.request<{ body: string }>(
+    const res = await this.request<string>(
       "POST",
       "/login",
       `${username}:${password}`,
       AUTH_BASE_URL,
     );
-    console.log("auth login response", res);
-    const pretoken =
-      res && typeof res === "object" && "body" in res
-        ? (res as any).body
-        : typeof res === "string"
-          ? res
-          : "";
-    const token = pretoken.split(":")[1];
+    const text = typeof res === "string" ? res : "";
+    if (!text.startsWith("-")) {
+      throw new Error(text || "Login failed");
+    }
+    const token = text.split(":")[1];
     this.loginWithToken(token, username);
   }
 
   async register(username: string, password: string): Promise<void> {
-    const res = await this.request<{ body: string }>(
+    const res = await this.request<string>(
       "POST",
       "/register",
       `${username}:${password}`,
       AUTH_BASE_URL,
     );
-    console.log("auth register response", res);
-    const pretoken =
-      res && typeof res === "object" && "body" in res
-        ? (res as any).body
-        : typeof res === "string"
-          ? res
-          : "";
-    const token = pretoken.split(":")[1];
+    const text = typeof res === "string" ? res : "";
+    if (!text.startsWith("-")) {
+      throw new Error(text || "Registration failed");
+    }
+    const token = text.split(":")[1];
     this.loginWithToken(token, username);
   }
 
@@ -190,19 +184,31 @@ export class LceOnlineService {
   }
 
   async sendFriendRequest(target: string): Promise<void> {
-    await this.request("POST", "/sendrequest", target);
+    const res = await this.request<string>("POST", "/sendrequest", target);
+    if (typeof res === "string" && res !== "Successfully Sent Friend Request") {
+      throw new Error(res);
+    }
   }
 
   async acceptFriendRequest(from: string): Promise<void> {
-    await this.request("POST", "/acceptrequest", from);
+    const res = await this.request<string>("POST", "/acceptrequest", from);
+    if (typeof res === "string" && res !== "1") {
+      throw new Error(res);
+    }
   }
 
   async declineFriendRequest(from: string): Promise<void> {
-    await this.request("POST", "/declinerequest", from);
+    const res = await this.request<string>("POST", "/declinerequest", from);
+    if (typeof res === "string" && res !== "1") {
+      throw new Error(res);
+    }
   }
 
   async removeFriend(from: string): Promise<void> {
-    await this.request("POST", "/removefriend", from);
+    const res = await this.request<string>("POST", "/removefriend", from);
+    if (typeof res === "string") {
+      throw new Error(res);
+    }
   }
 }
 

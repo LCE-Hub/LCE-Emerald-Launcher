@@ -23,8 +23,6 @@ const LceOnlineView = memo(function LceOnlineView({
   const [incomingReqs, setIncomingReqs] = useState<string[]>([]);
   const [outgoingReqs, setOutgoingReqs] = useState<string[]>([]);
   const [isHosting, setIsHosting] = useState(false);
-  const [_hostStatus, setHostStatus] = useState("");
-  const [isDiscovering, setIsDiscovering] = useState(false);
   const [isAddingFriend, setIsAddingFriend] = useState(false);
   const [addFriendUsername, setAddFriendUsername] = useState("");
   const addFriendInputRef = useRef<HTMLInputElement>(null);
@@ -80,14 +78,12 @@ const LceOnlineView = memo(function LceOnlineView({
 
   const handleStartHosting = async () => {
     playPressSound();
-    setIsDiscovering(true);
-    setHostStatus("Starting relay...");
     try {
-      await TauriService.stunDiscover();
-    } catch {}
-    setIsHosting(true);
-    setHostStatus("Relay ready");
-    setIsDiscovering(false);
+      await TauriService.startHostRelay(lceOnlineService.accessToken ?? "", 25565);
+      setIsHosting(true);
+    } catch (e: unknown) {
+      setErrorModal(e instanceof Error ? e.message : "Failed to start relay");
+    }
   };
 
   const handleStopHosting = async () => {
@@ -98,7 +94,6 @@ const LceOnlineView = memo(function LceOnlineView({
       console.warn("Stop hosting failed", e);
     }
     setIsHosting(false);
-    setHostStatus("");
   };
 
   const handleAuth = async () => {
@@ -129,22 +124,20 @@ const LceOnlineView = memo(function LceOnlineView({
   const menuItems = useMemo<MenuItem[]>(() => {
     const items: MenuItem[] = [];
     if (currentTab === "friends") {
-      if (!isDiscovering) {
-        if (!isHosting) {
-          items.push({
-            id: "host_game",
-            type: "button",
-            label: "Host Game",
-            onClick: handleStartHosting,
-          });
-        } else {
-          items.push({
-            id: "stop_hosting",
-            type: "button",
-            label: "Stop Hosting",
-            onClick: handleStopHosting,
-          });
-        }
+      if (!isHosting) {
+        items.push({
+          id: "host_game",
+          type: "button",
+          label: "Host Game",
+          onClick: handleStartHosting,
+        });
+      } else {
+        items.push({
+          id: "stop_hosting",
+          type: "button",
+          label: "Stop Hosting",
+          onClick: handleStopHosting,
+        });
       }
       items.push({
         id: "add_friend",
@@ -201,7 +194,6 @@ const LceOnlineView = memo(function LceOnlineView({
     outgoingReqs,
     playPressSound,
     isHosting,
-    isDiscovering,
   ]);
 
   const tabs: ("friends" | "requests")[] = ["friends", "requests"];
