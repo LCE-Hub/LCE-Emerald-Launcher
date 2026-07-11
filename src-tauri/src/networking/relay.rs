@@ -103,7 +103,7 @@ async fn run_relay_proxy(
         .await
         .map_err(|e| format!("Proxy connect failed: {}", e))?;
 
-    write_line(&mut stream, &format!("JOIN {} {}", auth_token, target_session)).await?;
+    write_line(&mut stream, &format!("JOIN {} 0 {}", auth_token, target_session)).await?;
     let listener = TcpListener::bind("0.0.0.0:61000")
         .await
         .map_err(|e| format!("Bind failed: {}", e))?;
