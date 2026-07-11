@@ -13,6 +13,7 @@ export interface Edition {
   comingSoon?: boolean;
   category?: string[];
   officialDLC?: string;
+  lceOnline?: boolean;
 }
 
 export interface CustomEditionInput {
