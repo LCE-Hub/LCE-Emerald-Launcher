@@ -35,6 +35,7 @@ import {
   useSkin,
 } from "../context/LauncherContext";
 import { TauriService } from "../services/TauriService";
+import { lceOnlineService } from "../services/LceOnlineService";
 import { useLceOnlineNotifications } from "../hooks/useLceOnlineNotifications";
 import { usePluginViews } from "../plugins/PluginContext";
 import { usePlatform } from "../hooks/usePlatform";
@@ -158,16 +159,22 @@ export default function App() {
           return;
         }
 
-        if (
-          action === "lceonline" &&
-          parts.length >= 2 &&
-          parts[1] === "addfriend"
-        ) {
-          const username = parsed.searchParams.get("username");
-          if (username) {
-            setActiveView("lceonline");
-            setAddFriendTarget(username);
-            return;
+        if (action === "lceonline" && parts.length >= 2) {
+          if (parts[1] === "auth") {
+            const token = parsed.searchParams.get("token");
+            if (token) {
+              lceOnlineService.loginWithTokenAndFetchAccount(token);
+              setActiveView("lceonline");
+              return;
+            }
+          }
+          if (parts[1] === "addfriend") {
+            const username = parsed.searchParams.get("username");
+            if (username) {
+              setActiveView("lceonline");
+              setAddFriendTarget(username);
+              return;
+            }
           }
         }
 

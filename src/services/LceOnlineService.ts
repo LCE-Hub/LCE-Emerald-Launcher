@@ -20,9 +20,20 @@ export interface FriendRequest {
 export class LceOnlineService {
   private _session: SessionData | null = null;
   private baseUrl: string = SOCIAL_BASE_URL;
-
+  private _listeners: Array<() => void> = [];
   constructor() {
     this.loadSession();
+  }
+
+  onSessionChange(listener: () => void): () => void {
+    this._listeners.push(listener);
+    return () => {
+      this._listeners = this._listeners.filter((l) => l !== listener);
+    };
+  }
+
+  private _notify() {
+    for (const l of this._listeners) l();
   }
 
   get signedIn(): boolean {
@@ -49,6 +60,7 @@ export class LceOnlineService {
   logoutLocal(): void {
     this._session = null;
     this.saveSession();
+    this._notify();
   }
 
   async login(username: string, password: string): Promise<void> {
@@ -63,7 +75,7 @@ export class LceOnlineService {
       throw new Error(text || "Login failed");
     }
     const token = text.split(":")[1];
-    this.loginWithToken(token, username);
+    await this.loginWithTokenAndFetchAccount(token);
   }
 
   async register(username: string, password: string): Promise<void> {
@@ -78,15 +90,37 @@ export class LceOnlineService {
       throw new Error(text || "Registration failed");
     }
     const token = text.split(":")[1];
-    this.loginWithToken(token, username);
+    await this.loginWithTokenAndFetchAccount(token);
   }
 
-  loginWithToken(token: string, username: string) {
+  loginWithToken(token: string, username?: string) {
+    const name = username || "Player";
     this._session = {
       accessToken: token,
-      account: { username, displayName: username },
+      account: { username: name, displayName: name },
     };
     this.saveSession();
+    this._notify();
+  }
+
+  async loginWithTokenAndFetchAccount(token: string): Promise<void> {
+    this._session = {
+      accessToken: token,
+      account: { username: "Player", displayName: "Player" },
+    };
+    this.saveSession();
+    this._notify();
+    try {
+      const raw: string = await this.request<string>("POST", "/accountinfo");
+      if (typeof raw === "string" && raw.startsWith("-")) {
+        const username = raw.slice(1);
+        this._session!.account = { username, displayName: username };
+        this.saveSession();
+        this._notify();
+      }
+    } catch (e) {
+      console.warn("Failed to fetch account info", e);
+    }
   }
 
   private loadSession() {
@@ -233,7 +267,13 @@ export class LceOnlineService {
     }
   }
 
-  async getInvites(): Promise<Array<{ inviteid: string; from: { uuid: string; username: string; }; sessionid: string; }>> {
+  async getInvites(): Promise<
+    Array<{
+      inviteid: string;
+      from: { uuid: string; username: string };
+      sessionid: string;
+    }>
+  > {
     const res = await this.request<string>("GET", "/getinvites", null);
     return Array.isArray(res) ? res : [];
   }

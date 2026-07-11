@@ -1,9 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import { lceOnlineService } from "../services/LceOnlineService";
 export function useLceOnlineNotifications() {
-  const [friendRequestMessage, setFriendRequestMessage] = useState<string | null>(null);
+  const [friendRequestMessage, setFriendRequestMessage] = useState<
+    string | null
+  >(null);
   const [InviteMessage, setInviteMessage] = useState<string | null>(null);
-  const [invites, setInvites] = useState<Array<{ inviteid: string; from: { uuid: string; username: string; }; sessionid: string; }>>([]);
+  const [invites, setInvites] = useState<
+    Array<{
+      inviteid: string;
+      from: { uuid: string; username: string };
+      sessionid: string;
+    }>
+  >([]);
   const seenRequests = useRef<Set<string>>(new Set());
   const seenInvites = useRef<Set<string>>(new Set());
   useEffect(() => {
@@ -19,17 +27,17 @@ export function useLceOnlineNotifications() {
             setFriendRequestMessage(`New Friend request from ${r}`);
           }
         });
-      } catch (e) { }
+      } catch (e) {}
       try {
         const invitesData = await lceOnlineService.getInvites();
         setInvites(invitesData);
         invitesData.forEach((i) => {
-            if (!seenInvites.current.has(i.inviteid)) {
-              seenInvites.current.add(i.inviteid);
-              setInviteMessage(`New invite from ${i.from.username}`);
-            }
-          });
-      } catch { }
+          if (!seenInvites.current.has(i.inviteid)) {
+            seenInvites.current.add(i.inviteid);
+            setInviteMessage(`New invite from ${i.from.username}`);
+          }
+        });
+      } catch {}
     };
 
     const init = async () => {
@@ -42,19 +50,19 @@ export function useLceOnlineNotifications() {
               setFriendRequestMessage(`New Friend request from ${r}`);
             }
           });
-        } catch (e) { }
+        } catch (e) {}
         try {
           const invitesData = await lceOnlineService.getInvites();
           setInvites(invitesData);
           invitesData.forEach((i) => {
-              if (!seenInvites.current.has(i.inviteid)) {
-                seenInvites.current.add(i.inviteid);
-                setInviteMessage(`New invite from ${i.from.username}`);
-              }
-            });
-        } catch { }
+            if (!seenInvites.current.has(i.inviteid)) {
+              seenInvites.current.add(i.inviteid);
+              setInviteMessage(`New invite from ${i.from.username}`);
+            }
+          });
+        } catch {}
       }
-      pollInterval = setInterval(poll, 10000);
+      pollInterval = setInterval(poll, 3000);
     };
 
     init();
@@ -68,6 +76,6 @@ export function useLceOnlineNotifications() {
     InviteMessage,
     clearFriendRequestMessage: () => setFriendRequestMessage(null),
     clearInviteMessage: () => setInviteMessage(null),
-    invites
+    invites,
   };
 }

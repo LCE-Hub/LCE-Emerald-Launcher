@@ -1,13 +1,22 @@
 import { useState, useEffect, useRef, useMemo, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUI, useConfig, useAudio, useGame } from "../../context/LauncherContext";
+import {
+  useUI,
+  useConfig,
+  useAudio,
+  useGame,
+} from "../../context/LauncherContext";
 import ChooseInstanceModal from "../modals/ChooseInstanceModal";
 import { lceOnlineService } from "../../services/LceOnlineService";
 import { TauriService } from "../../services/TauriService";
 interface LceOnlineViewProps {
   addFriendTarget?: string | null;
   onClearAddFriendTarget?: () => void;
-  invites?: Array<{ inviteid: string; from: { uuid: string; username: string; }; sessionid: string; }>;
+  invites?: Array<{
+    inviteid: string;
+    from: { uuid: string; username: string };
+    sessionid: string;
+  }>;
 }
 const LceOnlineView = memo(function LceOnlineView({
   addFriendTarget,
@@ -19,9 +28,9 @@ const LceOnlineView = memo(function LceOnlineView({
   const { playPressSound, playBackSound } = useAudio();
   const game = useGame();
   const [isSignedIn, setIsSignedIn] = useState(lceOnlineService.signedIn);
-  const [currentTab, setCurrentTab] = useState<"friends" | "requests" | "invites">(
-    "friends",
-  );
+  const [currentTab, setCurrentTab] = useState<
+    "friends" | "requests" | "invites"
+  >("friends");
   const [focusIndex, setFocusIndex] = useState<number | null>(0);
   const [friends, setFriends] = useState<string[]>([]);
   const [incomingReqs, setIncomingReqs] = useState<string[]>([]);
@@ -32,13 +41,11 @@ const LceOnlineView = memo(function LceOnlineView({
   const [addFriendUsername, setAddFriendUsername] = useState("");
   const addFriendInputRef = useRef<HTMLInputElement>(null);
   const [errorModal, setErrorModal] = useState<string | null>(null);
-  const [joinTarget, setJoinTarget] = useState<{ inviteid: string, sessionId: string; hostName: string } | null>(null);
-  const [authMode, setAuthMode] = useState<"login" | "register">("login");
-  const [authUsername, setAuthUsername] = useState("");
-  const [authPassword, setAuthPassword] = useState("");
-  const [isAuthLoading, setIsAuthLoading] = useState(false);
-  const authUserRef = useRef<HTMLInputElement>(null);
-  const authPassRef = useRef<HTMLInputElement>(null);
+  const [joinTarget, setJoinTarget] = useState<{
+    inviteid: string;
+    sessionId: string;
+    hostName: string;
+  } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fetchSocialData = async () => {
@@ -60,6 +67,20 @@ const LceOnlineView = memo(function LceOnlineView({
   }, [isSignedIn]);
 
   useEffect(() => {
+    return lceOnlineService.onSessionChange(() => {
+      setIsSignedIn(lceOnlineService.signedIn);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isSignedIn) {
+      TauriService.openUrl(
+        "https://mclegacyedition.xyz/internal/auth?appId=emerald_launcher",
+      );
+    }
+  }, []);
+
+  useEffect(() => {
     if (!addFriendTarget) return;
     setCurrentTab("friends");
     handleAction(() => lceOnlineService.sendFriendRequest(addFriendTarget));
@@ -70,16 +91,6 @@ const LceOnlineView = memo(function LceOnlineView({
     playPressSound();
     lceOnlineService.logoutLocal();
     setIsSignedIn(false);
-  };
-
-  const handleAction = async (action: () => Promise<void>) => {
-    playPressSound();
-    try {
-      await action();
-      fetchSocialData();
-    } catch (e: unknown) {
-      setErrorModal(e instanceof Error ? e.message : "An error occurred");
-    }
   };
 
   const handleStartHosting = async () => {
@@ -104,20 +115,13 @@ const LceOnlineView = memo(function LceOnlineView({
     setIsHosting(false);
   };
 
-  const handleAuth = async () => {
-    if (!authUsername.trim() || !authPassword.trim()) return;
-    setIsAuthLoading(true);
+  const handleAction = async (action: () => Promise<void>) => {
+    playPressSound();
     try {
-      if (authMode === "login") {
-        await lceOnlineService.login(authUsername.trim(), authPassword);
-      } else {
-        await lceOnlineService.register(authUsername.trim(), authPassword);
-      }
-      setIsSignedIn(true);
+      await action();
+      fetchSocialData();
     } catch (e: unknown) {
-      setErrorModal(e instanceof Error ? e.message : "Authentication failed");
-    } finally {
-      setIsAuthLoading(false);
+      setErrorModal(e instanceof Error ? e.message : "An error occurred");
     }
   };
 
@@ -203,11 +207,19 @@ const LceOnlineView = memo(function LceOnlineView({
           label: inv.from.username,
           onClick: () =>
             handleAction(async () => {
-              const sessionId = await lceOnlineService.acceptInvite(inv.from.username);
-              setJoinTarget({ inviteid: inv.inviteid, sessionId, hostName: inv.from.username });
+              const sessionId = await lceOnlineService.acceptInvite(
+                inv.from.username,
+              );
+              setJoinTarget({
+                inviteid: inv.inviteid,
+                sessionId,
+                hostName: inv.from.username,
+              });
             }),
           onClickSecondary: () =>
-            handleAction(() => lceOnlineService.declineInvite(inv.from.username)),
+            handleAction(() =>
+              lceOnlineService.declineInvite(inv.from.username),
+            ),
         });
       });
     }
@@ -223,7 +235,11 @@ const LceOnlineView = memo(function LceOnlineView({
     isHosting,
   ]);
 
-  const tabs: ("friends" | "requests" | "invites")[] = ["friends", "requests", "invites"];
+  const tabs: ("friends" | "requests" | "invites")[] = [
+    "friends",
+    "requests",
+    "invites",
+  ];
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (errorModal) {
@@ -252,19 +268,6 @@ const LceOnlineView = memo(function LceOnlineView({
         if (e.key === "Escape" || e.key === "Backspace") {
           playBackSound();
           setActiveView("main");
-          return;
-        }
-        if (e.key === "Tab") {
-          e.preventDefault();
-          if (document.activeElement === authUserRef.current) {
-            authPassRef.current?.focus();
-          } else {
-            authUserRef.current?.focus();
-          }
-          return;
-        }
-        if (e.key === "Enter") {
-          handleAuth();
           return;
         }
         return;
@@ -318,10 +321,7 @@ const LceOnlineView = memo(function LceOnlineView({
     isAddingFriend,
     addFriendUsername,
     errorModal,
-    handleAuth,
     isSignedIn,
-    authUsername,
-    authPassword,
   ]);
 
   useEffect(() => {
@@ -348,60 +348,16 @@ const LceOnlineView = memo(function LceOnlineView({
     if (!isSignedIn) {
       return (
         <div className="flex flex-col items-center justify-center flex-1 text-center py-12">
-          <h2 className="text-[#FFFF55] text-3xl mc-text-shadow mb-8 border-b-2 border-[#373737] pb-2 w-full text-center uppercase tracking-widest">
-            {authMode === "login" ? "Sign In" : "Register"}
+          <h2 className="text-[#FFFF55] text-3xl mc-text-shadow mb-8 pb-2 w-full text-center uppercase tracking-widest">
+            <img
+              src="/images/lceonline.png"
+              alt="LCE Online"
+              className="h-16 mx-auto"
+            />
           </h2>
-          <input
-            ref={authUserRef}
-            type="text"
-            className="bg-black/20 border-4 border-[#555] text-white p-4 w-full max-w-sm text-2xl font-bold outline-none focus:border-[#FFFF55] transition-colors placeholder:text-[#888] mb-4 mc-text-shadow"
-            placeholder="Username"
-            value={authUsername}
-            onChange={(e) => setAuthUsername(e.target.value)}
-            disabled={isAuthLoading}
-          />
-          <input
-            ref={authPassRef}
-            type="password"
-            className="bg-black/20 border-4 border-[#555] text-white p-4 w-full max-w-sm text-2xl font-bold outline-none focus:border-[#FFFF55] transition-colors placeholder:text-[#888] mb-6 mc-text-shadow"
-            placeholder="Password"
-            value={authPassword}
-            onChange={(e) => setAuthPassword(e.target.value)}
-            disabled={isAuthLoading}
-          />
-          <div className="flex gap-4 w-full max-w-sm">
-            <button
-              className={`h-12 flex-1 flex items-center justify-center text-white mc-text-shadow text-xl font-bold uppercase tracking-widest hover:text-[#FFFF55] outline-none border-none ${isAuthLoading ? "opacity-50 pointer-events-none" : ""}`}
-              style={{
-                backgroundImage: "url('/images/button_highlighted.png')",
-                backgroundSize: "100% 100%",
-                imageRendering: "pixelated",
-              }}
-              onClick={handleAuth}
-              disabled={isAuthLoading}
-            >
-              {isAuthLoading
-                ? "..."
-                : authMode === "login"
-                  ? "Login"
-                  : "Register"}
-            </button>
-            <button
-              className={`h-12 flex-1 flex items-center justify-center text-white mc-text-shadow text-xl font-bold uppercase tracking-widest hover:text-[#FFFF55] outline-none border-none ${isAuthLoading ? "opacity-50 pointer-events-none" : ""}`}
-              style={{
-                backgroundImage: "url('/images/Button_Background.png')",
-                backgroundSize: "100% 100%",
-                imageRendering: "pixelated",
-              }}
-              onClick={() => {
-                playPressSound();
-                setAuthMode(authMode === "login" ? "register" : "login");
-              }}
-              disabled={isAuthLoading}
-            >
-              {authMode === "login" ? "Register" : "Login"}
-            </button>
-          </div>
+          <p className="text-white text-lg mc-text-shadow mb-8 max-w-sm">
+            Awaiting authentication...
+          </p>
         </div>
       );
     }
@@ -440,7 +396,11 @@ const LceOnlineView = memo(function LceOnlineView({
         <div className="flex flex-col flex-1 bg-black/5 shadow-inner rounded overflow-hidden border-4 border-[#222]">
           <div className="bg-black/10 px-4 py-3 text-[#2a2a2a] font-bold tracking-widest uppercase border-b-4 border-[#222] flex justify-between shadow-sm z-10">
             <span>
-              {currentTab === "friends" ? "Friends" : currentTab === "invites" ? "Invites" : "Pending Requests"}
+              {currentTab === "friends"
+                ? "Friends"
+                : currentTab === "invites"
+                  ? "Invites"
+                  : "Pending Requests"}
             </span>
             <span className="text-[#111]">{listItems.length}</span>
           </div>
