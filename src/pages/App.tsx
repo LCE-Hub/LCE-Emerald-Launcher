@@ -70,8 +70,10 @@ export default function App() {
   const notifications = useLceOnlineNotifications();
   const {
     friendRequestMessage,
+    InviteMessage,
     clearFriendRequestMessage,
-    invites,
+    clearInviteMessage,
+    invites
   } = notifications;
   const [showSetup, setShowSetup] = useState(false);
   const [isSetupChecked, setIsSetupChecked] = useState(false);
@@ -668,6 +670,16 @@ export default function App() {
           variant="update"
         />
 
+        <AchievementToast
+          message={InviteMessage}
+          onClose={clearInviteMessage}
+          onClick={() => {
+            clearInviteMessage();
+            setActiveView("lceonline");
+          }}
+          title="Game Invite"
+          variant="update"
+        />
       </div>
     </MotionConfig>
   );

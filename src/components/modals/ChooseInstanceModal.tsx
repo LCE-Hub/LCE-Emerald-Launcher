@@ -5,11 +5,11 @@ import { lceOnlineService } from "../../services/LceOnlineService";
 import type { Edition } from "../../types/edition";
 interface GameInvite {
   inviteId: string;
-  from: string | { displayName: string };
+  from: string;
   hostIp: string;
   hostPort: number;
   hostName: string;
-  signalingSessionId?: string;
+  sessionId?: string;
   status: string;
 }
 
@@ -62,7 +62,7 @@ export default function ChooseInstanceModal({
     setError("");
     setStatus("Launching game...");
     try {
-      const sessionId = invite.signalingSessionId || "";
+      const sessionId = invite.sessionId || "";
       if (sessionId) {
         setStatus("Connecting via relay...");
         const accessToken = lceOnlineService.accessToken ?? "";
@@ -142,7 +142,7 @@ export default function ChooseInstanceModal({
   const hostName = invite
     ? typeof invite.from === "string"
       ? invite.from
-      : invite.from.displayName
+      : invite.hostName
     : "";
 
   return (
