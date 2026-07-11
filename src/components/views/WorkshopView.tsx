@@ -83,7 +83,7 @@ interface ServerListing {
   id: string;
   owner: string;
   name: string;
-  short_descripton: string
+  short_descripton: string;
   description: string;
   discord?: string;
   version: string;
@@ -510,17 +510,10 @@ const WorkshopView = memo(function WorkshopView({
   useEffect(() => {
     if (!workshopTarget || loading) return;
 
-    if (
-      workshopTarget.type === "lceonline" && serverPlugins.length === 0
-    )
+    if (workshopTarget.type === "lceonline" && serverPlugins.length === 0)
       return;
-    if (
-      workshopTarget.type === "plugin" && pluginPackages.length === 0
-    )
-      return;
-    if (
-      workshopTarget.type === "version" && versionPackages.length === 0
-    )
+    if (workshopTarget.type === "plugin" && pluginPackages.length === 0) return;
+    if (workshopTarget.type === "version" && versionPackages.length === 0)
       return;
     if (!workshopTarget.type && allPackages.length === 0) return;
 
@@ -1292,9 +1285,10 @@ function PackageModal({
   const needsUpdate =
     hasInstalled && installedEntries.some((e) => e.version !== pkg.version);
   const unresolvedDeps = useMemo(
-    () => (pkg.dependencies || []).filter(
-      (depId) => !installedPkgs.some((p) => p.packageId === depId),
-    ),
+    () =>
+      (pkg.dependencies || []).filter(
+        (depId) => !installedPkgs.some((p) => p.packageId === depId),
+      ),
     [pkg.dependencies, installedPkgs],
   );
   const focusOptions: Array<"install" | "uninstall" | "close"> = isGameServerTab
@@ -1351,9 +1345,7 @@ function PackageModal({
           ["*.dll", "*"],
         );
         if (!path) return;
-        const response = await fetch(
-          `${pkg.download_url}`,
-        );
+        const response = await fetch(`${pkg.download_url}`);
         const blob = await response.blob();
         const buffer = await blob.arrayBuffer();
         await TauriService.writeBinaryFile(path, new Uint8Array(buffer));
@@ -1498,7 +1490,13 @@ function PackageModal({
                       Details
                     </span>
                     <div className="text-sm text-white mc-text-shadow leading-relaxed workshop-markdown">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, [rehypeSanitize, defaultSchema]]}>
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[
+                          rehypeRaw,
+                          [rehypeSanitize, defaultSchema],
+                        ]}
+                      >
                         {pkg.extended_description}
                       </ReactMarkdown>
                     </div>
@@ -1685,7 +1683,9 @@ function PackageModal({
                 <div className="flex flex-wrap gap-1.5 mt-1">
                   {pkg.dependencies.map((depId) => {
                     const dep = allPackages.find((p) => p.id === depId);
-                    const isDepInstalled = installedPkgs.some((p) => p.packageId === depId);
+                    const isDepInstalled = installedPkgs.some(
+                      (p) => p.packageId === depId,
+                    );
                     return (
                       <span
                         key={depId}
@@ -1711,9 +1711,12 @@ function PackageModal({
                 <div className="flex flex-wrap gap-1.5 mt-1">
                   {pkg.required_versions.map((verId) => {
                     const builtin = BASE_EDITIONS.find((e) => e.id === verId);
-                    const versionPkg = versionPackages.find((v) => v.id === verId);
+                    const versionPkg = versionPackages.find(
+                      (v) => v.id === verId,
+                    );
                     const customEd = customEditions.find((e) => e.id === verId);
-                    const displayName = builtin?.name || customEd?.name || versionPkg?.name;
+                    const displayName =
+                      builtin?.name || customEd?.name || versionPkg?.name;
                     if (!displayName) return null;
                     return (
                       <span
@@ -1937,8 +1940,16 @@ function InstallModal({
   isPluginTab?: boolean;
 }) {
   const game = useContext(GameContext);
-  const availableEditions =
+  const allInstalled =
     game?.editions.filter((e) => game.installs.includes(e.id)) || [];
+  const availableEditions =
+    pkg.required_versions && pkg.required_versions.length > 0
+      ? allInstalled.filter((e) =>
+          pkg.required_versions!.some(
+            (rv) => e.id === rv || e.id.startsWith(rv + "_"),
+          ),
+        )
+      : allInstalled;
   const [focusedIdx, setFocusedIdx] = useState(0);
   const [status, setStatus] = useState<
     "idle" | "installing" | "success" | "error"
