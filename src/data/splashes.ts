@@ -230,4 +230,5 @@ export const SPLASHES = [
   "You're using asterisks wrong*",
   "Edgy humor is soo edgy",
   "I LOVE YURI!!!!!!!                 oh and yaoi ig",
+  "RIP PrismaChunk0's Dog 2010-2026",
 ];
