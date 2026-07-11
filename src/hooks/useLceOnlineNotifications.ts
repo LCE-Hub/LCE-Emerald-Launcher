@@ -1,17 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { lceOnlineService } from "../services/LceOnlineService";
 export function useLceOnlineNotifications() {
-  const [friendRequestMessage, setFriendRequestMessage] = useState<
-    string | null
-  >(null);
+  const [friendRequestMessage, setFriendRequestMessage] = useState<string | null>(null);
   const [InviteMessage, setInviteMessage] = useState<string | null>(null);
-  const [invites, setInvites] = useState<
-    Array<{
-      inviteid: string;
-      from: { uuid: string; username: string };
-      sessionid: string;
-    }>
-  >([]);
+  const [invites, setInvites] = useState<Array<{ inviteid: string; from: { uuid: string; username: string; }; sessionid: string; }>>([]);
   const seenRequests = useRef<Set<string>>(new Set());
   const seenInvites = useRef<Set<string>>(new Set());
   useEffect(() => {
@@ -24,7 +16,7 @@ export function useLceOnlineNotifications() {
         lists.requests.forEach((r: string) => {
           if (!seenRequests.current.has(r)) {
             seenRequests.current.add(r);
-            setFriendRequestMessage(`New Friend request from ${r}`);
+            setFriendRequestMessage(`${r} wants to be friends!`);
           }
         });
       } catch (e) {}
@@ -32,12 +24,12 @@ export function useLceOnlineNotifications() {
         const invitesData = await lceOnlineService.getInvites();
         setInvites(invitesData);
         invitesData.forEach((i) => {
-          if (!seenInvites.current.has(i.inviteid)) {
-            seenInvites.current.add(i.inviteid);
-            setInviteMessage(`New invite from ${i.from.username}`);
-          }
-        });
-      } catch {}
+            if (!seenInvites.current.has(i.inviteid)) {
+              seenInvites.current.add(i.inviteid);
+              setInviteMessage(`${i.from.username} invited you to play!`);
+            }
+          });
+      } catch { }
     };
 
     const init = async () => {
@@ -47,7 +39,7 @@ export function useLceOnlineNotifications() {
           lists.requests.forEach((r: string) => {
             if (!seenRequests.current.has(r)) {
               seenRequests.current.add(r);
-              setFriendRequestMessage(`New Friend request from ${r}`);
+              setFriendRequestMessage(`${r} wants to be friends!`);
             }
           });
         } catch (e) {}
@@ -55,12 +47,12 @@ export function useLceOnlineNotifications() {
           const invitesData = await lceOnlineService.getInvites();
           setInvites(invitesData);
           invitesData.forEach((i) => {
-            if (!seenInvites.current.has(i.inviteid)) {
-              seenInvites.current.add(i.inviteid);
-              setInviteMessage(`New invite from ${i.from.username}`);
-            }
-          });
-        } catch {}
+              if (!seenInvites.current.has(i.inviteid)) {
+                seenInvites.current.add(i.inviteid);
+                setInviteMessage(`${i.from.username} invited you to play!`);
+              }
+            });
+        } catch { }
       }
       pollInterval = setInterval(poll, 3000);
     };
