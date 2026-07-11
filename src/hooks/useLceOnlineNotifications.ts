@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { lceOnlineService } from "../services/LceOnlineService";
 export function useLceOnlineNotifications() {
   const [friendRequestMessage, setFriendRequestMessage] = useState<string | null>(null);
+  const [InviteMessage, setInviteMessage] = useState<string | null>(null);
   const [invites, setInvites] = useState<Array<{ inviteid: string; from: { uuid: string; username: string; }; sessionid: string; }>>([]);
   const seenRequests = useRef<Set<string>>(new Set());
+  const seenInvites = useRef<Set<string>>(new Set());
   useEffect(() => {
     let pollInterval: ReturnType<typeof setInterval>;
 
@@ -14,13 +16,19 @@ export function useLceOnlineNotifications() {
         lists.requests.forEach((r: string) => {
           if (!seenRequests.current.has(r)) {
             seenRequests.current.add(r);
-            setFriendRequestMessage(`New request from ${r}`);
+            setFriendRequestMessage(`New Friend request from ${r}`);
           }
         });
       } catch (e) { }
       try {
         const invitesData = await lceOnlineService.getInvites();
         setInvites(invitesData);
+        invitesData.forEach((i) => {
+            if (!seenInvites.current.has(i.inviteid)) {
+              seenInvites.current.add(i.inviteid);
+              setInviteMessage(`New invite from ${i.from.username}`);
+            }
+          });
       } catch { }
     };
 
@@ -28,11 +36,22 @@ export function useLceOnlineNotifications() {
       if (lceOnlineService.signedIn) {
         try {
           const lists = await lceOnlineService.getSocialLists();
-          lists.requests.forEach((r: string) => seenRequests.current.add(r));
+          lists.requests.forEach((r: string) => {
+            if (!seenRequests.current.has(r)) {
+              seenRequests.current.add(r);
+              setFriendRequestMessage(`New Friend request from ${r}`);
+            }
+          });
         } catch (e) { }
         try {
           const invitesData = await lceOnlineService.getInvites();
           setInvites(invitesData);
+          invitesData.forEach((i) => {
+              if (!seenInvites.current.has(i.inviteid)) {
+                seenInvites.current.add(i.inviteid);
+                setInviteMessage(`New invite from ${i.from.username}`);
+              }
+            });
         } catch { }
       }
       pollInterval = setInterval(poll, 10000);
@@ -46,7 +65,9 @@ export function useLceOnlineNotifications() {
 
   return {
     friendRequestMessage,
+    InviteMessage,
     clearFriendRequestMessage: () => setFriendRequestMessage(null),
-    invites,
+    clearInviteMessage: () => setInviteMessage(null),
+    invites
   };
 }

@@ -32,7 +32,7 @@ const LceOnlineView = memo(function LceOnlineView({
   const [addFriendUsername, setAddFriendUsername] = useState("");
   const addFriendInputRef = useRef<HTMLInputElement>(null);
   const [errorModal, setErrorModal] = useState<string | null>(null);
-  const [joinTarget, setJoinTarget] = useState<{ sessionId: string; hostName: string } | null>(null);
+  const [joinTarget, setJoinTarget] = useState<{ inviteid: string, sessionId: string; hostName: string } | null>(null);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [authUsername, setAuthUsername] = useState("");
   const [authPassword, setAuthPassword] = useState("");
@@ -204,7 +204,7 @@ const LceOnlineView = memo(function LceOnlineView({
           onClick: () =>
             handleAction(async () => {
               const sessionId = await lceOnlineService.acceptInvite(inv.from.username);
-              setJoinTarget({ sessionId, hostName: inv.from.username });
+              setJoinTarget({ inviteid: inv.inviteid, sessionId, hostName: inv.from.username });
             }),
           onClickSecondary: () =>
             handleAction(() => lceOnlineService.declineInvite(inv.from.username)),
@@ -775,12 +775,12 @@ const LceOnlineView = memo(function LceOnlineView({
           editions={game.editions}
           installs={game.installs}
           invite={{
-            inviteId: joinTarget.sessionId,
+            inviteId: joinTarget.inviteid,
             from: joinTarget.hostName,
             hostIp: "",
             hostPort: 0,
             hostName: joinTarget.hostName,
-            signalingSessionId: joinTarget.sessionId,
+            sessionId: joinTarget.sessionId,
             status: "pending",
           }}
         />
