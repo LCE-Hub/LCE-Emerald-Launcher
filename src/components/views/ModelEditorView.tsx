@@ -281,7 +281,7 @@ export default function ModelEditorView() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (document.activeElement?.tagName === "INPUT") return;
-      if (e.key === "Escape" || e.key === "Backspace") {
+      if (e.key === "Escape") {
         playBackSound();
         setActiveView("devtools");
       }

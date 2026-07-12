@@ -128,7 +128,13 @@ export default function PckEditorView() {
     setExpandedFolders(next);
   };
 
-  type TreeNode = { name: string; path: string; isFolder: boolean; children: TreeNode[]; asset?: PCKAsset };
+  type TreeNode = {
+    name: string;
+    path: string;
+    isFolder: boolean;
+    children: TreeNode[];
+    asset?: PCKAsset;
+  };
 
   const renderTree = (nodes: TreeNode[], depth = 0) => {
     return nodes.map((node) => {
@@ -448,7 +454,7 @@ export default function PckEditorView() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (document.activeElement?.tagName === "INPUT") return;
-      if (e.key === "Escape" || e.key === "Backspace") {
+      if (e.key === "Escape") {
         if (isEditingProperty) {
           setIsEditingProperty(null);
           return;
@@ -768,18 +774,14 @@ export default function PckEditorView() {
                       </div>
                     </div>
                     <div className="flex gap-2 shrink-0">
-                      <button
-                        onClick={() => handleMoveAsset("up")}
-                      >
+                      <button onClick={() => handleMoveAsset("up")}>
                         <img
                           src="/images/Settings_Arrow_Up.png"
                           className="w-4 h-4 object-contain"
                           style={{ imageRendering: "pixelated" }}
                         />
                       </button>
-                      <button
-                        onClick={() => handleMoveAsset("down")}
-                      >
+                      <button onClick={() => handleMoveAsset("down")}>
                         <img
                           src="/images/Settings_Arrow_Down.png"
                           className="w-4 h-4 object-contain"
