@@ -521,6 +521,7 @@ const SettingsView = memo(function SettingsView() {
           playPressSound();
           try {
             await TauriService.importSettings();
+            window.location.reload();
           } catch (e) {
             if (e !== "CANCELED") console.error(e);
           }

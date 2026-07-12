@@ -53,6 +53,7 @@ pub struct AppConfig {
     pub music_vol: Option<u32>,
     pub sfx_vol: Option<u32>,
     pub legacy_mode: Option<bool>,
+    pub skip_intro: Option<bool>,
     pub mangohud_enabled: Option<bool>,
     pub saved_servers: Option<Vec<McServer>>,
     pub extra_launch_args: Option<Vec<String>>,

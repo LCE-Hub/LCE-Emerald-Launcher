@@ -31,6 +31,7 @@ pub fn load_config_raw(app: AppHandle) -> AppConfig {
         music_vol: Some(50),
         sfx_vol: Some(100),
         legacy_mode: Some(false),
+        skip_intro: Some(false),
         mangohud_enabled: None,
         saved_servers: None,
         extra_launch_args: None,
