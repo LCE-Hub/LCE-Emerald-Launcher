@@ -215,7 +215,7 @@ export const SPLASHES = [
   "I don't know what woke means can someone tell me",
   "I HATE WHEN PEOPLE USE UPPERCASE LETTERS",
   "Erm.... He's right behind me, isn't he?",
-  "What does \"the\" even mean man",
+  'What does "the" even mean man',
   "Tip: Bigger, longer and uncut.",
   "This is the longest sentence ever",
   "This is the shortest sentence scientifically possible, according to me.",
@@ -231,4 +231,5 @@ export const SPLASHES = [
   "Edgy humor is soo edgy",
   "I LOVE YURI!!!!!!!                 oh and yaoi ig",
   "RIP PrismaChunk0's Dog 2010-2026",
+  "Guess who's back, back again!",
 ];
