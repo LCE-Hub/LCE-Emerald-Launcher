@@ -4,7 +4,7 @@
 - Add support for version channels in Workshop
 - Fix LCEOnline Auth on Linux and macOS
 - Add `unzip` fallback for Workshop items on Linux
-- Fix critical bug in Workshop that deleted worlds and DLCs
+- Fix critical bug in Workshop that deleted worlds and DLCs (thanks LeGamer!)
 - Fix random disconnects on Windows
 - Show multiplayer status on Discord RPC
 - Fix skipping intro, fullscreen and legacy mode not importing in Settings (thanks Ryuzaki!)
