@@ -23,7 +23,6 @@ const SettingsView = memo(function SettingsView() {
     sfxVol: sfxVolume,
     setSfxVol: setSfxVolume,
     layout,
-    setLayout,
     linuxRunner,
     setLinuxRunner,
     perfBoost,
@@ -62,7 +61,7 @@ const SettingsView = memo(function SettingsView() {
   const { isLinux, isMac } = usePlatform();
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const [currentSubMenu, setCurrentSubMenu] = useState<
-    "main" | "audio" | "video" | "controls" | "launcher" | "game" | "plugins"
+    "main" | "audio" | "video" | "launcher" | "game" | "plugins"
   >("main");
   const [runners, setRunners] = useState<Runner[]>([]);
   const [pluginsInfo, setPluginsInfo] = useState<PluginInfo[]>([]);
@@ -74,9 +73,6 @@ const SettingsView = memo(function SettingsView() {
   const [showModal, setShowModal] = useState<
     "args" | "prefix" | "envVars" | null
   >(null);
-
-  const layouts = ["KBM", "PLAYSTATION", "XBOX"];
-
   useEffect(() => {
     TauriService.getAvailableRunners().then(setRunners);
   }, [isRunnerDownloading]);
@@ -90,13 +86,6 @@ const SettingsView = memo(function SettingsView() {
     PluginManager.instance.setEnabledChangedCallback(refreshPlugins);
     return () => PluginManager.instance.setEnabledChangedCallback(null!);
   }, [refreshPlugins]);
-
-  const handleLayoutToggle = () => {
-    playPressSound();
-    const currentIndex = layouts.indexOf(layout);
-    const nextIndex = (currentIndex + 1) % layouts.length;
-    setLayout(layouts[nextIndex]);
-  };
 
   const handleVfxToggle = () => {
     playPressSound();
@@ -303,16 +292,6 @@ const SettingsView = memo(function SettingsView() {
         },
       });
       items.push({
-        id: "controls_menu",
-        label: "Controls",
-        type: "button",
-        onClick: () => {
-          playPressSound();
-          setCurrentSubMenu("controls");
-          setFocusIndex(0);
-        },
-      });
-      items.push({
         id: "launcher_menu",
         label: "Launcher",
         type: "button",
@@ -395,13 +374,6 @@ const SettingsView = memo(function SettingsView() {
           onClick: handlePerfToggle,
         });
       }
-    } else if (currentSubMenu === "controls") {
-      items.push({
-        id: "layout",
-        label: `Layout: ${layout}`,
-        type: "button",
-        onClick: handleLayoutToggle,
-      });
     } else if (currentSubMenu === "game") {
       const envVarsCount = launchEnvVars
         ? Object.keys(launchEnvVars).length
@@ -586,7 +558,6 @@ const SettingsView = memo(function SettingsView() {
     handleRpcToggle,
     handleLegacyToggle,
     handleAnimationsToggle,
-    handleLayoutToggle,
     handleRunnerToggle,
     handlePerfToggle,
     handleMangohudToggle,
@@ -713,13 +684,11 @@ const SettingsView = memo(function SettingsView() {
             ? "Audio"
             : currentSubMenu === "video"
               ? "Video"
-              : currentSubMenu === "controls"
-                ? "Controls"
-                : currentSubMenu === "game"
-                  ? "Game"
-                  : currentSubMenu === "plugins"
-                    ? "Plugins"
-                    : "Launcher"}
+              : currentSubMenu === "game"
+                ? "Game"
+                : currentSubMenu === "plugins"
+                  ? "Plugins"
+                  : "Launcher"}
       </h2>
 
       {currentSubMenu === "main" ? (

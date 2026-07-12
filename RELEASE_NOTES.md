@@ -8,3 +8,4 @@
 - Fix random disconnects on Windows
 - Show multiplayer status on Discord RPC
 - Fix skipping intro, fullscreen and legacy mode not importing in Settings (thanks Ryuzaki!)
+- Remove controls menu from Settings
