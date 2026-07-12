@@ -1940,16 +1940,24 @@ function InstallModal({
   isPluginTab?: boolean;
 }) {
   const game = useContext(GameContext);
-  const allInstalled =
-    game?.editions.filter((e) => game.installs.includes(e.id)) || [];
-  const availableEditions =
+  const matchingEditions =
     pkg.required_versions && pkg.required_versions.length > 0
-      ? allInstalled.filter((e) =>
+      ? (game?.editions || []).filter((e) =>
           pkg.required_versions!.some(
             (rv) => e.id === rv || e.id.startsWith(rv + "_"),
           ),
         )
-      : allInstalled;
+      : game?.editions || [];
+  const editionOptions = matchingEditions.flatMap((ed) => {
+    const branches =
+      ed.branches && ed.branches.length > 0 ? ed.branches : ["Stable"];
+    return branches
+      .map((branch) => ({
+        label: branches.length > 1 ? `${ed.name} (${branch})` : ed.name,
+        instanceId: branch === "Stable" ? ed.id : `${ed.id}_${branch}`,
+      }))
+      .filter((opt) => game?.installs.includes(opt.instanceId));
+  });
   const [focusedIdx, setFocusedIdx] = useState(0);
   const [status, setStatus] = useState<
     "idle" | "installing" | "success" | "error"
@@ -2040,16 +2048,16 @@ function InstallModal({
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
         playPressSound();
-        setFocusedIdx((p) => Math.min(p + 1, availableEditions.length - 1));
+        setFocusedIdx((p) => Math.min(p + 1, editionOptions.length - 1));
       } else if (e.key === "Enter") {
-        if (availableEditions.length > 0) {
-          installTo(availableEditions[focusedIdx].id);
+        if (editionOptions.length > 0) {
+          installTo(editionOptions[focusedIdx].instanceId);
         }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [availableEditions, focusedIdx, status, onClose, playPressSound]);
+  }, [editionOptions, focusedIdx, status, onClose, playPressSound]);
 
   const installDeps = async (instanceId: string) => {
     for (const depId of dependencies) {
@@ -2216,24 +2224,24 @@ function InstallModal({
 
           {status === "idle" &&
             !isPluginTab &&
-            (availableEditions.length === 0 ? (
+            (editionOptions.length === 0 ? (
               <div className="py-6 flex items-center justify-center">
                 <span className="text-[#FF5555] mc-text-shadow">
                   No installed editions found
                 </span>
               </div>
             ) : (
-              availableEditions.map((ed, i) => (
+              editionOptions.map((opt, i) => (
                 <div
-                  key={ed.id}
-                  onClick={() => installTo(ed.id)}
+                  key={opt.instanceId}
+                  onClick={() => installTo(opt.instanceId)}
                   onMouseEnter={() => setFocusedIdx(i)}
                   className={`flex flex-col p-3 cursor-pointer border-2 transition-none ${focusedIdx === i ? "border-[#FFFF55] bg-black/40" : "border-[#444] bg-black/20"}`}
                 >
                   <span
                     className={`text-lg mc-text-shadow ${focusedIdx === i ? "text-[#FFFF55]" : "text-white"}`}
                   >
-                    {ed.name}
+                    {opt.label}
                   </span>
                 </div>
               ))
