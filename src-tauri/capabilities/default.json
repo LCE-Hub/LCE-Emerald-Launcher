@@ -12,6 +12,7 @@
     "core:resources:default",
     "core:tray:default",
     "core:webview:default",
+    "core:webview:allow-create-webview-window",
     "core:window:default",
     "core:window:allow-set-decorations",
     "core:window:allow-is-fullscreen",
