@@ -75,7 +75,7 @@ export default function ChooseInstanceModal({
           selectedInstance,
           [
             {
-              name: invite.hostName || "LCE Online Game",
+              name: invite.hostName || "LCEOnline Game",
               ip: "127.0.0.1",
               port: 61000,
             },
@@ -87,7 +87,7 @@ export default function ChooseInstanceModal({
         await TauriService.stopAllProxies();
         await TauriService.launchGame(selectedInstance, [
           {
-            name: invite.hostName || "LCE Online Game",
+            name: invite.hostName || "LCEOnline Game",
             ip: invite.hostIp,
             port: invite.hostPort,
           },

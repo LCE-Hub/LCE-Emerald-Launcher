@@ -27,9 +27,9 @@ pub async fn launch_game(
     perform_instance_sync(&app, &instance_id).await?;
     let working_dir = util::get_instance_working_dir(&app, &instance_id);
     let config_val = config::load_config_raw(app.clone());
-    let lce_live = McServer { name: "LCELive Game".into(), ip: "127.0.0.1".into(), port: 61000 };
-    if !servers.iter().any(|s| s.ip == lce_live.ip && s.port == lce_live.port) {
-        servers.push(lce_live);
+    let lce_online = McServer { name: "LCEOnline Game".into(), ip: "127.0.0.1".into(), port: 61000 };
+    if !servers.iter().any(|s| s.ip == lce_online.ip && s.port == lce_online.port) {
+        servers.push(lce_online);
     }
     if let Some(ref saved) = config_val.saved_servers {
         for s in saved {

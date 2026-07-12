@@ -66,7 +66,7 @@ LCE Emerald Launcher is the easiest way to play Minecraft Legacy Console Edition
 | **Controller Support** | Full gamepad navigation support (keyboard support included) |
 | **Discord Rich Presence** | Show your current activity and game status on Discord |
 | **Workshop** | Community content like DLCs, Textures, Skins and more |
-| **Free Multiplayer** | Powered by LCELive, Emerald provides a free multiplayer service so you can play with anyone without port forwarding! |
+| **Free Multiplayer** | Powered by LCEOnline, Emerald provides a free multiplayer service so you can play with anyone without port forwarding! |
 
 ---
 
@@ -183,7 +183,7 @@ sudo apt install --reinstall libwebkit2gtk-4.1-0
 - **The Emerald Team** - Technical development and maintenance
 - **4J Studios & Mojang** - Original creators of Legacy Console Edition
 - **The LCE Community** - Research and foundations for LCE on PC
-- **Veroxsity (Racoon)** - Original creator of LCELive
+- **Str1k3r** - Original creator of LCEOnline
 
 ---
 
