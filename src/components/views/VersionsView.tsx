@@ -519,6 +519,28 @@ const VersionsView = memo(function VersionsView() {
                               try {
                                 const folder = await TauriService.pickFolder();
                                 if (folder) {
+                                  const entries = await TauriService.listDirectory(folder);
+                                  if (entries.length > 0) {
+                                    const dialog = document.createElement("div");
+                                    dialog.className =
+                                      "fixed inset-0 bg-black/80 flex items-center justify-center z-50";
+                                    dialog.innerHTML = `
+                                      <div class="w-[420px] p-4 flex flex-col items-center mc-options-bg">
+                                        <h3 class="text-2xl font-bold text-[#333333] mb-4 text-left w-full px-4 mc-text-shadow">Invalid Directory</h3>
+                                        <p class="text-[#333333] mb-6 text-left w-full px-4">Please select an empty directory for installation.</p>
+                                        <div class="flex flex-col gap-3 w-full px-4">
+                                          <button id="empty-dir-ok" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">OK</button>
+                                        </div>
+                                      </div>
+                                    `;
+                                    document.body.appendChild(dialog);
+                                    const close = () => document.body.removeChild(dialog);
+                                    dialog.querySelector("#empty-dir-ok")?.addEventListener("click", close);
+                                    dialog.addEventListener("click", (e) => {
+                                      if (e.target === dialog) close();
+                                    });
+                                    return;
+                                  }
                                   await saveCustomPath(edition.instanceId, folder);
                                   toggleInstall(edition.instanceId);
                                 }
