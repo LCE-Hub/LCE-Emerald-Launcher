@@ -497,7 +497,7 @@ export function useGameManager({
         profile,
         PARTNERSHIP_SERVERS,
         currentEdition?.lceOnline
-          ? extraLaunchArgs!.concat([
+          ? (extraLaunchArgs ?? []).concat([
               "-token",
               localStorage.getItem("lceonline_session")
                 ? JSON.parse(localStorage.getItem("lceonline_session")!).accessToken
