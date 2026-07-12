@@ -42,7 +42,6 @@ pub async fn workshop_install(app: AppHandle, request: WorkshopInstallRequest) -
         }
         let bytes = response.bytes().await.map_err(|e| e.to_string())?;
         fs::write(&zip_tmp, &bytes).map_err(|e| e.to_string())?;
-
         let dest_dir = if placeholder.is_empty() {
             instance_dir.clone()
         } else {
@@ -55,35 +54,96 @@ pub async fn workshop_install(app: AppHandle, request: WorkshopInstallRequest) -
         };
 
         fs::create_dir_all(&dest_dir).map_err(|e| e.to_string())?;
+        let (extracted_files, extract_ok) = if cfg!(target_os = "linux") {
+            let bsdtar_list = std::process::Command::new("bsdtar")
+                .args(["-tf", zip_tmp.to_str().unwrap()])
+                .output();
+            if let Ok(out) = bsdtar_list {
+                if out.status.success() {
+                    let listing = String::from_utf8_lossy(&out.stdout);
+                    let files: Vec<String> = listing.lines()
+                        .map(|l| l.trim())
+                        .filter(|l| !l.is_empty() && !l.ends_with('/'))
+                        .map(|l| dest_dir.join(l).to_string_lossy().to_string())
+                        .collect();
+                    let st = std::process::Command::new("bsdtar")
+                        .args(["-xf", zip_tmp.to_str().unwrap(), "-C", dest_dir.to_str().unwrap()])
+                        .status()
+                        .map_err(|e| e.to_string())?;
+                    (files, st.success())
+                } else {
+                    (Vec::new(), false)
+                }
+            } else {
+                (Vec::new(), false)
+            }
+        } else {
+            (Vec::new(), false)
+        };
+
         #[cfg(target_os = "linux")]
-        {
-            let status = std::process::Command::new("bsdtar")
-                .args(["-xf", zip_tmp.to_str().unwrap(), "-C", dest_dir.to_str().unwrap()])
+        let (extracted_files, extract_ok) = if !extract_ok {
+            let unzip_list = std::process::Command::new("unzip")
+                .args(["-l", zip_tmp.to_str().unwrap()])
+                .output()
+                .map_err(|e| e.to_string())?;
+            if !unzip_list.status.success() {
+                let _ = fs::remove_dir_all(&tmp_dir);
+                return Err(format!("Failed to list contents of {}", zip_name));
+            }
+            let listing = String::from_utf8_lossy(&unzip_list.stdout);
+            let files: Vec<String> = listing.lines()
+                .filter_map(|l| {
+                    let mut parts = l.trim().split_whitespace();
+                    let size_str = parts.next()?;
+                    size_str.parse::<u64>().ok()?;
+                    parts.next()?;
+                    parts.next()?;
+                    Some(parts.collect::<Vec<&str>>().join(" "))
+                })
+                .filter(|l| !l.ends_with('/') && !l.contains('*'))
+                .map(|l| dest_dir.join(l).to_string_lossy().to_string())
+                .collect();
+            let st = std::process::Command::new("unzip")
+                .args(["-o", zip_tmp.to_str().unwrap(), "-d", dest_dir.to_str().unwrap()])
                 .status()
                 .map_err(|e| e.to_string())?;
-            if !status.success() {
-                let _ = fs::remove_dir_all(&tmp_dir);
-                return Err(format!("Extraction failed for {}", zip_name));
-            }
-        }
+            (files, st.success())
+        } else {
+            (extracted_files, extract_ok)
+        };
+
         #[cfg(not(target_os = "linux"))]
-        {
-            let status = std::process::Command::new("tar")
+        let (extracted_files, extract_ok) = {
+            let st = std::process::Command::new("tar")
                 .args(["-xf", zip_tmp.to_str().unwrap(), "-C", dest_dir.to_str().unwrap()])
-                .status()
+                .output()
                 .map_err(|e| e.to_string())?;
-            if !status.success() {
-                let _ = fs::remove_dir_all(&tmp_dir);
-                return Err(format!("Extraction failed for {}", zip_name));
-            }
+            let listing = std::process::Command::new("tar")
+                .args(["-tf", zip_tmp.to_str().unwrap()])
+                .output()
+                .map_err(|e| e.to_string())?;
+            let listing_str = String::from_utf8_lossy(&listing.stdout);
+            let files: Vec<String> = listing_str.lines()
+                .map(|l| l.trim())
+                .filter(|l| !l.is_empty() && !l.ends_with('/'))
+                .map(|l| dest_dir.join(l).to_string_lossy().to_string())
+                .collect();
+            (files, st.status.success())
+        };
+
+        if !extract_ok {
+            let _ = fs::remove_dir_all(&tmp_dir);
+            return Err(format!("Extraction failed for {}", zip_name));
         }
 
-        let dest_str = dest_dir.to_string_lossy().to_string();
-        if !workshop_files.contains(&dest_str) {
-            workshop_files.push(dest_str.clone());
-        }
-        if !pkg_dirs.contains(&dest_str) {
-            pkg_dirs.push(dest_str);
+        for f in &extracted_files {
+            if !workshop_files.contains(f) {
+                workshop_files.push(f.clone());
+            }
+            if !pkg_dirs.contains(f) {
+                pkg_dirs.push(f.clone());
+            }
         }
     }
 
@@ -116,11 +176,9 @@ pub async fn workshop_uninstall(app: AppHandle, instance_id: String, package_id:
         .unwrap_or_default();
 
     if let Some(pkg) = packages.iter().find(|p| p.id == package_id) {
-        for dir in &pkg.dirs {
-            let path = PathBuf::from(dir);
-            if path.is_dir() {
-                let _ = fs::remove_dir_all(&path);
-            } else if path.is_file() {
+        for file in &pkg.dirs {
+            let path = PathBuf::from(file);
+            if path.is_file() {
                 let _ = fs::remove_file(&path);
             }
         }
