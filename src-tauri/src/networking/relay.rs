@@ -251,6 +251,18 @@ pub async fn join_game(
         ip: host_ip,
         port: host_port,
     };
-    #[cfg(target_os = "windows")] sleep(tokio::time::Duration::from_millis(3000)).await; //neo: workaround for Windows having a race condition where the game is launched before the relay proxy
+    #[cfg(target_os = "windows")]
+    {
+        let deadline = tokio::time::Instant::now() + tokio::time::Duration::from_secs(10);
+        loop {
+            if tokio::net::TcpStream::connect(format!("127.0.0.1:{}", host_port)).await.is_ok() {
+                break;
+            }
+            if tokio::time::Instant::now() >= deadline {
+                return Err("Timed out waiting for relay proxy".into());
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+        }
+    } //neo: workaround for Windows having a race condition where the game is launched before the relay proxy
     crate::commands::game::launch_game(app, game_state, instance_id, vec![server], vec![]).await
 }
