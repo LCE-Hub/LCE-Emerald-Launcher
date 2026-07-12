@@ -1,6 +1,6 @@
 [package]
 name = "emerald-legacy-launcher"
-version = "1.5.0"
+version = "1.5.1"
 description = "A FOSS, cross-platform launcher for Minecraft Legacy Edition"
 authors = ["Emerald Team"]
 edition = "2021"
