@@ -1,6 +1,8 @@
 use tauri::State;
+use tauri::webview::cookie::time::Duration;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
+use tokio::time::sleep;
 use tokio_util::sync::CancellationToken;
 use crate::state::ProxyGuard;
 const PROXY_ADDR: &str = "proxy.mclegacyedition.xyz:2052"; //neo: yeah bro im hardcoding it
@@ -249,5 +251,6 @@ pub async fn join_game(
         ip: host_ip,
         port: host_port,
     };
+    #[cfg(target_os = "windows")] sleep(tokio::time::Duration::from_millis(30000)).await; //neo: workaround for Windows having a race condition where the game is launched before the relay proxy
     crate::commands::game::launch_game(app, game_state, instance_id, vec![server], vec![]).await
 }
