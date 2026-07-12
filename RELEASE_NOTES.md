@@ -1,25 +1,4 @@
 ![Release Artwork](https://raw.githubusercontent.com/LCE-Hub/LCE-Emerald-Launcher/refs/heads/main/RELEASE_ARTWORK.png)
 
-- Fix fresh installation defaulting to Fullscreen
-- Add a "Download to custom path" button to Versions menu
-- Fix workshop black screen on server plugins category
-- New logo for hellish ends
-- Update neoLegacy download link
-- (soon!) Partnership with BluerNetwork
-- Skip Intro on keypress or click
-- Disable skin remodeling for neoLegacy
-- Download retry support
-- Bring back the custom titlebar on non-macOS systems, and show on fullscreen regardless of OS
-- Fix workshop showing extra stuff that don't exist for plugins
-- Official external DLC support, used for neoLegacy to make the size smaller (700MiB -> 300MiB)
-- Add logos to credits menu
-- Partnership with [Minecraft: Moon Edition](https://www.youtube.com/watch?v=6_ZSUjZfBr0)
-- Parallel downloads and redesigned download overlay notification
-- A little bit of UI polish
-- Community Guides for Developer Tools
-- (BIG!) End partnership with LCELive. And migration to LCEOnline
-- Workshop dependencies support
-- Workshop required versions support
-- New Model Editor developer tool
-- New fun easter egg! try changing your username to `TOUHOU`
-- And much much more you should see yourself!
+- Fix custom path downloading overwriting non-empty directories ([#127](https://github.com/LCE-Hub/LCE-Emerald-Launcher/issues/127))
+-

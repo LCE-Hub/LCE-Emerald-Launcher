@@ -43,7 +43,10 @@ export function useDiscordRPC({
         : `Logged in as ${username}`;
 
       if (isGameRunning) {
-        details = `Playing ${versionName}`;
+        details =
+          activeView === "lceonline"
+            ? `Playing ${versionName} Multiplayer`
+            : `Playing ${versionName}`;
       } else if (downloadingIds.length > 0) {
         const firstId = downloadingIds[0];
         const pct = downloadProgress[firstId];
