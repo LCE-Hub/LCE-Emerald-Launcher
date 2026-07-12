@@ -30,7 +30,7 @@ export const BASE_EDITIONS = [
     id: "legacy_evolved",
     name: "neoLegacy",
     desc: "Backporting newer title updates and Minigames back to LCE",
-    url: "https://git.neolegacy.dev/neoStudiosLCE/neoLegacy/releases/download/1.0.8b/neoLegacyWindows64.zip",
+    url: "https://bucket.ibatv.xyz/neolegacy/Release.zip",
     titleImage: "/images/minecraft_title_neoLegacy.png",
     supportsSlimSkins: true,
     logo: "/images/neoLegacy.png",
@@ -500,7 +500,8 @@ export function useGameManager({
           ? (extraLaunchArgs ?? []).concat([
               "-token",
               localStorage.getItem("lceonline_session")
-                ? JSON.parse(localStorage.getItem("lceonline_session")!).accessToken
+                ? JSON.parse(localStorage.getItem("lceonline_session")!)
+                    .accessToken
                 : "",
             ])
           : extraLaunchArgs,
