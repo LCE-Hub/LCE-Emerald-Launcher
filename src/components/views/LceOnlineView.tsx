@@ -9,6 +9,8 @@ import {
 import ChooseInstanceModal from "../modals/ChooseInstanceModal";
 import { lceOnlineService } from "../../services/LceOnlineService";
 import { TauriService } from "../../services/TauriService";
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { listen } from "@tauri-apps/api/event";
 interface LceOnlineViewProps {
   addFriendTarget?: string | null;
   onClearAddFriendTarget?: () => void;
@@ -28,6 +30,7 @@ const LceOnlineView = memo(function LceOnlineView({
   const { playPressSound, playBackSound } = useAudio();
   const game = useGame();
   const [isSignedIn, setIsSignedIn] = useState(lceOnlineService.signedIn);
+  const opened = useRef(false);
   const [currentTab, setCurrentTab] = useState<
     "friends" | "requests" | "invites"
   >("friends");
@@ -73,12 +76,29 @@ const LceOnlineView = memo(function LceOnlineView({
   }, []);
 
   useEffect(() => {
-    if (!isSignedIn) {
-      TauriService.openUrl(
-        "https://mclegacyedition.xyz/internal/auth?appId=emerald_launcher",
-      );
-    }
-  }, []);
+    if (isSignedIn) return;
+
+    if (!opened.current) {
+      opened.current = true;
+      new WebviewWindow('LCEOnline', {
+        url: "https://mclegacyedition.xyz/internal/auth?appId=emerald_launcher",
+        width: 400,
+        height: 570,
+        resizable: false,
+        title: 'Emerald Legacy Launcher - LCEOnline',
+      });
+    };
+
+    const unlisten = listen<string[]>('deep-link', async (event) => {
+      const authUrl = event.payload.find(u => u.startsWith('emerald://'));
+      if (!authUrl) return;
+      const token = new URL(authUrl).searchParams.get('token');
+      if (token) setIsSignedIn(true);
+      (await WebviewWindow.getByLabel('LCEOnline'))?.close();
+    });
+
+    return () => { unlisten.then(f => f()); };
+  }, [isSignedIn]);
 
   useEffect(() => {
     if (!addFriendTarget) return;
@@ -619,7 +639,15 @@ const LceOnlineView = memo(function LceOnlineView({
         >
           {renderContent()}
         </div>
-      </div>
+          <div className="flex justify-center pt-4 pb-2">
+          <img
+            src="/images/lceonline.png"
+            alt="LCEOnline"
+            className="h-5 opacity-70 cursor-pointer"
+            onClick={() => TauriService.openUrl("https://mclegacyedition.xyz/")}
+          />
+          </div>
+        </div>
 
       <AnimatePresence>
         {isAddingFriend && (
