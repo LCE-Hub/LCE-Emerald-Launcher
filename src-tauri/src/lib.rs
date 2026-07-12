@@ -26,10 +26,12 @@ use commands::workshop;
 use networking::relay;
 use networking::stun;
 use state::{DownloadState, GameState, ProxyGuard};
+fn webview_deep_link_interceptor() -> impl tauri::plugin::Plugin<tauri::Wry> { tauri::plugin::Builder::<tauri::Wry>::new("emerald-deep-link-interceptor").on_navigation(|webview, url| { if url.scheme() == "emerald" || url.scheme() == "emeraldlauncher" { let _ = webview.app_handle().emit("deep-link", vec![url.to_string()]); false } else { true }}).build()}
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_deep_link::init())
+        .plugin(webview_deep_link_interceptor())
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             let urls: Vec<String> = args
                 .iter()
