@@ -81,7 +81,7 @@ export const BASE_EDITIONS = [
     id: "lceonline",
     name: "LCE Online Client",
     desc: "Restoring the classic LCE online experience with friends, world hosting, leaderboards & more.",
-    url: "https://github.com/lceonline/MCLEClient/releases/download/v1.0.0b/LCENWindows64.zip",
+    url: "https://github.com/lceonline/MCLEClient/releases/latest/download/LCENWindows64.zip",
     titleImage: "/images/lceonline.png",
     supportsSlimSkins: false,
     logo: "/images/lce_online.png",
