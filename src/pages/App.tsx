@@ -325,6 +325,23 @@ export default function App() {
       <div
         className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-['Mojangles'] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
       >
+      {showHeader && (
+        <AppHeader playPressSound={audio.playPressSound} uiFade={uiFade} />
+      )}
+        <div className="absolute inset-0">
+          <AnimatePresence>
+            <motion.div
+              key={displayIsDay ? "day" : "night"}
+              className="absolute inset-0"
+              {...backgroundFade}
+            >
+              <PanoramaBackground
+                profile={selectedEdition?.panorama ?? "vanilla_tu19"}
+                isDay={displayIsDay}
+              />
+            </motion.div>
+          </AnimatePresence>
+        </div>
         <SetupView
           onComplete={() => {
             setShowSetup(false);
