@@ -101,6 +101,11 @@ const PARTNERSHIP_SERVERS = [
     ip: "bluer-network.ddns.net",
     port: 25565,
   },
+  {
+    name: "LapboardMC",
+    ip: "104.168.125.227",
+    port: 4444,
+  }
 ];
 
 interface GameManagerProps {
