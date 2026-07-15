@@ -336,7 +336,7 @@ export function useAudioController({
   return {
     currentTrack,
     setCurrentTrack,
-    skipTrack, // Added ts
+    skipTrack,
     splashIndex,
     setSplashIndex,
     cycleSplash,
