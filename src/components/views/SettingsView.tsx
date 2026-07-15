@@ -73,7 +73,7 @@ const SettingsView = memo(function SettingsView() {
   const [showModal, setShowModal] = useState<
     "args" | "prefix" | "envVars" | null
   >(null);
-  // Added so track doesn't skip forever after pressing once
+  //jandrozdz: Added so track doesn't skip forever after pressing once
   const isSkippingRef = useRef(false);
   useEffect(() => {
     TauriService.getAvailableRunners().then(setRunners);
@@ -141,7 +141,7 @@ const SettingsView = memo(function SettingsView() {
     if (isSkippingRef.current) return;
     playPressSound();
     isSkippingRef.current = true;
-    skipTrack(); // Use skipTrack here
+    skipTrack(); //jandrozdz: Use skipTrack here
     setTimeout(() => {
       isSkippingRef.current = false;
     }, 100);
