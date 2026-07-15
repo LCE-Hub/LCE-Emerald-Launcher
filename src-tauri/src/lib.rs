@@ -108,6 +108,7 @@ pub fn run() {
             game::backup_instance,
             game::restore_instance,
             commands::console2lce::import_world,
+            commands::console2lce::import_lce_save,
             stun::stun_discover,
             relay::start_relay_proxy,
             relay::start_host_relay,

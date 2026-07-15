@@ -420,4 +420,11 @@ export class TauriService {
   ): Promise<string> {
     return invoke("import_world", { inputPath, outputPath });
   }
+
+  static async importLceSave(
+    inputPath: string,
+    outputDir: string,
+  ): Promise<string> {
+    return invoke("import_lce_save", { inputPath, outputDir });
+  }
 }
