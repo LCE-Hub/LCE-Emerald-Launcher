@@ -1,3 +1,9 @@
+// security: the access token currently lives in localStorage under
+// SESSION_KEY, which is readable by any JS in the webview origin
+// (XSS exposure). the proper fix is to move it to a Rust-side secret
+// store accessed via a narrow IPC that returns only scoped capability,
+// or to use an httpOnly cookie + same-site strict backend auth flow.
+// (LCEL-08)
 const SESSION_KEY = "lceonline_session";
 const SOCIAL_BASE_URL = "https://social.mclegacyedition.xyz";
 const AUTH_BASE_URL = "https://auth.mclegacyedition.xyz"; //neo: yeah bro im hardcoding all three
