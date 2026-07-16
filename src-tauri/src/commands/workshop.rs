@@ -68,11 +68,21 @@ pub async fn workshop_install(app: AppHandle, request: WorkshopInstallRequest) -
                 .replace("{DLCDir}",   dlc_dir.to_str().unwrap_or(""))
                 .replace("{GameHDD}",  game_hdd.to_str().unwrap_or(""))
                 .replace("{MobDir}",   mob_dir.to_str().unwrap_or("")));
-            // security: canonicalize and assert the resolved path stays
-            // inside instance_dir. (LCEL-02)
-            let resolved_canon = resolved.canonicalize().unwrap_or(resolved.clone());
-            let instance_canon = instance_dir.canonicalize().unwrap_or(instance_dir.clone());
-            if !resolved_canon.starts_with(&instance_canon) {
+            // security: assert the resolved path stays inside instance_dir.
+            // canonicalize() requires the path to exist, so we canonicalize
+            // the existing parent and append the basename. (LCEL-02)
+            let instance_canon = instance_dir.canonicalize()
+                .unwrap_or_else(|_| instance_dir.clone());
+            let check_path = if let Some(parent) = resolved.parent() {
+                let parent_canon = parent.canonicalize()
+                    .unwrap_or_else(|_| parent.to_path_buf());
+                let basename = resolved.file_name()
+                    .ok_or_else(|| format!("invalid placeholder: {}", placeholder))?;
+                parent_canon.join(basename)
+            } else {
+                resolved.clone()
+            };
+            if !check_path.starts_with(&instance_canon) {
                 let _ = fs::remove_dir_all(&tmp_dir);
                 return Err(format!("placeholder escapes instance dir: {}", placeholder));
             }
