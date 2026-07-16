@@ -135,6 +135,18 @@ nix profile install github:LCE-Hub/LCE-Emerald-Launcher
 
 On NixOS, add the flake as an input and install `packages.<system>.default` (or `emerald-legacy-launcher`) from it.
 
+**Gentoo:**
+This repository includes a local Portage overlay under [`gentoo/`](gentoo/). Point `repos.conf` at that directory, then emerge the package (build fetches Cargo/npm deps over the network; Wine/Proton is needed at runtime to launch games):
+```bash
+# /etc/portage/repos.conf/emerald-legacy-launcher.conf
+[emerald-legacy-launcher]
+location = /path/to/LCE-Emerald-Launcher-nix-flake/gentoo
+auto-sync = no
+
+sudo emerge games-util/emerald-legacy-launcher          # 1.5.1
+# sudo emerge =games-util/emerald-legacy-launcher-9999  # live git
+```
+
 **Flatpak Installation:**
 ```bash
 flatpak install emerald.flatpak
