@@ -40,12 +40,20 @@ pub fn save_file_dialog(title: String, filename: String, filters: Vec<String>) -
     }
 }
 
+// security: write_binary_file / read_binary_file used to accept arbitrary
+// paths with no validation, no dialog, no scope. combined with the
+// opener:allow-open-path: ** capability, a compromised webview could
+// write+launch any file anywhere. (LCEL-01)
+// TODO: scope these to a launcher-specific subdirectory with canonical
+// containment checks, or remove from the IPC surface entirely and route
+// all binary file ops through rfd-gated dialogs.
+// for now, refuse all paths. callers must use pick_file / save_file_dialog.
 #[tauri::command]
-pub fn write_binary_file(path: String, data: Vec<u8>) -> Result<(), String> {
-    fs::write(path, data).map_err(|e| e.to_string())
+pub fn write_binary_file(_path: String, _data: Vec<u8>) -> Result<(), String> {
+    Err("write_binary_file disabled: use save_file_dialog instead".into())
 }
 
 #[tauri::command]
-pub fn read_binary_file(path: String) -> Result<Vec<u8>, String> {
-    fs::read(path).map_err(|e| e.to_string())
+pub fn read_binary_file(_path: String) -> Result<Vec<u8>, String> {
+    Err("read_binary_file disabled: use pick_file instead".into())
 }

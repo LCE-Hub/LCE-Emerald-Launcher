@@ -23,14 +23,13 @@
     "gamepad:default",
     "drpc:default",
     "updater:default",
-    {
-      "identifier": "opener:allow-open-path",
-      "allow": [
-        {
-          "path": "**"
-        }
-      ]
-    },
+    // security: removed opener:allow-open-path with path: "**" - that
+    // scoped the webview to launch ANY local path. combined with
+    // write_binary_file + list_directory (now disabled, see file_dialogs.rs
+    // and plugins.rs) a compromised webview had a full RCE primitive.
+    // (LCEL-01)
+    // TODO: scope to a specific games directory (e.g. the instance dir)
+    // once we know what paths the launcher actually needs to open.
     {
       "identifier": "opener:allow-reveal-item-in-dir",
       "allow": [
