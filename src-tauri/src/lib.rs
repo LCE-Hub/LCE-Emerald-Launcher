@@ -129,29 +129,39 @@ pub fn run() {
             }
 
             let args: Vec<String> = std::env::args().collect();
-            if args.len() > 1 && !args[1].starts_with('-') {
-                let first = &args[1];
-                let is_deep_link = first.starts_with("emerald://")
-                    || first.starts_with("emeraldlauncher://")
-                    || first.starts_with("discord-1482504445152460871://");
-                if !is_deep_link {
-                    let instance_id = first.clone();
-                    let app_handle_clone = app.handle().clone();
-                    tauri::async_runtime::spawn(async move {
-                        if let Some(window) = app_handle_clone.get_webview_window("main") {
-                            let _ = window.hide();
-                        }
-                        let state = app_handle_clone.state::<GameState>();
-                        match game::launch_game(app_handle_clone.clone(), state, instance_id, Vec::new(), vec![]).await {
-                            Ok(_) => app_handle_clone.exit(0),
-                            Err(e) => {
-                                let _ = app_handle_clone.emit("backend-error", format!("Auto-launch: {e}"));
-                                eprintln!("Auto-launch error: {}", e);
-                                app_handle_clone.exit(1);
-                            }
-                        }
-                    });
+            // security: require an explicit --launch flag for silent auto-launch.
+            // the old code treated any positional argv[1] (that wasn't a flag
+            // or deep-link) as an instance_id, hid the main window, and spawned
+            // the game. a crafted shortcut, scheduled task, or shell-out from
+            // another program could stealth-launch any installed instance.
+            // (LCEL-06)
+            let mut launch_instance: Option<String> = None;
+            let mut i = 1;
+            while i < args.len() {
+                let a = &args[i];
+                if a == "--launch" && i + 1 < args.len() {
+                    launch_instance = Some(args[i + 1].clone());
+                    i += 2;
+                    continue;
                 }
+                i += 1;
+            }
+            if let Some(instance_id) = launch_instance {
+                let app_handle_clone = app.handle().clone();
+                tauri::async_runtime::spawn(async move {
+                    if let Some(window) = app_handle_clone.get_webview_window("main") {
+                        let _ = window.hide();
+                    }
+                    let state = app_handle_clone.state::<GameState>();
+                    match game::launch_game(app_handle_clone.clone(), state, instance_id, Vec::new(), vec![]).await {
+                        Ok(_) => app_handle_clone.exit(0),
+                        Err(e) => {
+                            let _ = app_handle_clone.emit("backend-error", format!("Auto-launch: {e}"));
+                            eprintln!("Auto-launch error: {}", e);
+                            app_handle_clone.exit(1);
+                        }
+                    }
+                });
             }
             Ok(())
         })
