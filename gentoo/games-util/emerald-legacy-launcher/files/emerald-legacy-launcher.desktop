@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=LCE Emerald Launcher
+Comment=FOSS cross-platform launcher for Minecraft Legacy Console Edition
+Exec=emerald-legacy-launcher %u
+Icon=emerald-legacy-launcher
+Type=Application
+Categories=Game;
+MimeType=x-scheme-handler/emerald;x-scheme-handler/emeraldlauncher;x-scheme-handler/discord-1482504445152460871;
+StartupNotify=true
+StartupWMClass=emerald-legacy-launcher
+Terminal=false
