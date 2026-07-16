@@ -24,6 +24,10 @@
 .DS_Store
 Thumbs.db
 
+# Nix
+/result
+/result-*
+
 # Log files
 *.log
 
