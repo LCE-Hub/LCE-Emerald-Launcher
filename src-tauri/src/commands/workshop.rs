@@ -35,6 +35,15 @@ pub async fn workshop_install(app: AppHandle, request: WorkshopInstallRequest) -
     for (zip_name, placeholder) in &request.zips {
         let zip_url = format!("{}/{}", raw_base, zip_name);
         let zip_tmp = tmp_dir.join(zip_name);
+        // security: zip_name is user/registry-controlled. reject any path
+        // separator or .. segment so the downloaded archive can't escape
+        // tmp_dir. (LCEL-02)
+        if zip_name.contains("..") || zip_name.contains('/') || zip_name.contains('\\')
+            || zip_name.starts_with('/') || zip_name.starts_with('\\')
+        {
+            let _ = fs::remove_dir_all(&tmp_dir);
+            return Err(format!("invalid zip_name: {}", zip_name));
+        }
         let response = reqwest::get(&zip_url).await.map_err(|e| e.to_string())?;
         if !response.status().is_success() {
             let _ = fs::remove_dir_all(&tmp_dir);
@@ -45,11 +54,28 @@ pub async fn workshop_install(app: AppHandle, request: WorkshopInstallRequest) -
         let dest_dir = if placeholder.is_empty() {
             instance_dir.clone()
         } else {
+            // security: placeholder is user/registry-controlled. reject any
+            // .. segment or absolute path before joining to instance_dir.
+            // (LCEL-02)
+            if placeholder.contains("..") || placeholder.starts_with('/')
+                || placeholder.starts_with('\\')
+            {
+                let _ = fs::remove_dir_all(&tmp_dir);
+                return Err(format!("invalid placeholder: {}", placeholder));
+            }
             let resolved = instance_dir.clone().join(placeholder
                 .replace("{MediaDir}", media_dir.to_str().unwrap_or(""))
                 .replace("{DLCDir}",   dlc_dir.to_str().unwrap_or(""))
                 .replace("{GameHDD}",  game_hdd.to_str().unwrap_or(""))
                 .replace("{MobDir}",   mob_dir.to_str().unwrap_or("")));
+            // security: canonicalize and assert the resolved path stays
+            // inside instance_dir. (LCEL-02)
+            let resolved_canon = resolved.canonicalize().unwrap_or(resolved.clone());
+            let instance_canon = instance_dir.canonicalize().unwrap_or(instance_dir.clone());
+            if !resolved_canon.starts_with(&instance_canon) {
+                let _ = fs::remove_dir_all(&tmp_dir);
+                return Err(format!("placeholder escapes instance dir: {}", placeholder));
+            }
             PathBuf::from(resolved)
         };
 
@@ -178,6 +204,21 @@ pub async fn workshop_uninstall(app: AppHandle, instance_id: String, package_id:
     if let Some(pkg) = packages.iter().find(|p| p.id == package_id) {
         for file in &pkg.dirs {
             let path = PathBuf::from(file);
+            // security: re-validate that the persisted path stays inside
+            // instance_dir before removing. if an attacker injected paths
+            // into workshop_packages.json (via the install traversals above
+            // or via LCEL-01's write primitive), uninstall used to delete
+            // arbitrary files. (LCEL-02)
+            let path_canon = match path.canonicalize() {
+                Ok(p) => p,
+                Err(_) => continue,
+            };
+            let instance_canon = instance_dir
+                .canonicalize()
+                .unwrap_or_else(|_| instance_dir.clone());
+            if !path_canon.starts_with(&instance_canon) {
+                continue;
+            }
             if path.is_file() {
                 let _ = fs::remove_file(&path);
             }
