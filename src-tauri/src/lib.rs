@@ -118,6 +118,9 @@ pub fn run() {
             plugins::list_directory,
             plugins::create_plugin_dir,
             plugins::remove_plugin_dir,
+            commands::lceonline_token::lceonline_token_store,
+            commands::lceonline_token::lceonline_token_load,
+            commands::lceonline_token::lceonline_token_clear,
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();

@@ -1,9 +1,8 @@
-// security: the access token currently lives in localStorage under
-// SESSION_KEY, which is readable by any JS in the webview origin
-// (XSS exposure). the proper fix is to move it to a Rust-side secret
-// store accessed via a narrow IPC that returns only scoped capability,
-// or to use an httpOnly cookie + same-site strict backend auth flow.
-// (LCEL-08)
+// security: the access token now lives in a file under app_data_dir with
+// 0600 perms, accessed via narrow IPC commands (lceonline_token_store /
+// _load / _clear). localStorage was readable by any JS in the webview
+// origin (XSS exposure). (LCEL-08)
+import { invoke } from "@tauri-apps/api/core";
 const SESSION_KEY = "lceonline_session";
 const SOCIAL_BASE_URL = "https://social.mclegacyedition.xyz";
 const AUTH_BASE_URL = "https://auth.mclegacyedition.xyz"; //neo: yeah bro im hardcoding all three
@@ -132,22 +131,30 @@ export class LceOnlineService {
     }
   }
 
-  private loadSession() {
+  private async loadSession() {
     try {
-      const data = localStorage.getItem(SESSION_KEY);
+      const data = await invoke<{ token: string; username: string } | null>(
+        "lceonline_token_load"
+      );
       if (data) {
-        this._session = JSON.parse(data);
+        this._session = {
+          accessToken: data.token,
+          account: { username: data.username, displayName: data.username },
+        };
       }
     } catch (e) {
       console.warn("Failed to load LCE Online session", e);
     }
   }
 
-  private saveSession() {
+  private async saveSession() {
     if (this._session) {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(this._session));
+      await invoke("lceonline_token_store", {
+        token: this._session.accessToken,
+        username: this._session.account.username,
+      });
     } else {
-      localStorage.removeItem(SESSION_KEY);
+      await invoke("lceonline_token_clear");
     }
   }
 
