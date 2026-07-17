@@ -4,6 +4,7 @@ pub mod dlc;
 pub mod download;
 pub mod file_dialogs;
 pub mod game;
+pub mod java2lce;
 pub mod macos_setup;
 pub mod plugins;
 pub mod proxy_cmd;

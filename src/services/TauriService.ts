@@ -427,4 +427,18 @@ export class TauriService {
   ): Promise<string> {
     return invoke("import_lce_save", { inputPath, outputDir });
   }
+
+  static async javaToLce(
+    javaWorldPath: string,
+    outputMsPath: string,
+  ): Promise<string> {
+    return invoke("java_to_lce", { javaWorldPath, outputMsPath });
+  }
+
+  static async lceToJava(
+    inputMsPath: string,
+    javaWorldOutput: string,
+  ): Promise<string> {
+    return invoke("lce_to_java", { inputMsPath, javaWorldOutput });
+  }
 }

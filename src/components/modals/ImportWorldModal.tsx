@@ -120,6 +120,70 @@ export default function ImportWorldModal({
     }
   };
 
+  const handleImportJava = async () => {
+    if (!targetInstanceId) return;
+    playPressSound();
+    setIsImporting(true);
+    setError("");
+    setStatus("Selecting source...");
+    try {
+      setStatus("Selecting Java world folder...");
+      const picked = await TauriService.pickFolder();
+      if (!picked) {
+        setIsImporting(false);
+        return;
+      }
+      const worldName = deriveWorldName(picked);
+      setStatus("Converting Java world to LCE...");
+      const instancePath = await TauriService.getInstancePath(targetInstanceId);
+      const saveDir = `${instancePath}/Windows64/GameHDD/${worldName}`;
+      await TauriService.javaToLce(picked, `${saveDir}/saveData.ms`);
+      setStatus(`Java world converted into "${targetInstanceName}"!`);
+      setTimeout(() => {
+        onClose();
+      }, 2000);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
+      setStatus("");
+      setIsImporting(false);
+    }
+  };
+
+  const handleExportJava = async () => {
+    if (!targetInstanceId) return;
+    playPressSound();
+    setIsImporting(true);
+    setError("");
+    setStatus("Selecting source...");
+    try {
+      setStatus("Selecting saveData.ms file...");
+      const picked = await TauriService.pickFile("Select saveData.ms", [
+        "*.ms",
+        "*",
+      ]);
+      if (!picked) {
+        setIsImporting(false);
+        return;
+      }
+      setStatus("Selecting output folder for Java world...");
+      const outputFolder = await TauriService.pickFolder();
+      if (!outputFolder) {
+        setIsImporting(false);
+        return;
+      }
+      setStatus("Converting LCE save to Java world...");
+      await TauriService.lceToJava(picked, outputFolder);
+      setStatus(`Java world exported to "${outputFolder}"!`);
+      setTimeout(() => {
+        onClose();
+      }, 2000);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
+      setStatus("");
+      setIsImporting(false);
+    }
+  };
+
   const handleKey = (e: KeyboardEvent) => {
     if (e.key === "Escape") {
       playBackSound();
@@ -201,6 +265,34 @@ export default function ImportWorldModal({
                 }}
               >
                 PS3 (Folder)
+              </button>
+            </div>
+
+            <p className="text-gray-400 text-xs mc-text-shadow mb-2 text-center">
+              Java Edition world conversion:
+            </p>
+            <div className="flex gap-3 mb-2">
+              <button
+                onClick={handleImportJava}
+                className="w-40 h-9 flex items-center justify-center text-sm text-white mc-text-shadow hover:text-[#FFFF55]"
+                style={{
+                  backgroundImage: "url('/images/Button_Background.png')",
+                  backgroundSize: "100% 100%",
+                  imageRendering: "pixelated",
+                }}
+              >
+                Java → LCE
+              </button>
+              <button
+                onClick={handleExportJava}
+                className="w-40 h-9 flex items-center justify-center text-sm text-white mc-text-shadow hover:text-[#FFFF55]"
+                style={{
+                  backgroundImage: "url('/images/Button_Background.png')",
+                  backgroundSize: "100% 100%",
+                  imageRendering: "pixelated",
+                }}
+              >
+                LCE → Java
               </button>
             </div>
 

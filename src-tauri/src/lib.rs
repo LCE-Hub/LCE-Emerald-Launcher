@@ -109,6 +109,8 @@ pub fn run() {
             game::restore_instance,
             commands::console2lce::import_world,
             commands::console2lce::import_lce_save,
+            commands::java2lce::java_to_lce,
+            commands::java2lce::lce_to_java,
             stun::stun_discover,
             relay::start_relay_proxy,
             relay::start_host_relay,
