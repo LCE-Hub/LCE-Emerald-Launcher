@@ -15,6 +15,50 @@ use crate::state::GameState;
 use crate::types::McServer;
 use crate::util;
 use crate::workshop_server;
+// security: allowlist of game CLI flags the launcher will forward.
+// extra_args from the frontend pass through to the spawned game and
+// Wine/Proton honor many flags influencing DLL loading, debug ports,
+// etc. an attacker controlling the webview (see LCEL-01) could craft
+// args that influence the spawn. (LCEL-05)
+const ALLOWED_EXTRA_ARG_PREFIXES: &[&str] = &[
+    "--server", "--port", "--world", "--seed", "--gamemode",
+    "--difficulty", "--max-players", "--allow-cheats",
+    "--resource-pack", "--texture-pack", "--locale",
+];
+const ALLOWED_EXTRA_ARG_EXACT: &[&str] = &[
+    "--demo", "--bonus", "--debug", "--no-update",
+];
+
+fn filter_extra_args(args: &[String]) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut i = 0;
+    while i < args.len() {
+        let a = &args[i];
+        let exact_ok = ALLOWED_EXTRA_ARG_EXACT.iter().any(|p| *p == a);
+        let prefix_ok = ALLOWED_EXTRA_ARG_PREFIXES.iter().any(|p| a.starts_with(p));
+        if exact_ok {
+            out.push(a.clone());
+            i += 1;
+        } else if prefix_ok {
+            out.push(a.clone());
+            // if the flag takes a value, also forward the next arg
+            if !a.contains('=') && i + 1 < args.len() {
+                let next = &args[i + 1];
+                if !next.starts_with('--') {
+                    out.push(next.clone());
+                    i += 2;
+                    continue;
+                }
+            }
+            i += 1;
+        } else {
+            // skip unknown flag
+            i += 1;
+        }
+    }
+    out
+}
+
 #[tauri::command]
 #[allow(non_snake_case)]
 pub async fn launch_game(
@@ -24,6 +68,7 @@ pub async fn launch_game(
     mut servers: Vec<McServer>,
     extra_args: Vec<String>,
 ) -> Result<(), String> {
+    let extra_args = filter_extra_args(&extra_args);
     perform_instance_sync(&app, &instance_id).await?;
     let working_dir = util::get_instance_working_dir(&app, &instance_id);
     let config_val = config::load_config_raw(app.clone());

@@ -14,7 +14,30 @@ pub fn get_plugins_dir(app: tauri::AppHandle) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn list_directory(path: String) -> Result<Vec<DirEntry>, String> {
+pub fn list_directory(
+    app: tauri::AppHandle,
+    path: String,
+) -> Result<Vec<DirEntry>, String> {
+    // security: list_directory used to accept arbitrary paths with no
+    // validation. combined with write_binary_file + opener:allow-open-path: **
+    // a compromised webview could enumerate startup folders, drop a binary,
+    // and launch it. (LCEL-01)
+    // scope to the launcher's app data dir. legitimate callers (plugin
+    // discovery) operate inside this dir anyway.
+    use tauri::Manager;
+    let p = std::path::Path::new(&path);
+    let canonical = match std::fs::canonicalize(p) {
+        Ok(c) => c,
+        Err(e) => return Err(format!("path not found: {}", e)),
+    };
+    if let Ok(app_dir) = app.path().app_data_dir() {
+        let app_canonical = std::fs::canonicalize(&app_dir).unwrap_or(app_dir);
+        if !canonical.starts_with(&app_canonical) {
+            return Err(format!("path outside app dir: {}", path));
+        }
+    } else {
+        return Err("no app dir".into());
+    }
     let entries = fs::read_dir(&path).map_err(|e| e.to_string())?;
     let mut results = Vec::new();
     for entry in entries {
