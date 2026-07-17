@@ -140,7 +140,7 @@ This repository includes a local Portage overlay under [`gentoo/`](gentoo/). Poi
 ```bash
 # /etc/portage/repos.conf/emerald-legacy-launcher.conf
 [emerald-legacy-launcher]
-location = /path/to/LCE-Emerald-Launcher-nix-flake/gentoo
+location = /path/to/LCE-Emerald-Launcher/gentoo
 auto-sync = no
 
 sudo emerge games-util/emerald-legacy-launcher          # 1.5.1
