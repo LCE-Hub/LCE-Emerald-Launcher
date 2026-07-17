@@ -92,7 +92,10 @@ async fn handle(stream: tokio::net::TcpStream) {
                     "application/octet-stream"
                 };
                 let response = format!(
-                    "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n",
+                    // security: scope CORS to the tauri webview origin. was
+                    // "*" which let any website the user visits fetch the
+                    // workshop server. (LCEL-07)
+                    "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\nAccess-Control-Allow-Origin: http://localhost:1420\r\nConnection: close\r\n\r\n",
                     content_type,
                     body.len(),
                 );

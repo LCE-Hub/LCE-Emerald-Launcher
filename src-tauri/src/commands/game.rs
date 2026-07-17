@@ -87,6 +87,13 @@ pub async fn launch_game(
                 }
                 all_args.extend(args.clone());
                 all_args.push(game_exe.to_string_lossy().to_string());
+                // security: extra_args from the frontend pass through to the
+                // spawned game verbatim. Wine/Proton honor many flags
+                // influencing DLL loading, debug ports, etc. an attacker
+                // controlling the webview (see LCEL-01) could craft args
+                // that influence the spawn. (LCEL-05)
+                // TODO: allowlist extra_args against a known safe set
+                // (e.g. --server, --port). reject unknown flags.
                 all_args.extend(extra_args.clone());
                 let (final_prog, final_args) = apply_launch_prefix(prog, all_args, &config_val);
                 let mut cmd = tokio::process::Command::new(&final_prog);
