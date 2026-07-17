@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+	<upstream>
+		<remote-id type="github">LCE-Hub/LCE-Emerald-Launcher</remote-id>
+		<bugs-to>https://github.com/LCE-Hub/LCE-Emerald-Launcher/issues</bugs-to>
+	</upstream>
+	<longdescription lang="en">
+		LCE Emerald Launcher is a FOSS cross-platform Tauri launcher for
+		Minecraft Legacy Console Edition. It installs community builds,
+		manages versions, skins, and workshop content, and launches the game
+		via Wine/Proton on Linux.
+	</longdescription>
+</pkgmetadata>
