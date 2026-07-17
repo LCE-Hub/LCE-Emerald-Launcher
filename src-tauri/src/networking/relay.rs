@@ -6,6 +6,10 @@ use tokio::time::sleep;
 use tokio_util::sync::CancellationToken;
 use crate::state::ProxyGuard;
 const PROXY_ADDR: &str = "proxy.mclegacyedition.xyz:2052"; //neo: yeah bro im hardcoding it
+// security: cap read_line at 8 KiB. relay control lines are tiny (HOST/JOIN
+// tokens + small id). a malicious peer (relay or LAN) sending an unbounded
+// line without \n used to OOM the launcher. (LCEL-04)
+const MAX_RELAY_LINE_BYTES: usize = 8 * 1024;
 async fn read_line(stream: &mut TcpStream) -> Result<String, String> {
     let mut buf = Vec::new();
     let mut byte = [0u8; 1];
@@ -13,6 +17,9 @@ async fn read_line(stream: &mut TcpStream) -> Result<String, String> {
         stream.read_exact(&mut byte).await.map_err(|e| e.to_string())?;
         if byte[0] == b'\n' { break; }
         if byte[0] != b'\r' { buf.push(byte[0]); }
+        if buf.len() > MAX_RELAY_LINE_BYTES {
+            return Err(format!("relay line exceeded {} bytes", MAX_RELAY_LINE_BYTES));
+        }
     }
     String::from_utf8(buf).map_err(|e| e.to_string())
 }
@@ -111,7 +118,11 @@ async fn run_relay_proxy(
         .map_err(|e| format!("Proxy connect failed: {}", e))?;
 
     write_line(&mut stream, &format!("JOIN {} 0 {}", auth_token, target_session)).await?;
-    let listener = TcpListener::bind("0.0.0.0:61000")
+    // security: bind to loopback only. the game process connects on
+    // 127.0.0.1:61000; binding 0.0.0.0 was LAN-reachable so any host on
+    // the user's network could intercept/inject the relayed game traffic.
+    // (LCEL-04)
+    let listener = TcpListener::bind("127.0.0.1:61000")
         .await
         .map_err(|e| format!("Bind failed: {}", e))?;
     let local_port = listener.local_addr().map_err(|e| e.to_string())?.port();

@@ -15,16 +15,13 @@ pub fn get_plugins_dir(app: tauri::AppHandle) -> Result<String, String> {
 
 #[tauri::command]
 pub fn list_directory(path: String) -> Result<Vec<DirEntry>, String> {
-    let entries = fs::read_dir(&path).map_err(|e| e.to_string())?;
-    let mut results = Vec::new();
-    for entry in entries {
-        let entry = entry.map_err(|e| e.to_string())?;
-        results.push(DirEntry {
-            name: entry.file_name().to_string_lossy().to_string(),
-            is_dir: entry.file_type().map(|t| t.is_dir()).unwrap_or(false),
-        });
-    }
-    Ok(results)
+    // security: list_directory used to accept arbitrary paths with no
+    // validation. combined with write_binary_file + opener:allow-open-path: **
+    // a compromised webview could enumerate startup folders, drop a binary,
+    // and launch it. (LCEL-01)
+    // TODO: scope to the launcher's plugins dir or remove from IPC entirely.
+    // for now, refuse all paths.
+    Err("list_directory disabled: use get_plugins_dir instead".into())
 }
 
 #[tauri::command]
