@@ -24,14 +24,6 @@
     "drpc:default",
     "updater:default",
     {
-      "identifier": "opener:allow-open-path",
-      "allow": [
-        {
-          "path": "**"
-        }
-      ]
-    },
-    {
       "identifier": "opener:allow-reveal-item-in-dir",
       "allow": [
         {
