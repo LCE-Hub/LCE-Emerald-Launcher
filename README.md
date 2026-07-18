@@ -90,6 +90,7 @@ LCE Emerald Launcher is the easiest way to play Minecraft Legacy Console Edition
 |--------|-------------|
 | `.dmg` (x64) | Intel Macs |
 | `.dmg` (aarch64) | Apple Silicon (M-series and A-series) |
+| Homebrew Cask | Intel & Apple Silicon (via tap) |
 
 **Installation Steps:**
 1. Download the appropriate DMG for your Mac
@@ -97,6 +98,18 @@ LCE Emerald Launcher is the easiest way to play Minecraft Legacy Console Edition
 3. If you see "app is damaged" error:
    - Right-click the app → **Open** → confirm **Open**
    - Or run: `xattr -cr "/Applications/Emerald Legacy Launcher.app"`
+
+**Homebrew:**
+```bash
+# Tap the repository
+brew tap LCE-Hub/lce-emerald-launcher-cask https://github.com/LCE-Hub/LCE-Emerald-Launcher-cask
+
+# Install stable release
+brew install --cask lce-emerald-launcher
+
+# Or install experimental release
+brew install --cask lce-emerald-launcher-experimental
+```
 
 ### GNU/Linux
 
@@ -109,6 +122,7 @@ Multiple distribution formats available:
 | `.AppImage` | Universal (no installation required) |
 | `.flatpak` | Universal with sandboxing (recommended over AppImage) |
 | Nix flake | NixOS and any Linux with [Nix](https://nixos.org/download/) installed |
+| Homebrew | Any Linux with [Homebrew](https://brew.sh/) installed |
 
 **AUR:**
 Special thanks to [AntiApple4life](https://aur.archlinux.org/packages?O=0&SeB=m&K=AntiApple4life) for the AUR packages!
@@ -150,6 +164,15 @@ sudo emerge games-util/emerald-legacy-launcher          # 1.5.1
 **Flatpak Installation:**
 ```bash
 flatpak install emerald.flatpak
+```
+
+**Homebrew:**
+```bash
+# Tap the repository
+brew tap LCE-Hub/lce-emerald-launcher-cask https://github.com/LCE-Hub/LCE-Emerald-Launcher-cask
+
+# Install stable release
+brew install lce-emerald-launcher
 ```
 
 **Dependencies (if building from source):**

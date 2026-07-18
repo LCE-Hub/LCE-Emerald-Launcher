@@ -1,0 +1,47 @@
+name: Update Homebrew Cask (Stable)
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-cask:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Download release assets and update homebrew files
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
+          echo "Processing tag $TAG (version: $VERSION)"
+          
+          mkdir -p dist
+          # Download the Intel dmg, Apple Silicon dmg, and Linux AppImage
+          gh release download "$TAG" --dir dist --pattern "*_x64.dmg" --pattern "*_aarch64.dmg" --pattern "*_amd64.AppImage" -R "${{ github.repository }}"
+          ls -l dist
+          
+          # Calculate hashes
+          INTEL_HASH=$(sha256sum dist/*_x64.dmg | cut -d' ' -f1)
+          ARM_HASH=$(sha256sum dist/*_aarch64.dmg | cut -d' ' -f1)
+          LINUX_HASH=$(sha256sum dist/*_amd64.AppImage | cut -d' ' -f1)
+          
+          echo "Intel SHA: $INTEL_HASH"
+          echo "ARM SHA: $ARM_HASH"
+          echo "Linux SHA: $LINUX_HASH"
+          
+          python3 scripts/update-homebrew.py --type stable --version "$VERSION" --intel-hash "$INTEL_HASH" --arm-hash "$ARM_HASH" --linux-hash "$LINUX_HASH"
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/ Formula/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update stable Homebrew casks/formula [skip ci]" && git push origin main)
