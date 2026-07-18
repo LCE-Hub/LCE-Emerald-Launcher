@@ -62,7 +62,7 @@ def update_experimental(version, intel_hash, arm_hash):
 
 def main():
     parser = argparse.ArgumentParser(description="Update Homebrew Formula/Cask files")
-    parser.add_argument("--type", choices=["stable", "experimental"], required=True)
+    parser.add_argument("--type", choices=["stable" ], required=True)
     parser.add_argument("--version", required=True)
     parser.add_argument("--intel-hash", required=True)
     parser.add_argument("--arm-hash", required=True)
