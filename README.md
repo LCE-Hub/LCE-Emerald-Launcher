@@ -102,13 +102,10 @@ LCE Emerald Launcher is the easiest way to play Minecraft Legacy Console Edition
 **Homebrew:**
 ```bash
 # Tap the repository
-brew tap LCE-Hub/lce-emerald-launcher-cask https://github.com/LCE-Hub/LCE-Emerald-Launcher-cask
+brew tap LCE-Hub/lce-emerald-launcher https://github.com/LCE-Hub/LCE-Emerald-Launcher
 
 # Install stable release
 brew install --cask lce-emerald-launcher
-
-# Or install experimental release
-brew install --cask lce-emerald-launcher-experimental
 ```
 
 ### GNU/Linux
@@ -169,7 +166,7 @@ flatpak install emerald.flatpak
 **Homebrew:**
 ```bash
 # Tap the repository
-brew tap LCE-Hub/lce-emerald-launcher-cask https://github.com/LCE-Hub/LCE-Emerald-Launcher-cask
+brew tap LCE-Hub/lce-emerald-launcher https://github.com/LCE-Hub/LCE-Emerald-Launcher
 
 # Install stable release
 brew install lce-emerald-launcher

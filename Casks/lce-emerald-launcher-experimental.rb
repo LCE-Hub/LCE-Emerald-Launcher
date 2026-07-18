@@ -3,10 +3,10 @@ cask "lce-emerald-launcher-experimental" do
   sha256 intel: "7826e105f283f22cb5784b7e0dd3c90b8fc493a636ca11333a4b867f3e1a9891",
          arm:   "e1c392213e0d34546f55971a1e381b942d2c896671576a18ab1db4ff1d4270b9"
 
-  url "https://github.com/LCE-Hub/LCE-Emerald-Launcher-cask/releases/download/experimental/LCE.Emerald.Launcher_#{version.to_s.split("-").first}_#{arch}.dmg"
+  url "https://github.com/LCE-Hub/LCE-Emerald-Launcher/releases/download/experimental/LCE.Emerald.Launcher_#{version.to_s.split("-").first}_#{arch}.dmg"
   name "LCE Emerald Launcher Experimental"
   desc "Minecraft Legacy Console Edition Launcher (Experimental)"
-  homepage "https://github.com/HuntedRaven7/LCE-Emerald-Launcher-cask"
+  homepage "https://github.com/LCE-Hub/LCE-Emerald-Launcher"
 
   app "LCE Emerald Launcher/LCE Emerald Launcher.app"
 
