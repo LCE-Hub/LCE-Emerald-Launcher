@@ -89,6 +89,9 @@
               cargo-tauri
               nodejs
               pnpm_10
+	      unzip
+	      libarchive
+	      python3
               pkg-config
             ];
             shellHook = ''
