@@ -22,10 +22,25 @@
           inherit system;
           overlays = [ self.overlays.default ];
         };
+
+      # Bump these together when packaging a new upstream stable release.
+      stableVersion = "1.5.1";
+      stableSrcHash = "sha256-XDR6YCWfVeQgIokMfksakw7tqQ+2uWGFqUkLumJU0EA=";
     in
     {
       overlays.default = final: _prev: {
         emerald-legacy-launcher = final.callPackage ./nix/package.nix {
+          version = stableVersion;
+          src = final.fetchFromGitHub {
+            owner = "LCE-Hub";
+            repo = "LCE-Emerald-Launcher";
+            rev = "v${stableVersion}";
+            hash = stableSrcHash;
+          };
+        };
+
+        emerald-legacy-launcher-git = final.callPackage ./nix/package.nix {
+          version = "unstable-${self.shortRev or self.dirtyShortRev or "dirty"}";
           src = self;
         };
       };
@@ -38,6 +53,7 @@
         {
           default = pkgs.emerald-legacy-launcher;
           emerald-legacy-launcher = pkgs.emerald-legacy-launcher;
+          emerald-legacy-launcher-git = pkgs.emerald-legacy-launcher-git;
         }
       );
 
@@ -46,10 +62,15 @@
           type = "app";
           program = lib.getExe self.packages.${system}.default;
         };
+        emerald-legacy-launcher-git = {
+          type = "app";
+          program = lib.getExe self.packages.${system}.emerald-legacy-launcher-git;
+        };
       });
 
       checks = forAllSystems (system: {
         package = self.packages.${system}.default;
+        package-git = self.packages.${system}.emerald-legacy-launcher-git;
       });
 
       devShells = forAllSystems (
@@ -59,7 +80,7 @@
         in
         {
           default = pkgs.mkShell {
-            inputsFrom = [ pkgs.emerald-legacy-launcher ];
+            inputsFrom = [ pkgs.emerald-legacy-launcher-git ];
             packages = with pkgs; [
               cargo
               rustc
