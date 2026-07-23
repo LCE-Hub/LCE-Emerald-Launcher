@@ -235,6 +235,7 @@ sudo apt install --reinstall libwebkit2gtk-4.1-0
 - **4J Studios & Mojang** - Original creators of Legacy Console Edition
 - **The LCE Community** - Research and foundations for LCE on PC
 - **Str1k3r** - Original creator of LCEOnline
+- **DTention** - Original creator of [LCE-Save-Converter](https://github.com/dtentiion/LCE-Save-Converter)
 
 ---
 

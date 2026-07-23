@@ -1,8 +1,6 @@
 use tauri::State;
-use tauri::webview::cookie::time::Duration;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
-use tokio::time::sleep;
 use tokio_util::sync::CancellationToken;
 use crate::state::ProxyGuard;
 const PROXY_ADDR: &str = "proxy.mclegacyedition.xyz:2052"; //neo: yeah bro im hardcoding it
