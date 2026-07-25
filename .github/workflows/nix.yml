@@ -24,8 +24,11 @@ jobs:
 
       - uses: DeterminateSystems/magic-nix-cache-action@main
 
-      - name: Build package
-        run: nix build .#default --print-build-logs
+      - name: Build stable package
+        run: nix build .#emerald-legacy-launcher --print-build-logs
+
+      - name: Build git package
+        run: nix build .#emerald-legacy-launcher-git --out-link result-git --print-build-logs
 
       - name: Flake check
         run: nix flake check --print-build-logs
@@ -33,6 +36,8 @@ jobs:
       - name: Verify outputs
         run: |
           test -x ./result/bin/emerald-legacy-launcher
-          nix path-info -Sh ./result
+          test -x ./result-git/bin/emerald-legacy-launcher
+          nix path-info -Sh ./result ./result-git
           ls -la ./result/bin/
+          ls -la ./result-git/bin/
           ls -la ./result/share/applications/ || true

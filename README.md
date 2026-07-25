@@ -90,6 +90,7 @@ LCE Emerald Launcher is the easiest way to play Minecraft Legacy Console Edition
 |--------|-------------|
 | `.dmg` (x64) | Intel Macs |
 | `.dmg` (aarch64) | Apple Silicon (M-series and A-series) |
+| Homebrew Cask | Intel & Apple Silicon (via tap) |
 
 **Installation Steps:**
 1. Download the appropriate DMG for your Mac
@@ -97,6 +98,15 @@ LCE Emerald Launcher is the easiest way to play Minecraft Legacy Console Edition
 3. If you see "app is damaged" error:
    - Right-click the app → **Open** → confirm **Open**
    - Or run: `xattr -cr "/Applications/Emerald Legacy Launcher.app"`
+
+**Homebrew:**
+```bash
+# Tap the repository
+brew tap LCE-Hub/lce-emerald-launcher https://github.com/LCE-Hub/LCE-Emerald-Launcher
+
+# Install stable release
+brew install --cask lce-emerald-launcher
+```
 
 ### GNU/Linux
 
@@ -109,6 +119,7 @@ Multiple distribution formats available:
 | `.AppImage` | Universal (no installation required) |
 | `.flatpak` | Universal with sandboxing (recommended over AppImage) |
 | Nix flake | NixOS and any Linux with [Nix](https://nixos.org/download/) installed |
+| Homebrew | Any Linux with [Homebrew](https://brew.sh/) installed |
 
 **AUR:**
 Special thanks to [AntiApple4life](https://aur.archlinux.org/packages?O=0&SeB=m&K=AntiApple4life) for the AUR packages!
@@ -126,14 +137,20 @@ paru -S emerald-legacy-launcher-bin # or yay
 **Nix:**
 Requires [Nix](https://nixos.org/download/) with flakes enabled (`experimental-features = nix-command flakes` in `nix.conf`).
 ```bash
-# Run without installing
+# stable release (default) — tracks https://github.com/LCE-Hub/LCE-Emerald-Launcher/releases
 nix run github:LCE-Hub/LCE-Emerald-Launcher
+# or explicitly:
+nix run github:LCE-Hub/LCE-Emerald-Launcher#emerald-legacy-launcher
+
+# git / latest main
+nix run github:LCE-Hub/LCE-Emerald-Launcher#emerald-legacy-launcher-git
 
 # Install to your user profile
-nix profile install github:LCE-Hub/LCE-Emerald-Launcher
+nix profile install github:LCE-Hub/LCE-Emerald-Launcher                  # stable
+nix profile install github:LCE-Hub/LCE-Emerald-Launcher#emerald-legacy-launcher-git  # git
 ```
 
-On NixOS, add the flake as an input and install `packages.<system>.default` (or `emerald-legacy-launcher`) from it.
+On NixOS, add the flake as an input and install `packages.<system>.default` / `emerald-legacy-launcher` (stable) or `emerald-legacy-launcher-git` (main).
 
 **Gentoo:**
 This repository includes a local Portage overlay under [`gentoo/`](gentoo/). Point `repos.conf` at that directory, then emerge the package (build fetches Cargo/npm deps over the network; Wine/Proton is needed at runtime to launch games):
@@ -150,6 +167,15 @@ sudo emerge games-util/emerald-legacy-launcher          # 1.5.1
 **Flatpak Installation:**
 ```bash
 flatpak install emerald.flatpak
+```
+
+**Homebrew:**
+```bash
+# Tap the repository
+brew tap LCE-Hub/lce-emerald-launcher https://github.com/LCE-Hub/LCE-Emerald-Launcher
+
+# Install stable release
+brew install lce-emerald-launcher
 ```
 
 **Dependencies (if building from source):**

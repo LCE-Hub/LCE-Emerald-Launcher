@@ -1,0 +1,41 @@
+name: Update Nix Flake (Stable)
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-flake:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Prefetch release source and update flake.nix
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
+          echo "Processing tag $TAG (version: $VERSION)"
+
+          BASE32_HASH=$(nix-prefetch-url --unpack \
+            "https://github.com/LCE-Hub/LCE-Emerald-Launcher/archive/refs/tags/${TAG}.tar.gz")
+          SRC_HASH=$(nix hash to-sri --type sha256 "$BASE32_HASH")
+
+          echo "stableSrcHash: $SRC_HASH"
+          python3 scripts/update-nix-stable.py --version "$VERSION" --src-hash "$SRC_HASH"
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add flake.nix
+          git diff --quiet && git diff --staged --quiet || (
+            git commit -m "chore: update Nix stable pin to ${{ github.event.release.tag_name }} [skip ci]" &&
+            git push origin main
+          )

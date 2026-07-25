@@ -15,6 +15,7 @@
   libayatana-appindicator,
   librsvg,
   udev,
+  version ? "1.5.1",
   src ? null,
 }:
 
@@ -49,7 +50,7 @@ let
 in
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "emerald-legacy-launcher";
-  version = "1.5.1";
+  inherit version;
 
   src = if src != null then src else defaultSrc;
 
@@ -123,6 +124,9 @@ rustPlatform.buildRustPackage (finalAttrs: {
   meta = {
     description = "FOSS cross-platform launcher for Minecraft Legacy Console Edition";
     homepage = "https://github.com/LCE-Hub/LCE-Emerald-Launcher";
+    changelog = lib.mkIf (!(lib.hasPrefix "unstable-" version)) (
+      "https://github.com/LCE-Hub/LCE-Emerald-Launcher/releases/tag/v${version}"
+    );
     license = lib.licenses.gpl3Only;
     mainProgram = "emerald-legacy-launcher";
     platforms = lib.platforms.linux ++ lib.platforms.darwin;
