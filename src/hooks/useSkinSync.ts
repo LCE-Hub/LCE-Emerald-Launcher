@@ -105,7 +105,8 @@ export function useSkinSync({ username, profile, editions }: UseSkinSyncProps) {
           const seededId = getSeededId(username);
           const packId = seededId.slice(-4);
           const files: PCKAsset[] = [
-            {
+/*neo: commented because it causes neoLegacy to think its a Texture Pack, while it does nothing when removed. preserved for future reference.
+          {
               id: "0",
               path: "0",
               type: PCKAssetType.INFO,
@@ -117,7 +118,7 @@ export function useSkinSync({ username, profile, editions }: UseSkinSyncProps) {
                   value: packId,
                 },
               ],
-            },
+            },*/
             {
               id: `dlcskin${seededId}`,
               path: `dlcskin${seededId}.png`,
