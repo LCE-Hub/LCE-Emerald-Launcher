@@ -19,6 +19,7 @@ export function useAppConfig() {
   const [linuxRunner, setLinuxRunner] = useState<string | undefined>();
   const [perfBoost, setPerfBoost] = useState(false);
   const [customEditions, setCustomEditions] = useState<CustomEdition[]>([]);
+  const [customPaths, setCustomPaths] = useState<Record<string, string>>({});
   const [customizations, setCustomizations] = useState<Record<string, { titleImage?: string; panorama?: string }>>({});
   const [mangohudEnabled, setMangohudEnabled] = useState(false);
   const [extraLaunchArgs, setExtraLaunchArgs] = useState<string[] | undefined>();
@@ -33,6 +34,7 @@ export function useAppConfig() {
       if (config.appleSiliconPerformanceBoost !== undefined)
         setPerfBoost(config.appleSiliconPerformanceBoost);
       if (config.customEditions) setCustomEditions(config.customEditions);
+      if (config.customPaths) setCustomPaths(config.customPaths);
       if (config.customizations) setCustomizations(config.customizations);
       if (config.profile) setProfile(config.profile);
       if (config.vfxEnabled !== undefined) setVfxEnabled(config.vfxEnabled);
@@ -60,6 +62,7 @@ export function useAppConfig() {
         appleSiliconPerformanceBoost: perfBoost,
         profile,
         customEditions,
+        customPaths,
         customizations,
         animationsEnabled,
         vfxEnabled,
@@ -75,7 +78,7 @@ export function useAppConfig() {
         skipIntro,
       }).catch(console.error);
     }
-  }, [username, theme, linuxRunner, perfBoost, profile, customEditions, customizations, animationsEnabled, vfxEnabled, rpcEnabled, startFullscreen, musicVol, sfxVol, legacyMode, mangohudEnabled, extraLaunchArgs, launchPrefix, launchEnvVars, skipIntro, isLoaded]);
+  }, [username, theme, linuxRunner, perfBoost, profile, customEditions, customPaths, customizations, animationsEnabled, vfxEnabled, rpcEnabled, startFullscreen, musicVol, sfxVol, legacyMode, mangohudEnabled, extraLaunchArgs, launchPrefix, launchEnvVars, skipIntro, isLoaded]);
 
   return {
     username,
@@ -108,6 +111,8 @@ export function useAppConfig() {
     setPerfBoost,
     customEditions,
     setCustomEditions,
+    customPaths,
+    setCustomPaths,
     customizations,
     setCustomizations,
     isLoaded,

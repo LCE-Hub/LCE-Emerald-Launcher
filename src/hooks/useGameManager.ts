@@ -113,6 +113,8 @@ interface GameManagerProps {
   setProfile: (id: string) => void;
   customEditions: CustomEdition[];
   setCustomEditions: (editions: CustomEdition[]) => void;
+  customPaths: Record<string, string>;
+  setCustomPaths: Dispatch<SetStateAction<Record<string, string>>>;
   customizations: Record<string, { titleImage?: string; panorama?: string }>;
   setCustomizations: Dispatch<
     SetStateAction<Record<string, { titleImage?: string; panorama?: string }>>
@@ -142,6 +144,7 @@ export function useGameManager({
   setProfile,
   customEditions,
   setCustomEditions,
+  setCustomPaths,
   customizations,
   setCustomizations,
   extraLaunchArgs,
@@ -597,8 +600,9 @@ export function useGameManager({
         [instanceId]: path,
       };
       await TauriService.saveConfig(config);
+      setCustomPaths((prev) => ({ ...prev, [instanceId]: path }));
     },
-    [],
+    [setCustomPaths],
   );
 
   const addToSteam = useCallback(
