@@ -129,21 +129,26 @@ jobs:
             src-tauri/target
             node_modules
             /var/cache/pacman/pkg
-          key: arch-${{ hashFiles('src-tauri/Cargo.lock', 'package-lock.json') }}
+          key: arch-${{ hashFiles('src-tauri/Cargo.lock', 'pnpm-lock.yaml') }}
           restore-keys: arch-
 
       - name: Install build dependencies
         run: |
           pacman -S --noconfirm --needed \
-            base-devel wget zsync nodejs npm patchelf \
+            base-devel wget zsync nodejs patchelf \
             cargo cargo-tauri \
             gtk3 libayatana-appindicator webkit2gtk-4.1 glib-networking librsvg \
             xorg-server-xvfb
 
+      - name: setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Build deb with tauri
         run: |
-          npm ci
-          cargo-tauri build --bundles deb --config '{"bundle":{"createUpdaterArtifacts":false}}'
+          pnpm install
+          cargo-tauri build --bundles deb --config '{"bundle":{"createUpdaterArtifacts":false},"build":{"beforeBuildCommand":"pnpm build"}}'
 
       - name: Extract deb into /usr
         run: |
