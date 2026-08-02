@@ -123,7 +123,7 @@ jobs:
 
       - name: Extract deb into /usr
         run: |
-          cd src-tauri/target/release/bundle/deb/*/
+          cd src-tauri/target/release/bundle/deb
           ar x ./*.deb
           tar -xf data.tar.*
           cp -r usr/* /
