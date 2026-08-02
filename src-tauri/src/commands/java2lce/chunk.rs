@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use super::block_mapping::{self, LegacyBlockState};
 use super::nbt;
 use super::payload;
-const CHUNK_BLOCKS: usize = 65536;
-const CHUNK_NIBBLES: usize = 32768;
+const CHUNK_BLOCKS: usize = 32768;
+const CHUNK_NIBBLES: usize = 16384;
 const HEIGHTMAP_SIZE: usize = 256;
 const BIOMES_SIZE: usize = 256;
 const STAIR_UPSIDE_DOWN_BIT: u8 = 4;
@@ -138,18 +138,26 @@ fn section_uses_palette_storage(section: &nbt::NbtCompound) -> bool {
 }
 
 fn get_byte_array_or_default(compound: &nbt::NbtCompound, name: &str, default_size: usize) -> Vec<u8> {
-    match compound.byte_array(name) {
-        Some(bytes) => {
-            let mut v = bytes.to_vec();
-            if v.len() < default_size {
-                v.resize(default_size, 0);
-            } else {
-                v.truncate(default_size);
-            }
-            v
+    if let Some(bytes) = compound.byte_array(name) {
+        let mut v = bytes.to_vec();
+        if v.len() < default_size {
+            v.resize(default_size, 0);
+        } else {
+            v.truncate(default_size);
         }
-        None => vec![0u8; default_size],
+        return v;
     }
+
+    if let Some(ints) = compound.int_array(name) {
+        let mut v = vec![0u8; default_size];
+        let len = ints.len().min(default_size);
+        for (i, &val) in ints.iter().take(len).enumerate() {
+            v[i] = val.clamp(0, 255) as u8;
+        }
+        return v;
+    }
+
+    vec![0u8; default_size]
 }
 
 struct DecodedSection {
@@ -351,7 +359,7 @@ fn flatten_anvil_sections(
 
     for section in &decoded_sections {
         let remapped_y = section.section_y - section_shift;
-        if remapped_y < 0 || remapped_y > 15 {
+        if remapped_y < 0 || remapped_y > 7 {
             continue;
         }
 
@@ -361,10 +369,10 @@ fn flatten_anvil_sections(
             let z = (i >> 4) & 0x0F;
             let y = (i >> 8) & 0x0F;
             let global_y = base_y + y as i32;
-            if global_y < 0 || global_y >= 256 {
+            if global_y < 0 || global_y >= 128 {
                 continue;
             }
-            let flat_index = ((x * 16) + z) * 256 + global_y as usize;
+            let flat_index = ((x * 16) + z) * 128 + global_y as usize;
             if flat_index < CHUNK_BLOCKS {
                 blocks[flat_index] = section.blocks[i];
                 if section.data.len() > i {
@@ -392,8 +400,10 @@ pub fn convert_chunk(
     new_chunk_x: i32,
     new_chunk_z: i32,
     preserve_dynamic: bool,
+    global_section_shift: &mut Option<i32>,
 ) -> Vec<u8> {
-    let level = build_legacy_chunk_level(root_tag, new_chunk_x, new_chunk_z, preserve_dynamic);
+    let level =
+        build_legacy_chunk_level(root_tag, new_chunk_x, new_chunk_z, preserve_dynamic, global_section_shift);
     payload::encode_legacy_nbt(&level)
 }
 
@@ -402,8 +412,9 @@ pub fn convert_chunk_for_save(
     new_chunk_x: i32,
     new_chunk_z: i32,
     preserve_dynamic: bool,
+    global_section_shift: &mut Option<i32>,
 ) -> Vec<u8> {
-    let level = build_legacy_chunk_level(root_tag, new_chunk_x, new_chunk_z, preserve_dynamic);
+    let level = build_legacy_chunk_level(root_tag, new_chunk_x, new_chunk_z, preserve_dynamic, global_section_shift);
     payload::encode_compressed_storage(&level)
 }
 
@@ -412,6 +423,7 @@ fn build_legacy_chunk_level(
     new_chunk_x: i32,
     new_chunk_z: i32,
     preserve_dynamic: bool,
+    global_section_shift: &mut Option<i32>,
 ) -> nbt::NbtCompound {
     let format_info = inspect_chunk(root_tag);
     let source_level = root_tag
@@ -420,7 +432,7 @@ fn build_legacy_chunk_level(
     let is_modern = format_info.uses_modern_content_schema();
     let (mut blocks, mut data, mut sky_light, mut block_light) =
         if format_info.is_section_based() {
-            flatten_anvil_sections(source_level, &format_info, &mut None)
+            flatten_anvil_sections(source_level, &format_info, global_section_shift)
         } else {
             let b = get_byte_array_or_default(source_level, "Blocks", CHUNK_BLOCKS);
             let d = get_byte_array_or_default(source_level, "Data", CHUNK_NIBBLES);
@@ -439,8 +451,9 @@ fn build_legacy_chunk_level(
     let last_update = source_level.long("LastUpdate").unwrap_or(0);
     let inhabited_time = source_level.long("InhabitedTime").unwrap_or(0);
     const TERRAIN_POPULATED_FLAGS: i16 = 0;
-    sky_light.fill(0);
-    block_light.fill(0);
+    if sky_light.iter().all(|&b| b == 0) {
+        sky_light.fill(0xFF);
+    }
     let mut level = nbt::NbtCompound::new("Level");
     level.insert("xPos", nbt::NbtValue::Int(new_chunk_x));
     level.insert("zPos", nbt::NbtValue::Int(new_chunk_z));

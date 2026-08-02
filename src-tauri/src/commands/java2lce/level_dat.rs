@@ -71,14 +71,24 @@ pub fn convert_java_to_lce(
     } else if is_modern_world {
         "default".to_string()
     } else {
-        get_string(java_data, "generatorName", "default")
+        let name = get_string(java_data, "generatorName", "default");
+        match name.as_str() {
+            "flat" | "superflat" => "flat".to_string(),
+            "largeBiomes" => "largeBiomes".to_string(),
+            _ => "default".to_string(),
+        }
     };
     let safe_generator_version = if flat_world {
         0
     } else if is_modern_world {
         1
     } else {
-        get_int(java_data, "generatorVersion")
+        let version = get_int(java_data, "generatorVersion");
+        if safe_generator_name == "default" {
+            1
+        } else {
+            version
+        }
     };
     let safe_generator_options = if flat_world {
         get_string(java_data, "generatorOptions", "2;7,2x3,2;1;")
