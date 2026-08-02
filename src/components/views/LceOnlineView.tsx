@@ -7,7 +7,7 @@ import {
   useGame,
 } from "../../context/LauncherContext";
 import ChooseInstanceModal from "../modals/ChooseInstanceModal";
-import { lceOnlineService } from "../../services/LceOnlineService";
+import { lceOnlineService, SocialEntry } from "../../services/LceOnlineService";
 import { TauriService } from "../../services/TauriService";
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { listen } from "@tauri-apps/api/event";
@@ -25,7 +25,7 @@ const LceOnlineView = memo(function LceOnlineView({
   onClearAddFriendTarget,
   invites: invitesProp,
 }: LceOnlineViewProps) {
-  const { setActiveView, setIsUiHidden } = useUI();
+  const { setActiveView } = useUI();
   const { animationsEnabled } = useConfig();
   const { playPressSound, playBackSound } = useAudio();
   const game = useGame();
@@ -35,9 +35,9 @@ const LceOnlineView = memo(function LceOnlineView({
     "friends" | "requests" | "invites"
   >("friends");
   const [focusIndex, setFocusIndex] = useState<number | null>(0);
-  const [friends, setFriends] = useState<string[]>([]);
-  const [incomingReqs, setIncomingReqs] = useState<string[]>([]);
-  const [outgoingReqs, setOutgoingReqs] = useState<string[]>([]);
+  const [friends, setFriends] = useState<SocialEntry[]>([]);
+  const [incomingReqs, setIncomingReqs] = useState<SocialEntry[]>([]);
+  const [outgoingReqs, setOutgoingReqs] = useState<SocialEntry[]>([]);
   const invites = invitesProp ?? [];
   const [isHosting, setIsHosting] = useState(false);
   const [isAddingFriend, setIsAddingFriend] = useState(false);
@@ -189,34 +189,34 @@ const LceOnlineView = memo(function LceOnlineView({
       });
       friends.forEach((f) => {
         items.push({
-          id: `friend_${f}`,
+          id: `friend_${f.username}`,
           type: "friend",
-          label: f,
-          onClick: () => handleAction(() => lceOnlineService.removeFriend(f)),
+          label: f.displayName,
+          onClick: () => handleAction(() => lceOnlineService.removeFriend(f.username)),
           onClickSecondary: isHosting
-            ? () => handleAction(() => lceOnlineService.sendInvite(f))
+            ? () => handleAction(() => lceOnlineService.sendInvite(f.username))
             : undefined,
         });
       });
     } else if (currentTab === "requests") {
       incomingReqs.forEach((r) => {
         items.push({
-          id: `req_in_${r}`,
+          id: `req_in_${r.username}`,
           type: "request_in",
-          label: r,
+          label: r.displayName,
           onClick: () =>
-            handleAction(() => lceOnlineService.acceptFriendRequest(r)),
+            handleAction(() => lceOnlineService.acceptFriendRequest(r.username)),
           onClickSecondary: () =>
-            handleAction(() => lceOnlineService.declineFriendRequest(r)),
+            handleAction(() => lceOnlineService.declineFriendRequest(r.username)),
         });
       });
       outgoingReqs.forEach((r) => {
         items.push({
-          id: `req_out_${r}`,
+          id: `req_out_${r.username}`,
           type: "request_out",
-          label: r,
+          label: r.displayName,
           onClick: () =>
-            handleAction(() => lceOnlineService.declineFriendRequest(r)),
+            handleAction(() => lceOnlineService.declineFriendRequest(r.username)),
         });
       });
     } else if (currentTab === "invites") {
@@ -364,122 +364,6 @@ const LceOnlineView = memo(function LceOnlineView({
     }
   }, [focusIndex, isAddingFriend]);
 
-  const touhouOverlayRef = useRef<HTMLDivElement | null>(null);
-  const touhouBlobUrlRef = useRef<string | null>(null);
-  const touhouAudioRef = useRef<HTMLAudioElement | null>(null);
-  useEffect(() => {
-    const GIF_URL =
-      "https://raw.githubusercontent.com/neoapps-dev/neoapps-dev/main/badapple_small.gif";
-    const MP3_URL =
-      "https://raw.githubusercontent.com/Soldr/bad-apple-but-its-node.js/master/bad-apple.mp3";
-
-    const stopAudio = () => {
-      if (touhouAudioRef.current) {
-        touhouAudioRef.current.pause();
-        touhouAudioRef.current.src = "";
-        touhouAudioRef.current = null;
-      }
-    };
-
-    const onlineUser = lceOnlineService.account?.username;
-    if (onlineUser === "TOUHOU") {
-      if (!touhouOverlayRef.current) {
-        setIsUiHidden(true);
-        const overlay = document.createElement("div");
-        overlay.style.cssText =
-          "position:fixed;inset:0;z-index:99999;background:#000;display:flex;align-items:center;justify-content:center;cursor:pointer";
-        const spinner = document.createElement("div");
-        spinner.textContent = "Loading...";
-        spinner.style.cssText =
-          "color:#fff;font-family:'Mojangles',monospace;font-size:24px;letter-spacing:4px";
-        overlay.appendChild(spinner);
-        document.body.appendChild(overlay);
-        const img = document.createElement("img");
-        img.style.cssText = "width:100%;height:100%;object-fit:contain";
-        const audio = new Audio(MP3_URL);
-        audio.loop = true;
-        audio.volume = 0.5;
-        touhouAudioRef.current = audio;
-        const audioReady = new Promise<void>((resolve) => {
-          if (audio.readyState >= 3) resolve();
-          else {
-            audio.oncanplaythrough = () => resolve();
-            audio.onerror = () => resolve();
-          }
-        });
-
-        const gifReady = fetch(GIF_URL)
-          .then((r) => r.arrayBuffer())
-          .then((buf) => {
-            const blob = new Blob([buf], { type: "image/gif" });
-            const url = URL.createObjectURL(blob);
-            touhouBlobUrlRef.current = url;
-            img.src = url;
-            return new Promise<void>((resolve) => {
-              if (img.complete) resolve();
-              else {
-                img.onload = () => resolve();
-                img.onerror = () => resolve();
-              }
-            });
-          })
-          .catch(() => {
-            img.src = GIF_URL;
-            return new Promise<void>((resolve) => {
-              if (img.complete) resolve();
-              else {
-                img.onload = () => resolve();
-                img.onerror = () => resolve();
-              }
-            });
-          });
-
-        Promise.all([gifReady, audioReady]).then(() => {
-          spinner.remove();
-          overlay.appendChild(img);
-          audio.currentTime = 2;
-          audio.play().catch(() => {});
-        });
-
-        const cleanup = () => {
-          stopAudio();
-          setIsUiHidden(false);
-          if (overlay.parentNode) overlay.remove();
-          touhouOverlayRef.current = null;
-          if (touhouBlobUrlRef.current) {
-            URL.revokeObjectURL(touhouBlobUrlRef.current);
-            touhouBlobUrlRef.current = null;
-          }
-        };
-        overlay.onclick = cleanup;
-        touhouOverlayRef.current = overlay;
-      }
-    } else {
-      if (touhouOverlayRef.current) {
-        stopAudio();
-        touhouOverlayRef.current.remove();
-        touhouOverlayRef.current = null;
-        if (touhouBlobUrlRef.current) {
-          URL.revokeObjectURL(touhouBlobUrlRef.current);
-          touhouBlobUrlRef.current = null;
-        }
-        setIsUiHidden(false);
-      }
-    }
-    return () => {
-      stopAudio();
-      setIsUiHidden(false);
-      if (touhouOverlayRef.current) {
-        touhouOverlayRef.current.remove();
-        touhouOverlayRef.current = null;
-        if (touhouBlobUrlRef.current) {
-          URL.revokeObjectURL(touhouBlobUrlRef.current);
-          touhouBlobUrlRef.current = null;
-        }
-      }
-    };
-  }, [isSignedIn, setIsUiHidden]);
-
   const renderContent = () => {
     if (!isSignedIn) {
       return (
@@ -563,6 +447,16 @@ const LceOnlineView = memo(function LceOnlineView({
                         <div className="flex flex-col ml-2 flex-1 min-w-0">
                           <span className="text-[#2a2a2a] font-bold text-2xl truncate pr-4">
                             {item.label}
+                          </span>
+                          <span className="text-[#555] text-base font-bold truncate">
+                            @
+                            {item.type === "friend"
+                              ? friends.find((f) => `friend_${f.username}` === item.id)?.username
+                              : item.type === "request_in"
+                                ? incomingReqs.find((r) => `req_in_${r.username}` === item.id)?.username
+                                : item.type === "request_out"
+                                  ? outgoingReqs.find((r) => `req_out_${r.username}` === item.id)?.username
+                                  : "Invite"}
                           </span>
                         </div>
                       </div>

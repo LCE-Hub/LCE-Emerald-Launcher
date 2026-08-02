@@ -12,9 +12,22 @@ export interface SessionData {
   account: LceOnlineAccount;
 }
 
-export interface FriendRequest {
+export interface InviteEntry {
+  inviteid: string;
+  from: { uuid: string; displayName: string; username: string };
+  sessionid: string;
+}
+
+export interface SocialEntry { 
   username: string;
   displayName: string;
+  uuid: string;
+};
+
+export interface SocialList {
+  friends: SocialEntry[];
+  friendRequests: SocialEntry[];
+  blocked: SocialEntry[];
 }
 
 export class LceOnlineService {
@@ -220,25 +233,14 @@ export class LceOnlineService {
     }
   }
 
-  async getSocialLists(): Promise<{
-    friends: string[];
-    requests: string[];
-    blocked: string[];
-  }> {
-    const raw: string = await this.request<string>(
-      "POST",
-      "/getSocialLists",
-      null,
-    );
-    if (typeof raw !== "string") {
-      return { friends: [], requests: [], blocked: [] };
-    }
-    const withoutPrefix = raw.startsWith("-") ? raw.slice(1) : raw;
-    const parts = withoutPrefix.split("|");
+  async getSocialLists() {
+    const res = await this.request<SocialList>("GET", "/getSocialLists", null);
+    if (typeof res === "string") throw new Error(res);
+    console.log("raw getSocialLists response:", JSON.stringify(res, null, 2));
     return {
-      friends: parts[0] ? parts[0].split(",").filter(Boolean) : [],
-      requests: parts[1] ? parts[1].split(",").filter(Boolean) : [],
-      blocked: parts[2] ? parts[2].split(",").filter(Boolean) : [],
+      friends: res?.friends ?? [],
+      requests: res?.friendRequests ?? [],
+      blocked: res?.blocked ?? [],
     };
   }
 
@@ -295,7 +297,7 @@ export class LceOnlineService {
   async getInvites(): Promise<
     Array<{
       inviteid: string;
-      from: { uuid: string; username: string };
+      from: { uuid: string; displayName: string; username: string };
       sessionid: string;
     }>
   > {
