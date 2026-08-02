@@ -314,7 +314,7 @@ export default function ModelEditorView() {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: animationsEnabled ? 0.3 : 0 }}
-      className="flex flex-col w-full h-[85vh] max-w-7xl relative"
+      className="flex flex-col w-full h-full max-w-7xl relative"
     >
       <input
         type="file"

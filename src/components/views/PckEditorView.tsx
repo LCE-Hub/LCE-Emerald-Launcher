@@ -500,7 +500,7 @@ export default function PckEditorView() {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: animationsEnabled ? 0.3 : 0 }}
-      className="flex flex-col items-center w-full max-w-6xl h-[85vh] outline-none"
+      className="flex flex-col items-center w-full max-w-6xl h-full outline-none"
     >
       <div className="w-full flex justify-between items-center mb-4 px-8">
         <h2 className="text-2xl text-white mc-text-shadow border-b-2 border-[#373737] pb-1 tracking-widest uppercase font-bold">
@@ -1028,7 +1028,7 @@ export default function PckEditorView() {
           playBackSound();
           setActiveView("devtools");
         }}
-        className="w-72 h-14 flex items-center justify-center transition-colors text-2xl mc-text-shadow mt-6 outline-none border-none hover:text-[#FFFF55] text-white"
+        className="w-72 h-14 shrink-0 flex items-center justify-center transition-colors text-2xl mc-text-shadow mt-6 outline-none border-none hover:text-[#FFFF55] text-white"
         style={{
           backgroundImage: "url('/images/Button_Background.png')",
           backgroundSize: "100% 100%",

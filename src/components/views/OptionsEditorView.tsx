@@ -80,7 +80,7 @@ export default function OptionsEditorView() {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: animationsEnabled ? 0.3 : 0 }}
-      className="flex flex-col w-full h-[85vh] max-w-7xl relative"
+      className="flex flex-col w-full h-full max-w-7xl relative"
     >
       <input type="file" ref={fileInputRef} onChange={handleFileLoad} className="hidden" accept=".dat,.bin" />
       <div className="flex items-center justify-between mb-6 px-4">
@@ -211,10 +211,10 @@ export default function OptionsEditorView() {
         </div>
       )}
 
-      <div className="flex justify-center mt-6 h-14">
+      <div className="flex justify-center mt-6 h-14 shrink-0">
         <button
           onClick={() => { playBackSound(); setActiveView("devtools"); }}
-          className="w-72 h-full flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] text-white"
+          className="w-72 h-full shrink-0 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] text-white"
           style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
         >
           Back

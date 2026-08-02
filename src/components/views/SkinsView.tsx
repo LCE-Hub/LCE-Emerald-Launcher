@@ -432,14 +432,14 @@ const SkinsView = memo(function SkinsView() {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: useConfig().animationsEnabled ? 0.3 : 0 }}
-      className="flex flex-col items-center w-full max-w-3xl outline-none"
+      className="flex flex-col items-center w-full max-w-3xl h-full outline-none"
     >
       <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 border-b-2 border-[#373737] pb-2 w-[60%] max-w-75 text-center tracking-widest uppercase opacity-80 font-bold">
         {viewMode === "skin" ? "Skin Library" : "Cape Library"}
       </h2>
 
       <div
-        className="w-full max-w-160 h-85 mb-4 p-5 shadow-2xl flex flex-col relative"
+        className="w-full max-w-160 flex-1 min-h-0 mb-4 p-5 shadow-2xl flex flex-col relative overflow-hidden"
         style={{
           backgroundImage: "url('/images/frame_background.png')",
           backgroundSize: "100% 100%",
@@ -727,7 +727,7 @@ const SkinsView = memo(function SkinsView() {
           playBackSound();
           setActiveView("main");
         }}
-        className={`w-72 h-14 flex items-center justify-center transition-colors text-2xl mc-text-shadow mt-2 outline-none border-none hover:text-[#FFFF55] ${focusIndex === BACK_BUTTON_INDEX ? "text-[#FFFF55]" : "text-white"}`}
+        className={`w-72 h-14 shrink-0 flex items-center justify-center transition-colors text-2xl mc-text-shadow mt-2 outline-none border-none hover:text-[#FFFF55] ${focusIndex === BACK_BUTTON_INDEX ? "text-[#FFFF55]" : "text-white"}`}
         style={{
           backgroundImage:
             focusIndex === BACK_BUTTON_INDEX

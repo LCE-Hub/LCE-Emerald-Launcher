@@ -571,7 +571,7 @@ export default function App() {
             </div>
           </div>
 
-          <main className="flex-1 w-full relative">
+          <main className="flex-1 w-full relative min-h-0">
             <div
               className={`w-full h-full flex flex-col items-center justify-center ${isUiHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}
             >

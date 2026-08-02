@@ -319,7 +319,7 @@ export const ArcEditorView: React.FC = () => {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: animationsEnabled ? 0.3 : 0 }}
-      className="flex flex-col items-center w-full max-w-7xl h-[85vh] outline-none"
+      className="flex flex-col items-center w-full max-w-7xl h-full outline-none"
     >
       <div className="w-full flex justify-between items-center mb-4 px-8">
         <h2 className="text-2xl text-white mc-text-shadow border-b-2 border-[#373737] pb-1 tracking-widest uppercase font-bold">
@@ -567,10 +567,10 @@ export const ArcEditorView: React.FC = () => {
           </div>
         </div>
       )}
-      <div className="flex justify-center mt-6 h-14 w-full">
+      <div className="flex justify-center mt-6 h-14 w-full shrink-0">
         <button
           onClick={() => { playBackSound(); setActiveView("devtools"); }}
-          className="w-72 h-full flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] text-white"
+          className="w-72 h-full shrink-0 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] text-white"
           style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
         >
           Back
