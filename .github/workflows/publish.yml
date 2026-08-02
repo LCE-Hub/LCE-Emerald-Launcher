@@ -137,7 +137,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: appimage
-          path: pkg/AppImage/dist/*.AppImage* #neo: *.AppImage* just in case i add a .zsync
+          path: pkg/AppImage/dist/*.AppImage* #neo: *.AppImage* because .zsync as well
 
   publish-flatpak:
     needs: [get-version, build-appimage]
@@ -168,7 +168,7 @@ jobs:
           tag_name: v${{ needs.get-version.outputs.version }}
           files: |
             emerald.flatpak
-            appimage/*.AppImage
+            appimage/*.AppImage*
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
