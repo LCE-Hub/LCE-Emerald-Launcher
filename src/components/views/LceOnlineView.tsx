@@ -7,7 +7,7 @@ import {
   useGame,
 } from "../../context/LauncherContext";
 import ChooseInstanceModal from "../modals/ChooseInstanceModal";
-import { lceOnlineService } from "../../services/LceOnlineService";
+import { lceOnlineService, SocialEntry } from "../../services/LceOnlineService";
 import { TauriService } from "../../services/TauriService";
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { listen } from "@tauri-apps/api/event";
@@ -35,9 +35,9 @@ const LceOnlineView = memo(function LceOnlineView({
     "friends" | "requests" | "invites"
   >("friends");
   const [focusIndex, setFocusIndex] = useState<number | null>(0);
-  const [friends, setFriends] = useState<string[]>([]);
-  const [incomingReqs, setIncomingReqs] = useState<string[]>([]);
-  const [outgoingReqs, setOutgoingReqs] = useState<string[]>([]);
+  const [friends, setFriends] = useState<SocialEntry[]>([]);
+  const [incomingReqs, setIncomingReqs] = useState<SocialEntry[]>([]);
+  const [outgoingReqs, setOutgoingReqs] = useState<SocialEntry[]>([]);
   const invites = invitesProp ?? [];
   const [isHosting, setIsHosting] = useState(false);
   const [isAddingFriend, setIsAddingFriend] = useState(false);
@@ -189,34 +189,34 @@ const LceOnlineView = memo(function LceOnlineView({
       });
       friends.forEach((f) => {
         items.push({
-          id: `friend_${f}`,
+          id: `friend_${f.username}`,
           type: "friend",
-          label: f,
-          onClick: () => handleAction(() => lceOnlineService.removeFriend(f)),
+          label: f.displayName,
+          onClick: () => handleAction(() => lceOnlineService.removeFriend(f.username)),
           onClickSecondary: isHosting
-            ? () => handleAction(() => lceOnlineService.sendInvite(f))
+            ? () => handleAction(() => lceOnlineService.sendInvite(f.username))
             : undefined,
         });
       });
     } else if (currentTab === "requests") {
       incomingReqs.forEach((r) => {
         items.push({
-          id: `req_in_${r}`,
+          id: `req_in_${r.username}`,
           type: "request_in",
-          label: r,
+          label: r.displayName,
           onClick: () =>
-            handleAction(() => lceOnlineService.acceptFriendRequest(r)),
+            handleAction(() => lceOnlineService.acceptFriendRequest(r.username)),
           onClickSecondary: () =>
-            handleAction(() => lceOnlineService.declineFriendRequest(r)),
+            handleAction(() => lceOnlineService.declineFriendRequest(r.username)),
         });
       });
       outgoingReqs.forEach((r) => {
         items.push({
-          id: `req_out_${r}`,
+          id: `req_out_${r.username}`,
           type: "request_out",
-          label: r,
+          label: r.displayName,
           onClick: () =>
-            handleAction(() => lceOnlineService.declineFriendRequest(r)),
+            handleAction(() => lceOnlineService.declineFriendRequest(r.username)),
         });
       });
     } else if (currentTab === "invites") {
@@ -563,6 +563,16 @@ const LceOnlineView = memo(function LceOnlineView({
                         <div className="flex flex-col ml-2 flex-1 min-w-0">
                           <span className="text-[#2a2a2a] font-bold text-2xl truncate pr-4">
                             {item.label}
+                          </span>
+                          <span className="text-[#555] text-base font-bold truncate">
+                            @
+                            {item.type === "friend"
+                              ? friends.find((f) => `friend_${f.username}` === item.id)?.username
+                              : item.type === "request_in"
+                                ? incomingReqs.find((r) => `req_in_${r.username}` === item.id)?.username
+                                : item.type === "request_out"
+                                  ? outgoingReqs.find((r) => `req_out_${r.username}` === item.id)?.username
+                                  : "Invite"}
                           </span>
                         </div>
                       </div>

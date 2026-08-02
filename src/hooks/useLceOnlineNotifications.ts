@@ -1,17 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { lceOnlineService } from "../services/LceOnlineService";
+import { lceOnlineService, SocialEntry, InviteEntry } from "../services/LceOnlineService";
 export function useLceOnlineNotifications() {
   const [friendRequestMessage, setFriendRequestMessage] = useState<
     string | null
   >(null);
   const [InviteMessage, setInviteMessage] = useState<string | null>(null);
-  const [invites, setInvites] = useState<
-    Array<{
-      inviteid: string;
-      from: { uuid: string; username: string };
-      sessionid: string;
-    }>
-  >([]);
+  const [invites, setInvites] = useState<InviteEntry[]>([]);
+  const [requests, setRequests] = useState<SocialEntry[]>([]);
   const seenRequests = useRef<Set<string>>(new Set());
   const seenInvites = useRef<Set<string>>(new Set());
   useEffect(() => {
@@ -20,11 +15,12 @@ export function useLceOnlineNotifications() {
     const poll = async () => {
       if (!lceOnlineService.signedIn) return;
       try {
-        const lists = await lceOnlineService.getSocialLists();
-        lists.requests.forEach((r: string) => {
-          if (!seenRequests.current.has(r)) {
-            seenRequests.current.add(r);
-            setFriendRequestMessage(`${r} wants to be friends!`);
+        const requestsData = await lceOnlineService.getSocialLists();
+        setRequests(requestsData.requests);
+        requestsData.requests.forEach((r) => {
+          if (!seenRequests.current.has(r.username)) {
+            seenRequests.current.add(r.username);
+            setFriendRequestMessage(`${r.displayName} wants to be friends!`);
           }
         });
       } catch (e) {}
@@ -34,7 +30,7 @@ export function useLceOnlineNotifications() {
         invitesData.forEach((i) => {
           if (!seenInvites.current.has(i.inviteid)) {
             seenInvites.current.add(i.inviteid);
-            setInviteMessage(`${i.from.username} invited you to play!`);
+            setInviteMessage(`${i.from.displayName} invited you to play!`);
           }
         });
       } catch {}
@@ -43,10 +39,11 @@ export function useLceOnlineNotifications() {
     const init = async () => {
       if (lceOnlineService.signedIn) {
         try {
-          const lists = await lceOnlineService.getSocialLists();
-          lists.requests.forEach((r: string) => {
-            if (!seenRequests.current.has(r)) {
-              seenRequests.current.add(r);
+          const requestData = await lceOnlineService.getSocialLists();
+          setRequests(requestData.requests);
+          requestData.requests.forEach((r) => {
+            if (!seenRequests.current.has(r.username)) {
+              seenRequests.current.add(r.username);
             }
           });
         } catch (e) {}
@@ -56,7 +53,7 @@ export function useLceOnlineNotifications() {
           invitesData.forEach((i) => {
             if (!seenInvites.current.has(i.inviteid)) {
               seenInvites.current.add(i.inviteid);
-              setInviteMessage(`${i.from.username} invited you to play!`);
+              setInviteMessage(`${i.from.displayName} invited you to play!`);
             }
           });
         } catch {}
@@ -76,5 +73,6 @@ export function useLceOnlineNotifications() {
     clearFriendRequestMessage: () => setFriendRequestMessage(null),
     clearInviteMessage: () => setInviteMessage(null),
     invites,
+    requests,
   };
 }
