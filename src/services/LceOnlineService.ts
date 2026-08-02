@@ -236,7 +236,6 @@ export class LceOnlineService {
   async getSocialLists() {
     const res = await this.request<SocialList>("GET", "/getSocialLists", null);
     if (typeof res === "string") throw new Error(res);
-    console.log("raw getSocialLists response:", JSON.stringify(res, null, 2));
     return {
       friends: res?.friends ?? [],
       requests: res?.friendRequests ?? [],
