@@ -155,7 +155,7 @@ jobs:
           cd src-tauri/target/release/bundle/deb
           ar x ./*.deb
           tar -xf data.tar.*
-          cp -r usr/* /
+          cp -a usr/. /usr/
 
       - name: Build AppImage
         run: |
