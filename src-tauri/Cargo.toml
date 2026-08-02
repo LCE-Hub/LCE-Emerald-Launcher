@@ -1,9 +1,9 @@
 [package]
 name = "emerald-legacy-launcher"
-version = "1.5.1"
+version = "1.6.0"
 description = "A FOSS, cross-platform launcher for Minecraft Legacy Edition"
 authors = ["Emerald Team"]
-edition = "2021"
+edition = "2024"
 
 [lib]
 name = "emerald_lib"
@@ -13,7 +13,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [ "tray-icon", "image-png"] }
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -43,3 +43,8 @@ tauri-plugin-single-instance = "2"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-updater = "2"
+
+#neo: enable portable appimages. revert back to crates.io once the PR is merged
+#[patch.crates-io]
+#tauri = { git = "https://github.com/tauri-apps/tauri", branch = "feat/truly-portable-appimage" }
+#end neo

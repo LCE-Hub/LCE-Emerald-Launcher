@@ -526,7 +526,7 @@ pub fn force_chunk_coordinates(data: &[u8], expected_x: i32, expected_z: i32) ->
     if let Ok(mut compound) = nbt::read_nbt(data) {
         let has_level = compound.get("Level").is_some();
         if has_level {
-            if let Some(nbt::NbtValue::Compound(ref mut c)) = compound.get_mut("Level") {
+            if let Some(nbt::NbtValue::Compound(c)) = compound.get_mut("Level") {
                 c.insert("xPos", NbtValue::Int(expected_x));
                 c.insert("zPos", NbtValue::Int(expected_z));
             }
