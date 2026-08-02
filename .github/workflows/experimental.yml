@@ -108,3 +108,57 @@ jobs:
         with:
           name: flatpak
           path: Emerald.Legacy.Launcher.flatpak
+
+  build-appimage:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Bootstrap keyring and git
+        run: |
+          pacman -Syu --noconfirm archlinux-keyring
+          pacman -S --noconfirm --needed git
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            src-tauri/target
+            node_modules
+            /var/cache/pacman/pkg
+          key: arch-${{ hashFiles('src-tauri/Cargo.lock', 'package-lock.json') }}
+          restore-keys: arch-
+
+      - name: Install build dependencies
+        run: |
+          pacman -S --noconfirm --needed \
+            base-devel wget zsync nodejs npm patchelf \
+            cargo cargo-tauri \
+            gtk3 libayatana-appindicator webkit2gtk-4.1 glib-networking librsvg \
+            xorg-server-xvfb
+
+      - name: Build deb with tauri
+        run: |
+          npm ci
+          cargo-tauri build --bundles deb --config '{"bundle":{"createUpdaterArtifacts":false}}'
+
+      - name: Extract deb into /usr
+        run: |
+          cd src-tauri/target/release/bundle/deb/*/
+          ar x ./*.deb
+          tar -xf data.tar.*
+          cp -r usr/* /
+
+      - name: Build AppImage
+        run: |
+          cd pkg/AppImage
+          chmod +x ./AppImage.sh
+          ./AppImage.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: appimage
+          path: pkg/AppImage/dist/*.AppImage
