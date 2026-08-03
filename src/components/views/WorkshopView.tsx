@@ -124,6 +124,55 @@ interface PluginRegistryEntry {
 }
 
 const COLS = 4;
+interface ZipGroup {
+  main: string;
+  parts: string[];
+  dest: string;
+}
+function groupZips(zips: Record<string, string>): ZipGroup[] {
+  const entries = Object.entries(zips).sort(([a], [b]) => a.localeCompare(b));
+  const consumed = new Set<string>();
+  const groups: ZipGroup[] = [];
+  for (const [name, dest] of entries) {
+    if (consumed.has(name)) continue;
+    if (!name.toLowerCase().endsWith(".zip")) continue;
+    const base = name.slice(0, -4);
+    const parts = [name];
+    consumed.add(name);
+    let n = 1;
+    for (;;) {
+      const cand = `${base}.z${String(n).padStart(2, "0")}`;
+      if (zips[cand] !== undefined) {
+        parts.push(cand);
+        consumed.add(cand);
+        n++;
+      } else {
+        break;
+      }
+    }
+    if (parts.length === 1) {
+      n = 1;
+      for (;;) {
+        const cand = `${base}.zip.${String(n).padStart(3, "0")}`;
+        if (zips[cand] !== undefined) {
+          parts.push(cand);
+          consumed.add(cand);
+          n++;
+        } else {
+          break;
+        }
+      }
+    }
+    groups.push({ main: name, parts, dest });
+  }
+  for (const [name, dest] of entries) {
+    if (!consumed.has(name)) {
+      consumed.add(name);
+      groups.push({ main: name, parts: [name], dest });
+    }
+  }
+  return groups;
+}
 interface WorkshopViewProps {
   workshopTarget?: { id: string; type?: string } | null;
   onClearWorkshopTarget?: () => void;
@@ -1736,21 +1785,36 @@ function PackageModal({
                   Files
                 </span>
                 <div className="space-y-1.5">
-                  {Object.entries(pkg.zips).map(([file, dest]) => (
-                    <div
-                      key={file}
-                      className="flex items-center justify-between gap-4 bg-black/20 p-2 rounded-sm border border-[#222]"
-                    >
-                      <span className="text-xs text-[#A0A0A0] mc-text-shadow font-mono">
-                        {file}
-                      </span>
-                      {dest && (
-                        <span className="text-[9px] text-[#fff] mc-text-shadow truncate uppercase tracking-tighter">
-                          {dest}
-                        </span>
-                      )}
-                    </div>
-                  ))}
+                  {groupZips(pkg.zips).map((group) => {
+                    const isSplit = group.parts.length > 1;
+                    return (
+                      <div
+                        key={group.main}
+                        className="flex items-center justify-between gap-4 bg-black/20 p-2 rounded-sm border border-[#222]"
+                      >
+                        <div className="flex flex-col gap-0.5 min-w-0">
+                          <span className="text-xs text-[#A0A0A0] mc-text-shadow font-mono">
+                            {group.main}
+                            {isSplit && (
+                              <span className="ml-2 text-[8px] text-[#FFFF55] bg-black/60 border border-[#555] px-1.5 py-0.5 uppercase tracking-widest">
+                                Split archive · {group.parts.length} parts
+                              </span>
+                            )}
+                          </span>
+                          {isSplit && (
+                            <span className="text-[9px] text-[#666] mc-text-shadow font-mono">
+                              {group.parts.slice(1).join(", ")}
+                            </span>
+                          )}
+                        </div>
+                        {group.dest && (
+                          <span className="text-[9px] text-[#fff] mc-text-shadow truncate uppercase tracking-tighter">
+                            {group.dest}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

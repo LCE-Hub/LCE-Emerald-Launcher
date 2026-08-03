@@ -230,6 +230,14 @@ body {
     scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
+.hidden-scrollbar {
+    scrollbar-width: none;
+}
+
+.hidden-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
 .no-animations * {
     transition: none !important;
     animation: none !important;

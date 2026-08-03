@@ -1,9 +1,166 @@
 use std::fs;
+use std::io::Write;
+use std::path::Path;
 use std::path::PathBuf;
 use tauri::AppHandle;
 use crate::types::{WorkshopInstallRequest, InstalledWorkshopPackage, InstalledPackageEntry};
 use crate::config;
 use crate::util;
+fn group_archives(zips: &std::collections::HashMap<String, String>) -> Vec<(Vec<String>, String)> {
+    let mut groups: Vec<(Vec<String>, String)> = Vec::new();
+    let mut consumed: std::collections::HashSet<String> = std::collections::HashSet::new();
+    let mut entries: Vec<(&String, &String)> = zips.iter().collect();
+    entries.sort_by(|a, b| a.0.cmp(b.0));
+    for &(name, dest) in &entries {
+        if consumed.contains(name) {
+            continue;
+        }
+        if !name.to_lowercase().ends_with(".zip") {
+            continue;
+        }
+        let base = &name[..name.len() - 4];
+        let mut parts = vec![name.clone()];
+        consumed.insert(name.clone());
+        let mut n = 1;
+        loop {
+            let candidate = format!("{}.z{:02}", base, n);
+            if zips.contains_key(&candidate) {
+                parts.push(candidate.clone());
+                consumed.insert(candidate);
+                n += 1;
+            } else {
+                break;
+            }
+        }
+        if parts.len() == 1 {
+            let mut n = 1;
+            loop {
+                let candidate = format!("{}.zip.{:03}", base, n);
+                if zips.contains_key(&candidate) {
+                    parts.push(candidate.clone());
+                    consumed.insert(candidate);
+                    n += 1;
+                } else {
+                    break;
+                }
+            }
+        }
+        groups.push((parts, dest.clone()));
+    }
+
+    for &(name, dest) in &entries {
+        if !consumed.contains(name) {
+            consumed.insert(name.clone());
+            groups.push((vec![name.clone()], dest.clone()));
+        }
+    }
+    groups
+}
+
+async fn download_and_assemble(
+    tmp_dir: &Path,
+    parts: &[String],
+    raw_base: &str,
+) -> Result<PathBuf, String> {
+    let mut downloaded: Vec<PathBuf> = Vec::new();
+    for part in parts {
+        let url = format!("{}/{}", raw_base, part);
+        let response = reqwest::get(&url).await.map_err(|e| e.to_string())?;
+        if !response.status().is_success() {
+            return Err(format!("Failed to download {}: HTTP {}", part, response.status()));
+        }
+        let bytes = response.bytes().await.map_err(|e| e.to_string())?;
+        let part_path = tmp_dir.join(part);
+        fs::write(&part_path, &bytes).map_err(|e| e.to_string())?;
+        downloaded.push(part_path);
+    }
+
+    if downloaded.len() == 1 {
+        return Ok(downloaded.remove(0));
+    }
+
+    let combined_dir = tmp_dir.join("_combined");
+    fs::create_dir_all(&combined_dir).map_err(|e| e.to_string())?;
+    let combined = combined_dir.join(parts[0].clone());
+    let mut out = std::io::BufWriter::new(fs::File::create(&combined).map_err(|e| e.to_string())?);
+    for path in &downloaded {
+        let mut f = std::io::BufReader::new(fs::File::open(path).map_err(|e| e.to_string())?);
+        std::io::copy(&mut f, &mut out).map_err(|e| e.to_string())?;
+    }
+    out.flush().map_err(|e| e.to_string())?;
+    Ok(combined)
+}
+
+fn extract_archive(zip_tmp: &Path, dest_dir: &Path) -> Result<(Vec<String>, bool), String> {
+    let zip_str = zip_tmp.to_str().unwrap_or("");
+    if cfg!(target_os = "linux") {
+        let mut extract_ok = false;
+        let mut files: Vec<String> = Vec::new();
+        if let Ok(out) = std::process::Command::new("bsdtar")
+            .args(["-tf", zip_str])
+            .output()
+        {
+            if out.status.success() {
+                let listing = String::from_utf8_lossy(&out.stdout);
+                files = listing.lines()
+                    .map(|l| l.trim())
+                    .filter(|l| !l.is_empty() && !l.ends_with('/'))
+                    .map(|l| dest_dir.join(l).to_string_lossy().to_string())
+                    .collect();
+                let st = std::process::Command::new("bsdtar")
+                    .args(["-xf", zip_str, "-C", dest_dir.to_str().unwrap()])
+                    .status()
+                    .map_err(|e| e.to_string())?;
+                extract_ok = st.success();
+            }
+        }
+        if !extract_ok {
+            let unzip_list = std::process::Command::new("unzip")
+                .args(["-l", zip_str])
+                .output()
+                .map_err(|e| e.to_string())?;
+            if !unzip_list.status.success() {
+                return Err(format!("Failed to list contents of {}", zip_str));
+            }
+            let listing = String::from_utf8_lossy(&unzip_list.stdout);
+            files = listing.lines()
+                .filter_map(|l| {
+                    let mut parts = l.trim().split_whitespace();
+                    let size_str = parts.next()?;
+                    size_str.parse::<u64>().ok()?;
+                    parts.next()?;
+                    parts.next()?;
+                    Some(parts.collect::<Vec<&str>>().join(" "))
+                })
+                .filter(|l| !l.ends_with('/') && !l.contains('*'))
+                .map(|l| dest_dir.join(l).to_string_lossy().to_string())
+                .collect();
+            let st = std::process::Command::new("unzip")
+                .args(["-o", zip_str, "-d", dest_dir.to_str().unwrap()])
+                .status()
+                .map_err(|e| e.to_string())?;
+            extract_ok = st.success();
+        }
+        Ok((files, extract_ok))
+    } else {
+        let st = std::process::Command::new("tar")
+            .args(["-xf", zip_str, "-C", dest_dir.to_str().unwrap()])
+            .output()
+            .map_err(|e| e.to_string())?;
+        let listing = std::process::Command::new("tar")
+            .args(["-tf", zip_str])
+            .output()
+            .map_err(|e| e.to_string())?;
+        let listing_str = String::from_utf8_lossy(&listing.stdout);
+        let files: Vec<String> = listing_str.lines()
+            .map(|l| l.trim())
+            .filter(|l| !l.is_empty() && !l.ends_with('/'))
+            .map(|l| dest_dir.join(l).to_string_lossy().to_string())
+            .collect();
+        Ok((files, st.status.success()))
+    }
+}
+
 #[tauri::command]
 pub async fn workshop_install(app: AppHandle, request: WorkshopInstallRequest) -> Result<(), String> {
     let instance_dir = util::get_instance_working_dir(&app, &request.instance_id);
@@ -30,111 +187,26 @@ pub async fn workshop_install(app: AppHandle, request: WorkshopInstallRequest) -
     workshop_packages.retain(|p| p.id != request.package_id);
     let raw_base = format!("https://raw.githubusercontent.com/LCE-Hub/LCE-Workshop/refs/heads/main/{}", request.package_id);
     let tmp_dir  = root.join(format!("workshop_tmp_{}", request.package_id));
+    let _ = fs::remove_dir_all(&tmp_dir);
     fs::create_dir_all(&tmp_dir).map_err(|e| e.to_string())?;
     let mut pkg_dirs: Vec<String> = Vec::new();
-    for (zip_name, placeholder) in &request.zips {
-        let zip_url = format!("{}/{}", raw_base, zip_name);
-        let zip_tmp = tmp_dir.join(zip_name);
-        let response = reqwest::get(&zip_url).await.map_err(|e| e.to_string())?;
-        if !response.status().is_success() {
-            let _ = fs::remove_dir_all(&tmp_dir);
-            return Err(format!("Failed to download {}: HTTP {}", zip_name, response.status()));
-        }
-        let bytes = response.bytes().await.map_err(|e| e.to_string())?;
-        fs::write(&zip_tmp, &bytes).map_err(|e| e.to_string())?;
+    for (parts, placeholder) in group_archives(&request.zips) {
         let dest_dir = if placeholder.is_empty() {
             instance_dir.clone()
         } else {
-            let resolved = instance_dir.clone().join(placeholder
+            instance_dir.clone().join(placeholder
                 .replace("{MediaDir}", media_dir.to_str().unwrap_or(""))
                 .replace("{DLCDir}",   dlc_dir.to_str().unwrap_or(""))
                 .replace("{GameHDD}",  game_hdd.to_str().unwrap_or(""))
-                .replace("{MobDir}",   mob_dir.to_str().unwrap_or("")));
-            PathBuf::from(resolved)
+                .replace("{MobDir}",   mob_dir.to_str().unwrap_or("")))
         };
 
         fs::create_dir_all(&dest_dir).map_err(|e| e.to_string())?;
-        let (extracted_files, extract_ok) = if cfg!(target_os = "linux") {
-            let bsdtar_list = std::process::Command::new("bsdtar")
-                .args(["-tf", zip_tmp.to_str().unwrap()])
-                .output();
-            if let Ok(out) = bsdtar_list {
-                if out.status.success() {
-                    let listing = String::from_utf8_lossy(&out.stdout);
-                    let files: Vec<String> = listing.lines()
-                        .map(|l| l.trim())
-                        .filter(|l| !l.is_empty() && !l.ends_with('/'))
-                        .map(|l| dest_dir.join(l).to_string_lossy().to_string())
-                        .collect();
-                    let st = std::process::Command::new("bsdtar")
-                        .args(["-xf", zip_tmp.to_str().unwrap(), "-C", dest_dir.to_str().unwrap()])
-                        .status()
-                        .map_err(|e| e.to_string())?;
-                    (files, st.success())
-                } else {
-                    (Vec::new(), false)
-                }
-            } else {
-                (Vec::new(), false)
-            }
-        } else {
-            (Vec::new(), false)
-        };
-
-        #[cfg(target_os = "linux")]
-        let (extracted_files, extract_ok) = if !extract_ok {
-            let unzip_list = std::process::Command::new("unzip")
-                .args(["-l", zip_tmp.to_str().unwrap()])
-                .output()
-                .map_err(|e| e.to_string())?;
-            if !unzip_list.status.success() {
-                let _ = fs::remove_dir_all(&tmp_dir);
-                return Err(format!("Failed to list contents of {}", zip_name));
-            }
-            let listing = String::from_utf8_lossy(&unzip_list.stdout);
-            let files: Vec<String> = listing.lines()
-                .filter_map(|l| {
-                    let mut parts = l.trim().split_whitespace();
-                    let size_str = parts.next()?;
-                    size_str.parse::<u64>().ok()?;
-                    parts.next()?;
-                    parts.next()?;
-                    Some(parts.collect::<Vec<&str>>().join(" "))
-                })
-                .filter(|l| !l.ends_with('/') && !l.contains('*'))
-                .map(|l| dest_dir.join(l).to_string_lossy().to_string())
-                .collect();
-            let st = std::process::Command::new("unzip")
-                .args(["-o", zip_tmp.to_str().unwrap(), "-d", dest_dir.to_str().unwrap()])
-                .status()
-                .map_err(|e| e.to_string())?;
-            (files, st.success())
-        } else {
-            (extracted_files, extract_ok)
-        };
-
-        #[cfg(not(target_os = "linux"))]
-        let (extracted_files, extract_ok) = {
-            let st = std::process::Command::new("tar")
-                .args(["-xf", zip_tmp.to_str().unwrap(), "-C", dest_dir.to_str().unwrap()])
-                .output()
-                .map_err(|e| e.to_string())?;
-            let listing = std::process::Command::new("tar")
-                .args(["-tf", zip_tmp.to_str().unwrap()])
-                .output()
-                .map_err(|e| e.to_string())?;
-            let listing_str = String::from_utf8_lossy(&listing.stdout);
-            let files: Vec<String> = listing_str.lines()
-                .map(|l| l.trim())
-                .filter(|l| !l.is_empty() && !l.ends_with('/'))
-                .map(|l| dest_dir.join(l).to_string_lossy().to_string())
-                .collect();
-            (files, st.status.success())
-        };
-
+        let archive_tmp = download_and_assemble(&tmp_dir, &parts, &raw_base).await?;
+        let (extracted_files, extract_ok) = extract_archive(&archive_tmp, &dest_dir)?;
         if !extract_ok {
             let _ = fs::remove_dir_all(&tmp_dir);
-            return Err(format!("Extraction failed for {}", zip_name));
+            return Err(format!("Extraction failed for {}", parts[0]));
         }
 
         for f in &extracted_files {

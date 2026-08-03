@@ -310,7 +310,7 @@ const SkinsView = memo(function SkinsView() {
         if (focusIndex === null || focusIndex < TOP_BUTTONS_COUNT) {
           setFocusIndex(SKINS_START_INDEX);
         } else if (focusIndex < BACK_BUTTON_INDEX) {
-          const rowCount = viewMode === "cape" ? 3 : 4;
+          const rowCount = 4;
           const next = focusIndex + rowCount;
           setFocusIndex(next >= BACK_BUTTON_INDEX ? BACK_BUTTON_INDEX : next);
         }
@@ -322,7 +322,7 @@ const SkinsView = memo(function SkinsView() {
             viewMode === "cape" ? storedCapes.length + 1 : savedSkins.length;
           setFocusIndex(SKINS_START_INDEX + itemCount - 1);
         } else if (focusIndex >= SKINS_START_INDEX) {
-          const rowCount = viewMode === "cape" ? 3 : 4;
+          const rowCount = 4;
           const next = focusIndex - rowCount;
           setFocusIndex(next < SKINS_START_INDEX ? 0 : next);
         }
@@ -477,72 +477,63 @@ const SkinsView = memo(function SkinsView() {
         {viewMode === "skin" ? "Skin Library" : "Cape Library"}
       </h2>
 
-      <div
-        className="w-full max-w-160 flex-1 min-h-0 mb-4 p-5 shadow-2xl flex flex-col relative overflow-hidden"
-        style={{
-          backgroundImage: "url('/images/frame_background.png')",
-          backgroundSize: "100% 100%",
-          imageRendering: "pixelated",
-        }}
-      >
-        <div className="w-full flex items-center border-b-2 border-[#373737] pb-4 mb-4 relative min-h-10">
-          <div className="absolute left-0 right-0 flex justify-center gap-4 items-center">
-            <button
-              data-index="0"
-              onMouseEnter={() => setFocusIndex(0)}
-              onClick={() => {
-                playPressSound();
-                if (viewMode === "skin") handleImportClick();
-                else capeFileInputRef.current?.click();
-              }}
-              className={`w-40 h-10 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] ${focusIndex === 0 ? "text-[#FFFF55]" : "text-white"}`}
-              style={{
-                backgroundImage:
-                  focusIndex === 0
-                    ? "url('/images/button_highlighted.png')"
-                    : "url('/images/Button_Background.png')",
-                backgroundSize: "100% 100%",
-                imageRendering: "pixelated",
-              }}
-            >
-              {viewMode === "skin" ? "Import Skin" : "Import Cape"}
-            </button>
+      <div className="w-full max-w-160 flex-1 min-h-0 mb-4 p-5 flex flex-col relative overflow-hidden">
+        <div className="w-full flex items-center gap-4 ml-5 pb-4 mb-4 min-h-10">
+          <button
+            data-index="0"
+            onMouseEnter={() => setFocusIndex(0)}
+            onClick={() => {
+              playPressSound();
+              if (viewMode === "skin") handleImportClick();
+              else capeFileInputRef.current?.click();
+            }}
+            className={`w-40 h-10 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] ${focusIndex === 0 ? "text-[#FFFF55]" : "text-white"}`}
+            style={{
+              backgroundImage:
+                focusIndex === 0
+                  ? "url('/images/button_highlighted.png')"
+                  : "url('/images/Button_Background.png')",
+              backgroundSize: "100% 100%",
+              imageRendering: "pixelated",
+            }}
+          >
+            {viewMode === "skin" ? "Import Skin" : "Import Cape"}
+          </button>
 
-            <button
-              data-index="1"
-              onMouseEnter={() => {
-                if (viewMode === "skin" && !isActiveDefault) setFocusIndex(1);
-                else if (viewMode === "cape" && !isActiveCapeDefault)
-                  setFocusIndex(1);
-              }}
-              onClick={() => {
-                playPressSound();
-                if (viewMode === "skin") handleDeleteActive();
-                else handleDeleteActiveCape();
-              }}
-              className={`w-40 h-10 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none ${
+          <button
+            data-index="1"
+            onMouseEnter={() => {
+              if (viewMode === "skin" && !isActiveDefault) setFocusIndex(1);
+              else if (viewMode === "cape" && !isActiveCapeDefault)
+                setFocusIndex(1);
+            }}
+            onClick={() => {
+              playPressSound();
+              if (viewMode === "skin") handleDeleteActive();
+              else handleDeleteActiveCape();
+            }}
+            className={`w-40 h-10 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none ${
+              (viewMode === "skin" && isActiveDefault) ||
+              (viewMode === "cape" && isActiveCapeDefault)
+                ? "text-gray-400 opacity-80 cursor-not-allowed"
+                : focusIndex === 1
+                  ? "text-[#FFFF55]"
+                  : "text-white"
+            }`}
+            style={{
+              backgroundImage:
                 (viewMode === "skin" && isActiveDefault) ||
                 (viewMode === "cape" && isActiveCapeDefault)
-                  ? "text-gray-400 opacity-80 cursor-not-allowed"
+                  ? "url('/images/Button_Background2.png')"
                   : focusIndex === 1
-                    ? "text-[#FFFF55]"
-                    : "text-white"
-              }`}
-              style={{
-                backgroundImage:
-                  (viewMode === "skin" && isActiveDefault) ||
-                  (viewMode === "cape" && isActiveCapeDefault)
-                    ? "url('/images/Button_Background2.png')"
-                    : focusIndex === 1
-                      ? "url('/images/button_highlighted.png')"
-                      : "url('/images/Button_Background.png')",
-                backgroundSize: "100% 100%",
-                imageRendering: "pixelated",
-              }}
-            >
-              {viewMode === "skin" ? "Delete Skin" : "Delete Cape"}
-            </button>
-          </div>
+                    ? "url('/images/button_highlighted.png')"
+                    : "url('/images/Button_Background.png')",
+              backgroundSize: "100% 100%",
+              imageRendering: "pixelated",
+            }}
+          >
+            {viewMode === "skin" ? "Delete Skin" : "Delete Cape"}
+          </button>
 
           <div className="flex-1"></div>
           <div className="flex justify-end z-10">
@@ -590,7 +581,7 @@ const SkinsView = memo(function SkinsView() {
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto pr-2 flex flex-wrap gap-x-8 gap-y-6 items-start content-start justify-center">
+        <div className="flex-1 overflow-y-auto pr-2 flex flex-wrap gap-x-4 gap-y-6 items-start content-start justify-center hidden-scrollbar">
           {viewMode === "skin" ? (
             savedSkins.map((skin, i) => {
               const idx = SKINS_START_INDEX + i;
