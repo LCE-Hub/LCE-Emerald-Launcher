@@ -47,6 +47,13 @@ const DEFAULT_SKINS: SavedSkin[] = [
   },
   { id: "peter", name: "Peter", url: "/Skins/Peter.png", isSlim: false },
   { id: "piebot", name: "piebot", url: "/Skins/piebot.png", isSlim: false },
+  {
+    id: "kowhaifan",
+    name: "Kowhaifan",
+    url: "/Skins/kowhaifan.png",
+    isSlim: false,
+  },
+  { id: "striker", name: "str1k3r", url: "/Skins/str1k3r.png", isSlim: true },
   { id: "andipog", name: "Andi_Pog", url: "/Skins/andi.png", isSlim: false },
   { id: "sevenhundred", name: "700", url: "/Skins/700.png", isSlim: false },
   {
@@ -58,6 +65,37 @@ const DEFAULT_SKINS: SavedSkin[] = [
   { id: "amy", name: "Amy", url: "/Skins/amy.png", isSlim: true },
   { id: "huckle", name: "Huckle", url: "/Skins/huckle.png", isSlim: true },
 ];
+
+const HeadPreview = memo(function HeadPreview({ src }: { src: string }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const cvs = canvasRef.current;
+    if (!cvs) return;
+    const ctx = cvs.getContext("2d");
+    if (!ctx) return;
+    const img = new Image();
+    img.onload = () => {
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, 8, 8, 8, 8, 0, 0, cvs.width, cvs.height);
+      if (img.height !== 32) {
+        ctx.drawImage(img, 40, 8, 8, 8, 0, 0, cvs.width, cvs.height);
+      }
+    };
+    img.src = src;
+  }, [src]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={64}
+      height={64}
+      className="absolute w-full h-full"
+      style={{ imageRendering: "pixelated" }}
+    />
+  );
+});
 
 const SkinsView = memo(function SkinsView() {
   const { setActiveView, setIsUiHidden } = useUI();
@@ -583,21 +621,7 @@ const SkinsView = memo(function SkinsView() {
                     onClick={() => handleSkinSelect(skin)}
                     className={`w-16 h-16 bg-black/40 border-2 shadow-inner relative cursor-pointer overflow-hidden transition-colors outline-none ${isActive || isFocused ? "border-[#FFFF55]" : "border-[#373737] hover:border-[#A0A0A0]"}`}
                   >
-                    <img
-                      src={skin.url}
-                      draggable={false}
-                      alt={skin.name}
-                      className="absolute max-w-none"
-                      style={{
-                        width: "800%",
-                        height: "auto",
-                        left: "-100%",
-                        top: "-100%",
-                        imageRendering: "pixelated",
-                      }}
-                      loading="lazy"
-                      decoding="async"
-                    />
+                    <HeadPreview src={skin.url} />
                   </div>
                   <input
                     type="text"
