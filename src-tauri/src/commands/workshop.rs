@@ -2,10 +2,11 @@ use std::fs;
 use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
-use tauri::AppHandle;
+use tauri::{AppHandle, Emitter};
 use crate::types::{WorkshopInstallRequest, InstalledWorkshopPackage, InstalledPackageEntry};
 use crate::config;
 use crate::util;
+use super::download::DownloadProgress;
 fn group_archives(zips: &std::collections::HashMap<String, String>) -> Vec<(Vec<String>, String)> {
     let mut groups: Vec<(Vec<String>, String)> = Vec::new();
     let mut consumed: std::collections::HashSet<String> = std::collections::HashSet::new();
@@ -58,9 +59,13 @@ fn group_archives(zips: &std::collections::HashMap<String, String>) -> Vec<(Vec<
 }
 
 async fn download_and_assemble(
+    app: &AppHandle,
     tmp_dir: &Path,
     parts: &[String],
     raw_base: &str,
+    package_id: &str,
+    done: &mut usize,
+    total: usize,
 ) -> Result<PathBuf, String> {
     let mut downloaded: Vec<PathBuf> = Vec::new();
     for part in parts {
@@ -72,6 +77,11 @@ async fn download_and_assemble(
         let bytes = response.bytes().await.map_err(|e| e.to_string())?;
         let part_path = tmp_dir.join(part);
         fs::write(&part_path, &bytes).map_err(|e| e.to_string())?;
+        *done += 1;
+        let _ = app.emit("workshop-progress", DownloadProgress {
+            instance_id: package_id.to_string(),
+            percent: (*done as f64 / total.max(1) as f64) * 100.0,
+        });
         downloaded.push(part_path);
     }
 
@@ -190,6 +200,8 @@ pub async fn workshop_install(app: AppHandle, request: WorkshopInstallRequest) -
     let _ = fs::remove_dir_all(&tmp_dir);
     fs::create_dir_all(&tmp_dir).map_err(|e| e.to_string())?;
     let mut pkg_dirs: Vec<String> = Vec::new();
+    let total_parts = request.zips.len();
+    let mut done_parts = 0usize;
     for (parts, placeholder) in group_archives(&request.zips) {
         let dest_dir = if placeholder.is_empty() {
             instance_dir.clone()
@@ -202,7 +214,7 @@ pub async fn workshop_install(app: AppHandle, request: WorkshopInstallRequest) -
         };
 
         fs::create_dir_all(&dest_dir).map_err(|e| e.to_string())?;
-        let archive_tmp = download_and_assemble(&tmp_dir, &parts, &raw_base).await?;
+        let archive_tmp = download_and_assemble(&app, &tmp_dir, &parts, &raw_base, &request.package_id, &mut done_parts, total_parts).await?;
         let (extracted_files, extract_ok) = extract_archive(&archive_tmp, &dest_dir)?;
         if !extract_ok {
             let _ = fs::remove_dir_all(&tmp_dir);

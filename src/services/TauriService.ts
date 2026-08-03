@@ -194,6 +194,12 @@ export class TauriService {
     );
   }
 
+  static onWorkshopProgress(callback: (data: { packageId: string; percent: number }) => void) {
+    return listen<{ instanceId: string; percent: number }>("workshop-progress", (event) =>
+      callback({ packageId: event.payload.instanceId, percent: event.payload.percent }),
+    );
+  }
+
   static onRunnerDownloadProgress(callback: (percent: number) => void) {
     return listen<number>("runner-download-progress", (event) =>
       callback(event.payload),
