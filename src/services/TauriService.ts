@@ -218,6 +218,12 @@ export class TauriService {
     );
   }
 
+  static onGameLog(callback: (log: string) => void) {
+    return listen<string>("game-log", (event) =>
+      callback(event.payload),
+    );
+  }
+
   static onDownloadRetry(callback: (attempt: number) => void) {
     return listen<number>("download-retry", (event) =>
       callback(event.payload),

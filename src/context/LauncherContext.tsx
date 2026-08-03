@@ -83,6 +83,7 @@ export function LauncherProvider({ children }: { children: React.ReactNode }) {
     gameRaw.handleLaunch, gameRaw.stopGame, gameRaw.addCustomEdition,
     gameRaw.deleteCustomEdition, gameRaw.downloadRunner,
     gameRaw.customizations, gameRaw.updateCustomization,
+    gameRaw.gameLog, gameRaw.clearGameLog,
   ]);
 
   const audio = useMemo(() => audioRaw, [

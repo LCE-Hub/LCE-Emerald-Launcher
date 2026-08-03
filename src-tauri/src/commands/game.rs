@@ -1,8 +1,14 @@
 use std::fs;
 use std::path::PathBuf;
+use std::process::Stdio;
+use std::sync::atomic::Ordering;
+use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_opener::OpenerExt;
+use tokio::io::AsyncRead;
+use tokio::io::AsyncReadExt;
+use tokio::sync::Mutex;
 use crate::commands::runners;
 use crate::config;
 use crate::types::AppConfig;
@@ -24,6 +30,7 @@ pub async fn launch_game(
     mut servers: Vec<McServer>,
     extra_args: Vec<String>,
 ) -> Result<(), String> {
+    state.manual_stop.store(false, Ordering::SeqCst);
     perform_instance_sync(&app, &instance_id).await?;
     let working_dir = util::get_instance_working_dir(&app, &instance_id);
     let config_val = config::load_config_raw(app.clone());
@@ -117,42 +124,18 @@ pub async fn launch_game(
 
                 apply_launch_env_vars(&mut cmd, &config_val);
                 cmd.current_dir(&working_dir);
+                cmd.env("WINEDEBUG", "+debugstr");
                 let playtime_start = std::time::Instant::now();
-                let child = cmd.spawn().map_err(|e| e.to_string())?;
-                {
-                    let mut lock = state.child.lock().await;
-                    *lock = Some(child);
-                }
-
-                let status = loop {
-                    {
-                        let mut lock = state.child.lock().await;
-                        if let Some(ref mut c) = *lock {
-                            if let Some(s) = c.try_wait().map_err(|e| e.to_string())? {
-                                break s;
-                            }
-                        } else {
-                            return Ok(());
-                        }
-                    }
-                    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+                let Some(result) = run_game_and_capture(&state, cmd).await? else {
+                    return Ok(());
                 };
-
-                {
-                    let mut lock = state.child.lock().await;
-                    *lock = None;
-                }
 
                 let duration = playtime_start.elapsed();
                 let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
                 let start = now - duration.as_secs();
                 playtime::record_session(&app, &instance_id, start, now);
 
-                return if status.success() || status.code() == Some(253) || status.code() == Some(96) {
-                    Ok(())
-                } else {
-                    Err(format!("Game exited with status: {}", status))
-                };
+                return handle_game_exit(&app, &state, result);
             }
         }
         Err("No Linux runner selected in settings.".into())
@@ -207,7 +190,7 @@ pub async fn launch_game(
             apply_launch_env_vars(&mut cmd, &config_val);
             cmd.current_dir(&working_dir);
             cmd.env("WINEPREFIX", &prefix_dir);
-            cmd.env("WINEDEBUG", "-all");
+            cmd.env("WINEDEBUG", "+debugstr");
             let perf_boost = config_val.apple_silicon_performance_boost.unwrap_or(false);
             if perf_boost {
                 #[cfg(target_arch = "aarch64")]
@@ -233,46 +216,19 @@ pub async fn launch_game(
                     std::env::var("PATH").unwrap_or_default()
                 ),
             );
-            cmd.stdin(std::process::Stdio::null())
-                .stdout(std::process::Stdio::null())
-                .stderr(std::process::Stdio::null());
+            cmd.stdin(std::process::Stdio::null());
 
             let playtime_start = std::time::Instant::now();
-            let child = cmd.spawn().map_err(|e| e.to_string())?;
-            {
-                let mut lock = state.child.lock().await;
-                *lock = Some(child);
-            }
-
-            let status = loop {
-                {
-                    let mut lock = state.child.lock().await;
-                    if let Some(ref mut c) = *lock {
-                        if let Some(s) = c.try_wait().map_err(|e| e.to_string())? {
-                            break s;
-                        }
-                    } else {
-                        return Ok(());
-                    }
-                }
-                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            let Some(result) = run_game_and_capture(&state, cmd).await? else {
+                return Ok(());
             };
-
-            {
-                let mut lock = state.child.lock().await;
-                *lock = None;
-            }
 
             let duration = playtime_start.elapsed();
             let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
             let start = now - duration.as_secs();
             playtime::record_session(&app, &instance_id, start, now);
 
-            return if status.success() || status.code() == Some(253) || status.code() == Some(96) {
-                Ok(())
-            } else {
-                Err(format!("Game exited with status: {}", status))
-            };
+            return handle_game_exit(&app, &state, result);
         }
 
         #[cfg(all(not(target_os = "macos"), not(target_os = "linux")))]
@@ -289,37 +245,14 @@ pub async fn launch_game(
             apply_launch_env_vars(&mut cmd, &config_val);
             cmd.current_dir(&working_dir);
             let playtime_start = std::time::Instant::now();
-            let child = cmd.spawn().map_err(|e| e.to_string())?;
-            {
-                let mut lock = state.child.lock().await;
-                *lock = Some(child);
-            }
-            let status = loop {
-                {
-                    let mut lock = state.child.lock().await;
-                    if let Some(ref mut c) = *lock {
-                        if let Some(s) = c.try_wait().map_err(|e| e.to_string())? {
-                            break s;
-                        }
-                    } else {
-                        return Ok(());
-                    }
-                }
-                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            let Some(result) = run_game_and_capture(&state, cmd).await? else {
+                return Ok(());
             };
-            {
-                let mut lock = state.child.lock().await;
-                *lock = None;
-            }
             let duration = playtime_start.elapsed();
             let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
             let start = now - duration.as_secs();
             playtime::record_session(&app, &instance_id, start, now);
-            return if status.success() || status.code() == Some(253) || status.code() == Some(96) {
-                Ok(())
-            } else {
-                Err(format!("Game exited with status: {}", status))
-            };
+            return handle_game_exit(&app, &state, result);
         }
     }
 }
@@ -330,6 +263,7 @@ pub async fn stop_game(
     instance_id: String,
     state: State<'_, GameState>,
 ) -> Result<(), String> {
+    state.manual_stop.store(true, Ordering::SeqCst);
     let mut lock = state.child.lock().await;
     if let Some(mut child) = lock.take() {
         #[cfg(unix)]
@@ -629,6 +563,92 @@ fn apply_launch_env_vars(cmd: &mut tokio::process::Command, config: &AppConfig) 
             cmd.env(k, v);
         }
     }
+}
+
+const MAX_LOG_BYTES: usize = 1024 * 1024;
+struct GameRunResult {
+    log: String,
+}
+
+fn spawn_log_reader<R>(mut reader: R, log: Arc<Mutex<Vec<u8>>>) -> tokio::task::JoinHandle<()> where R: AsyncRead + Unpin + Send + 'static, {
+    tokio::spawn(async move {
+        let mut buf = [0u8; 8192];
+        loop {
+            match reader.read(&mut buf).await {
+                Ok(0) | Err(_) => break,
+                Ok(n) => {
+                    let mut guard = log.lock().await;
+                    guard.extend_from_slice(&buf[..n]);
+                    if guard.len() > MAX_LOG_BYTES {
+                        let remove = guard.len() - MAX_LOG_BYTES;
+                        guard.drain(..remove);
+                    }
+                }
+            }
+        }
+    })
+}
+
+async fn run_game_and_capture(
+    state: &State<'_, GameState>,
+    mut cmd: tokio::process::Command,
+) -> Result<Option<GameRunResult>, String> {
+    cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
+    let mut child = cmd.spawn().map_err(|e| e.to_string())?;
+    let log = Arc::new(Mutex::new(Vec::new()));
+    let mut handles = Vec::new();
+    if let Some(stdout) = child.stdout.take() {
+        handles.push(spawn_log_reader(stdout, log.clone()));
+    }
+    if let Some(stderr) = child.stderr.take() {
+        handles.push(spawn_log_reader(stderr, log.clone()));
+    }
+    {
+        let mut lock = state.child.lock().await;
+        *lock = Some(child);
+    }
+    loop {
+        {
+            let mut lock = state.child.lock().await;
+            if let Some(ref mut c) = *lock {
+                if c.try_wait().map_err(|e| e.to_string())?.is_some() {
+                    break;
+                }
+            } else {
+                return Ok(None);
+            }
+        }
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+    }
+    {
+        let mut lock = state.child.lock().await;
+        *lock = None;
+    }
+    for handle in handles {
+        let _ = handle.await;
+    }
+    let bytes = log.lock().await.clone();
+    let log_str = String::from_utf8_lossy(&bytes).to_string();
+    Ok(Some(GameRunResult { log: log_str }))
+}
+
+fn game_exited_ok(log: &str) -> bool {
+    log.lines()
+        .rev()
+        .take(3)
+        .any(|line| line.contains("AppPolicyGetProcessTerminationMethod"))
+}
+
+fn handle_game_exit(
+    app: &AppHandle,
+    state: &State<'_, GameState>,
+    result: GameRunResult,
+) -> Result<(), String> {
+    if state.manual_stop.swap(false, Ordering::SeqCst) || game_exited_ok(&result.log) {
+        return Ok(());
+    }
+    let _ = app.emit("game-log", result.log);
+    Err("The game exited unexpectedly. Check the crash log for details.".into())
 }
 
 async fn perform_instance_sync(app: &AppHandle, instance_id: &str) -> Result<(), String> {

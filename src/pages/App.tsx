@@ -27,6 +27,7 @@ import { CinematicIntro } from "../components/common/CinematicIntro";
 import { DownloadOverlay } from "../components/layout/DownloadOverlay";
 import { AppHeader } from "../components/layout/AppHeader";
 import { AchievementToast } from "../components/common/AchievementToast";
+import GameLogModal from "../components/modals/GameLogModal";
 import {
   useUI,
   useConfig,
@@ -74,7 +75,7 @@ export default function App() {
     InviteMessage,
     clearFriendRequestMessage,
     clearInviteMessage,
-    invites
+    invites,
   } = notifications;
   const [showSetup, setShowSetup] = useState(false);
   const [isSetupChecked, setIsSetupChecked] = useState(false);
@@ -325,9 +326,9 @@ export default function App() {
       <div
         className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-['Mojangles'] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
       >
-      {showHeader && (
-        <AppHeader playPressSound={audio.playPressSound} uiFade={uiFade} />
-      )}
+        {showHeader && (
+          <AppHeader playPressSound={audio.playPressSound} uiFade={uiFade} />
+        )}
         <div className="absolute inset-0">
           <AnimatePresence>
             <motion.div
@@ -398,7 +399,16 @@ export default function App() {
           editions={game.editions}
         />
 
-        <AchievementToast message={game.error} onClose={clearError} />
+        <AchievementToast
+          message={game.gameLog ? null : game.error}
+          onClose={clearError}
+        />
+        <GameLogModal
+          isOpen={!!game.gameLog}
+          log={game.gameLog}
+          onClose={game.clearGameLog}
+          playBackSound={audio.playBackSound}
+        />
 
         <AchievementToast
           message={updateMessage}
@@ -577,19 +587,19 @@ export default function App() {
             >
               <AnimatePresence mode="wait">
                 {activeView === "main" && (
-                    <SkinViewer
-                      key="skin-viewer"
-                      username={config.username}
-                      setUsername={config.setUsername}
-                      playPressSound={audio.playPressSound}
-                      skinUrl={skinUrl}
-                      capeUrl={config.legacyMode ? null : capeUrl}
-                      setSkinUrl={setSkinUrl}
-                      setActiveView={setActiveView}
-                      setIsUiHidden={setIsUiHidden}
-                      isFocusedSection={focusSection === "skin"}
-                      onNavigateRight={onNavigateToMenu}
-                    />
+                  <SkinViewer
+                    key="skin-viewer"
+                    username={config.username}
+                    setUsername={config.setUsername}
+                    playPressSound={audio.playPressSound}
+                    skinUrl={skinUrl}
+                    capeUrl={config.legacyMode ? null : capeUrl}
+                    setSkinUrl={setSkinUrl}
+                    setActiveView={setActiveView}
+                    setIsUiHidden={setIsUiHidden}
+                    isFocusedSection={focusSection === "skin"}
+                    onNavigateRight={onNavigateToMenu}
+                  />
                 )}
               </AnimatePresence>
 
@@ -612,9 +622,7 @@ export default function App() {
                   {activeView === "devtools" && (
                     <DevtoolsView key="devtools-view" />
                   )}
-                  {activeView === "guides" && (
-                    <GuidesView key="guides-view" />
-                  )}
+                  {activeView === "guides" && <GuidesView key="guides-view" />}
                   {activeView === "pck-editor" && (
                     <PckEditorView key="pck-editor-view" />
                   )}

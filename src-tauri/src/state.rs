@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 use tokio::sync::Mutex;
 use tokio_util::sync::CancellationToken;
 pub struct DownloadState {
@@ -9,6 +10,7 @@ pub struct DownloadState {
 pub struct GameState {
     pub child: Arc<Mutex<Option<tokio::process::Child>>>,
     pub workshop_cancel: Arc<Mutex<Option<CancellationToken>>>,
+    pub manual_stop: Arc<AtomicBool>,
 }
 
 pub struct ProxyGuard {

@@ -9,6 +9,7 @@ mod workshop_server;
 mod commands;
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 use tokio::sync::Mutex;
 use tauri::{Emitter, Manager};
 use commands::config as config_cmds;
@@ -54,6 +55,7 @@ pub fn run() {
         .manage(GameState {
             child: Arc::new(Mutex::new(None)),
             workshop_cancel: Arc::new(Mutex::new(None)),
+            manual_stop: Arc::new(AtomicBool::new(false)),
         })
         .manage(ProxyGuard {
             cancel_tokens: Arc::new(Mutex::new(HashMap::new())),

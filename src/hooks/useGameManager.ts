@@ -160,6 +160,8 @@ export function useGameManager({
     number | null
   >(null);
   const [error, setError] = useState<string | null>(null);
+  const [gameLog, setGameLog] = useState<string | null>(null);
+  const gameLogRef = useRef(false);
   const [gameUpdateMessage, setGameUpdateMessage] = useState<string | null>(
     null,
   );
@@ -395,11 +397,18 @@ export function useGameManager({
     const unlistenRetry = TauriService.onDownloadRetry((attempt) => {
       setError(`Download failed, retrying (${attempt}/3)...`);
     });
+    const unlistenGameLog = TauriService.onGameLog((log) => {
+      gameLogRef.current = true;
+      setError(null);
+      setGameLog(log);
+      getCurrentWindow().unminimize();
+    });
     return () => {
       unlistenDownload.then((u) => u());
       unlistenRunner.then((u) => u());
       unlistenError.then((u) => u());
       unlistenRetry.then((u) => u());
+      unlistenGameLog.then((u) => u());
     };
   }, [customEditions, checkInstalls]);
 
@@ -516,13 +525,15 @@ export function useGameManager({
       );
     } catch (e: unknown) {
       console.error(e);
-      setError(
-        e instanceof Error
-          ? e.message
-          : typeof e === "string"
-            ? e
-            : "Failed to launch game",
-      );
+      if (!gameLogRef.current) {
+        setError(
+          e instanceof Error
+            ? e.message
+            : typeof e === "string"
+              ? e
+              : "Failed to launch game",
+        );
+      }
     } finally {
       setIsGameRunning(false);
     }
@@ -605,6 +616,11 @@ export function useGameManager({
     [setCustomPaths],
   );
 
+  const clearGameLog = useCallback(() => {
+    gameLogRef.current = false;
+    setGameLog(null);
+  }, []);
+
   const addToSteam = useCallback(
     async (
       id: string,
@@ -642,6 +658,8 @@ export function useGameManager({
     runnerDownloadProgress,
     error,
     setError,
+    gameLog,
+    clearGameLog,
     editions,
     toggleInstall,
     handleUninstall,
