@@ -9,6 +9,7 @@ import {
   useConfig,
 } from "../../context/LauncherContext";
 import SkinViewer from "../common/SkinViewer";
+import CapePreview from "../common/CapePreview";
 
 interface SavedSkin {
   id: string;
@@ -62,7 +63,7 @@ const DEFAULT_SKINS: SavedSkin[] = [
     url: "/Skins/PrismaChunk0.png",
     isSlim: false,
   },
-  { id: "amy", name: "Amy", url: "/Skins/amy.png", isSlim: true },
+  { id: "amy", name: "Amy", url: "/Skins/amy.png", isSlim: true }, //neo: she's the best btw
   { id: "huckle", name: "Huckle", url: "/Skins/huckle.png", isSlim: true },
 ];
 
@@ -692,21 +693,7 @@ const SkinsView = memo(function SkinsView() {
                       onClick={() => handleCapeSelect(cape)}
                       className={`w-16 h-16 bg-black/40 border-2 shadow-inner relative cursor-pointer overflow-hidden transition-colors outline-none ${isActive || isFocused ? "border-[#FFFF55]" : "border-[#373737] hover:border-[#A0A0A0]"}`}
                     >
-                      <img
-                        src={cape.url}
-                        draggable={false}
-                        alt={cape.name}
-                        className="absolute max-w-none"
-                        style={{
-                          width: "auto",
-                          height: "100%",
-                          left: "0",
-                          top: "0",
-                          imageRendering: "pixelated",
-                        }}
-                        loading="lazy"
-                        decoding="async"
-                      />
+                      <CapePreview src={cape.url} />
                     </div>
                     <input
                       type="text"
