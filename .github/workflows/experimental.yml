@@ -85,7 +85,7 @@ jobs:
         with:
           name: ${{ matrix.artifact-name }}
           path: |
-            src-tauri/target/*/release/bundle/**/*
+            src-tauri/target/**/release/bundle/**/*
 
   build-flatpak:
     runs-on: ubuntu-latest
