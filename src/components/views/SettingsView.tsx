@@ -58,7 +58,7 @@ const SettingsView = memo(function SettingsView() {
     runnerDownloadProgress,
     downloadRunner,
   } = useGame();
-  const { isLinux, isMac } = usePlatform();
+  const { isLinux, isMac, isAndroid } = usePlatform();
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const [currentSubMenu, setCurrentSubMenu] = useState<
     "main" | "audio" | "video" | "launcher" | "game" | "plugins"
@@ -430,12 +430,14 @@ const SettingsView = memo(function SettingsView() {
         type: "button",
         onClick: handleFullscreenToggle,
       });
-      items.push({
-        id: "rpc",
-        label: `Discord RPC: ${rpcEnabled ? "ON" : "OFF"}`,
-        type: "button",
-        onClick: handleRpcToggle,
-      });
+      if (!isAndroid) {
+        items.push({
+          id: "rpc",
+          label: `Discord RPC: ${rpcEnabled ? "ON" : "OFF"}`,
+          type: "button",
+          onClick: handleRpcToggle,
+        });
+      }
       items.push({
         id: "skip_intro",
         label: `Skip Intro: ${skipIntro ? "ON" : "OFF"}`,
@@ -448,7 +450,7 @@ const SettingsView = memo(function SettingsView() {
         type: "button",
         onClick: handleLegacyToggle,
       });
-      if (isLinux) {
+      if (isLinux && !isAndroid) {
         items.push({
           id: "runner",
           label: `Runner: ${selectedRunnerName}`,
@@ -479,33 +481,37 @@ const SettingsView = memo(function SettingsView() {
         });
       }
 
-      items.push({
-        id: "export_settings",
-        label: "Export Settings",
-        type: "button",
-        onClick: async () => {
-          playPressSound();
-          try {
-            await TauriService.exportSettings();
-          } catch (e) {
-            if (e !== "CANCELED") console.error(e);
-          }
-        },
-      });
-      items.push({
-        id: "import_settings",
-        label: "Import Settings",
-        type: "button",
-        onClick: async () => {
-          playPressSound();
-          try {
-            await TauriService.importSettings();
-            window.location.reload();
-          } catch (e) {
-            if (e !== "CANCELED") console.error(e);
-          }
-        },
-      });
+      if (!isAndroid) {
+        items.push({
+          id: "export_settings",
+          label: "Export Settings",
+          type: "button",
+          onClick: async () => {
+            playPressSound();
+            try {
+              await TauriService.exportSettings();
+            } catch (e) {
+              if (e !== "CANCELED") console.error(e);
+            }
+          },
+        });
+      }
+      if (!isAndroid) {
+        items.push({
+          id: "import_settings",
+          label: "Import Settings",
+          type: "button",
+          onClick: async () => {
+            playPressSound();
+            try {
+              await TauriService.importSettings();
+              window.location.reload();
+            } catch (e) {
+              if (e !== "CANCELED") console.error(e);
+            }
+          },
+        });
+      }
       items.push({
         id: "reset_setup",
         label: "Reset Setup",
@@ -553,6 +559,7 @@ const SettingsView = memo(function SettingsView() {
     animationsEnabled,
     layout,
     isLinux,
+    isAndroid,
     mangohudEnabled,
     selectedRunnerName,
     isRunnerDownloading,

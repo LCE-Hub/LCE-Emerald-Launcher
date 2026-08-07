@@ -404,15 +404,39 @@ const SkinViewer = memo(function SkinViewer({
         requestRenderRef.current?.();
       }
     };
+    const onTouchStart = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (!t) return;
+      isDragging = true;
+      previousMousePosition = { x: t.clientX, y: t.clientY };
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (isDragging && t) {
+        e.preventDefault();
+        const delta = (t.clientX - previousMousePosition.x) * 0.01;
+        playerGroup.rotation.y += delta;
+        previousMousePosition = { x: t.clientX, y: t.clientY };
+        requestRenderRef.current?.();
+      }
+    };
+    const onTouchEnd = () => {
+      isDragging = false;
+    };
 
     requestRenderRef.current = () => renderer.render(scene, camera);
     requestRenderRef.current();
     renderer.domElement.addEventListener("mousedown", onMouseDown);
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
+    renderer.domElement.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("touchend", onTouchEnd);
     return () => {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh) {
           if (object.geometry) object.geometry.dispose();

@@ -7,7 +7,7 @@ interface SetupViewProps {
 }
 
 const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
-  const { isLinux, isMac } = usePlatform();
+  const { isLinux, isMac, isAndroid } = usePlatform();
   const {
     username, setUsername,
     setHasCompletedSetup,
@@ -82,7 +82,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
       setCurrentStep(2);
       setFocusIndex(0);
     } else if (currentStep === 2) {
-      setConfigRpc(enableDiscordRPC);
+      if (!isAndroid) setConfigRpc(enableDiscordRPC);
       setCurrentStep(3);
       setFocusIndex(0);
     } else if (currentStep === 3) {
@@ -108,7 +108,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
         if (isLinux) count = runners.length + 2;
         else if (isMac) count = 3;
         else count = 2;
-      } else if (currentStep === 2) count = 4;
+      }       else if (currentStep === 2) count = isAndroid ? 3 : 4;
       else if (currentStep === 3) count = 2;
       if (e.key === "ArrowDown" || e.key === "Tab") {
         e.preventDefault();
@@ -134,10 +134,16 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
             else if (focusIndex === 1) handleNext();
           }
         } else if (currentStep === 2) {
-          if (focusIndex === 0) { setEnableDiscordRPC(!enableDiscordRPC); playPressSound(); }
-          else if (focusIndex === 1) { playPressSound(); }
-          else if (focusIndex === 2) handleBack();
-          else if (focusIndex === 3) handleNext();
+          if (isAndroid) {
+            if (focusIndex === 0) { playPressSound(); }
+            else if (focusIndex === 1) handleBack();
+            else if (focusIndex === 2) handleNext();
+          } else {
+            if (focusIndex === 0) { setEnableDiscordRPC(!enableDiscordRPC); playPressSound(); }
+            else if (focusIndex === 1) { playPressSound(); }
+            else if (focusIndex === 2) handleBack();
+            else if (focusIndex === 3) handleNext();
+          }
         } else if (currentStep === 3) {
           if (focusIndex === 0) handleBack();
           else if (focusIndex === 1) handleNext();
@@ -146,7 +152,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [currentStep, focusIndex, runners, enableDiscordRPC, isLinux, isMac, tempUsername]);
+  }, [currentStep, focusIndex, runners, enableDiscordRPC, isLinux, isMac, isAndroid, tempUsername]);
 
   const handleMacosSetup = async () => {
     playPressSound();
@@ -412,44 +418,46 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                     <div
                       className="p-5 flex flex-col gap-2 mc-options-bg"
                     >
-                      <button
-                        onClick={() => { playPressSound(); setEnableDiscordRPC(!enableDiscordRPC); }}
-                        onMouseEnter={() => setFocusIndex(0)}
-                        className={`w-full h-10 flex items-center justify-between px-4 transition-all outline-none border-none rounded
-                          ${focusIndex === 0 ? "bg-gray-200" : "bg-transparent"} hover:bg-gray-200`}
-                      >
-                        <span className={`tracking-widest uppercase text-lg ${focusIndex === 0 ? "text-[#FFFF55]" : "text-gray-800"}`}>
-                          Discord RPC
-                        </span>
-                        <div className="relative w-6 h-6 shrink-0">
-                          <img
-                            src={focusIndex === 0 ? "/images/checkbox_highlighted.png" : "/images/checkbox.png"}
-                            alt="checkbox"
-                            className="w-full h-full object-contain"
-                            style={{ imageRendering: "pixelated" }}
-                          />
-                          {enableDiscordRPC && (
+                      {!isAndroid && (
+                        <button
+                          onClick={() => { playPressSound(); setEnableDiscordRPC(!enableDiscordRPC); }}
+                          onMouseEnter={() => setFocusIndex(0)}
+                          className={`w-full h-10 flex items-center justify-between px-4 transition-all outline-none border-none rounded
+                            ${focusIndex === 0 ? "bg-gray-200" : "bg-transparent"} hover:bg-gray-200`}
+                        >
+                          <span className={`tracking-widest uppercase text-lg ${focusIndex === 0 ? "text-[#FFFF55]" : "text-gray-800"}`}>
+                            Discord RPC
+                          </span>
+                          <div className="relative w-6 h-6 shrink-0">
                             <img
-                              src="/images/check.png"
-                              alt="checked"
-                              className="absolute inset-0 w-full h-full object-contain"
+                              src={focusIndex === 0 ? "/images/checkbox_highlighted.png" : "/images/checkbox.png"}
+                              alt="checkbox"
+                              className="w-full h-full object-contain"
                               style={{ imageRendering: "pixelated" }}
                             />
-                          )}
-                        </div>
-                      </button>
+                            {enableDiscordRPC && (
+                              <img
+                                src="/images/check.png"
+                                alt="checked"
+                                className="absolute inset-0 w-full h-full object-contain"
+                                style={{ imageRendering: "pixelated" }}
+                              />
+                            )}
+                          </div>
+                        </button>
+                      )}
                       <button
                         onClick={() => { playPressSound(); }}
-                        onMouseEnter={() => setFocusIndex(1)}
+                        onMouseEnter={() => setFocusIndex(isAndroid ? 0 : 1)}
                         className={`w-full h-10 flex items-center justify-between px-4 transition-all outline-none border-none rounded
-                          ${focusIndex === 1 ? "bg-gray-200" : "bg-transparent"} hover:bg-gray-200`}
+                          ${focusIndex === (isAndroid ? 0 : 1) ? "bg-gray-200" : "bg-transparent"} hover:bg-gray-200`}
                       >
-                        <span className={`tracking-widest uppercase text-lg ${focusIndex === 1 ? "text-[#FFFF55]" : "text-gray-800"}`}>
+                        <span className={`tracking-widest uppercase text-lg ${focusIndex === (isAndroid ? 0 : 1) ? "text-[#FFFF55]" : "text-gray-800"}`}>
                           Animations
                         </span>
                         <div className="relative w-6 h-6 shrink-0">
                           <img
-                            src={focusIndex === 1 ? "/images/checkbox_highlighted.png" : "/images/checkbox.png"}
+                            src={focusIndex === (isAndroid ? 0 : 1) ? "/images/checkbox_highlighted.png" : "/images/checkbox.png"}
                             alt="checkbox"
                             className="w-full h-full object-contain"
                             style={{ imageRendering: "pixelated" }}
@@ -513,25 +521,27 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center justify-between px-4 h-10">
-                          <span className="text-gray-600 text-sm uppercase tracking-widest">Discord RPC</span>
-                          <div className="relative w-5 h-5">
-                            <img
-                              src="/images/checkbox.png"
-                              alt="checkbox"
-                              className="w-full h-full object-contain"
-                              style={{ imageRendering: "pixelated" }}
-                            />
-                            {enableDiscordRPC && (
+                        {!isAndroid && (
+                          <div className="flex items-center justify-between px-4 h-10">
+                            <span className="text-gray-600 text-sm uppercase tracking-widest">Discord RPC</span>
+                            <div className="relative w-5 h-5">
                               <img
-                                src="/images/check.png"
-                                alt="checked"
-                                className="absolute inset-0 w-full h-full object-contain"
+                                src="/images/checkbox.png"
+                                alt="checkbox"
+                                className="w-full h-full object-contain"
                                 style={{ imageRendering: "pixelated" }}
                               />
-                            )}
+                              {enableDiscordRPC && (
+                                <img
+                                  src="/images/check.png"
+                                  alt="checked"
+                                  className="absolute inset-0 w-full h-full object-contain"
+                                  style={{ imageRendering: "pixelated" }}
+                                />
+                              )}
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -543,16 +553,16 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                     onClick={handleBack}
                     onMouseEnter={() => {
                       if (currentStep === 3) setFocusIndex(0);
-                      else if (currentStep === 2) setFocusIndex(2);
+                      else if (currentStep === 2) setFocusIndex(isAndroid ? 1 : 2);
                       else if (currentStep === 1) setFocusIndex(isLinux ? runners.length : (isMac ? 1 : 0));
                     }}
                     className={`w-36 h-10 flex items-center justify-center transition-colors mc-text-shadow outline-none border-none
-                      ${(currentStep === 3 && focusIndex === 0) || (currentStep === 2 && focusIndex === 2) ||
+                      ${(currentStep === 3 && focusIndex === 0) || (currentStep === 2 && focusIndex === (isAndroid ? 1 : 2)) ||
                         (currentStep === 1 && ((isLinux && focusIndex === runners.length) || (isMac && focusIndex === 1) || (!isLinux && !isMac && focusIndex === 0)))
                         ? "text-[#FFFF55]" : "text-white"}`}
                     style={navBtnStyle(
                       (currentStep === 3 && focusIndex === 0) ||
-                      (currentStep === 2 && focusIndex === 2) ||
+                      (currentStep === 2 && focusIndex === (isAndroid ? 1 : 2)) ||
                       (currentStep === 1 && ((isLinux && focusIndex === runners.length) || (isMac && focusIndex === 1) || (!isLinux && !isMac && focusIndex === 0)))
                     )}
                   >
@@ -567,7 +577,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                   onMouseEnter={() => {
                     if (currentStep === 0) setFocusIndex(1);
                     else if (currentStep === 1) setFocusIndex(isLinux ? runners.length + 1 : (isMac ? 2 : 1));
-                    else if (currentStep === 2) setFocusIndex(3);
+                    else if (currentStep === 2) setFocusIndex(isAndroid ? 2 : 3);
                     else if (currentStep === 3) setFocusIndex(1);
                   }}
                   disabled={!canProceed()}
@@ -575,13 +585,13 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                     disabled:opacity-50 disabled:cursor-not-allowed
                     ${(currentStep === 0 && focusIndex === 1) ||
                       (currentStep === 1 && ((isLinux && focusIndex === runners.length + 1) || (isMac && focusIndex === 2) || (!isLinux && !isMac && focusIndex === 1))) ||
-                      (currentStep === 2 && focusIndex === 3) ||
+                      (currentStep === 2 && focusIndex === (isAndroid ? 2 : 3)) ||
                       (currentStep === 3 && focusIndex === 1)
                       ? "text-[#FFFF55]" : "text-white"}`}
                   style={navBtnStyle(
                     (currentStep === 0 && focusIndex === 1) ||
                     (currentStep === 1 && ((isLinux && focusIndex === runners.length + 1) || (isMac && focusIndex === 2) || (!isLinux && !isMac && focusIndex === 1))) ||
-                    (currentStep === 2 && focusIndex === 3) ||
+                    (currentStep === 2 && focusIndex === (isAndroid ? 2 : 3)) ||
                     (currentStep === 3 && focusIndex === 1)
                   )}
                 >

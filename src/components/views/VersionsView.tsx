@@ -14,6 +14,7 @@ import {
   useGame,
 } from "../../context/LauncherContext";
 import { ScreenshotImage } from "../common/ScreenshotImage";
+import { usePlatform } from "../../hooks/usePlatform";
 import type { Edition } from "../../types/edition";
 interface DeleteConfirmButtonProps {
   label: string;
@@ -84,6 +85,7 @@ const VersionsView = memo(function VersionsView() {
     saveCustomPath,
   } = useGame();
   const { isDayTime } = useConfig();
+  const { isAndroid } = usePlatform();
   const [focusIndex, setFocusIndex] = useState<number>(0);
   const [focusBtn, setFocusBtn] = useState<number>(0);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -510,7 +512,7 @@ const VersionsView = memo(function VersionsView() {
                             Update Available!
                           </button>
                         )}
-                        {!isInstalled && (
+                        {!isAndroid && !isInstalled && (
                           <button
                             onClick={async (e) => {
                               e.stopPropagation();
@@ -605,157 +607,169 @@ const VersionsView = memo(function VersionsView() {
                             </button>
                           )}
                         <div className="h-[1px] bg-white/5 my-0.5 mx-1" />
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playPressSound();
-                            TauriService.openInstanceFolder(edition.instanceId);
-                            setOpenMenuId(null);
-                          }}
-                          className="w-full text-left px-3 py-2 text-xs text-[#dddddd] flex items-center gap-2 mc-text-shadow"
-                        >
-                          <img
-                            src="/images/Folder_Icon.png"
-                            alt=""
-                            className="w-3.5 h-3.5 object-contain"
-                            style={{ imageRendering: "pixelated" }}
-                          />
-                          Open Folder
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playPressSound();
-                            const PANORAMA_PROFILES = [
-                              "legacy_evolved",
-                              "vanilla_tu19",
-                              "360revived",
-                              "vanilla_tu24",
-                            ];
-                            const panoId = PANORAMA_PROFILES.includes(
-                              edition.id,
-                            )
-                              ? edition.id
-                              : "vanilla_tu19";
-                            const panoramaUrl = `/panorama/${panoId}_Panorama_Background_${isDayTime ? "Day" : "Night"}.png`;
-                            addToSteam(
-                              edition.instanceId,
-                              edition.name,
-                              edition.titleImage ?? "",
-                              panoramaUrl,
-                            );
-                            setOpenMenuId(null);
-                          }}
-                          className="w-full text-left px-3 py-2 text-xs text-[#dddddd] flex items-center gap-2 mc-text-shadow"
-                        >
-                          <img
-                            src="/images/steam.png"
-                            alt=""
-                            className="w-3.5 h-3.5 object-contain invert brightness-0"
-                            style={{ imageRendering: "pixelated" }}
-                          />
-                          Add to Steam
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playPressSound();
-                            handleImportWorld(edition.instanceId);
-                            setOpenMenuId(null);
-                          }}
-                          className="w-full text-left px-3 py-2 text-xs text-[#dddddd] flex items-center gap-2 mc-text-shadow"
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            className="w-3.5 h-3.5"
+                        {!isAndroid && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playPressSound();
+                              TauriService.openInstanceFolder(edition.instanceId);
+                              setOpenMenuId(null);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs text-[#dddddd] flex items-center gap-2 mc-text-shadow"
                           >
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                            <polyline points="7 10 12 15 17 10" />
-                            <line x1="12" y1="15" x2="12" y2="3" />
-                          </svg>
-                          Import World
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playPressSound();
-                            TauriService.backupInstance(edition.instanceId).catch((err) => {
-                              if (err !== "CANCELED") console.error(err);
-                            });
-                            setOpenMenuId(null);
-                          }}
-                          className="w-full text-left px-3 py-2 text-xs text-[#dddddd] flex items-center gap-2 mc-text-shadow"
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            className="w-3.5 h-3.5"
+                            <img
+                              src="/images/Folder_Icon.png"
+                              alt=""
+                              className="w-3.5 h-3.5 object-contain"
+                              style={{ imageRendering: "pixelated" }}
+                            />
+                            Open Folder
+                          </button>
+                        )}
+                        {!isAndroid && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playPressSound();
+                              const PANORAMA_PROFILES = [
+                                "legacy_evolved",
+                                "vanilla_tu19",
+                                "360revived",
+                                "vanilla_tu24",
+                              ];
+                              const panoId = PANORAMA_PROFILES.includes(
+                                edition.id,
+                              )
+                                ? edition.id
+                                : "vanilla_tu19";
+                              const panoramaUrl = `/panorama/${panoId}_Panorama_Background_${isDayTime ? "Day" : "Night"}.png`;
+                              addToSteam(
+                                edition.instanceId,
+                                edition.name,
+                                edition.titleImage ?? "",
+                                panoramaUrl,
+                              );
+                              setOpenMenuId(null);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs text-[#dddddd] flex items-center gap-2 mc-text-shadow"
                           >
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                            <polyline points="17 21 17 13 7 13 7 21" />
-                            <polyline points="7 3 7 8 15 8" />
-                          </svg>
-                          Backup
-                        </button>
-                        <button
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            playPressSound();
-                            setOpenMenuId(null);
-                            try {
-                              await TauriService.restoreInstance();
-                            } catch (err) {
-                              if (err !== "CANCELED") console.error(err);
-                            }
-                          }}
-                          className="w-full text-left px-3 py-2 text-xs text-[#dddddd] flex items-center gap-2 mc-text-shadow"
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            className="w-3.5 h-3.5"
+                            <img
+                              src="/images/steam.png"
+                              alt=""
+                              className="w-3.5 h-3.5 object-contain invert brightness-0"
+                              style={{ imageRendering: "pixelated" }}
+                            />
+                            Add to Steam
+                          </button>
+                        )}
+                        {!isAndroid && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playPressSound();
+                              handleImportWorld(edition.instanceId);
+                              setOpenMenuId(null);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs text-[#dddddd] flex items-center gap-2 mc-text-shadow"
                           >
-                            <path d="M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9z" />
-                            <polyline points="12 7 12 12 15 15" />
-                          </svg>
-                          Restore
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playPressSound();
-                            setCustomizeTarget(edition);
-                            setIsCustomizeModalOpen(true);
-                            setOpenMenuId(null);
-                          }}
-                          className="w-full text-left px-3 py-2 text-xs text-[#dddddd] flex items-center gap-2 mc-text-shadow"
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            className="w-3.5 h-3.5"
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              className="w-3.5 h-3.5"
+                            >
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                              <polyline points="7 10 12 15 17 10" />
+                              <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            Import World
+                          </button>
+                        )}
+                        {!isAndroid && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playPressSound();
+                              TauriService.backupInstance(edition.instanceId).catch((err) => {
+                                if (err !== "CANCELED") console.error(err);
+                              });
+                              setOpenMenuId(null);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs text-[#dddddd] flex items-center gap-2 mc-text-shadow"
                           >
-                            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                          </svg>
-                          Customize
-                        </button>
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              className="w-3.5 h-3.5"
+                            >
+                              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                              <polyline points="17 21 17 13 7 13 7 21" />
+                              <polyline points="7 3 7 8 15 8" />
+                            </svg>
+                            Backup
+                          </button>
+                        )}
+                        {!isAndroid && (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              playPressSound();
+                              setOpenMenuId(null);
+                              try {
+                                await TauriService.restoreInstance();
+                              } catch (err) {
+                                if (err !== "CANCELED") console.error(err);
+                              }
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs text-[#dddddd] flex items-center gap-2 mc-text-shadow"
+                          >
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              className="w-3.5 h-3.5"
+                            >
+                              <path d="M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9z" />
+                              <polyline points="12 7 12 12 15 15" />
+                            </svg>
+                            Restore
+                          </button>
+                        )}
+                        {!isAndroid && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playPressSound();
+                              setCustomizeTarget(edition);
+                              setIsCustomizeModalOpen(true);
+                              setOpenMenuId(null);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs text-[#dddddd] flex items-center gap-2 mc-text-shadow"
+                          >
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              className="w-3.5 h-3.5"
+                            >
+                              <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                            </svg>
+                            Customize
+                          </button>
+                        )}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
