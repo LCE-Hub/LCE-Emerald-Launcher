@@ -208,6 +208,12 @@ jobs:
       - name: install frontend dependencies
         run: pnpm install
 
+      - name: restore gradle wrapper jar
+        run: |
+          VER=$(sed -n 's/.*gradle-\([0-9][0-9.]*\)-bin\.zip.*/\1/p' src-tauri/gen/android/gradle/wrapper/gradle-wrapper.properties)
+          curl -fL -o src-tauri/gen/android/gradle/wrapper/gradle-wrapper.jar \
+            "https://raw.githubusercontent.com/gradle/gradle/v${VER}/gradle/wrapper/gradle-wrapper.jar"
+
       - name: set up android signing keystore
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
