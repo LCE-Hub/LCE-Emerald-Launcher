@@ -18,12 +18,12 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-gamepad = "0.0.5"
-reqwest = { version = "0.11", default-features = false, features = ["stream", "json", "rustls-tls-native-roots"] }
+reqwest = { version = "0.11", default-features = false, features = ["stream", "json", "rustls-tls-webpki-roots"] }
 tokio = { version = "1", features = ["full"] }
 futures-util = "0.3"
 tokio-util = { version = "0.7.18", features = ["rt"] }
 base64 = "0.21"
-tokio-tungstenite = { version = "0.21", default-features = false, features = ["connect", "rustls-tls-native-roots"] }
+tokio-tungstenite = { version = "0.21", default-features = false, features = ["connect", "rustls-tls-webpki-roots"] }
 url = "2"
 rand = "0.8"
 http = "1"

@@ -261,19 +261,19 @@ export default function App() {
       if (unlistenEvent) unlistenEvent();
     };
   }, [queueDeepLink]);
-  const { isMac } = usePlatform();
+  const { isMac, isAndroid } = usePlatform();
   const [isFullscreen, setIsFullscreen] = useState(false);
   useEffect(() => {
     const appWindow = getCurrentWindow();
-    if (!isMac) appWindow.setDecorations(false);
+    if (!isMac && !isAndroid) appWindow.setDecorations(false);
     const checkFs = async () => setIsFullscreen(await appWindow.isFullscreen());
     checkFs();
     const unlisten = appWindow.onResized(checkFs);
     return () => {
       unlisten.then((fn: () => void) => fn());
     };
-  }, [isMac]);
-  const showHeader = !isMac || isFullscreen;
+  }, [isMac, isAndroid]);
+  const showHeader = (!isMac || isFullscreen) && !isAndroid;
   useEffect(() => {
     if (config.isLoaded) {
       const setupCompleted =

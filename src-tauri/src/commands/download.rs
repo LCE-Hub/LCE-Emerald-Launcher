@@ -181,7 +181,18 @@ pub async fn download_and_install(
         }
     }
 
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(target_os = "android")]
+    {
+        let status = std::process::Command::new("unzip")
+            .args(["-o", zip_path.to_str().unwrap(), "-d", instance_dir.to_str().unwrap()])
+            .status()
+            .map_err(|e| e.to_string())?;
+        if !status.success() {
+            return Err("Extraction failed".into());
+        }
+    }
+
+    #[cfg(all(not(target_os = "linux"), not(target_os = "android")))]
     {
         let mut cmd = std::process::Command::new("tar");
         cmd.args(["-xf", zip_path.to_str().unwrap(), "-C", instance_dir.to_str().unwrap()]);

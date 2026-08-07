@@ -152,6 +152,32 @@ fn extract_archive(zip_tmp: &Path, dest_dir: &Path) -> Result<(Vec<String>, bool
             extract_ok = st.success();
         }
         Ok((files, extract_ok))
+    } else if cfg!(target_os = "android") {
+        let unzip_list = std::process::Command::new("unzip")
+            .args(["-l", zip_str])
+            .output()
+            .map_err(|e| e.to_string())?;
+        if !unzip_list.status.success() {
+            return Err(format!("Failed to list contents of {}", zip_str));
+        }
+        let listing = String::from_utf8_lossy(&unzip_list.stdout);
+        let files: Vec<String> = listing.lines()
+            .filter_map(|l| {
+                let mut parts = l.trim().split_whitespace();
+                let size_str = parts.next()?;
+                size_str.parse::<u64>().ok()?;
+                parts.next()?;
+                parts.next()?;
+                Some(parts.collect::<Vec<&str>>().join(" "))
+            })
+            .filter(|l| !l.ends_with('/') && !l.contains('*'))
+            .map(|l| dest_dir.join(l).to_string_lossy().to_string())
+            .collect();
+        let st = std::process::Command::new("unzip")
+            .args(["-o", zip_str, "-d", dest_dir.to_str().unwrap()])
+            .status()
+            .map_err(|e| e.to_string())?;
+        Ok((files, st.success()))
     } else {
         let st = std::process::Command::new("tar")
             .args(["-xf", zip_str, "-C", dest_dir.to_str().unwrap()])
