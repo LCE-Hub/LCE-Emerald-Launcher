@@ -455,7 +455,7 @@ export default function App() {
           animate={{ opacity: 1 }}
           className={`flex flex-col h-full z-10 w-full relative ${showHeader ? "pt-12" : ""}`}
         >
-          {!config.legacyMode && (
+          {!config.legacyMode && !isAndroid && (
             <motion.div {...uiFade} className="absolute top-10 left-8 z-50">
               <button
                 onClick={() => {
@@ -473,6 +473,46 @@ export default function App() {
                   className="w-10 h-10 cursor-pointer object-contain"
                   style={{ imageRendering: "pixelated" }}
                 />
+              </button>
+            </motion.div>
+          )}
+
+          {isAndroid && activeView !== "main" && (
+            <motion.div {...uiFade} className="absolute top-10 left-8 z-50">
+              <button
+                onClick={() => {
+                  audio.playBackSound();
+                  setActiveView("main");
+                }}
+                className="outline-none border-none flex items-center justify-center w-10 h-10 cursor-pointer"
+                aria-label="Back"
+                style={{
+                  backgroundImage: "url('/images/Button_Square.png')",
+                  backgroundSize: "100% 100%",
+                  imageRendering: "pixelated",
+                }}
+                onMouseEnter={(e) =>
+                  ((e.currentTarget as HTMLButtonElement).style.backgroundImage =
+                    "url('/images/Button_Square_Highlighted.png')")
+                }
+                onMouseLeave={(e) =>
+                  ((e.currentTarget as HTMLButtonElement).style.backgroundImage =
+                    "url('/images/Button_Square.png')")
+                }
+              >
+                <svg
+                  width="26"
+                  height="26"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#FFFFFF"
+                  strokeWidth="2.5"
+                  strokeLinecap="square"
+                  strokeLinejoin="miter"
+                  className="drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]"
+                >
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
               </button>
             </motion.div>
           )}

@@ -1,6 +1,7 @@
 import { useEffect, memo, useState } from "react";
 import { motion } from "framer-motion";
 import { useUI, useAudio } from "../../context/LauncherContext";
+import { usePlatform } from "../../hooks/usePlatform";
 
 interface CreditCategory {
   category: string;
@@ -31,6 +32,7 @@ interface CreditCategory {
 const CreditsView = memo(function CreditsView() {
   const { setActiveView } = useUI();
   const { playPressSound } = useAudio();
+  const { isAndroid } = usePlatform();
   const [isHovered, setIsHovered] = useState(false);
 
   const credits: CreditCategory[] = [
@@ -242,25 +244,27 @@ const CreditsView = memo(function CreditsView() {
 
   return (
     <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-      <button
-        onClick={() => {
-          playPressSound();
-          setActiveView("main");
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        className="fixed bottom-8 left-8 z-50 h-10 flex items-center justify-center gap-2 px-4 text-xl mc-text-shadow outline-none border-none"
-        style={{
-          backgroundImage: isHovered
-            ? "url('/images/button_highlighted.png')"
-            : "url('/images/Button_Background.png')",
-          backgroundSize: "100% 100%",
-          imageRendering: "pixelated",
-          color: isHovered ? "#FFFF55" : "white",
-        }}
-      >
-        Back to Menu
-      </button>
+      {!isAndroid && (
+        <button
+          onClick={() => {
+            playPressSound();
+            setActiveView("main");
+          }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className="fixed bottom-8 left-8 z-50 h-10 flex items-center justify-center gap-2 px-4 text-xl mc-text-shadow outline-none border-none"
+          style={{
+            backgroundImage: isHovered
+              ? "url('/images/button_highlighted.png')"
+              : "url('/images/Button_Background.png')",
+            backgroundSize: "100% 100%",
+            imageRendering: "pixelated",
+            color: isHovered ? "#FFFF55" : "white",
+          }}
+        >
+          Back to Menu
+        </button>
+      )}
 
       <motion.div
         initial={{ y: "50%" }}

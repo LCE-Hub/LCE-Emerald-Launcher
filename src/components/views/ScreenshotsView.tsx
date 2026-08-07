@@ -1,5 +1,6 @@
 import { useState, useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePlatform } from "../../hooks/usePlatform";
 import {
   useUI,
   useAudio,
@@ -15,6 +16,7 @@ import { ScreenshotImage } from "../common/ScreenshotImage";
 const ScreenshotsView = memo(function ScreenshotsView() {
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
+  const { isAndroid } = usePlatform();
   const { editions } = useGame();
   const { animationsEnabled } = useConfig();
   const [screenshots, setScreenshots] = useState<ScreenshotInfo[]>([]);
@@ -239,30 +241,32 @@ const ScreenshotsView = memo(function ScreenshotsView() {
         </div>
       </div>
 
-      <div className="w-full mt-6 mb-4 flex justify-center">
-        <button
-          onClick={handleBack}
-          className={`
-            w-72 h-10 flex items-center justify-center text-xl mc-text-shadow border-none outline-none transition-all text-white
-            hover:text-[#FFFF55]
-          `}
-          style={{
-            backgroundImage: "url('/images/Button_Background.png')",
-            backgroundSize: "100% 100%",
-            imageRendering: "pixelated",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.backgroundImage =
-              "url('/images/button_highlighted.png')";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.backgroundImage =
-              "url('/images/Button_Background.png')";
-          }}
-        >
-          Back
-        </button>
-      </div>
+      {!isAndroid && (
+        <div className="w-full mt-6 mb-4 flex justify-center">
+          <button
+            onClick={handleBack}
+            className={`
+              w-72 h-10 flex items-center justify-center text-xl mc-text-shadow border-none outline-none transition-all text-white
+              hover:text-[#FFFF55]
+            `}
+            style={{
+              backgroundImage: "url('/images/Button_Background.png')",
+              backgroundSize: "100% 100%",
+              imageRendering: "pixelated",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.backgroundImage =
+                "url('/images/button_highlighted.png')";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.backgroundImage =
+                "url('/images/Button_Background.png')";
+            }}
+          >
+            Back
+          </button>
+        </div>
+      )}
 
       <AnimatePresence>
         {selectedScreenshot && (

@@ -925,7 +925,7 @@ const SettingsView = memo(function SettingsView() {
         </div>
       )}
 
-      {(() => {
+      {!isAndroid && (() => {
         const backIndex = settingsItems.findIndex((i) => i.id === "back");
         const backItem = settingsItems[backIndex];
         if (!backItem || backItem.type !== "button") return null;

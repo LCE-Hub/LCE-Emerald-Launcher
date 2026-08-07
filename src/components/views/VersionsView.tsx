@@ -914,27 +914,29 @@ const VersionsView = memo(function VersionsView() {
         </div>
       </div>
 
-      <div className="flex justify-center">
-        <button
-          data-index={editions.length + 2}
-          onMouseEnter={() => setFocusIndex(editions.length + 2)}
-          onClick={() => {
-            playBackSound();
-            setActiveView("main");
-          }}
-          className="w-48 h-10 flex items-center justify-center text-xl mc-text-shadow outline-none border-none text-white"
-          style={{
-            backgroundImage:
-              focusIndex === editions.length + 2
-                ? "url('/images/button_highlighted.png')"
-                : "url('/images/Button_Background.png')",
-            backgroundSize: "100% 100%",
-            imageRendering: "pixelated",
-          }}
-        >
-          Done
-        </button>
-      </div>
+      {!isAndroid && (
+        <div className="flex justify-center">
+          <button
+            data-index={editions.length + 2}
+            onMouseEnter={() => setFocusIndex(editions.length + 2)}
+            onClick={() => {
+              playBackSound();
+              setActiveView("main");
+            }}
+            className="w-48 h-10 flex items-center justify-center text-xl mc-text-shadow outline-none border-none text-white"
+            style={{
+              backgroundImage:
+                focusIndex === editions.length + 2
+                  ? "url('/images/button_highlighted.png')"
+                  : "url('/images/Button_Background.png')",
+              backgroundSize: "100% 100%",
+              imageRendering: "pixelated",
+            }}
+          >
+            Done
+          </button>
+        </div>
+      )}
 
       <CustomTUModal
         isOpen={isImportModalOpen}

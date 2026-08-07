@@ -10,6 +10,7 @@ import {
 } from "../../context/LauncherContext";
 import SkinViewer from "../common/SkinViewer";
 import CapePreview from "../common/CapePreview";
+import { usePlatform } from "../../hooks/usePlatform";
 
 interface SavedSkin {
   id: string;
@@ -101,6 +102,7 @@ const HeadPreview = memo(function HeadPreview({ src }: { src: string }) {
 const SkinsView = memo(function SkinsView() {
   const { setActiveView, setIsUiHidden } = useUI();
   const { playPressSound, playBackSound } = useAudio();
+  const { isAndroid } = usePlatform();
   const { skinUrl, setSkinUrl, setSkinIsSlim, capeUrl, setCapeUrl } = useSkin();
 
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
@@ -722,25 +724,27 @@ const SkinsView = memo(function SkinsView() {
         />
       </div>
 
-      <button
-        data-index={BACK_BUTTON_INDEX}
-        onMouseEnter={() => setFocusIndex(BACK_BUTTON_INDEX)}
-        onClick={() => {
-          playBackSound();
-          setActiveView("main");
-        }}
-        className={`w-72 h-14 shrink-0 flex items-center justify-center transition-colors text-2xl mc-text-shadow mt-2 outline-none border-none hover:text-[#FFFF55] ${focusIndex === BACK_BUTTON_INDEX ? "text-[#FFFF55]" : "text-white"}`}
-        style={{
-          backgroundImage:
-            focusIndex === BACK_BUTTON_INDEX
-              ? "url('/images/button_highlighted.png')"
-              : "url('/images/Button_Background.png')",
-          backgroundSize: "100% 100%",
-          imageRendering: "pixelated",
-        }}
-      >
-        Back
-      </button>
+      {!isAndroid && (
+        <button
+          data-index={BACK_BUTTON_INDEX}
+          onMouseEnter={() => setFocusIndex(BACK_BUTTON_INDEX)}
+          onClick={() => {
+            playBackSound();
+            setActiveView("main");
+          }}
+          className={`w-72 h-14 shrink-0 flex items-center justify-center transition-colors text-2xl mc-text-shadow mt-2 outline-none border-none hover:text-[#FFFF55] ${focusIndex === BACK_BUTTON_INDEX ? "text-[#FFFF55]" : "text-white"}`}
+          style={{
+            backgroundImage:
+              focusIndex === BACK_BUTTON_INDEX
+                ? "url('/images/button_highlighted.png')"
+                : "url('/images/Button_Background.png')",
+            backgroundSize: "100% 100%",
+            imageRendering: "pixelated",
+          }}
+        >
+          Back
+        </button>
+      )}
 
       {showImportModal && viewMode === "skin" && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
