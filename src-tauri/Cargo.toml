@@ -18,17 +18,15 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-gamepad = "0.0.5"
-tauri-plugin-drpc = "*"
-reqwest = { version = "0.11", features = ["stream", "json"] }
+reqwest = { version = "0.11", default-features = false, features = ["stream", "json", "rustls-tls-native-roots"] }
 tokio = { version = "1", features = ["full"] }
 futures-util = "0.3"
 tokio-util = { version = "0.7.18", features = ["rt"] }
 base64 = "0.21"
-tokio-tungstenite = { version = "0.21", default-features = false, features = ["connect", "native-tls"] }
+tokio-tungstenite = { version = "0.21", default-features = false, features = ["connect", "rustls-tls-native-roots"] }
 url = "2"
 rand = "0.8"
 http = "1"
-rfd = "0.15"
 libc = "0.2"
 image = "0.24"
 steam_shortcuts_util = "1.1.8"
@@ -39,10 +37,12 @@ once_cell = "1"
 lzxd = "0.2.6"
 uuid = { version = "1", features = ["v4"] }
 tauri-plugin-deep-link = "2"
-tauri-plugin-single-instance = "2"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-updater = "2"
+tauri-plugin-drpc = "*"
+tauri-plugin-single-instance = "2"
+rfd = "0.15"
 
 #neo: enable portable appimages. revert back to crates.io once the PR is merged
 #[patch.crates-io]

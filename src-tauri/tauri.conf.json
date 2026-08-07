@@ -65,6 +65,10 @@
       "frameworks": [],
       "minimumSystemVersion": "10.15",
       "signingIdentity": null
+    },
+    "android": {
+      "minSdkVersion": 24,
+      "versionCode": 1006000
     }
   }
 }

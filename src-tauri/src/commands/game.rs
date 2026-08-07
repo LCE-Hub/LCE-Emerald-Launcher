@@ -27,6 +27,23 @@ pub async fn launch_game(
     app: AppHandle,
     state: State<'_, GameState>,
     instance_id: String,
+    servers: Vec<McServer>,
+    extra_args: Vec<String>,
+) -> Result<(), String> {
+    #[cfg(target_os = "android")]
+    {
+        let _ = (app, state, instance_id, servers, extra_args);
+        return Err("Launching the game is not implemented on Android. -neo".into());
+    }
+    #[cfg(not(target_os = "android"))]
+    launch_game_desktop(app, state, instance_id, servers, extra_args).await
+}
+
+#[cfg(not(target_os = "android"))]
+async fn launch_game_desktop(
+    app: AppHandle,
+    state: State<'_, GameState>,
+    instance_id: String,
     mut servers: Vec<McServer>,
     extra_args: Vec<String>,
 ) -> Result<(), String> {
@@ -231,7 +248,11 @@ pub async fn launch_game(
             return handle_game_exit(&app, &state, result);
         }
 
-        #[cfg(all(not(target_os = "macos"), not(target_os = "linux")))]
+        #[cfg(all(
+            not(target_os = "macos"),
+            not(target_os = "linux"),
+            not(target_os = "android")
+        ))]
         {
             let exe_str = game_exe.to_string_lossy().to_string();
             let all_args: Vec<String> = extra_args.clone();
@@ -341,6 +362,7 @@ pub fn get_playtime_daily(app: AppHandle, instance_id: String, days: u64) -> Vec
     playtime::get_playtime_daily(&app, &instance_id, days)
 }
 
+#[cfg(desktop)]
 #[tauri::command]
 pub fn backup_instance(app: AppHandle, instance_id: String) -> Result<(), String> {
     let instance_dir = util::get_instance_working_dir(&app, &instance_id);
@@ -374,6 +396,7 @@ pub fn backup_instance(app: AppHandle, instance_id: String) -> Result<(), String
     }
 }
 
+#[cfg(desktop)]
 #[tauri::command]
 pub fn restore_instance(app: AppHandle) -> Result<String, String> {
     let file = rfd::FileDialog::new()

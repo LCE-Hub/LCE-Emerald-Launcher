@@ -1,6 +1,7 @@
 {
   "identifier": "default",
   "description": "Default permissions",
+  "platforms": ["windows", "linux", "macOS"],
   "windows": ["main"],
   "permissions": [
     "core:default",
