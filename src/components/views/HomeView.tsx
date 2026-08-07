@@ -7,6 +7,7 @@ import {
   useGame,
 } from "../../context/LauncherContext";
 import { usePluginActions } from "../../plugins/PluginContext";
+import { usePlatform } from "../../hooks/usePlatform";
 import type { Edition } from "../../types/edition";
 
 const HomeView = memo(function HomeView() {
@@ -25,6 +26,7 @@ const HomeView = memo(function HomeView() {
     updatesAvailable,
   } = useGame();
   const pluginActions = usePluginActions("home-menu");
+  const { isAndroid } = usePlatform();
 
   const isFocusedSection = focusSection === "menu";
   const selectedEdition = editions.find((e: Edition) => e.id === profile);
@@ -98,14 +100,14 @@ const HomeView = memo(function HomeView() {
           disabled: false,
           id: "devtools",
         },
-      ];
+      ].filter((b) => !(isAndroid && b.id === "devtools"));
 
       return [mainBtn, ...pluginBtns, ...menuBtns];
     },
     [
       isDownloading, hasAnyInstall, isInstalled, selectedVersionName,
       handleLaunch, toggleInstall, profile, setActiveView,
-      isGameRunning, stopGame, pluginActions,
+      isGameRunning, stopGame, pluginActions, isAndroid,
     ],
   );
 
