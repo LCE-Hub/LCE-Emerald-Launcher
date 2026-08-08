@@ -1,5 +1,5 @@
 const SESSION_KEY = "lceonline_session";
-const SOCIAL_BASE_URL = "http://localhost:2052";
+const SOCIAL_BASE_URL = "https://social.mclegacyedition.xyz";
 const AUTH_BASE_URL = "https://auth.mclegacyedition.xyz"; //neo: yeah bro im hardcoding all three
 import { TauriService } from "./TauriService";
 export interface LceOnlineAccount {
