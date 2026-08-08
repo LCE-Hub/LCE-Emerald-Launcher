@@ -44,13 +44,8 @@ const SettingsView = memo(function SettingsView() {
     skipIntro,
     setSkipIntro,
   } = useConfig();
-  const {
-    currentTrack,
-    skipTrack,
-    tracks,
-    playPressSound,
-    playBackSound,
-  } = useAudio();
+  const { currentTrack, skipTrack, tracks, playPressSound, playBackSound } =
+    useAudio();
   const {
     isGameRunning,
     stopGame,
@@ -424,13 +419,13 @@ const SettingsView = memo(function SettingsView() {
         },
       });
     } else if (currentSubMenu === "launcher") {
-      items.push({
-        id: "fullscreen",
-        label: `Start in Fullscreen: ${startFullscreen ? "ON" : "OFF"}`,
-        type: "button",
-        onClick: handleFullscreenToggle,
-      });
       if (!isAndroid) {
+        items.push({
+          id: "fullscreen",
+          label: `Start in Fullscreen: ${startFullscreen ? "ON" : "OFF"}`,
+          type: "button",
+          onClick: handleFullscreenToggle,
+        });
         items.push({
           id: "rpc",
           label: `Discord RPC: ${rpcEnabled ? "ON" : "OFF"}`,
@@ -925,30 +920,31 @@ const SettingsView = memo(function SettingsView() {
         </div>
       )}
 
-      {!isAndroid && (() => {
-        const backIndex = settingsItems.findIndex((i) => i.id === "back");
-        const backItem = settingsItems[backIndex];
-        if (!backItem || backItem.type !== "button") return null;
+      {!isAndroid &&
+        (() => {
+          const backIndex = settingsItems.findIndex((i) => i.id === "back");
+          const backItem = settingsItems[backIndex];
+          if (!backItem || backItem.type !== "button") return null;
 
-        return (
-          <button
-            data-index={backIndex}
-            onMouseEnter={() => setFocusIndex(backIndex)}
-            onClick={backItem.onClick}
-            className={`w-40 h-10 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none border-none hover:text-[#ffff00] mt-4 ${focusIndex === backIndex ? "text-[#ffff00]" : "text-white"}`}
-            style={{
-              backgroundImage:
-                focusIndex === backIndex
-                  ? "url('/images/button_highlighted.png')"
-                  : "url('/images/Button_Background.png')",
-              backgroundSize: "100% 100%",
-              imageRendering: "pixelated",
-            }}
-          >
-            Back
-          </button>
-        );
-      })()}
+          return (
+            <button
+              data-index={backIndex}
+              onMouseEnter={() => setFocusIndex(backIndex)}
+              onClick={backItem.onClick}
+              className={`w-40 h-10 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none border-none hover:text-[#ffff00] mt-4 ${focusIndex === backIndex ? "text-[#ffff00]" : "text-white"}`}
+              style={{
+                backgroundImage:
+                  focusIndex === backIndex
+                    ? "url('/images/button_highlighted.png')"
+                    : "url('/images/Button_Background.png')",
+                backgroundSize: "100% 100%",
+                imageRendering: "pixelated",
+              }}
+            >
+              Back
+            </button>
+          );
+        })()}
 
       {showModal === "args" && (
         <motion.div
