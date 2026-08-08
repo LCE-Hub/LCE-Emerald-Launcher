@@ -191,7 +191,7 @@ const LceOnlineView = memo(function LceOnlineView({
         items.push({
           id: `friend_${f.username}`,
           type: "friend",
-          label: f.displayName,
+          label: f.displayName || f.username,
           onClick: () => handleAction(() => lceOnlineService.removeFriend(f.username)),
           onClickSecondary: isHosting
             ? () => handleAction(() => lceOnlineService.sendInvite(f.username))
@@ -203,7 +203,7 @@ const LceOnlineView = memo(function LceOnlineView({
         items.push({
           id: `req_in_${r.username}`,
           type: "request_in",
-          label: r.displayName,
+          label: r.displayName || r.username,
           onClick: () =>
             handleAction(() => lceOnlineService.acceptFriendRequest(r.username)),
           onClickSecondary: () =>
@@ -214,7 +214,7 @@ const LceOnlineView = memo(function LceOnlineView({
         items.push({
           id: `req_out_${r.username}`,
           type: "request_out",
-          label: r.displayName,
+          label: r.displayName || r.username,
           onClick: () =>
             handleAction(() => lceOnlineService.declineFriendRequest(r.username)),
         });
