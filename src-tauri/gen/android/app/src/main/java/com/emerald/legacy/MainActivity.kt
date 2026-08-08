@@ -13,7 +13,7 @@ class MainActivity : TauriActivity() {
     super.onCreate(savedInstanceState)
     WindowCompat.getInsetsController(window, window.decorView).apply {
       systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-      hide(WindowInsetsCompat.Type.statusBars())
+      hide(WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.navigationBars())
     }
   }
 

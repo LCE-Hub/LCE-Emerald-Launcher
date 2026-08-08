@@ -93,21 +93,32 @@ const VersionsView = memo(function VersionsView() {
   const [setUidTargetId, setSetUidTargetId] = useState("");
   const [editingEdition, setEditingEdition] = useState<Edition | null>(null);
   const [isImportWorldModalOpen, setIsImportWorldModalOpen] = useState(false);
-  const [importWorldTarget, setImportWorldTarget] = useState<{ id: string; name: string } | null>(null);
+  const [importWorldTarget, setImportWorldTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [isPlaytimeModalOpen, setIsPlaytimeModalOpen] = useState(false);
-  const [playtimeTarget, setPlaytimeTarget] = useState<{ id: string; name: string } | null>(null);
+  const [playtimeTarget, setPlaytimeTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
   const [customizeTarget, setCustomizeTarget] = useState<Edition | null>(null);
-  const [playtimeMap, setPlaytimeMap] = useState<Record<string, PlaytimeResponse>>({});
+  const [playtimeMap, setPlaytimeMap] = useState<
+    Record<string, PlaytimeResponse>
+  >({});
   const [initialPath, setInitialPath] = useState<string>("");
   const [hoveredBtn, setHoveredBtn] = useState<{
     row: number;
     btn: string;
   } | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [deleteConfirmEdition, setDeleteConfirmEdition] = useState<Edition | null>(null);
+  const [deleteConfirmEdition, setDeleteConfirmEdition] =
+    useState<Edition | null>(null);
   const [isDlcModalOpen, setIsDlcModalOpen] = useState(false);
-  const [dlcTargetEdition, setDlcTargetEdition] = useState<Edition | null>(null);
+  const [dlcTargetEdition, setDlcTargetEdition] = useState<Edition | null>(
+    null,
+  );
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const ITEM_COUNT = editions.length + 3;
@@ -218,13 +229,15 @@ const VersionsView = memo(function VersionsView() {
   useEffect(() => {
     const fetchPlaytimes = async () => {
       const map: Record<string, PlaytimeResponse> = {};
-      await Promise.all(installedVersions.map(async (id) => {
-        try {
-          map[id] = await TauriService.getPlaytime(id);
-        } catch (e) {
-          console.error(e);
-        }
-      }));
+      await Promise.all(
+        installedVersions.map(async (id) => {
+          try {
+            map[id] = await TauriService.getPlaytime(id);
+          } catch (e) {
+            console.error(e);
+          }
+        }),
+      );
       setPlaytimeMap(map);
     };
     fetchPlaytimes();
@@ -270,9 +283,7 @@ const VersionsView = memo(function VersionsView() {
         Versions
       </h2>
 
-      <div
-        className="w-full min-w-[480px] p-6 mb-4 mc-options-bg"
-      >
+      <div className="w-full min-w-[480px] p-6 mb-4 mc-options-bg">
         <div
           ref={listRef}
           className="w-full max-h-[45vh] overflow-y-auto py-2 custom-scrollbar"
@@ -352,7 +363,10 @@ const VersionsView = memo(function VersionsView() {
                           onClick={(e) => {
                             e.stopPropagation();
                             playPressSound();
-                            setPlaytimeTarget({ id: edition.instanceId, name: edition.name });
+                            setPlaytimeTarget({
+                              id: edition.instanceId,
+                              name: edition.name,
+                            });
                             setIsPlaytimeModalOpen(true);
                           }}
                           className="flex items-center gap-1.5 px-2 py-1 bg-black/60 border border-[#555] hover:border-[#FFFF55] group transition-colors flex-shrink-0"
@@ -373,7 +387,11 @@ const VersionsView = memo(function VersionsView() {
                             <polyline points="12 6 12 12 16 14" />
                           </svg>
                           <span className="text-xs text-[#AAAAAA] group-hover:text-[#FFFF55] leading-none transition-colors">
-                            {playtimeMap[edition.instanceId] ? formatPlaytime(playtimeMap[edition.instanceId].totalSeconds) : ""}
+                            {playtimeMap[edition.instanceId]
+                              ? formatPlaytime(
+                                  playtimeMap[edition.instanceId].totalSeconds,
+                                )
+                              : ""}
                           </span>
                         </button>
                       )}
@@ -521,9 +539,11 @@ const VersionsView = memo(function VersionsView() {
                               try {
                                 const folder = await TauriService.pickFolder();
                                 if (folder) {
-                                  const entries = await TauriService.listDirectory(folder);
+                                  const entries =
+                                    await TauriService.listDirectory(folder);
                                   if (entries.length > 0) {
-                                    const dialog = document.createElement("div");
+                                    const dialog =
+                                      document.createElement("div");
                                     dialog.className =
                                       "fixed inset-0 bg-black/80 flex items-center justify-center z-50";
                                     dialog.innerHTML = `
@@ -536,14 +556,20 @@ const VersionsView = memo(function VersionsView() {
                                       </div>
                                     `;
                                     document.body.appendChild(dialog);
-                                    const close = () => document.body.removeChild(dialog);
-                                    dialog.querySelector("#empty-dir-ok")?.addEventListener("click", close);
+                                    const close = () =>
+                                      document.body.removeChild(dialog);
+                                    dialog
+                                      .querySelector("#empty-dir-ok")
+                                      ?.addEventListener("click", close);
                                     dialog.addEventListener("click", (e) => {
                                       if (e.target === dialog) close();
                                     });
                                     return;
                                   }
-                                  await saveCustomPath(edition.instanceId, folder);
+                                  await saveCustomPath(
+                                    edition.instanceId,
+                                    folder,
+                                  );
                                   toggleInstall(edition.instanceId);
                                 }
                               } catch (err) {
@@ -612,7 +638,9 @@ const VersionsView = memo(function VersionsView() {
                             onClick={(e) => {
                               e.stopPropagation();
                               playPressSound();
-                              TauriService.openInstanceFolder(edition.instanceId);
+                              TauriService.openInstanceFolder(
+                                edition.instanceId,
+                              );
                               setOpenMenuId(null);
                             }}
                             className="w-full text-left px-3 py-2 text-xs text-[#dddddd] flex items-center gap-2 mc-text-shadow"
@@ -693,7 +721,9 @@ const VersionsView = memo(function VersionsView() {
                             onClick={(e) => {
                               e.stopPropagation();
                               playPressSound();
-                              TauriService.backupInstance(edition.instanceId).catch((err) => {
+                              TauriService.backupInstance(
+                                edition.instanceId,
+                              ).catch((err) => {
                                 if (err !== "CANCELED") console.error(err);
                               });
                               setOpenMenuId(null);
@@ -882,33 +912,35 @@ const VersionsView = memo(function VersionsView() {
                 </svg>
               </button>
 
-              <button
-                onClick={() => {
-                  playPressSound();
-                  handleImportFolder();
-                }}
-                onMouseEnter={() => setFocusIndex(editions.length + 1)}
-                onMouseLeave={() => setHoveredBtn(null)}
-                title="Import Custom TU"
-                className="w-8 h-8 flex items-center justify-center text-[#3a3a3a]"
-                style={{
-                  backgroundImage:
-                    (hoveredBtn?.row === editions.length &&
-                      hoveredBtn?.btn === "folder_import") ||
-                    focusIndex === editions.length + 1
-                      ? "url('/images/Button_Square_Highlighted.png')"
-                      : "url('/images/Button_Square.png')",
-                  backgroundSize: "100% 100%",
-                  imageRendering: "pixelated",
-                }}
-              >
-                <img
-                  src="/images/Folder_Icon.png"
-                  alt="Import Custom TU"
-                  className="w-5 h-5 object-contain"
-                  style={{ imageRendering: "pixelated" }}
-                />
-              </button>
+              {!isAndroid && (
+                <button
+                  onClick={() => {
+                    playPressSound();
+                    handleImportFolder();
+                  }}
+                  onMouseEnter={() => setFocusIndex(editions.length + 1)}
+                  onMouseLeave={() => setHoveredBtn(null)}
+                  title="Import Custom TU"
+                  className="w-8 h-8 flex items-center justify-center text-[#3a3a3a]"
+                  style={{
+                    backgroundImage:
+                      (hoveredBtn?.row === editions.length &&
+                        hoveredBtn?.btn === "folder_import") ||
+                      focusIndex === editions.length + 1
+                        ? "url('/images/Button_Square_Highlighted.png')"
+                        : "url('/images/Button_Square.png')",
+                    backgroundSize: "100% 100%",
+                    imageRendering: "pixelated",
+                  }}
+                >
+                  <img
+                    src="/images/Folder_Icon.png"
+                    alt="Import Custom TU"
+                    className="w-5 h-5 object-contain"
+                    style={{ imageRendering: "pixelated" }}
+                  />
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -945,7 +977,12 @@ const VersionsView = memo(function VersionsView() {
           setEditingEdition(null);
           setInitialPath("");
         }}
-        onImport={(ed: { name: string; desc: string; url: string; path?: string }) => {
+        onImport={(ed: {
+          name: string;
+          desc: string;
+          url: string;
+          path?: string;
+        }) => {
           if (editingEdition) {
             onUpdateEdition(editingEdition.id, ed);
           } else {
@@ -971,7 +1008,10 @@ const VersionsView = memo(function VersionsView() {
 
       <ImportWorldModal
         isOpen={isImportWorldModalOpen}
-        onClose={() => { setIsImportWorldModalOpen(false); setImportWorldTarget(null); }}
+        onClose={() => {
+          setIsImportWorldModalOpen(false);
+          setImportWorldTarget(null);
+        }}
         playPressSound={playPressSound}
         playBackSound={playBackSound}
         targetInstanceId={importWorldTarget?.id ?? ""}
@@ -980,7 +1020,10 @@ const VersionsView = memo(function VersionsView() {
 
       <PlaytimeModal
         isOpen={isPlaytimeModalOpen}
-        onClose={() => { setIsPlaytimeModalOpen(false); setPlaytimeTarget(null); }}
+        onClose={() => {
+          setIsPlaytimeModalOpen(false);
+          setPlaytimeTarget(null);
+        }}
         playBackSound={playBackSound}
         instanceId={playtimeTarget?.id ?? ""}
         instanceName={playtimeTarget?.name ?? ""}
@@ -988,12 +1031,25 @@ const VersionsView = memo(function VersionsView() {
 
       <CustomizeModal
         isOpen={isCustomizeModalOpen}
-        onClose={() => { setIsCustomizeModalOpen(false); setCustomizeTarget(null); }}
+        onClose={() => {
+          setIsCustomizeModalOpen(false);
+          setCustomizeTarget(null);
+        }}
         playPressSound={playPressSound}
         playBackSound={playBackSound}
         editionName={customizeTarget?.name ?? ""}
-        currentTitleImage={customizeTarget ? customizations[customizeTarget.instanceId]?.titleImage || customizeTarget.titleImage : undefined}
-        currentPanorama={customizeTarget ? customizations[customizeTarget.instanceId]?.panorama || customizeTarget.panorama : undefined}
+        currentTitleImage={
+          customizeTarget
+            ? customizations[customizeTarget.instanceId]?.titleImage ||
+              customizeTarget.titleImage
+            : undefined
+        }
+        currentPanorama={
+          customizeTarget
+            ? customizations[customizeTarget.instanceId]?.panorama ||
+              customizeTarget.panorama
+            : undefined
+        }
         onSave={(updates) => {
           if (customizeTarget) {
             updateCustomization(customizeTarget.instanceId, updates);
@@ -1003,7 +1059,10 @@ const VersionsView = memo(function VersionsView() {
 
       <DownloadDlcModal
         isOpen={isDlcModalOpen}
-        onClose={() => { setIsDlcModalOpen(false); setDlcTargetEdition(null); }}
+        onClose={() => {
+          setIsDlcModalOpen(false);
+          setDlcTargetEdition(null);
+        }}
         playPressSound={playPressSound}
         playBackSound={playBackSound}
         editionName={dlcTargetEdition?.name ?? ""}
