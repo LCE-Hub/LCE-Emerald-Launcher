@@ -4,9 +4,11 @@ import {
   createReadStream,
   existsSync,
   rename,
+  unlinkSync,
 } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import { createHash } from "node:crypto";
+import { Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 const RELEASE_TAG = "android-assets-v1";
@@ -41,10 +43,16 @@ async function download(url, dest) {
   if (!res.ok) {
     throw new Error(`HTTP ${res.status} ${res.statusText} for ${url}`);
   }
+
+  if (!res.body) {
+    throw new Error(`no response body for ${url}`);
+  }
+
   const fileStream = createWriteStream(dest);
   await new Promise((resolve, reject) => {
-    res.body.pipe(fileStream);
-    res.body.on("error", reject);
+    const body = Readable.fromWeb(res.body);
+    body.pipe(fileStream);
+    body.on("error", reject);
     fileStream.on("finish", resolve);
     fileStream.on("error", reject);
   });
@@ -53,16 +61,17 @@ async function download(url, dest) {
 let failed = false;
 for (const asset of ASSETS) {
   const target = path.join(ASSET_DIR, asset.file);
-  const exists = existsSync(target);
-  if (exists) {
+  if (existsSync(target)) {
     const actual = await sha256File(target);
     if (actual === asset.sha256) {
-      console.log(`ok   ${asset.file} (up to date)`);
+      console.log(`okay   ${asset.file} (up to date)`);
       continue;
     }
+
     console.error(
       `error ${asset.file}: sha256 mismatch (expected ${asset.sha256}, got ${actual}); delete it and rerun`,
     );
+
     failed = true;
     continue;
   }
@@ -71,17 +80,31 @@ for (const asset of ASSETS) {
   console.log(`get  ${asset.file} <- ${url}`);
   await mkdir(path.dirname(target), { recursive: true });
   const tmp = target + ".part";
-  await download(url, tmp);
-  const actual = await sha256File(tmp);
-  if (actual !== asset.sha256) {
-    console.error(
-      `error ${asset.file}: downloaded sha256 mismatch (expected ${asset.sha256}, got ${actual})`,
-    );
+  try {
+    await download(url, tmp);
+    const actual = await sha256File(tmp);
+    if (actual !== asset.sha256) {
+      console.error(
+        `error ${asset.file}: downloaded sha256 mismatch (expected ${asset.sha256}, got ${actual})`,
+      );
+
+      failed = true;
+      if (existsSync(tmp)) {
+        unlinkSync(tmp);
+      }
+
+      continue;
+    }
+
+    await rename(tmp, target);
+    console.log(`okay ${asset.file} (downloaded)`);
+  } catch (error) {
+    console.error(`error ${asset.file}: ${error.message}`);
     failed = true;
-    continue;
+    if (existsSync(tmp)) {
+      unlinkSync(tmp);
+    }
   }
-  await rename(tmp, target);
-  console.log(`okay   ${asset.file} (downloaded)`);
 }
 
 process.exit(failed ? 1 : 0);
