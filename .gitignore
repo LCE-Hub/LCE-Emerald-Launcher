@@ -36,3 +36,8 @@ Thumbs.db
 /*.flatpak
 /emerald-repo
 /ignore/*
+
+# Android bundled runtime assets (too large for GitHub; must be present in the working tree)
+/src-tauri/gen/android/app/src/main/assets/imagefs.tar.zst
+/src-tauri/gen/android/app/src/main/assets/proton-*.tar.zst
+
