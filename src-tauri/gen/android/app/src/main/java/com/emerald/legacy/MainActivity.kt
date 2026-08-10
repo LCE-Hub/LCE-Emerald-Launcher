@@ -21,5 +21,8 @@ class MainActivity : TauriActivity() {
     super.onWebViewCreate(webView)
     webView.settings.useWideViewPort = true
     webView.settings.loadWithOverviewMode = true
+    webView.settings.setSupportZoom(false)
+    webView.settings.builtInZoomControls = false
+    webView.settings.displayZoomControls = false
   }
 }

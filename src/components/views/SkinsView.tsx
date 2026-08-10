@@ -66,6 +66,12 @@ const DEFAULT_SKINS: SavedSkin[] = [
   },
   { id: "amy", name: "Amy", url: "/Skins/amy.png", isSlim: true }, //neo: she's the best btw
   { id: "huckle", name: "Huckle", url: "/Skins/huckle.png", isSlim: true },
+  {
+    id: "counterract",
+    name: "CounterrAct",
+    url: "/Skins/counterr.png",
+    isSlim: true,
+  },
 ];
 
 const HeadPreview = memo(function HeadPreview({ src }: { src: string }) {

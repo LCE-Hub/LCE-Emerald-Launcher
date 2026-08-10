@@ -7,6 +7,8 @@ mod playtime;
 mod platform;
 mod networking;
 mod workshop_server;
+#[cfg(target_os = "android")]
+mod android_runtime;
 mod commands;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -81,6 +83,7 @@ pub fn run() {
             config_cmds::load_config,
             download::download_and_install,
             game::open_instance_folder,
+            game::open_container_settings,
             download::cancel_download,
             runners::get_available_runners,
             config_cmds::get_external_palettes,

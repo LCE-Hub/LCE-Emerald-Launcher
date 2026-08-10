@@ -127,6 +127,10 @@ export class TauriService {
     return invoke("open_instance_folder", { instanceId });
   }
 
+  static async openContainerSettings(instanceId: string): Promise<void> {
+    return invoke("open_container_settings", { instanceId });
+  }
+
   static async deleteInstance(instanceId: string): Promise<void> {
     return invoke("delete_instance", { instanceId });
   }

@@ -32,8 +32,31 @@ pub async fn launch_game(
 ) -> Result<(), String> {
     #[cfg(target_os = "android")]
     {
-        let _ = (app, state, instance_id, servers, extra_args);
-        return Err("Launching the game is not implemented on Android. -neo".into());
+        let _ = (state, extra_args);
+        let mut servers = servers;
+        let working_dir = util::get_instance_working_dir(&app, &instance_id);
+        if !working_dir.join("Minecraft.Client.exe").exists() {
+            return Err("Game executable not found in instance folder.".into());
+        }
+
+        let config_val = config::load_config_raw(app.clone());
+        let lce_online = McServer { name: "LCEOnline Game".into(), ip: "127.0.0.1".into(), port: 61000 };
+        if !servers.iter().any(|s| s.ip == lce_online.ip && s.port == lce_online.port) {
+            servers.push(lce_online);
+        }
+        if let Some(ref saved) = config_val.saved_servers {
+            for s in saved {
+                if !servers.iter().any(|existing| existing.ip == s.ip && existing.port == s.port) {
+                    servers.push(s.clone());
+                }
+            }
+        }
+        ensure_server_list(&working_dir, servers);
+
+        crate::android_runtime::launch_bridge(
+            working_dir.to_string_lossy().to_string(),
+            crate::android_runtime::BridgeAction::Play,
+        )
     }
     #[cfg(not(target_os = "android"))]
     launch_game_desktop(app, state, instance_id, servers, extra_args).await
@@ -312,8 +335,37 @@ pub fn check_game_installed(app: AppHandle, instance_id: String) -> bool {
 #[allow(non_snake_case)]
 pub fn open_instance_folder(app: AppHandle, instance_id: String) {
     let folder = util::get_instance_working_dir(&app, &instance_id);
-    if folder.exists() {
-        let _ = app.opener().open_path(folder.to_str().unwrap(), None::<&str>);
+    #[cfg(target_os = "android")]
+    {
+        let _ = std::fs::create_dir_all(&folder);
+        let _ = crate::android_runtime::launch_bridge(
+            folder.to_string_lossy().to_string(),
+            crate::android_runtime::BridgeAction::OpenContainer,
+        );
+    }
+    #[cfg(not(target_os = "android"))]
+    {
+        if folder.exists() {
+            let _ = app.opener().open_path(folder.to_str().unwrap(), None::<&str>);
+        }
+    }
+}
+
+#[tauri::command]
+#[allow(non_snake_case)]
+pub fn open_container_settings(app: AppHandle, instance_id: String) -> Result<(), String> {
+    #[cfg(target_os = "android")]
+    {
+        let folder = util::get_instance_working_dir(&app, &instance_id);
+        crate::android_runtime::launch_bridge(
+            folder.to_string_lossy().to_string(),
+            crate::android_runtime::BridgeAction::OpenSettings,
+        )
+    }
+    #[cfg(not(target_os = "android"))]
+    {
+        let _ = (app, instance_id);
+        Err("Only supported on Android".into())
     }
 }
 

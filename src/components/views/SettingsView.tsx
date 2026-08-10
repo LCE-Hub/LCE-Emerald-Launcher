@@ -43,6 +43,7 @@ const SettingsView = memo(function SettingsView() {
     setLaunchEnvVars,
     skipIntro,
     setSkipIntro,
+    profile,
   } = useConfig();
   const { currentTrack, skipTrack, tracks, playPressSound, playBackSound } =
     useAudio();
@@ -323,6 +324,26 @@ const SettingsView = memo(function SettingsView() {
           setFocusIndex(0);
         },
       });
+      if (isAndroid && profile) {
+        items.push({
+          id: "container_settings",
+          label: "Container Settings",
+          type: "button",
+          onClick: () => {
+            playPressSound();
+            TauriService.openContainerSettings(profile).catch(console.error);
+          },
+        });
+        items.push({
+          id: "open_container",
+          label: "Open Container",
+          type: "button",
+          onClick: () => {
+            playPressSound();
+            TauriService.openInstanceFolder(profile).catch(console.error);
+          },
+        });
+      }
       for (const action of pluginSettingsActions) {
         items.push({
           id: action.id,
@@ -582,6 +603,7 @@ const SettingsView = memo(function SettingsView() {
     launchPrefix,
     launchEnvVars,
     skipIntro,
+    profile,
   ]);
 
   useEffect(() => {

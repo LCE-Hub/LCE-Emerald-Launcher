@@ -9,6 +9,7 @@ import {
 } from "react";
 import { TauriService, type CustomEdition } from "../services/TauriService";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { usePlatform } from "./usePlatform";
 import type { Edition } from "../types/edition";
 
 async function imageUrlToBase64(url: string): Promise<string> {
@@ -149,6 +150,7 @@ export function useGameManager({
   setCustomizations,
   extraLaunchArgs,
 }: GameManagerProps) {
+  const { isAndroid } = usePlatform();
   const [installs, setInstalls] = useState<string[]>([]);
   const [isGameRunning, setIsGameRunning] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState<
@@ -401,7 +403,7 @@ export function useGameManager({
       gameLogRef.current = true;
       setError(null);
       setGameLog(log);
-      getCurrentWindow().unminimize();
+      if (!isAndroid) getCurrentWindow().unminimize();
     });
     return () => {
       unlistenDownload.then((u) => u());
@@ -410,7 +412,7 @@ export function useGameManager({
       unlistenRetry.then((u) => u());
       unlistenGameLog.then((u) => u());
     };
-  }, [customEditions, checkInstalls]);
+  }, [customEditions, checkInstalls, isAndroid]);
 
   const downloadRunner = useCallback(
     async (name: string, url: string) => {
@@ -508,7 +510,7 @@ export function useGameManager({
     setError(null);
     setIsGameRunning(true);
     try {
-      getCurrentWindow().minimize();
+      if (!isAndroid) getCurrentWindow().minimize();
       const currentEdition = editions.find((e) => e.instanceId === profile);
       await TauriService.launchGame(
         profile,
@@ -537,7 +539,7 @@ export function useGameManager({
     } finally {
       setIsGameRunning(false);
     }
-  }, [isGameRunning, profile, extraLaunchArgs]);
+  }, [isGameRunning, profile, extraLaunchArgs, isAndroid]);
 
   const stopGame = useCallback(async () => {
     try {

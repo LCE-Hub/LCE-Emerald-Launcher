@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- AndroidTV support -->
@@ -9,7 +10,9 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/Theme.emerald_legacy_launcher"
-        android:usesCleartextTraffic="${usesCleartextTraffic}">
+        android:extractNativeLibs="true"
+        android:usesCleartextTraffic="${usesCleartextTraffic}"
+        tools:replace="android:label,android:theme">
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
             android:launchMode="singleTask"
@@ -32,7 +35,8 @@
           android:name="androidx.core.content.FileProvider"
           android:authorities="${applicationId}.fileprovider"
           android:exported="false"
-          android:grantUriPermissions="true">
+          android:grantUriPermissions="true"
+          tools:replace="android:authorities">
           <meta-data
             android:name="android.support.FILE_PROVIDER_PATHS"
             android:resource="@xml/file_paths" />
