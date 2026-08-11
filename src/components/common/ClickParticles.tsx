@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useConfig } from "../../context/LauncherContext";
 
 const SGA_CHARS = "abcdefghijklmnopqrstuvwxyz".split("");
 
@@ -15,7 +16,11 @@ interface Particle {
 export const ClickParticles: React.FC = React.memo(() => {
   const [bursts, setBursts] = useState<Particle[]>([]);
 
+  const { animationsEnabled } = useConfig();
+
   useEffect(() => {
+    if (!animationsEnabled) return;
+
     const handlePressSound = (e: MouseEvent) => {
       const newParticles: Particle[] = [];
       const particleCount = 8;
@@ -40,8 +45,14 @@ export const ClickParticles: React.FC = React.memo(() => {
 
     window.addEventListener("mousedown", handlePressSound);
     return () => window.removeEventListener("mousedown", handlePressSound);
-  }, []);
+    }, [animationsEnabled]);
 
+    useEffect(() => {
+      if (!animationsEnabled) {
+        setBursts([]);
+      }
+    }, [animationsEnabled])
+    
   return (
     <div className="fixed inset-0 pointer-events-none z-[9999] overflow-hidden">
       {bursts.map((p) => (
