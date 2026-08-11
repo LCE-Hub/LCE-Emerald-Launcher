@@ -172,6 +172,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - name: setup pnpm
         uses: pnpm/action-setup@v4
         with:
