@@ -46,6 +46,15 @@ class LceAuthActivity : AppCompatActivity() {
                     request: WebResourceRequest
                 ): Boolean = handleAuthUrl(request.url.toString())
 
+                override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
+                    handleAuthUrl(url)
+                }
+
+                override fun onPageFinished(view: WebView, url: String) {
+                    progressBar.visibility = View.GONE
+                }
+            }
+            webChromeClient = object : android.webkit.WebChromeClient() {
                 override fun onCreateWindow(
                     view: WebView,
                     isDialog: Boolean,
@@ -56,14 +65,6 @@ class LceAuthActivity : AppCompatActivity() {
                     transport.webView = webView
                     resultMsg.sendToTarget()
                     return true
-                }
-
-                override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
-                    handleAuthUrl(url)
-                }
-
-                override fun onPageFinished(view: WebView, url: String) {
-                    progressBar.visibility = View.GONE
                 }
             }
         }
@@ -110,7 +111,7 @@ class LceAuthActivity : AppCompatActivity() {
         if (webView.canGoBack()) {
             webView.goBack()
         } else {
-            setResult(Activity.RESULT_CANCELED)
+            setResult(RESULT_CANCELED)
             super.onBackPressed()
         }
     }
