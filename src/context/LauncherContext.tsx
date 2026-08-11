@@ -165,7 +165,6 @@ export function LauncherProvider({ children }: { children: React.ReactNode }) {
         const unlistenClose = await listen("tauri://close-requested", async () => {
           setIsWindowVisible(false);
           if (config.rpcEnabled) {
-            // the launcher never
             await RpcService.StopRPC();
           }
         });
