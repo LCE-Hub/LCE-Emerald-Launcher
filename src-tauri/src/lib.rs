@@ -7,6 +7,7 @@ mod playtime;
 mod platform;
 mod networking;
 mod workshop_server;
+mod lce_auth;
 #[cfg(target_os = "android")]
 mod android_runtime;
 mod commands;
@@ -36,6 +37,7 @@ pub fn run() {
     let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_deep_link::init())
         .plugin(webview_deep_link_interceptor())
+        .plugin(lce_auth::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_gamepad::init())
         .plugin(tauri_plugin_opener::init());
@@ -136,6 +138,7 @@ pub fn run() {
             relay::stop_proxy,
             relay::stop_all_proxies,
             relay::join_game,
+            lce_auth::start_lce_auth,
             plugins::get_plugins_dir,
             plugins::list_directory,
             plugins::create_plugin_dir,

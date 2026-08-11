@@ -48,7 +48,7 @@ pub fn launch_bridge(instance_path: String, action: BridgeAction) -> Result<(), 
                 &intent,
                 "addFlags",
                 "(I)Landroid/content/Intent;",
-                &[JValue::Int(0x10000000 as jint)],
+                &[JValue::Int(0x10000000 as jint)], //neo: FLAG_ACTIVITY_NEW_TASK
             )?;
 
             env.call_method(

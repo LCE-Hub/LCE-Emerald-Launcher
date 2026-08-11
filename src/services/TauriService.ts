@@ -238,6 +238,10 @@ export class TauriService {
     return invoke("plugin:opener|open_url", { url });
   }
 
+  static async startLceOnlineAuth(): Promise<string> {
+    return invoke("start_lce_auth");
+  }
+
   static async restartLauncher(): Promise<void> {
     return invoke("restart_launcher");
   }
