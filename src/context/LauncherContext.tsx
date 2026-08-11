@@ -7,6 +7,7 @@ import { useSkinSync } from "../hooks/useSkinSync";
 import { useDiscordRPC } from "../hooks/useDiscordRPC";
 import { useGamepad } from "../hooks/useGamepad";
 import { useUpdateCheck } from "../hooks/useUpdateCheck";
+import RpcService from "../services/RpcService";
 
 interface UIContextType {
   activeView: string;
@@ -161,8 +162,11 @@ export function LauncherProvider({ children }: { children: React.ReactNode }) {
     const setupVisibilityDetection = async () => {
       try {
         const { listen } = await import("@tauri-apps/api/event");
-        const unlistenClose = await listen("tauri://close-requested", () => {
+        const unlistenClose = await listen("tauri://close-requested", async () => {
           setIsWindowVisible(false);
+          if (config.rpcEnabled) {
+            await RpcService.StopRPC();
+          }
         });
 
         const unlistenShow = await listen("tauri://window-shown", () => {
@@ -190,7 +194,7 @@ export function LauncherProvider({ children }: { children: React.ReactNode }) {
     };
 
     setupVisibilityDetection();
-  }, []);
+  }, [config.rpcEnabled]);
 
   const uiValue = useMemo(() => ({
     activeView, setActiveView, showIntro, setShowIntro,
