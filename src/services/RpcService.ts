@@ -1,4 +1,4 @@
-import { setActivity, start } from "tauri-plugin-drpc";
+import { setActivity, start, clearActivity, stop } from "tauri-plugin-drpc";
 import {
   Activity,
   ActivityType,
@@ -71,6 +71,19 @@ class RPC {
     } catch (e) {
       console.error("Failed to set RPC activity:", e);
     }
+  }
+
+  public async StopRPC() {
+      try {
+        await clearActivity();
+        await stop();
+      } catch (e) {
+        // no need to handle errors here as the launcher will close anyways!
+      } finally {
+        this.initialized = false;
+        this.initializationPromise = null;
+        sessionStorage.removeItem("lce_rpc_started");
+      }
   }
 }
 
