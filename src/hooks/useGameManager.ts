@@ -31,7 +31,7 @@ export const BASE_EDITIONS = [
     id: "legacy_evolved",
     name: "neoLegacy",
     desc: "Backporting newer title updates and Minigames back to LCE",
-    url: "https://bucket.ibatv.xyz/neolegacy/Release.zip",
+    url: "https://git.neolegacy.dev/neoStudiosLCE/neoLegacy/releases/download/latest/neoLegacyWindows64.zip", //neo: fuck IBA (Julia)
     titleImage: "/images/minecraft_title_neoLegacy.png",
     supportsSlimSkins: true,
     logo: "/images/neoLegacy.png",
@@ -106,7 +106,7 @@ const PARTNERSHIP_SERVERS = [
     name: "LapboardMC",
     ip: "104.168.125.227",
     port: 4444,
-  }
+  },
 ];
 
 interface GameManagerProps {
