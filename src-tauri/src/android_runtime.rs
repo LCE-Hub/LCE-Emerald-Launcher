@@ -4,7 +4,11 @@ pub enum BridgeAction {
     OpenSettings,
 }
 
-pub fn launch_bridge(instance_path: String, action: BridgeAction) -> Result<(), String> {
+pub fn launch_bridge(
+    instance_path: String,
+    action: BridgeAction,
+    extra_args: Vec<String>,
+) -> Result<(), String> {
     #[cfg(target_os = "android")]
     {
         use jni::objects::{JObject, JValue};
@@ -16,6 +20,7 @@ pub fn launch_bridge(instance_path: String, action: BridgeAction) -> Result<(), 
             activity: &JObject,
             action: &str,
             instance_path: &str,
+            extra_args: &[String],
         ) -> jni::errors::Result<()> {
             let bridge_class =
                 find_class(env, activity, "dev.lcehub.emerald.LauncherBridgeActivity".to_string())?;
@@ -44,6 +49,16 @@ pub fn launch_bridge(instance_path: String, action: BridgeAction) -> Result<(), 
                 &[(&extra_path).into(), (&path_str).into()],
             )?;
 
+            let extra_args_key = env.new_string("extra_args")?;
+            let extra_args_json =
+                env.new_string(&serde_json::to_string(extra_args).unwrap_or_else(|_| "[]".into()))?;
+            env.call_method(
+                &intent,
+                "putExtra",
+                "(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;",
+                &[(&extra_args_key).into(), (&extra_args_json).into()],
+            )?;
+
             env.call_method(
                 &intent,
                 "addFlags",
@@ -68,7 +83,7 @@ pub fn launch_bridge(instance_path: String, action: BridgeAction) -> Result<(), 
         }
         .to_string();
         dispatch(move |env, activity, _webview| {
-            if let Err(e) = start_bridge(env, activity, &action_str, &instance_path) {
+            if let Err(e) = start_bridge(env, activity, &action_str, &instance_path, &extra_args) {
                 eprintln!("[android_bridge] failed to start activity: {e}");
             }
         });
@@ -77,7 +92,7 @@ pub fn launch_bridge(instance_path: String, action: BridgeAction) -> Result<(), 
     }
     #[cfg(not(target_os = "android"))]
     {
-        let _ = (instance_path, action);
+        let _ = (instance_path, action, extra_args);
         Err("Only supported on Android".into())
     }
 }

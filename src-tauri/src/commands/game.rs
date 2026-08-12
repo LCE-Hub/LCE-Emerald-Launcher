@@ -32,7 +32,7 @@ pub async fn launch_game(
 ) -> Result<(), String> {
     #[cfg(target_os = "android")]
     {
-        let _ = (state, extra_args);
+        let _ = state;
         let mut servers = servers;
         let working_dir = util::get_instance_working_dir(&app, &instance_id);
         if !working_dir.join("Minecraft.Client.exe").exists() {
@@ -56,6 +56,7 @@ pub async fn launch_game(
         crate::android_runtime::launch_bridge(
             working_dir.to_string_lossy().to_string(),
             crate::android_runtime::BridgeAction::Play,
+            extra_args,
         )
     }
     #[cfg(not(target_os = "android"))]
@@ -341,6 +342,7 @@ pub fn open_instance_folder(app: AppHandle, instance_id: String) {
         let _ = crate::android_runtime::launch_bridge(
             folder.to_string_lossy().to_string(),
             crate::android_runtime::BridgeAction::OpenContainer,
+            Vec::new(),
         );
     }
     #[cfg(not(target_os = "android"))]
@@ -360,6 +362,7 @@ pub fn open_container_settings(app: AppHandle, instance_id: String) -> Result<()
         crate::android_runtime::launch_bridge(
             folder.to_string_lossy().to_string(),
             crate::android_runtime::BridgeAction::OpenSettings,
+            Vec::new(),
         )
     }
     #[cfg(not(target_os = "android"))]
