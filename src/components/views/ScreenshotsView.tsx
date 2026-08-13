@@ -274,7 +274,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-black/90 flex flex-col items-center justify-center p-8 backdrop-blur-md"
+            className="fixed inset-0 z-[200] bg-black/90 flex flex-col items-center justify-center p-4 sm:p-8 backdrop-blur-md"
             onClick={() => setSelectedScreenshot(null)}
           >
             <motion.div
@@ -282,7 +282,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative max-w-5xl w-full flex flex-col items-center border-2 border-[#555] rounded-sm p-2"
+              className="relative max-w-5xl w-full max-h-[92vh] overflow-y-auto flex flex-col items-center border-2 border-[#555] rounded-sm p-2"
               style={{
                 backgroundImage: "url('/images/frame_background.png')",
                 backgroundSize: "100% 100%",
@@ -290,11 +290,11 @@ const ScreenshotsView = memo(function ScreenshotsView() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="relative w-full aspect-video bg-black/60 overflow-hidden border border-[#444] rounded-sm">
+              <div className="relative w-full aspect-video max-h-[55vh] bg-black/60 overflow-hidden border border-[#444] rounded-sm">
                 <ScreenshotImage
                   path={selectedScreenshot.path}
                   className="w-full h-full object-contain"
-                  fallbackSrc="/images/Pack_Icon.png"
+                  fallbackSrc="/images/Folder_Icon.png"
                 />
                 <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between pointer-events-none">
                   <div className="flex flex-col gap-1">
@@ -318,7 +318,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                 </div>
               </div>
 
-              <div className="flex gap-6 mt-6 mb-2 w-full justify-center px-6">
+              <div className="flex flex-wrap gap-4 sm:gap-6 mt-4 sm:mt-6 mb-2 w-full justify-center px-4 sm:px-6">
                 <button
                   onMouseEnter={() => setModalFocusIndex(0)}
                   onClick={() => handleOpenFolder(selectedScreenshot)}
@@ -395,7 +395,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="w-[420px] p-6 border-2 border-[#555] rounded-sm flex flex-col items-center"
+              className="w-[420px] max-w-[92vw] p-4 sm:p-6 border-2 border-[#555] rounded-sm flex flex-col items-center"
               style={{
                 backgroundImage: "url('/images/frame_background.png')",
                 backgroundSize: "100% 100%",

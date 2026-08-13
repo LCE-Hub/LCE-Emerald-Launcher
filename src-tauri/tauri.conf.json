@@ -10,6 +10,15 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "security": {
+      "assetProtocol": {
+        "enable": true,
+        "scope": {
+          "allow": ["**"],
+          "requireLiteralLeadingDot": false
+        }
+      }
+    },
     "windows": [
       {
         "label": "main",
