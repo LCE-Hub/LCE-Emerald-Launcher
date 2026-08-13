@@ -724,10 +724,6 @@ const WorkshopView = memo(function WorkshopView({
       transition={{ duration: config.animationsEnabled ? 0.3 : 0 }}
       className="flex flex-col items-center w-full h-full max-h-full relative font-['Mojangles'] text-white select-none outline-none focus:outline-none"
     >
-      <h2 className="text-2xl text-white mc-text-shadow mt-4 mb-6 border-b-2 border-[#373737] pb-2 w-[30%] max-w-[250px] text-center tracking-widest uppercase opacity-80 font-bold whitespace-nowrap px-4">
-        Workshop
-      </h2>
-
       <div className="flex items-center justify-center gap-0 mb-4 w-full px-4">
         <div
           className="flex items-center gap-1 px-[11px] py-1 rounded-sm bg-[#696969] border-2 border-black"
@@ -2039,9 +2035,11 @@ function InstallModal({
     const targets: { id: string; zips: number }[] = [];
     for (const depId of dependencies) {
       const dep = allPackages.find((p) => p.id === depId);
-      if (dep?.zips) targets.push({ id: dep.id, zips: Object.keys(dep.zips).length });
+      if (dep?.zips)
+        targets.push({ id: dep.id, zips: Object.keys(dep.zips).length });
     }
-    if (pkg.zips) targets.push({ id: pkg.id, zips: Object.keys(pkg.zips).length });
+    if (pkg.zips)
+      targets.push({ id: pkg.id, zips: Object.keys(pkg.zips).length });
     return targets;
   }, [dependencies, allPackages, pkg.zips, pkg.id]);
 
@@ -2266,7 +2264,9 @@ function InstallModal({
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[11px] text-[#FFFF55] mc-text-shadow truncate">
                     {progressLabel ||
-                      (isPluginTab ? "Downloading plugin files" : "Downloading assets")}
+                      (isPluginTab
+                        ? "Downloading plugin files"
+                        : "Downloading assets")}
                   </span>
                   <span className="text-[11px] text-[#FFFF55] mc-text-shadow shrink-0">
                     {Math.floor(isPluginTab ? progress : overallProgress)}%

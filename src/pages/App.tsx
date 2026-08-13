@@ -290,6 +290,21 @@ export default function App() {
   const selectedVersionName = selectedEdition?.name ?? "";
   const hasAnyInstall = game.installs.length > 0;
   const titleImage = selectedEdition?.titleImage ?? "/images/MenuTitle.png";
+  const TITLE_HIDDEN_VIEWS = new Set([
+    //neo: why an entire Set for that? yes. the answer is yes.
+    "workshop",
+    "lceonline",
+    "devtools",
+    "guides",
+    "pck-editor",
+    "arc-editor",
+    "loc-editor",
+    "grf-editor",
+    "col-editor",
+    "options-editor",
+    "model-editor",
+    "swf-editor",
+  ]);
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
     document.addEventListener("contextmenu", handleContextMenu);
@@ -492,12 +507,15 @@ export default function App() {
                   imageRendering: "pixelated",
                 }}
                 onMouseEnter={(e) =>
-                  ((e.currentTarget as HTMLButtonElement).style.backgroundImage =
+                  ((
+                    e.currentTarget as HTMLButtonElement
+                  ).style.backgroundImage =
                     "url('/images/Button_Square_Highlighted.png')")
                 }
                 onMouseLeave={(e) =>
-                  ((e.currentTarget as HTMLButtonElement).style.backgroundImage =
-                    "url('/images/Button_Square.png')")
+                  ((
+                    e.currentTarget as HTMLButtonElement
+                  ).style.backgroundImage = "url('/images/Button_Square.png')")
                 }
               >
                 <svg
@@ -579,35 +597,37 @@ export default function App() {
 
           <div className="shrink-0 flex justify-center py-4 relative w-full pt-4">
             <div className="relative w-full max-w-135 flex justify-center">
-              {activeView !== "credits" && (
-                <motion.img
-                  layoutId="mainLogo"
-                  src={titleImage}
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 25,
-                  }}
-                  className="w-full drop-shadow-[0_8px_6px_rgba(0,0,0,0.8)] pointer-events-none"
-                  style={{ imageRendering: "pixelated" }}
-                />
-              )}
-              {activeView !== "credits" && (
-                <motion.div
-                  {...uiFade}
-                  className="absolute bottom-[20%] right-[5%] w-0 h-0 flex items-center justify-center"
-                >
-                  <div
-                    onClick={audio.cycleSplash}
-                    className="mc-splash text-[#FFFF55] text-[28px] z-100 cursor-pointer whitespace-nowrap"
-                    style={{ textShadow: "2px 2px 0px #3F3F00" }}
+              {activeView !== "credits" &&
+                !TITLE_HIDDEN_VIEWS.has(activeView) && (
+                  <motion.img
+                    layoutId="mainLogo"
+                    src={titleImage}
+                    transition={{
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 25,
+                    }}
+                    className="w-full drop-shadow-[0_8px_6px_rgba(0,0,0,0.8)] pointer-events-none"
+                    style={{ imageRendering: "pixelated" }}
+                  />
+                )}
+              {activeView !== "credits" &&
+                !TITLE_HIDDEN_VIEWS.has(activeView) && (
+                  <motion.div
+                    {...uiFade}
+                    className="absolute bottom-[20%] right-[5%] w-0 h-0 flex items-center justify-center"
                   >
-                    {audio.splashIndex === -1
-                      ? `Welcome ${config.username}!`
-                      : audio.splashes[audio.splashIndex]}
-                  </div>
-                </motion.div>
-              )}
+                    <div
+                      onClick={audio.cycleSplash}
+                      className="mc-splash text-[#FFFF55] text-[28px] z-100 cursor-pointer whitespace-nowrap"
+                      style={{ textShadow: "2px 2px 0px #3F3F00" }}
+                    >
+                      {audio.splashIndex === -1
+                        ? `Welcome ${config.username}!`
+                        : audio.splashes[audio.splashIndex]}
+                    </div>
+                  </motion.div>
+                )}
               {activeView === "main" &&
                 hasAnyInstall &&
                 titleImage === "/images/MenuTitle.png" && (
