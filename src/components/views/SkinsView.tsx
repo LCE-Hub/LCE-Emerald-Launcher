@@ -72,6 +72,12 @@ const DEFAULT_SKINS: SavedSkin[] = [
     url: "/Skins/counterr.png",
     isSlim: true,
   },
+  {
+    id: "tranqlmao",
+    name: "Tranq",
+    url: "/Skins/tranq.png",
+    isSlim: false,
+  },
 ];
 
 const HeadPreview = memo(function HeadPreview({ src }: { src: string }) {
