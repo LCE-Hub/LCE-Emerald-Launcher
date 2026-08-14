@@ -37,6 +37,7 @@ pub fn load_config_raw(app: AppHandle) -> AppConfig {
         extra_launch_args: None,
         launch_prefix: None,
         launch_env_vars: None,
+        instance_launch_args: None,
     }
 }
 

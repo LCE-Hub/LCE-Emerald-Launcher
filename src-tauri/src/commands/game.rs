@@ -28,8 +28,9 @@ pub async fn launch_game(
     state: State<'_, GameState>,
     instance_id: String,
     servers: Vec<McServer>,
-    extra_args: Vec<String>,
+    mut extra_args: Vec<String>,
 ) -> Result<(), String> {
+    extra_args.extend(load_instance_args(&app, &instance_id));
     #[cfg(target_os = "android")]
     {
         let _ = state;
@@ -405,6 +406,21 @@ pub fn get_instance_path(app: AppHandle, instance_id: String) -> String {
     util::get_instance_working_dir(&app, &instance_id)
         .to_string_lossy()
         .to_string()
+}
+
+fn load_instance_args(app: &AppHandle, instance_id: &str) -> Vec<String> {
+    let config_val = config::load_config_raw(app.clone());
+    config_val
+        .instance_launch_args
+        .and_then(|m| m.get(instance_id).cloned())
+        .map(|entry| entry.args)
+        .unwrap_or_default()
+}
+
+#[tauri::command]
+pub fn get_instance_args_schema(app: AppHandle, instance_id: String) -> Option<String> {
+    let dir = util::get_instance_working_dir(&app, &instance_id);
+    fs::read_to_string(dir.join("Arguments.Schema.json")).ok()
 }
 
 #[tauri::command]

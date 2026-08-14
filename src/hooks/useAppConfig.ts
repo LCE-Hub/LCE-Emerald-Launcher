@@ -26,6 +26,9 @@ export function useAppConfig() {
   const [launchPrefix, setLaunchPrefix] = useState<string | undefined>();
   const [launchEnvVars, setLaunchEnvVars] = useState<Record<string, string> | undefined>();
   const [skipIntro, setSkipIntro] = useLocalStorage("lce-skip-intro", false);
+  const [instanceLaunchArgs, setInstanceLaunchArgs] = useState<
+    Record<string, { values: Record<string, unknown>; args: string[] }>
+  >({});
   useEffect(() => {
     TauriService.loadConfig().then((config) => {
       if (config.username) setUsername(config.username);
@@ -49,6 +52,7 @@ export function useAppConfig() {
       if (config.launchPrefix) setLaunchPrefix(config.launchPrefix);
       if (config.launchEnvVars) setLaunchEnvVars(config.launchEnvVars);
       if (config.skipIntro !== undefined) setSkipIntro(config.skipIntro);
+      if (config.instanceLaunchArgs) setInstanceLaunchArgs(config.instanceLaunchArgs);
       setIsLoaded(true);
     });
   }, []);
@@ -76,9 +80,10 @@ export function useAppConfig() {
         launchPrefix,
         launchEnvVars,
         skipIntro,
+        instanceLaunchArgs,
       }).catch(console.error);
     }
-  }, [username, theme, linuxRunner, perfBoost, profile, customEditions, customPaths, customizations, animationsEnabled, vfxEnabled, rpcEnabled, startFullscreen, musicVol, sfxVol, legacyMode, mangohudEnabled, extraLaunchArgs, launchPrefix, launchEnvVars, skipIntro, isLoaded]);
+  }, [username, theme, linuxRunner, perfBoost, profile, customEditions, customPaths, customizations, animationsEnabled, vfxEnabled, rpcEnabled, startFullscreen, musicVol, sfxVol, legacyMode, mangohudEnabled, extraLaunchArgs, launchPrefix, launchEnvVars, skipIntro, isLoaded, instanceLaunchArgs]);
 
   return {
     username,
@@ -128,5 +133,7 @@ export function useAppConfig() {
     setLaunchEnvVars,
     skipIntro,
     setSkipIntro,
+    instanceLaunchArgs,
+    setInstanceLaunchArgs,
   };
 }

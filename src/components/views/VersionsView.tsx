@@ -7,6 +7,8 @@ import ImportWorldModal from "../modals/ImportWorldModal";
 import PlaytimeModal from "../modals/PlaytimeModal";
 import CustomizeModal from "../modals/CustomizeModal";
 import DownloadDlcModal from "../modals/DownloadDlcModal";
+import OptionsModal from "../modals/OptionsModal";
+import { parseSchema } from "../../utils/argsSchema";
 import {
   useUI,
   useConfig,
@@ -64,6 +66,8 @@ const VersionsView = memo(function VersionsView() {
     profile: selectedProfile,
     setProfile: setSelectedProfile,
     animationsEnabled,
+    instanceLaunchArgs,
+    setInstanceLaunchArgs,
   } = useConfig();
   const { playPressSound, playBackSound } = useAudio();
   const {
@@ -119,12 +123,30 @@ const VersionsView = memo(function VersionsView() {
   const [dlcTargetEdition, setDlcTargetEdition] = useState<Edition | null>(
     null,
   );
+  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
+  const [optionsTarget, setOptionsTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [argsSchemas, setArgsSchemas] = useState<Record<string, boolean>>({});
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const ITEM_COUNT = editions.length + 3;
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (document.activeElement?.tagName === "INPUT") return;
+      if (
+        isImportModalOpen ||
+        isSetUidModalOpen ||
+        isImportWorldModalOpen ||
+        isPlaytimeModalOpen ||
+        isCustomizeModalOpen ||
+        isDlcModalOpen ||
+        isOptionsModalOpen ||
+        deleteConfirmEdition
+      ) {
+        return;
+      }
 
       if (e.key === "Escape" || e.key === "Backspace") {
         playBackSound();
@@ -213,6 +235,14 @@ const VersionsView = memo(function VersionsView() {
     handleCancelDownload,
     addToSteam,
     isDayTime,
+    isImportModalOpen,
+    isSetUidModalOpen,
+    isImportWorldModalOpen,
+    isPlaytimeModalOpen,
+    isCustomizeModalOpen,
+    isDlcModalOpen,
+    isOptionsModalOpen,
+    deleteConfirmEdition,
   ]);
 
   useEffect(() => {
@@ -241,6 +271,29 @@ const VersionsView = memo(function VersionsView() {
       setPlaytimeMap(map);
     };
     fetchPlaytimes();
+  }, [installedVersions]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const checkSchemas = async () => {
+      const map: Record<string, boolean> = {};
+      await Promise.all(
+        installedVersions.map(async (id) => {
+          try {
+            const schema = await TauriService.getInstanceArgsSchema(id);
+            map[id] = !!schema && parseSchema(schema) !== null;
+          } catch (e) {
+            console.error(e);
+            map[id] = false;
+          }
+        }),
+      );
+      if (!cancelled) setArgsSchemas(map);
+    };
+    checkSchemas();
+    return () => {
+      cancelled = true;
+    };
   }, [installedVersions]);
 
   const handleEditionClick = (edition: Edition, index: number) => {
@@ -614,6 +667,42 @@ const VersionsView = memo(function VersionsView() {
                             Download DLC
                           </button>
                         ) : null}
+                        {argsSchemas[edition.instanceId] && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playPressSound();
+                              setOptionsTarget({
+                                id: edition.instanceId,
+                                name: edition.name,
+                              });
+                              setIsOptionsModalOpen(true);
+                              setOpenMenuId(null);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs text-[#dddddd] flex items-center gap-2 mc-text-shadow"
+                          >
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              className="w-3.5 h-3.5"
+                            >
+                              <line x1="4" y1="21" x2="4" y2="14" />
+                              <line x1="4" y1="10" x2="4" y2="3" />
+                              <line x1="12" y1="21" x2="12" y2="12" />
+                              <line x1="12" y1="8" x2="12" y2="3" />
+                              <line x1="20" y1="21" x2="20" y2="16" />
+                              <line x1="20" y1="12" x2="20" y2="3" />
+                              <line x1="1" y1="14" x2="7" y2="14" />
+                              <line x1="9" y1="8" x2="15" y2="8" />
+                              <line x1="17" y1="16" x2="23" y2="16" />
+                            </svg>
+                            Options
+                          </button>
+                        )}
                         {Array.isArray(edition.branches) &&
                           edition.branches.length > 0 && (
                             <button
@@ -1068,6 +1157,29 @@ const VersionsView = memo(function VersionsView() {
         editionName={dlcTargetEdition?.name ?? ""}
         instanceId={dlcTargetEdition?.instanceId ?? ""}
         officialDLC={dlcTargetEdition?.officialDLC ?? ""}
+      />
+
+      <OptionsModal
+        isOpen={isOptionsModalOpen}
+        onClose={() => {
+          setIsOptionsModalOpen(false);
+          setOptionsTarget(null);
+        }}
+        playPressSound={playPressSound}
+        playBackSound={playBackSound}
+        instanceId={optionsTarget?.id ?? ""}
+        instanceName={optionsTarget?.name ?? ""}
+        savedValues={
+          optionsTarget
+            ? instanceLaunchArgs[optionsTarget.id]?.values
+            : undefined
+        }
+        onSave={(instanceId, values, args) => {
+          setInstanceLaunchArgs((prev) => ({
+            ...prev,
+            [instanceId]: { values, args },
+          }));
+        }}
       />
 
       {deleteConfirmEdition && (

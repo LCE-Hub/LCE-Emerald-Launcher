@@ -124,6 +124,7 @@ pub fn run() {
             game::get_instance_path,
             game::get_playtime,
             game::get_playtime_daily,
+            game::get_instance_args_schema,
             #[cfg(desktop)]
             game::backup_instance,
             #[cfg(desktop)]

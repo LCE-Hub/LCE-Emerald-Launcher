@@ -48,6 +48,10 @@ export interface AppConfig {
   customizations?: Record<string, { titleImage?: string; panorama?: string }>;
   customPaths?: Record<string, string>;
   skipIntro?: boolean;
+  instanceLaunchArgs?: Record<
+    string,
+    { values: Record<string, unknown>; args: string[] }
+  >;
 }
 
 export interface ThemePalette {
@@ -385,6 +389,10 @@ export class TauriService {
 
   static async getInstancePath(instanceId: string): Promise<string> {
     return invoke("get_instance_path", { instanceId });
+  }
+
+  static async getInstanceArgsSchema(instanceId: string): Promise<string | null> {
+    return invoke("get_instance_args_schema", { instanceId });
   }
 
   static async readScreenshotAsDataUrl(path: string): Promise<string> {

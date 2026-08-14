@@ -71,7 +71,7 @@ export function LauncherProvider({ children }: { children: React.ReactNode }) {
     configRaw.customizations,
     configRaw.legacyMode, configRaw.animationsEnabled, configRaw.mangohudEnabled,
     configRaw.extraLaunchArgs, configRaw.launchPrefix, configRaw.launchEnvVars, configRaw.startFullscreen,
-    configRaw.skipIntro,
+    configRaw.skipIntro, configRaw.instanceLaunchArgs,
   ]);
 
   const game = useMemo(() => gameRaw, [
@@ -145,6 +145,7 @@ export function LauncherProvider({ children }: { children: React.ReactNode }) {
         launchEnvVars: config.launchEnvVars,
 				startFullscreen: config.startFullscreen,
 				skipIntro: config.skipIntro,
+        instanceLaunchArgs: config.instanceLaunchArgs,
       }).catch(console.error);
     }
   }, [
@@ -155,7 +156,7 @@ export function LauncherProvider({ children }: { children: React.ReactNode }) {
     config.rpcEnabled, config.musicVol, config.sfxVol, config.legacyMode,
     config.mangohudEnabled, config.extraLaunchArgs, config.launchPrefix,
     config.launchEnvVars, config.isLoaded, config.startFullscreen,
-    config.skipIntro,
+    config.skipIntro, config.instanceLaunchArgs,
   ]);
 
   useEffect(() => {
