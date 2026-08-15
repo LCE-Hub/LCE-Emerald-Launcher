@@ -49,6 +49,17 @@ export const BASE_EDITIONS = [
     logo: "/images/revelations.png",
   },
   {
+    id: "cafeberry",
+    name: "Cafeberry",
+    desc: "Project aiming to faithfully backport TUs, add cross-play and more!",
+    url: "https://gitea.str1k3r.xyz/cafeberry/cafeberry/releases/download/latest/LCEWindows64.zip",
+    titleImage: "/images/MenuTitle.png", //neo: TODO: add Cafeberry title image
+    supportsSlimSkins: false,
+    logo: "", //neo: TODO: add Cafeberry logo
+    panorama: "vanilla_tu24",
+    lceOnline: false, //neo: for now.
+  },
+  {
     id: "360revived",
     name: "360 Revived",
     desc: "PC port of Xbox 360 Edition TU19",
