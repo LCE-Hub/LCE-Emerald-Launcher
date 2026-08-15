@@ -18,6 +18,7 @@ import {
 import { ScreenshotImage } from "../common/ScreenshotImage";
 import { usePlatform } from "../../hooks/usePlatform";
 import type { Edition } from "../../types/edition";
+import { HIDDEN_INSTANCE_URL } from "../../types/edition";
 interface DeleteConfirmButtonProps {
   label: string;
   onClick: () => void;
@@ -90,6 +91,11 @@ const VersionsView = memo(function VersionsView() {
   } = useGame();
   const { isDayTime } = useConfig();
   const { isAndroid } = usePlatform();
+  const visibleEditions = editions.filter(
+    (e) =>
+      e.url !== HIDDEN_INSTANCE_URL ||
+      installedVersions.includes(e.instanceId),
+  );
   const [focusIndex, setFocusIndex] = useState<number>(0);
   const [focusBtn, setFocusBtn] = useState<number>(0);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -131,7 +137,7 @@ const VersionsView = memo(function VersionsView() {
   const [argsSchemas, setArgsSchemas] = useState<Record<string, boolean>>({});
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const ITEM_COUNT = editions.length + 3;
+  const ITEM_COUNT = visibleEditions.length + 3;
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (document.activeElement?.tagName === "INPUT") return;
@@ -164,8 +170,8 @@ const VersionsView = memo(function VersionsView() {
         setFocusBtn(0);
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
-        if (focusIndex < editions.length) {
-          const edition = editions[focusIndex];
+        if (focusIndex < visibleEditions.length) {
+          const edition = visibleEditions[focusIndex];
           const isInstalled = installedVersions.includes(edition.id);
           const isCustom = edition.id.startsWith("custom_");
           const maxBtn = isInstalled ? (isCustom ? 6 : 4) : 1;
@@ -173,8 +179,8 @@ const VersionsView = memo(function VersionsView() {
         }
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        if (focusIndex < editions.length) {
-          const edition = editions[focusIndex];
+        if (focusIndex < visibleEditions.length) {
+          const edition = visibleEditions[focusIndex];
           const isInstalled = installedVersions.includes(edition.id);
           const isCustom = edition.id.startsWith("custom_");
           const maxBtn = isInstalled ? (isCustom ? 6 : 4) : 1;
@@ -182,8 +188,8 @@ const VersionsView = memo(function VersionsView() {
         }
       } else if (e.key === "Enter") {
         e.preventDefault();
-        if (focusIndex < editions.length) {
-          const edition = editions[focusIndex];
+        if (focusIndex < visibleEditions.length) {
+          const edition = visibleEditions[focusIndex];
           const isInstalled = installedVersions.includes(edition.instanceId);
           const isDownloading = downloadingIds.includes(edition.instanceId);
           if (focusBtn === 0) {
@@ -205,10 +211,10 @@ const VersionsView = memo(function VersionsView() {
             playPressSound();
             cycleBranch(edition.id);
           }
-        } else if (focusIndex === editions.length) {
+        } else if (focusIndex === visibleEditions.length) {
           playPressSound();
           setIsImportModalOpen(true);
-        } else if (focusIndex === editions.length + 1) {
+        } else if (focusIndex === visibleEditions.length + 1) {
           playPressSound();
           handleImportFolder();
         } else {
@@ -246,7 +252,7 @@ const VersionsView = memo(function VersionsView() {
   ]);
 
   useEffect(() => {
-    if (focusIndex < editions.length && listRef.current) {
+    if (focusIndex < visibleEditions.length && listRef.current) {
       const el = listRef.current.querySelector(
         `[data-index="${focusIndex}"]`,
       ) as HTMLElement;
@@ -318,7 +324,7 @@ const VersionsView = memo(function VersionsView() {
   };
 
   const handleImportWorld = (instanceId: string) => {
-    const edition = editions.find((e: Edition) => e.instanceId === instanceId);
+    const edition = visibleEditions.find((e: Edition) => e.instanceId === instanceId);
     setImportWorldTarget({ id: instanceId, name: edition?.name ?? instanceId });
     setIsImportWorldModalOpen(true);
   };
@@ -342,7 +348,7 @@ const VersionsView = memo(function VersionsView() {
           className="w-full max-h-[45vh] overflow-y-auto py-2 custom-scrollbar"
         >
           <div className="flex flex-col gap-1">
-            {editions.map((edition: Edition, i: number) => {
+            {visibleEditions.map((edition: Edition, i: number) => {
               const isInstalled = installedVersions.includes(
                 edition.instanceId,
               );
@@ -974,14 +980,14 @@ const VersionsView = memo(function VersionsView() {
                   setInitialPath("");
                   setIsImportModalOpen(true);
                 }}
-                onMouseEnter={() => setFocusIndex(editions.length)}
+                onMouseEnter={() => setFocusIndex(visibleEditions.length)}
                 onMouseLeave={() => setHoveredBtn(null)}
                 className="w-8 h-8 flex items-center justify-center text-[#3a3a3a]"
                 style={{
                   backgroundImage:
-                    (hoveredBtn?.row === editions.length &&
+                    (hoveredBtn?.row === visibleEditions.length &&
                       hoveredBtn?.btn === "add") ||
-                    focusIndex === editions.length
+                    focusIndex === visibleEditions.length
                       ? "url('/images/Button_Square_Highlighted.png')"
                       : "url('/images/Button_Square.png')",
                   backgroundSize: "100% 100%",
@@ -1007,15 +1013,15 @@ const VersionsView = memo(function VersionsView() {
                     playPressSound();
                     handleImportFolder();
                   }}
-                  onMouseEnter={() => setFocusIndex(editions.length + 1)}
+                  onMouseEnter={() => setFocusIndex(visibleEditions.length + 1)}
                   onMouseLeave={() => setHoveredBtn(null)}
                   title="Import Custom TU"
                   className="w-8 h-8 flex items-center justify-center text-[#3a3a3a]"
                   style={{
                     backgroundImage:
-                      (hoveredBtn?.row === editions.length &&
+                      (hoveredBtn?.row === visibleEditions.length &&
                         hoveredBtn?.btn === "folder_import") ||
-                      focusIndex === editions.length + 1
+                      focusIndex === visibleEditions.length + 1
                         ? "url('/images/Button_Square_Highlighted.png')"
                         : "url('/images/Button_Square.png')",
                     backgroundSize: "100% 100%",
@@ -1038,8 +1044,8 @@ const VersionsView = memo(function VersionsView() {
       {!isAndroid && (
         <div className="flex justify-center">
           <button
-            data-index={editions.length + 2}
-            onMouseEnter={() => setFocusIndex(editions.length + 2)}
+            data-index={visibleEditions.length + 2}
+            onMouseEnter={() => setFocusIndex(visibleEditions.length + 2)}
             onClick={() => {
               playBackSound();
               setActiveView("main");
@@ -1047,7 +1053,7 @@ const VersionsView = memo(function VersionsView() {
             className="w-48 h-10 flex items-center justify-center text-xl mc-text-shadow outline-none border-none text-white"
             style={{
               backgroundImage:
-                focusIndex === editions.length + 2
+                focusIndex === visibleEditions.length + 2
                   ? "url('/images/button_highlighted.png')"
                   : "url('/images/Button_Background.png')",
               backgroundSize: "100% 100%",
@@ -1090,7 +1096,7 @@ const VersionsView = memo(function VersionsView() {
         onClose={() => setIsSetUidModalOpen(false)}
         playPressSound={playPressSound}
         playBackSound={playBackSound}
-        instances={editions}
+        instances={visibleEditions}
         installedVersions={installedVersions}
         targetInstanceId={setUidTargetId}
       />

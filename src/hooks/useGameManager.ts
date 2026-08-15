@@ -10,8 +10,8 @@ import {
 import { TauriService, type CustomEdition } from "../services/TauriService";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { usePlatform } from "./usePlatform";
+import { HIDDEN_INSTANCE_URL } from "../types/edition";
 import type { Edition } from "../types/edition";
-
 async function imageUrlToBase64(url: string): Promise<string> {
   const response = await fetch(url);
   const blob = await response.blob();
@@ -79,15 +79,26 @@ export const BASE_EDITIONS = [
     panorama: "moonedition",
   },
   {
+    //neo: disabled.
     id: "lceonline",
     name: "LCE Online Client",
-    desc: "Restoring the classic LCE online experience with friends, world hosting, leaderboards & more.",
-    url: "https://github.com/lceonline/MCLEClient/releases/latest/download/LCENWindows64.zip",
+    desc: "[DISCONTINUED!] Restoring the classic LCE online experience with friends, world hosting, leaderboards & more.",
+    url: HIDDEN_INSTANCE_URL, //neo: was "https://github.com/lceonline/MCLEClient/releases/latest/download/LCENWindows64.zip"
     titleImage: "/images/lceonline.png",
     supportsSlimSkins: false,
     logo: "/images/lce_online.png",
     panorama: "vanilla_tu19",
     lceOnline: true,
+  },
+  {
+    id: "amythest",
+    name: "Amethyst LCE",
+    desc: "A project aimed towards backporting modern Java edition features and their feel into LCE! ",
+    logo: "/images/amythest.png",
+    panorama: "vanilla_tu24", //neo: TODO: use the Amythest's panorama
+    supportsSlimSkins: false, //neo: TODO: check properly lol
+    titleImage: "/images/amythest_title.png",
+    url: "https://github.com/ducttapesucker9000-svg/Amethyst_Source/releases/download/latest/Amethyst-Windows-Release.zip",
   },
 ];
 
@@ -342,6 +353,8 @@ export function useGameManager({
     const checks = await Promise.all(
       editions.map(async (edition) => {
         if (!installs.includes(edition.instanceId))
+          return [edition.instanceId, false] as const;
+        if (edition.url === HIDDEN_INSTANCE_URL)
           return [edition.instanceId, false] as const;
         try {
           const isUpdate = await TauriService.checkGameUpdate(
