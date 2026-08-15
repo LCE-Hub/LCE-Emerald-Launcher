@@ -53,7 +53,7 @@ export const BASE_EDITIONS = [
     name: "Cafeberry",
     desc: "Project aiming to faithfully backport TUs, add cross-play and more!",
     url: "https://gitea.str1k3r.xyz/cafeberry/cafeberry/releases/download/latest/LCEWindows64.zip",
-    titleImage: "/images/MenuTitle.png", //neo: TODO: add Cafeberry title image
+    titleImage: "/images/cafeberry_title.png",
     supportsSlimSkins: false,
     logo: "", //neo: TODO: add Cafeberry logo
     panorama: "vanilla_tu24",
