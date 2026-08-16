@@ -157,6 +157,18 @@ pub fn run() {
                 }
             }
 
+            #[cfg(target_os = "android")]
+            {
+                let handle = app_handle.clone();
+                if let Some(window) = app_handle.get_webview_window("main") {
+                    window.on_window_event(move |event| {
+                        if let tauri::WindowEvent::Focused(true) = event {
+                            playtime::finish_active_session(&handle);
+                        }
+                    });
+                }
+            }
+
             #[cfg(desktop)]
             {
                 let args: Vec<String> = std::env::args().collect();

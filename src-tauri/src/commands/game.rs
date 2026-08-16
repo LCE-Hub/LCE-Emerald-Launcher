@@ -54,11 +54,15 @@ pub async fn launch_game(
         }
         ensure_server_list(&working_dir, servers);
 
-        crate::android_runtime::launch_bridge(
+        let result = crate::android_runtime::launch_bridge(
             working_dir.to_string_lossy().to_string(),
             crate::android_runtime::BridgeAction::Play,
             extra_args,
-        )
+        );
+        if result.is_ok() {
+            playtime::start_session(&app, &instance_id);
+        }
+        result
     }
     #[cfg(not(target_os = "android"))]
     launch_game_desktop(app, state, instance_id, servers, extra_args).await

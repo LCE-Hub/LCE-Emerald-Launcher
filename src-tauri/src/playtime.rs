@@ -15,6 +15,12 @@ pub struct PlaytimeData {
     pub sessions: HashMap<String, Vec<PlaytimeSession>>,
 }
 
+#[derive(Serialize, Deserialize)]
+struct ActiveSession {
+    instance_id: String,
+    start: u64,
+}
+
 #[derive(Serialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PlaytimeResponse {
@@ -52,6 +58,34 @@ pub fn record_session(app: &AppHandle, instance_id: &str, start: u64, end: u64) 
     let sessions = data.sessions.entry(instance_id.to_string()).or_default();
     sessions.push(PlaytimeSession { start, end });
     save(app, &data);
+}
+
+const MAX_SESSION_SECONDS: u64 = 12 * 60 * 60;
+fn active_session_path(app: &AppHandle) -> PathBuf {
+    util::get_app_dir(app).join("active_session.json")
+}
+
+pub fn start_session(app: &AppHandle, instance_id: &str) {
+    let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+    let active = ActiveSession { instance_id: instance_id.to_string(), start };
+    let path = active_session_path(app);
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    if let Ok(content) = serde_json::to_string(&active) {
+        let _ = std::fs::write(&path, content);
+    }
+}
+
+pub fn finish_active_session(app: &AppHandle) {
+    let path = active_session_path(app);
+    let Ok(content) = std::fs::read_to_string(&path) else { return };
+    let _ = std::fs::remove_file(&path);
+    let Ok(active) = serde_json::from_str::<ActiveSession>(&content) else { return };
+    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+    if now > active.start && now - active.start <= MAX_SESSION_SECONDS {
+        record_session(app, &active.instance_id, active.start, now);
+    }
 }
 
 pub fn get_playtime(app: &AppHandle, instance_id: &str) -> PlaytimeResponse {
