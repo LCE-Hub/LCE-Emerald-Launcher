@@ -16,6 +16,7 @@ interface SkinViewerProps {
   onNavigateRight: () => void;
   hideControls?: boolean;
   style?: React.CSSProperties;
+  slim?: boolean;
 }
 
 const SkinViewer = memo(function SkinViewer({
@@ -30,6 +31,7 @@ const SkinViewer = memo(function SkinViewer({
   onNavigateRight,
   hideControls,
   style,
+  slim,
 }: SkinViewerProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -181,17 +183,19 @@ const SkinViewer = memo(function SkinViewer({
       });
 
       const isSlim =
-        !isLegacy &&
-        (() => {
-          const canvas = document.createElement("canvas");
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext("2d");
-          if (!ctx) return false;
-          ctx.drawImage(img, 0, 0);
-          const data = ctx.getImageData(42, 48, 1, 1).data;
-          return data[3] === 0;
-        })();
+        slim !== undefined
+          ? slim
+          : !isLegacy &&
+            (() => {
+              const canvas = document.createElement("canvas");
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext("2d");
+              if (!ctx) return false;
+              ctx.drawImage(img, 0, 0);
+              const data = ctx.getImageData(42, 48, 1, 1).data;
+              return data[3] === 0;
+            })();
       const armW = isSlim ? 3 : 4;
       const headUv = {
         top: [8, 0, 8, 8],
@@ -461,7 +465,7 @@ const SkinViewer = memo(function SkinViewer({
       easterEggRef.current = null;
       requestRenderRef.current = null;
     };
-  }, [skinUrl, capeUrl]);
+  }, [skinUrl, capeUrl, slim]);
 
   useEffect(() => {
     const group = playerGroupRef.current;

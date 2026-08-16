@@ -120,7 +120,8 @@ const SkinsView = memo(function SkinsView() {
   const { setActiveView, setIsUiHidden } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { isAndroid } = usePlatform();
-  const { skinUrl, setSkinUrl, setSkinIsSlim, capeUrl, setCapeUrl } = useSkin();
+  const { skinUrl, setSkinUrl, skinIsSlim, setSkinIsSlim, capeUrl, setCapeUrl } =
+    useSkin();
 
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"skin" | "cape">("skin");
@@ -759,6 +760,7 @@ const SkinsView = memo(function SkinsView() {
           onNavigateRight={() => {}}
           hideControls
           style={{ top: "45%" }}
+          slim={skinIsSlim}
         />
       </div>
 

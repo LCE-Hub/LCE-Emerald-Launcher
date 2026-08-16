@@ -178,7 +178,7 @@ body {
 }
 
 ::-webkit-scrollbar {
-    width: 14px;
+    width: 16px;
 }
 
 ::-webkit-scrollbar-track {
@@ -188,14 +188,18 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: url("/images/Slider_Handle.png") no-repeat center;
-    background-size: 100% 100%;
+    background-image: url("/images/Slider_Handle_top.png"),
+        url("/images/Slider_Handle_mid.png"),
+        url("/images/Slider_Handle_bottom.png");
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-position: 50% 4px, 50% 8px, 50% 100%;
+    background-size: 16px 4px, 16px calc(100% - 14px), 16px 6px;
     image-rendering: pixelated;
     min-height: 44px;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-    width: 14px;
+    width: 16px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -205,8 +209,12 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: url("/images/Slider_Handle.png") no-repeat center;
-    background-size: 100% 100%;
+    background-image: url("/images/Slider_Handle_top.png"),
+        url("/images/Slider_Handle_mid.png"),
+        url("/images/Slider_Handle_bottom.png");
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-position: 50% 4px, 50% 8px, 50% 100%;
+    background-size: 16px 4px, 16px calc(100% - 14px), 16px 6px;
     image-rendering: pixelated;
     min-height: 44px;
 }

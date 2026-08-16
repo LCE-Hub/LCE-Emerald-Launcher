@@ -659,6 +659,7 @@ export default function App() {
                     setIsUiHidden={setIsUiHidden}
                     isFocusedSection={focusSection === "skin"}
                     onNavigateRight={onNavigateToMenu}
+                    slim={skin.skinIsSlim}
                   />
                 )}
               </AnimatePresence>
