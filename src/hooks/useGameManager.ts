@@ -60,6 +60,17 @@ export const BASE_EDITIONS = [
     lceOnline: false, //neo: for now.
   },
   {
+    id: "lostlegacy",
+    name: "Project Lost Legacy",
+    desc: "Downporting project aiming at bringing back the feel of Title Update 1 with extra QoL features.",
+    url: "no", //neo: TODO: update url when sails makes it public
+    titleImage: "/images/lostlegacy_title.png",
+    logo: "/images/lostlegacy.png",
+    supportsSlimSkins: false,
+    panorama: "vanilla_tu1",
+    comingSoon: true,
+  },
+  {
     id: "360revived",
     name: "360 Revived",
     desc: "PC port of Xbox 360 Edition TU19",
