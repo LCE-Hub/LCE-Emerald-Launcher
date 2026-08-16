@@ -666,6 +666,7 @@ fn apply_launch_env_vars(cmd: &mut tokio::process::Command, config: &AppConfig) 
 const MAX_LOG_BYTES: usize = 1024 * 1024;
 struct GameRunResult {
     log: String,
+    exit_code: i32,
 }
 
 fn spawn_log_reader<R>(mut reader: R, log: Arc<Mutex<Vec<u8>>>) -> tokio::task::JoinHandle<()> where R: AsyncRead + Unpin + Send + 'static, {
@@ -705,11 +706,13 @@ async fn run_game_and_capture(
         let mut lock = state.child.lock().await;
         *lock = Some(child);
     }
+    let exit_code;
     loop {
         {
             let mut lock = state.child.lock().await;
             if let Some(ref mut c) = *lock {
-                if c.try_wait().map_err(|e| e.to_string())?.is_some() {
+                if let Some(status) = c.try_wait().map_err(|e| e.to_string())? {
+                    exit_code = status.code().unwrap_or(1);
                     break;
                 }
             } else {
@@ -727,15 +730,21 @@ async fn run_game_and_capture(
     }
     let bytes = log.lock().await.clone();
     let log_str = String::from_utf8_lossy(&bytes).to_string();
-    Ok(Some(GameRunResult { log: log_str }))
+    Ok(Some(GameRunResult { log: log_str, exit_code }))
 }
 
-fn game_exited_ok(log: &str) -> bool {
-    log.lines()
-        .rev()
-        .take(3)
-        .any(|line| line.contains("AppPolicyGetProcessTerminationMethod"))
-    //neo: TODO: investigate what Windows outputs for success to prevent false detection lol
+fn game_exited_ok(result: &GameRunResult) -> bool {
+    #[cfg(not(target_os = "windows"))]
+    {
+        result.log.lines()
+            .rev()
+            .take(3)
+            .any(|line| line.contains("AppPolicyGetProcessTerminationMethod"))
+    }
+    #[cfg(target_os = "windows")]
+    {
+        result.exit_code == 0
+    }
 }
 
 fn handle_game_exit(
@@ -743,7 +752,7 @@ fn handle_game_exit(
     state: &State<'_, GameState>,
     result: GameRunResult,
 ) -> Result<(), String> {
-    if state.manual_stop.swap(false, Ordering::SeqCst) || game_exited_ok(&result.log) {
+    if state.manual_stop.swap(false, Ordering::SeqCst) || game_exited_ok(&result) {
         return Ok(());
     }
     let _ = app.emit("game-log", result.log);
