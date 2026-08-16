@@ -742,10 +742,6 @@ export default function App() {
             <div className="flex-1 text-left whitespace-nowrap">
               Version: {pkg.version} ({__BUILD_DATE__})
             </div>
-            <div className="flex-[2] text-center whitespace-nowrap">
-              Not affiliated with Mojang AB or Microsoft. "Minecraft" is a
-              trademark of Mojang Synergies AB.
-            </div>
             <div className="flex-1 text-right whitespace-nowrap">
               {connected && "CONTROLLER CONNECTED"}
             </div>
