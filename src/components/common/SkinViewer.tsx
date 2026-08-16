@@ -383,7 +383,7 @@ const SkinViewer = memo(function SkinViewer({
       }
 
       const name = username.toLowerCase();
-      playerGroup.rotation.y = -0.3;
+      playerGroup.rotation.y = 0.3;
       if (name === "dinnerbone" || name === "grumm") {
         playerGroup.scale.y = -1;
         playerGroup.position.y = 1.5;
