@@ -201,9 +201,15 @@ async fn launch_game_desktop(
             let gptk_no_hud = macos::find_executable_recursive(&toolkit_dir, "gameportingtoolkit-no-hud")
                 .or_else(|| macos::find_executable_recursive(&toolkit_dir, "gameportingtoolkit"));
 
-            let wine_binary = macos::find_executable_recursive(&toolkit_dir, "wine64")
-                .or_else(|| macos::find_executable_recursive(&toolkit_dir, "wine"))
-                .ok_or_else(|| "Unable to locate wine binary inside runtime.".to_string())?;
+            let is_intel = std::env::consts::ARCH == "x86_64";
+            let wine_binary = if is_intel {
+                macos::find_executable_recursive(&toolkit_dir, "wine")
+                    .or_else(|| macos::find_executable_recursive(&toolkit_dir, "wine64"))
+            } else {
+                macos::find_executable_recursive(&toolkit_dir, "wine64")
+                    .or_else(|| macos::find_executable_recursive(&toolkit_dir, "wine"))
+            }
+            .ok_or_else(|| "Unable to locate wine binary inside runtime.".to_string())?;
 
             let wine_bin_dir = wine_binary
                 .parent()
