@@ -27,7 +27,7 @@ pub fn launch_bridge(
             let intent_class = env.find_class("android/content/Intent")?;
             let intent = env.new_object(
                 intent_class,
-                "(Landroid/content/Context;Ljava/lang/Class;)V",
+                "(Landroid/content/Context;Ljava/lang/Class;)V", //neo: i hate smali so much
                 &[(&activity).into(), (&bridge_class).into()],
             )?;
 

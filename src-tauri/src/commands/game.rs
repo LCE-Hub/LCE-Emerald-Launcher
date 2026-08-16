@@ -731,6 +731,7 @@ fn game_exited_ok(log: &str) -> bool {
         .rev()
         .take(3)
         .any(|line| line.contains("AppPolicyGetProcessTerminationMethod"))
+    //neo: TODO: investigate what Windows outputs for success to prevent false detection lol
 }
 
 fn handle_game_exit(

@@ -1,3 +1,5 @@
+//neo: TODO: Intel macOS support
+
 use tauri::AppHandle;
 #[cfg(target_os = "macos")]
 use std::io::Write;

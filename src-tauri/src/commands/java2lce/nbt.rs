@@ -21,7 +21,7 @@ pub enum NbtValue {
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct NbtCompound {
     pub name: String,
-    pub tags: Vec<(String, NbtValue)>,
+    pub tags: Vec<(String, NbtValue)>, //neo: if you came here asking about this, dont. please. dont ask why im storing a tuple in a vec. or why im manually resizing a vec.
 }
 
 impl NbtCompound {

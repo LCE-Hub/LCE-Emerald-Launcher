@@ -64,7 +64,7 @@ export interface Runner {
   id: string;
   name: string;
   path: string;
-  type: "wine" | "proton";
+  type: "wine" | "proton"; //neo: i beg you please use Proton dont use WINE, WineD3D sickens me
 }
 
 export interface MacOSSetupProgress {
@@ -196,15 +196,25 @@ export class TauriService {
     return invoke("workshop_list_installed");
   }
 
-  static onDownloadProgress(callback: (data: { instanceId: string; percent: number }) => void) {
-    return listen<{ instanceId: string; percent: number }>("download-progress", (event) =>
-      callback(event.payload),
+  static onDownloadProgress(
+    callback: (data: { instanceId: string; percent: number }) => void,
+  ) {
+    return listen<{ instanceId: string; percent: number }>(
+      "download-progress",
+      (event) => callback(event.payload),
     );
   }
 
-  static onWorkshopProgress(callback: (data: { packageId: string; percent: number }) => void) {
-    return listen<{ instanceId: string; percent: number }>("workshop-progress", (event) =>
-      callback({ packageId: event.payload.instanceId, percent: event.payload.percent }),
+  static onWorkshopProgress(
+    callback: (data: { packageId: string; percent: number }) => void,
+  ) {
+    return listen<{ instanceId: string; percent: number }>(
+      "workshop-progress",
+      (event) =>
+        callback({
+          packageId: event.payload.instanceId,
+          percent: event.payload.percent,
+        }),
     );
   }
 
@@ -221,21 +231,15 @@ export class TauriService {
   }
 
   static onBackendError(callback: (message: string) => void) {
-    return listen<string>("backend-error", (event) =>
-      callback(event.payload),
-    );
+    return listen<string>("backend-error", (event) => callback(event.payload));
   }
 
   static onGameLog(callback: (log: string) => void) {
-    return listen<string>("game-log", (event) =>
-      callback(event.payload),
-    );
+    return listen<string>("game-log", (event) => callback(event.payload));
   }
 
   static onDownloadRetry(callback: (attempt: number) => void) {
-    return listen<number>("download-retry", (event) =>
-      callback(event.payload),
-    );
+    return listen<number>("download-retry", (event) => callback(event.payload));
   }
 
   static async openUrl(url: string): Promise<void> {
@@ -391,7 +395,9 @@ export class TauriService {
     return invoke("get_instance_path", { instanceId });
   }
 
-  static async getInstanceArgsSchema(instanceId: string): Promise<string | null> {
+  static async getInstanceArgsSchema(
+    instanceId: string,
+  ): Promise<string | null> {
     return invoke("get_instance_args_schema", { instanceId });
   }
 
@@ -439,7 +445,12 @@ export class TauriService {
     branch: string,
     dlcFolder: string,
   ): Promise<void> {
-    return invoke("download_dlc_files", { instanceId, repoUrl, branch, dlcFolder });
+    return invoke("download_dlc_files", {
+      instanceId,
+      repoUrl,
+      branch,
+      dlcFolder,
+    });
   }
 
   static async importWorld(

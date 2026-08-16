@@ -30,6 +30,6 @@ pub async fn start_lce_auth(app: tauri::AppHandle) -> Result<String, String> {
     #[cfg(not(target_os = "android"))]
     {
         let _ = app;
-        Err("LCE Online auth is only supported on Android".into())
+        Err("LCE Online auth is only supported on Android".into()) //neo: erm, rust-side only. its supported on desktop on the typescript side.
     }
 }
