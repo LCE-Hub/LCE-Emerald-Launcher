@@ -14,6 +14,7 @@ import { useSkinSync } from "../hooks/useSkinSync";
 import { useDiscordRPC } from "../hooks/useDiscordRPC";
 import { useGamepad } from "../hooks/useGamepad";
 import { useUpdateCheck } from "../hooks/useUpdateCheck";
+import { SPLASHES } from "../data/splashes";
 import RpcService from "../services/RpcService";
 
 interface UIContextType {
@@ -175,7 +176,7 @@ export function LauncherProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (activeView === "main") {
-      audioRaw.setSplashIndex(-1);
+      audioRaw.setSplashIndex(Math.floor(Math.random() * SPLASHES.length));
     }
   }, [activeView]);
 
