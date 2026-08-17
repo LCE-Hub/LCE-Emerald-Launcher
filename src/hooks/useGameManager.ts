@@ -79,6 +79,7 @@ export const BASE_EDITIONS = [
     supportsSlimSkins: false,
     logo: "/images/360_revived.png",
     panorama: "360revived",
+    hideOnAndroid: true, //neo: 360revived shows a black screen on Android
   },
   {
     id: "legacy_nether_fork",
@@ -318,36 +319,38 @@ export function useGameManager({
 
   const editions = useMemo((): Edition[] => {
     return [
-      ...BASE_EDITIONS.map((e) => {
-        const availableBranches = branches[e.id] || ["Stable"];
-        const selectedBranch = selectedBranches[e.id] || availableBranches[0];
-        let url = dynamicUrls[e.id] || e.url;
-        const defaultBranchFromUrl = e.url.includes("/releases/download/")
-          ? e.url.split("/releases/download/")[1].split("/")[0]
-          : "nightly";
-        const branchToUse =
-          selectedBranch === "Stable"
-            ? dynamicUrls[`${e.id}_Stable`] || defaultBranchFromUrl
-            : selectedBranch;
-        if (e.url.includes("/releases/download/")) {
-          const baseUrl = e.url.split("/releases/download/")[0];
-          const filename = e.url.split("/").pop();
-          url = `${baseUrl}/releases/download/${branchToUse}/${filename}`;
-        }
+      ...BASE_EDITIONS.filter((e) => !(isAndroid && e.hideOnAndroid)).map(
+        (e) => {
+          const availableBranches = branches[e.id] || ["Stable"];
+          const selectedBranch = selectedBranches[e.id] || availableBranches[0];
+          let url = dynamicUrls[e.id] || e.url;
+          const defaultBranchFromUrl = e.url.includes("/releases/download/")
+            ? e.url.split("/releases/download/")[1].split("/")[0]
+            : "nightly";
+          const branchToUse =
+            selectedBranch === "Stable"
+              ? dynamicUrls[`${e.id}_Stable`] || defaultBranchFromUrl
+              : selectedBranch;
+          if (e.url.includes("/releases/download/")) {
+            const baseUrl = e.url.split("/releases/download/")[0];
+            const filename = e.url.split("/").pop();
+            url = `${baseUrl}/releases/download/${branchToUse}/${filename}`;
+          }
 
-        const edition = {
-          ...e,
-          url,
-          branches: availableBranches,
-          selectedBranch,
-          instanceId:
-            selectedBranch === "Stable" ? e.id : `${e.id}_${selectedBranch}`,
-        };
-        const custom = customizations[e.id];
-        if (custom?.titleImage) edition.titleImage = custom.titleImage;
-        if (custom?.panorama) edition.panorama = custom.panorama;
-        return edition;
-      }),
+          const edition = {
+            ...e,
+            url,
+            branches: availableBranches,
+            selectedBranch,
+            instanceId:
+              selectedBranch === "Stable" ? e.id : `${e.id}_${selectedBranch}`,
+          };
+          const custom = customizations[e.id];
+          if (custom?.titleImage) edition.titleImage = custom.titleImage;
+          if (custom?.panorama) edition.panorama = custom.panorama;
+          return edition;
+        },
+      ),
       ...customEditions.map((e) => {
         const edition: Edition = { ...e, instanceId: e.id };
         const custom = customizations[e.id];
@@ -356,7 +359,14 @@ export function useGameManager({
         return edition;
       }),
     ];
-  }, [customEditions, dynamicUrls, branches, selectedBranches, customizations]);
+  }, [
+    customEditions,
+    dynamicUrls,
+    branches,
+    selectedBranches,
+    customizations,
+    isAndroid,
+  ]);
 
   const checkInstalls = useCallback(async () => {
     const results = await Promise.all(
