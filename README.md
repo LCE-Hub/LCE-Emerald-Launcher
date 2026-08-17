@@ -3,7 +3,7 @@
   <h1>LCE Emerald Launcher</h1>
   <p><strong>FOSS cross-platform launcher for Minecraft Legacy Console Edition</strong></p>
   <p>
-    <img src="https://img.shields.io/badge/version-1.5.1-blue?style=flat-square" alt="Version">
+    <img src="https://img.shields.io/badge/version-1.6.0-blue?style=flat-square" alt="Version">
     <img src="https://img.shields.io/badge/license-GPL--3.0-green?style=flat-square" alt="License">
     <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20GNU/Linux-lightgrey?style=flat-square" alt="Platforms">
   </p>
@@ -163,7 +163,7 @@ This repository includes a local Portage overlay under [`gentoo/`](gentoo/). Poi
 location = /path/to/LCE-Emerald-Launcher/gentoo
 auto-sync = no
 
-sudo emerge games-util/emerald-legacy-launcher          # 1.5.1
+sudo emerge games-util/emerald-legacy-launcher          # 1.6.0
 # sudo emerge =games-util/emerald-legacy-launcher-9999  # live git
 ```
 
