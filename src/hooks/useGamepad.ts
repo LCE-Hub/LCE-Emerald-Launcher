@@ -1,8 +1,19 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+
 export interface UseGamepadProps {
   playSfx: (file: string) => void;
   isWindowVisible: boolean;
 }
+
+const KEY_CODE_MAP: Record<string, number> = {
+  Enter: 13, Escape: 27, Tab: 9,
+  ArrowDown: 40, ArrowUp: 38, ArrowLeft: 37, ArrowRight: 39,
+};
+
+const CODE_MAP: Record<string, string> = {
+  Enter: 'Enter', Escape: 'Escape', Tab: 'Tab',
+  ArrowDown: 'ArrowDown', ArrowUp: 'ArrowUp', ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight',
+};
 
 export const useGamepad = ({ playSfx, isWindowVisible }: UseGamepadProps) => {
   const [connected, setConnected] = useState(false);
@@ -32,12 +43,16 @@ export const useGamepad = ({ playSfx, isWindowVisible }: UseGamepadProps) => {
   }, [playSfx]);
 
   const dispatchKey = (key: string, shiftKey = false) => {
-    window.dispatchEvent(new KeyboardEvent('keydown', {
-      key, shiftKey, bubbles: true, cancelable: true, view: window
-    }));
-    window.dispatchEvent(new KeyboardEvent('keyup', {
-      key, shiftKey, bubbles: true, cancelable: true, view: window
-    }));
+    const code = CODE_MAP[key] ?? key;
+    const keyCode = KEY_CODE_MAP[key] ?? 0;
+    const opts = {
+      key, code, keyCode, which: keyCode, shiftKey,
+      bubbles: true, cancelable: true, view: window,
+    };
+    window.dispatchEvent(new KeyboardEvent('keydown', opts));
+    setTimeout(() => {
+      window.dispatchEvent(new KeyboardEvent('keyup', opts));
+    }, 10);
   };
 
   const update = useCallback(() => {
