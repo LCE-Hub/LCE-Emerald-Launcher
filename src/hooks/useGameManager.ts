@@ -48,7 +48,7 @@ export const BASE_EDITIONS = [
     panorama: "vanilla_tu24",
     logo: "/images/revelations.png",
   },
-  {
+  /*{
     id: "cafeberry",
     name: "Cafeberry",
     desc: "Project aiming to faithfully backport TUs, add cross-play and more!",
@@ -58,7 +58,7 @@ export const BASE_EDITIONS = [
     logo: "", //neo: TODO: add Cafeberry logo
     panorama: "vanilla_tu24",
     lceOnline: false, //neo: for now.
-  },
+  },*/
   {
     id: "lostlegacy",
     name: "Project Lost Legacy",

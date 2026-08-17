@@ -56,6 +56,12 @@ const DEFAULT_SKINS: SavedSkin[] = [
     isSlim: false,
   },
   { id: "striker", name: "str1k3r", url: "/Skins/str1k3r.png", isSlim: true },
+  {
+    id: "bytebukkit",
+    name: "ByteBukkit",
+    url: "/Skins/byte.png",
+    isSlim: false,
+  },
   { id: "andipog", name: "Andi_Pog", url: "/Skins/andi.png", isSlim: false },
   { id: "sevenhundred", name: "700", url: "/Skins/700.png", isSlim: false },
   {
@@ -65,6 +71,7 @@ const DEFAULT_SKINS: SavedSkin[] = [
     isSlim: false,
   },
   { id: "amy", name: "Amy", url: "/Skins/amy.png", isSlim: true }, //neo: she's the best btw
+  { id: "avalilac", name: "AvaLilac", url: "/Skins/ava.png", isSlim: true },
   { id: "huckle", name: "Huckle", url: "/Skins/huckle.png", isSlim: true },
   {
     id: "counterract",
@@ -120,8 +127,14 @@ const SkinsView = memo(function SkinsView() {
   const { setActiveView, setIsUiHidden } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { isAndroid } = usePlatform();
-  const { skinUrl, setSkinUrl, skinIsSlim, setSkinIsSlim, capeUrl, setCapeUrl } =
-    useSkin();
+  const {
+    skinUrl,
+    setSkinUrl,
+    skinIsSlim,
+    setSkinIsSlim,
+    capeUrl,
+    setCapeUrl,
+  } = useSkin();
 
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"skin" | "cape">("skin");
