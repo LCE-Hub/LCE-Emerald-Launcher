@@ -45,7 +45,7 @@ const SettingsView = memo(function SettingsView() {
     setSkipIntro,
     profile,
     androidRunner,
-    setAndroidRunner,
+    setAndroidRunner: _setAndroidRuntime,
     androidAudioBackend,
     setAndroidAudioBackend,
   } = useConfig();
