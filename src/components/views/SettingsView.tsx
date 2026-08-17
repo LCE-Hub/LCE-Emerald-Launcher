@@ -561,7 +561,7 @@ const SettingsView = memo(function SettingsView() {
           },
         });
       }
-      items.push({
+      /*items.push({
         id: "android_proton",
         label: `Proton: ${androidRunner === "proton10" ? "Proton 10" : "Proton 11 (Default)"}`,
         type: "button",
@@ -580,7 +580,7 @@ const SettingsView = memo(function SettingsView() {
           playPressSound();
           TauriService.installLatestDriver().catch(console.error);
         },
-      });
+        });*/
       items.push({
         id: "android_audio",
         label: `Audio: ${androidAudioBackend === "alsa" ? "ALSA" : "PulseAudio (Default)"}`,

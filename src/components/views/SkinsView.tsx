@@ -66,7 +66,7 @@ const DEFAULT_SKINS: SavedSkin[] = [
   { id: "sevenhundred", name: "700", url: "/Skins/700.png", isSlim: false },
   {
     id: "prismachunk0",
-    name: "PrismaChunk0",
+    name: "XeroChunks",
     url: "/Skins/PrismaChunk0.png",
     isSlim: false,
   },
