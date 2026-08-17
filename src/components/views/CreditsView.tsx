@@ -78,6 +78,7 @@ const CreditsView = memo(function CreditsView() {
         "flamingphoenex",
         "Tymszn21",
         "DaPogLord",
+        "turniphead",
       ].sort(() => Math.random() - 0.5),
     [],
   );
