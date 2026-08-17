@@ -2,6 +2,9 @@ pub enum BridgeAction {
     Play,
     OpenContainer,
     OpenSettings,
+    SwitchProton,
+    InstallDriver,
+    SetAudioBackend,
 }
 
 pub fn launch_bridge(
@@ -80,6 +83,9 @@ pub fn launch_bridge(
             BridgeAction::Play => "play",
             BridgeAction::OpenContainer => "open",
             BridgeAction::OpenSettings => "settings",
+            BridgeAction::SwitchProton => "switch_proton",
+            BridgeAction::InstallDriver => "install_driver",
+            BridgeAction::SetAudioBackend => "set_audio_backend",
         }
         .to_string();
         dispatch(move |env, activity, _webview| {

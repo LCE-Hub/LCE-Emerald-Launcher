@@ -67,6 +67,8 @@ pub struct AppConfig {
     pub launch_prefix: Option<String>,
     pub launch_env_vars: Option<std::collections::HashMap<String, String>>,
     pub instance_launch_args: Option<std::collections::HashMap<String, InstanceLaunchArgs>>,
+    pub android_runner: Option<String>,
+    pub android_audio_backend: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

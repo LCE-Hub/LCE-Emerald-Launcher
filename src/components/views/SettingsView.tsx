@@ -44,6 +44,10 @@ const SettingsView = memo(function SettingsView() {
     skipIntro,
     setSkipIntro,
     profile,
+    androidRunner,
+    setAndroidRunner,
+    androidAudioBackend,
+    setAndroidAudioBackend,
   } = useConfig();
   const { currentTrack, skipTrack, tracks, playPressSound, playBackSound } =
     useAudio();
@@ -57,7 +61,7 @@ const SettingsView = memo(function SettingsView() {
   const { isLinux, isMac, isAndroid } = usePlatform();
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const [currentSubMenu, setCurrentSubMenu] = useState<
-    "main" | "audio" | "video" | "launcher" | "game" | "plugins"
+    "main" | "audio" | "video" | "launcher" | "game" | "plugins" | "android"
   >("main");
   const [runners, setRunners] = useState<Runner[]>([]);
   const [pluginsInfo, setPluginsInfo] = useState<PluginInfo[]>([]);
@@ -324,23 +328,15 @@ const SettingsView = memo(function SettingsView() {
           setFocusIndex(0);
         },
       });
-      if (isAndroid && profile) {
+      if (isAndroid) {
         items.push({
-          id: "container_settings",
-          label: "Container Settings",
+          id: "android_menu",
+          label: "Android",
           type: "button",
           onClick: () => {
             playPressSound();
-            TauriService.openContainerSettings(profile).catch(console.error);
-          },
-        });
-        items.push({
-          id: "open_container",
-          label: "Open Container",
-          type: "button",
-          onClick: () => {
-            playPressSound();
-            TauriService.openInstanceFolder(profile).catch(console.error);
+            setCurrentSubMenu("android");
+            setFocusIndex(0);
           },
         });
       }
@@ -544,6 +540,58 @@ const SettingsView = memo(function SettingsView() {
         onClick: handleResetSetup,
         color: "orange",
       });
+    } else if (currentSubMenu === "android") {
+      if (profile) {
+        items.push({
+          id: "android_container_settings",
+          label: "Container Settings",
+          type: "button",
+          onClick: () => {
+            playPressSound();
+            TauriService.openContainerSettings(profile).catch(console.error);
+          },
+        });
+        items.push({
+          id: "android_open_container",
+          label: "Open Container",
+          type: "button",
+          onClick: () => {
+            playPressSound();
+            TauriService.openInstanceFolder(profile).catch(console.error);
+          },
+        });
+      }
+      items.push({
+        id: "android_proton",
+        label: `Proton: ${androidRunner === "proton10" ? "Proton 10" : "Proton 11 (Default)"}`,
+        type: "button",
+        onClick: () => {
+          playPressSound();
+          const next = androidRunner === "proton10" ? "proton11" : "proton10";
+          setAndroidRunner(next);
+          TauriService.switchProton(next).catch(console.error);
+        },
+      });
+      items.push({
+        id: "android_install_driver",
+        label: "Install Latest Driver",
+        type: "button",
+        onClick: () => {
+          playPressSound();
+          TauriService.installLatestDriver().catch(console.error);
+        },
+      });
+      items.push({
+        id: "android_audio",
+        label: `Audio: ${androidAudioBackend === "alsa" ? "ALSA" : "PulseAudio (Default)"}`,
+        type: "button",
+        onClick: () => {
+          playPressSound();
+          const next = androidAudioBackend === "alsa" ? "pulseaudio" : "alsa";
+          setAndroidAudioBackend(next);
+          TauriService.setAudioBackend(next).catch(console.error);
+        },
+      });
     }
 
     if (isGameRunning) {
@@ -613,6 +661,8 @@ const SettingsView = memo(function SettingsView() {
     launchEnvVars,
     skipIntro,
     profile,
+    androidRunner,
+    androidAudioBackend,
   ]);
 
   useEffect(() => {

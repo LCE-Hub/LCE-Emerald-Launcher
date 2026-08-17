@@ -29,6 +29,8 @@ export function useAppConfig() {
   const [instanceLaunchArgs, setInstanceLaunchArgs] = useState<
     Record<string, { values: Record<string, unknown>; args: string[] }>
   >({});
+  const [androidRunner, setAndroidRunner] = useLocalStorage<string | undefined>("lce-android-runner", undefined);
+  const [androidAudioBackend, setAndroidAudioBackend] = useLocalStorage<"alsa" | "pulseaudio">("lce-android-audio", "pulseaudio");
   useEffect(() => {
     TauriService.loadConfig().then((config) => {
       if (config.username) setUsername(config.username);
@@ -53,6 +55,8 @@ export function useAppConfig() {
       if (config.launchEnvVars) setLaunchEnvVars(config.launchEnvVars);
       if (config.skipIntro !== undefined) setSkipIntro(config.skipIntro);
       if (config.instanceLaunchArgs) setInstanceLaunchArgs(config.instanceLaunchArgs);
+      if (config.androidRunner) setAndroidRunner(config.androidRunner);
+      if (config.androidAudioBackend) setAndroidAudioBackend(config.androidAudioBackend);
       setIsLoaded(true);
     });
   }, []);
@@ -81,9 +85,11 @@ export function useAppConfig() {
         launchEnvVars,
         skipIntro,
         instanceLaunchArgs,
+        androidRunner,
+        androidAudioBackend,
       }).catch(console.error);
     }
-  }, [username, theme, linuxRunner, perfBoost, profile, customEditions, customPaths, customizations, animationsEnabled, vfxEnabled, rpcEnabled, startFullscreen, musicVol, sfxVol, legacyMode, mangohudEnabled, extraLaunchArgs, launchPrefix, launchEnvVars, skipIntro, isLoaded, instanceLaunchArgs]);
+  }, [username, theme, linuxRunner, perfBoost, profile, customEditions, customPaths, customizations, animationsEnabled, vfxEnabled, rpcEnabled, startFullscreen, musicVol, sfxVol, legacyMode, mangohudEnabled, extraLaunchArgs, launchPrefix, launchEnvVars, skipIntro, isLoaded, instanceLaunchArgs, androidRunner, androidAudioBackend]);
 
   return {
     username,
@@ -135,5 +141,9 @@ export function useAppConfig() {
     setSkipIntro,
     instanceLaunchArgs,
     setInstanceLaunchArgs,
+    androidRunner,
+    setAndroidRunner,
+    androidAudioBackend,
+    setAndroidAudioBackend,
   };
 }

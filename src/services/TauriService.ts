@@ -52,6 +52,8 @@ export interface AppConfig {
     string,
     { values: Record<string, unknown>; args: string[] }
   >;
+  androidRunner?: string;
+  androidAudioBackend?: "alsa" | "pulseaudio";
 }
 
 export interface ThemePalette {
@@ -479,5 +481,17 @@ export class TauriService {
     javaWorldOutput: string,
   ): Promise<string> {
     return invoke("lce_to_java", { inputMsPath, javaWorldOutput });
+  }
+
+  static async installLatestDriver(): Promise<void> {
+    return invoke("install_latest_driver");
+  }
+
+  static async switchProton(version: string): Promise<void> {
+    return invoke("switch_proton", { version });
+  }
+
+  static async setAudioBackend(backend: string): Promise<void> {
+    return invoke("set_audio_backend", { backend });
   }
 }

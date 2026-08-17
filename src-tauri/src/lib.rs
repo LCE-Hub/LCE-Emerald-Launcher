@@ -144,6 +144,9 @@ pub fn run() {
             plugins::list_directory,
             plugins::create_plugin_dir,
             plugins::remove_plugin_dir,
+            game::switch_proton,
+            game::install_latest_driver,
+            game::set_audio_backend,
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();

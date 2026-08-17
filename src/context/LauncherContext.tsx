@@ -109,6 +109,8 @@ export function LauncherProvider({ children }: { children: React.ReactNode }) {
       configRaw.startFullscreen,
       configRaw.skipIntro,
       configRaw.instanceLaunchArgs,
+      configRaw.androidRunner,
+      configRaw.androidAudioBackend,
     ],
   );
 

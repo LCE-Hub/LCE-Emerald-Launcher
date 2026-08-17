@@ -783,3 +783,63 @@ async fn perform_instance_sync(app: &AppHandle, instance_id: &str) -> Result<(),
     perform_dlc_sync(app, &target_dir)?;
     Ok(())
 }
+
+#[tauri::command]
+#[cfg(target_os = "android")]
+pub fn switch_proton(app: AppHandle, version: String) -> Result<(), String> {
+    let instance_id = {
+        let config_val = config::load_config_raw(app.clone());
+        config_val.profile.unwrap_or_else(|| "legacy_evolved".into())
+    };
+    crate::android_runtime::launch_bridge(
+        instance_id,
+        crate::android_runtime::BridgeAction::SwitchProton,
+        vec![version],
+    )
+}
+
+#[tauri::command]
+#[cfg(not(target_os = "android"))]
+pub fn switch_proton(_app: AppHandle, _version: String) -> Result<(), String> {
+    Err("Only supported on Android".into())
+}
+
+#[tauri::command]
+#[cfg(target_os = "android")]
+pub fn install_latest_driver(app: AppHandle) -> Result<(), String> {
+    let instance_id = {
+        let config_val = config::load_config_raw(app.clone());
+        config_val.profile.unwrap_or_else(|| "legacy_evolved".into())
+    };
+    crate::android_runtime::launch_bridge(
+        instance_id,
+        crate::android_runtime::BridgeAction::InstallDriver,
+        Vec::new(),
+    )
+}
+
+#[tauri::command]
+#[cfg(not(target_os = "android"))]
+pub fn install_latest_driver(_app: AppHandle) -> Result<(), String> {
+    Err("Only supported on Android".into())
+}
+
+#[tauri::command]
+#[cfg(target_os = "android")]
+pub fn set_audio_backend(app: AppHandle, backend: String) -> Result<(), String> {
+    let instance_id = {
+        let config_val = config::load_config_raw(app.clone());
+        config_val.profile.unwrap_or_else(|| "legacy_evolved".into())
+    };
+    crate::android_runtime::launch_bridge(
+        instance_id,
+        crate::android_runtime::BridgeAction::SetAudioBackend,
+        vec![backend],
+    )
+}
+
+#[tauri::command]
+#[cfg(not(target_os = "android"))]
+pub fn set_audio_backend(_app: AppHandle, _backend: String) -> Result<(), String> {
+    Err("Only supported on Android".into())
+}
