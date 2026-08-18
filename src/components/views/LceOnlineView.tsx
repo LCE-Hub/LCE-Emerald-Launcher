@@ -7,6 +7,7 @@ import {
   useGame,
 } from "../../context/LauncherContext";
 import ChooseInstanceModal from "../modals/ChooseInstanceModal";
+import { usePlatform } from "../../hooks/usePlatform";
 import { lceOnlineService, SocialEntry } from "../../services/LceOnlineService";
 import { TauriService } from "../../services/TauriService";
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
@@ -28,6 +29,7 @@ const LceOnlineView = memo(function LceOnlineView({
   const { setActiveView, setIsUiHidden } = useUI();
   const { animationsEnabled } = useConfig();
   const { playPressSound, playBackSound } = useAudio();
+  const { isAndroid } = usePlatform();
   const game = useGame();
   const [isSignedIn, setIsSignedIn] = useState(lceOnlineService.signedIn);
   const opened = useRef(false);
@@ -80,25 +82,41 @@ const LceOnlineView = memo(function LceOnlineView({
 
     if (!opened.current) {
       opened.current = true;
-      new WebviewWindow('LCEOnline', {
-        url: "https://mclegacyedition.xyz/internal/auth?appId=emerald_launcher",
-        width: 400,
-        height: 570,
-        resizable: false,
-        title: 'Emerald Legacy Launcher - LCEOnline',
-      });
+      if (isAndroid) {
+        TauriService.startLceOnlineAuth()
+          .then((token) => {
+            lceOnlineService
+              .loginWithTokenAndFetchAccount(token)
+              .catch((e) => console.error(e));
+            setIsSignedIn(true);
+          })
+          .catch((e) => console.error("LCE Online auth failed", e));
+      } else {
+        new WebviewWindow('LCEOnline', {
+          url: "https://mclegacyedition.xyz/internal/auth?appId=emerald_launcher",
+          width: 400,
+          height: 570,
+          resizable: false,
+          title: 'Emerald Legacy Launcher - LCEOnline',
+        });
+      }
     };
 
     const unlisten = listen<string[]>('deep-link', async (event) => {
       const authUrl = event.payload.find(u => u.startsWith('emerald://'));
       if (!authUrl) return;
       const token = new URL(authUrl).searchParams.get('token');
-      if (token) setIsSignedIn(true);
+      if (token) {
+        lceOnlineService
+          .loginWithTokenAndFetchAccount(token)
+          .catch((e) => console.error(e));
+        setIsSignedIn(true);
+      }
       (await WebviewWindow.getByLabel('LCEOnline'))?.close();
     });
 
     return () => { unlisten.then(f => f()); };
-  }, [isSignedIn]);
+  }, [isSignedIn, isAndroid]);
 
   useEffect(() => {
     if (!addFriendTarget) return;
@@ -191,7 +209,7 @@ const LceOnlineView = memo(function LceOnlineView({
         items.push({
           id: `friend_${f.username}`,
           type: "friend",
-          label: f.displayName,
+          label: f.displayName || f.username,
           onClick: () => handleAction(() => lceOnlineService.removeFriend(f.username)),
           onClickSecondary: isHosting
             ? () => handleAction(() => lceOnlineService.sendInvite(f.username))
@@ -203,7 +221,7 @@ const LceOnlineView = memo(function LceOnlineView({
         items.push({
           id: `req_in_${r.username}`,
           type: "request_in",
-          label: r.displayName,
+          label: r.displayName || r.username,
           onClick: () =>
             handleAction(() => lceOnlineService.acceptFriendRequest(r.username)),
           onClickSecondary: () =>
@@ -214,7 +232,7 @@ const LceOnlineView = memo(function LceOnlineView({
         items.push({
           id: `req_out_${r.username}`,
           type: "request_out",
-          label: r.displayName,
+          label: r.displayName || r.username,
           onClick: () =>
             handleAction(() => lceOnlineService.declineFriendRequest(r.username)),
         });

@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://emerald-legacy-launcher/schemas/args.json",
+  "title": "ArgsSchema",
+  "description": "Schema describing launcher command-line argument options, groups, and conditional dependencies.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "groups", "options", "dependencies"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "URI of the JSON schema this file conforms to."
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1,
+      "description": "Version of the schema format. Currently always 1."
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Arbitrary metadata about this schema."
+    },
+    "groups": {
+      "type": "array",
+      "description": "Groups used to organize options.",
+      "items": {
+        "$ref": "#/$defs/schemaGroup"
+      }
+    },
+    "options": {
+      "type": "array",
+      "description": "The command-line options.",
+      "items": {
+        "$ref": "#/$defs/schemaOption"
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Conditional dependencies that disable or hide options.",
+      "items": {
+        "$ref": "#/$defs/schemaDependency"
+      }
+    }
+  },
+  "$defs": {
+    "schemaGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the group."
+        },
+        "title": {
+          "type": "string",
+          "description": "Display title of the group."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional description of the group."
+        }
+      }
+    },
+    "schemaOption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "type", "arg"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the option."
+        },
+        "title": {
+          "type": "string",
+          "description": "Display title of the option."
+        },
+        "type": {
+          "enum": ["boolean", "int", "number", "string", "choice"],
+          "description": "The kind of value the option accepts."
+        },
+        "arg": {
+          "type": "string",
+          "description": "The command-line argument string emitted for this option."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional human-readable description."
+        },
+        "group": {
+          "type": "string",
+          "description": "Identifier of the group this option belongs to."
+        },
+        "default": {
+          "description": "Default value for the option. Must match the option's type."
+        },
+        "min": {
+          "type": "number",
+          "description": "Minimum value for int/number options."
+        },
+        "max": {
+          "type": "number",
+          "description": "Maximum value for int/number options."
+        },
+        "step": {
+          "type": "number",
+          "description": "Stepping increment for int/number options."
+        },
+        "placeholder": {
+          "type": "string",
+          "description": "Placeholder text for string options."
+        },
+        "choices": {
+          "type": "array",
+          "description": "Allowed choices. Required and must be non-empty when type is 'choice'.",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/schemaChoice"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "choice" }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "required": ["choices"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "boolean" }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "default": { "type": "boolean" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "string" }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "default": { "type": "string" }
+            }
+          }
+        }
+      ]
+    },
+    "schemaChoice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value"],
+      "properties": {
+        "value": {
+          "type": "string",
+          "description": "The value stored/emitted for this choice."
+        },
+        "label": {
+          "type": "string",
+          "description": "Optional display label. Defaults to the value."
+        }
+      }
+    },
+    "schemaDependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "when"],
+      "properties": {
+        "target": {
+          "type": "string",
+          "description": "Identifier of the option affected by this dependency."
+        },
+        "when": {
+          "$ref": "#/$defs/condition",
+          "description": "Condition that, when true, applies the effect."
+        },
+        "effect": {
+          "enum": ["disable", "hide"],
+          "description": "Whether the target option is disabled or hidden. Defaults to 'disable'."
+        }
+      }
+    },
+    "condition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["option"],
+          "properties": {
+            "option": {
+              "type": "string",
+              "description": "Identifier of the option to inspect."
+            },
+            "equals": {
+              "description": "True when the option value strictly equals this."
+            },
+            "in": {
+              "type": "array",
+              "description": "True when the option value is one of these.",
+              "items": true
+            },
+            "not": {
+              "description": "True when the option value is not strictly equal to this."
+            },
+            "exists": {
+              "type": "boolean",
+              "description": "True when the option value is present (or absent when false)."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["all"],
+          "properties": {
+            "all": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/condition" }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["any"],
+          "properties": {
+            "any": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/condition" }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["not"],
+          "properties": {
+            "not": { "$ref": "#/$defs/condition" }
+          }
+        }
+      ]
+    }
+  }
+}

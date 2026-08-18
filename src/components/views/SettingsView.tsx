@@ -43,14 +43,14 @@ const SettingsView = memo(function SettingsView() {
     setLaunchEnvVars,
     skipIntro,
     setSkipIntro,
+    profile,
+    androidRunner,
+    setAndroidRunner: _setAndroidRuntime,
+    androidAudioBackend,
+    setAndroidAudioBackend,
   } = useConfig();
-  const {
-    currentTrack,
-    skipTrack,
-    tracks,
-    playPressSound,
-    playBackSound,
-  } = useAudio();
+  const { currentTrack, skipTrack, tracks, playPressSound, playBackSound } =
+    useAudio();
   const {
     isGameRunning,
     stopGame,
@@ -58,10 +58,10 @@ const SettingsView = memo(function SettingsView() {
     runnerDownloadProgress,
     downloadRunner,
   } = useGame();
-  const { isLinux, isMac } = usePlatform();
+  const { isLinux, isMac, isAndroid } = usePlatform();
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const [currentSubMenu, setCurrentSubMenu] = useState<
-    "main" | "audio" | "video" | "launcher" | "game" | "plugins"
+    "main" | "audio" | "video" | "launcher" | "game" | "plugins" | "android"
   >("main");
   const [runners, setRunners] = useState<Runner[]>([]);
   const [pluginsInfo, setPluginsInfo] = useState<PluginInfo[]>([]);
@@ -155,7 +155,7 @@ const SettingsView = memo(function SettingsView() {
       "fixed inset-0 bg-black/80 flex items-center justify-center z-50";
     dialog.innerHTML = `
       <div class="w-[420px] p-4 flex flex-col items-center mc-options-bg">
-        <h3 class="text-2xl font-bold text-[#333333] mb-4 text-left w-full px-4 mc-text-shadow">Reset Setup</h3>
+        <h3 class="text-2xl text-[#333333] mb-4 text-left w-full px-4 mc-text-shadow">Reset Setup</h3>
         <p class="text-[#333333] mb-8 text-left w-full px-4">Are you sure you want to reset launcher setup?</p>
         <div class="flex flex-col gap-3 w-full px-4">
           <button id="reset-cancel" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">Cancel</button>
@@ -193,7 +193,7 @@ const SettingsView = memo(function SettingsView() {
       "fixed inset-0 bg-black/80 flex items-center justify-center z-50";
     dialog.innerHTML = `
       <div class="w-[420px] p-4 flex flex-col items-center mc-options-bg">
-        <h3 class="text-2xl font-bold text-[#333333] mb-2 text-left w-full px-4 mc-text-shadow">CONFIRM RESET</h3>
+        <h3 class="text-2xl text-[#333333] mb-2 text-left w-full px-4 mc-text-shadow">CONFIRM RESET</h3>
         <div class="text-[#333333] mb-6 text-left w-full px-4">
           <p class="mb-2">⚠️ This will:</p>
           <ul class="list-none space-y-1 text-sm">
@@ -202,7 +202,7 @@ const SettingsView = memo(function SettingsView() {
             <li>Show setup screen again</li>
             <li>Require reconfiguration</li>
           </ul>
-          <p class="mt-3 text-[#333333] font-bold">This action cannot be undone!</p>
+          <p class="mt-3 text-[#333333]">This action cannot be undone!</p>
         </div>
         <div class="flex flex-col gap-3 w-full px-4">
           <button id="reset-final-cancel" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">Cancel</button>
@@ -328,6 +328,18 @@ const SettingsView = memo(function SettingsView() {
           setFocusIndex(0);
         },
       });
+      if (isAndroid) {
+        items.push({
+          id: "android_menu",
+          label: "Android",
+          type: "button",
+          onClick: () => {
+            playPressSound();
+            setCurrentSubMenu("android");
+            setFocusIndex(0);
+          },
+        });
+      }
       for (const action of pluginSettingsActions) {
         items.push({
           id: action.id,
@@ -339,6 +351,15 @@ const SettingsView = memo(function SettingsView() {
           },
         });
       }
+      items.push({
+        id: "credits",
+        label: "Credits",
+        type: "button",
+        onClick: () => {
+          playPressSound();
+          setActiveView("credits");
+        },
+      });
     } else if (currentSubMenu === "audio") {
       items.push({
         id: "music",
@@ -424,18 +445,20 @@ const SettingsView = memo(function SettingsView() {
         },
       });
     } else if (currentSubMenu === "launcher") {
-      items.push({
-        id: "fullscreen",
-        label: `Start in Fullscreen: ${startFullscreen ? "ON" : "OFF"}`,
-        type: "button",
-        onClick: handleFullscreenToggle,
-      });
-      items.push({
-        id: "rpc",
-        label: `Discord RPC: ${rpcEnabled ? "ON" : "OFF"}`,
-        type: "button",
-        onClick: handleRpcToggle,
-      });
+      if (!isAndroid) {
+        items.push({
+          id: "fullscreen",
+          label: `Start in Fullscreen: ${startFullscreen ? "ON" : "OFF"}`,
+          type: "button",
+          onClick: handleFullscreenToggle,
+        });
+        items.push({
+          id: "rpc",
+          label: `Discord RPC: ${rpcEnabled ? "ON" : "OFF"}`,
+          type: "button",
+          onClick: handleRpcToggle,
+        });
+      }
       items.push({
         id: "skip_intro",
         label: `Skip Intro: ${skipIntro ? "ON" : "OFF"}`,
@@ -448,7 +471,7 @@ const SettingsView = memo(function SettingsView() {
         type: "button",
         onClick: handleLegacyToggle,
       });
-      if (isLinux) {
+      if (isLinux && !isAndroid) {
         items.push({
           id: "runner",
           label: `Runner: ${selectedRunnerName}`,
@@ -479,39 +502,95 @@ const SettingsView = memo(function SettingsView() {
         });
       }
 
-      items.push({
-        id: "export_settings",
-        label: "Export Settings",
-        type: "button",
-        onClick: async () => {
-          playPressSound();
-          try {
-            await TauriService.exportSettings();
-          } catch (e) {
-            if (e !== "CANCELED") console.error(e);
-          }
-        },
-      });
-      items.push({
-        id: "import_settings",
-        label: "Import Settings",
-        type: "button",
-        onClick: async () => {
-          playPressSound();
-          try {
-            await TauriService.importSettings();
-            window.location.reload();
-          } catch (e) {
-            if (e !== "CANCELED") console.error(e);
-          }
-        },
-      });
+      if (!isAndroid) {
+        items.push({
+          id: "export_settings",
+          label: "Export Settings",
+          type: "button",
+          onClick: async () => {
+            playPressSound();
+            try {
+              await TauriService.exportSettings();
+            } catch (e) {
+              if (e !== "CANCELED") console.error(e);
+            }
+          },
+        });
+      }
+      if (!isAndroid) {
+        items.push({
+          id: "import_settings",
+          label: "Import Settings",
+          type: "button",
+          onClick: async () => {
+            playPressSound();
+            try {
+              await TauriService.importSettings();
+              window.location.reload();
+            } catch (e) {
+              if (e !== "CANCELED") console.error(e);
+            }
+          },
+        });
+      }
       items.push({
         id: "reset_setup",
         label: "Reset Setup",
         type: "button",
         onClick: handleResetSetup,
         color: "orange",
+      });
+    } else if (currentSubMenu === "android") {
+      if (profile) {
+        items.push({
+          id: "android_container_settings",
+          label: "Container Settings",
+          type: "button",
+          onClick: () => {
+            playPressSound();
+            TauriService.openContainerSettings(profile).catch(console.error);
+          },
+        });
+        items.push({
+          id: "android_open_container",
+          label: "Open Container",
+          type: "button",
+          onClick: () => {
+            playPressSound();
+            TauriService.openInstanceFolder(profile).catch(console.error);
+          },
+        });
+      }
+      /*items.push({
+        id: "android_proton",
+        label: `Proton: ${androidRunner === "proton10" ? "Proton 10" : "Proton 11 (Default)"}`,
+        type: "button",
+        onClick: () => {
+          playPressSound();
+          const next = androidRunner === "proton10" ? "proton11" : "proton10";
+          setAndroidRunner(next);
+          TauriService.switchProton(next).catch(console.error);
+        },
+      });
+      items.push({
+        id: "android_install_driver",
+        label: "Install Latest Driver",
+        type: "button",
+        onClick: () => {
+          playPressSound();
+          TauriService.installLatestDriver().catch(console.error);
+        },
+        });*/
+      items.push({
+        id: "android_audio",
+        label: `Audio: ${androidAudioBackend === "alsa" ? "ALSA" : "PulseAudio (Default)"}`,
+        type: "button",
+        onClick: () => {
+          playPressSound();
+          const next = androidAudioBackend === "alsa" ? "pulseaudio" : "alsa";
+          setAndroidAudioBackend(next);
+          TauriService.setAudioBackend(next).catch(console.error);
+        },
       });
     }
 
@@ -553,6 +632,7 @@ const SettingsView = memo(function SettingsView() {
     animationsEnabled,
     layout,
     isLinux,
+    isAndroid,
     mangohudEnabled,
     selectedRunnerName,
     isRunnerDownloading,
@@ -580,6 +660,9 @@ const SettingsView = memo(function SettingsView() {
     launchPrefix,
     launchEnvVars,
     skipIntro,
+    profile,
+    androidRunner,
+    androidAudioBackend,
   ]);
 
   useEffect(() => {
@@ -684,7 +767,7 @@ const SettingsView = memo(function SettingsView() {
       transition={{ duration: animationsEnabled ? 0.3 : 0 }}
       className="flex flex-col items-center w-full max-w-5xl outline-none"
     >
-      <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 border-b-2 border-[#373737] pb-2 w-[40%] max-w-[200px] text-center tracking-widest uppercase opacity-80 font-bold whitespace-nowrap px-4">
+      <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 border-b-2 border-[#373737] pb-2 w-[40%] max-w-[200px] text-center tracking-widest uppercase opacity-80 whitespace-nowrap px-4">
         {currentSubMenu === "main"
           ? "Settings"
           : currentSubMenu === "audio"
@@ -918,30 +1001,31 @@ const SettingsView = memo(function SettingsView() {
         </div>
       )}
 
-      {(() => {
-        const backIndex = settingsItems.findIndex((i) => i.id === "back");
-        const backItem = settingsItems[backIndex];
-        if (!backItem || backItem.type !== "button") return null;
+      {!isAndroid &&
+        (() => {
+          const backIndex = settingsItems.findIndex((i) => i.id === "back");
+          const backItem = settingsItems[backIndex];
+          if (!backItem || backItem.type !== "button") return null;
 
-        return (
-          <button
-            data-index={backIndex}
-            onMouseEnter={() => setFocusIndex(backIndex)}
-            onClick={backItem.onClick}
-            className={`w-40 h-10 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none border-none hover:text-[#ffff00] mt-4 ${focusIndex === backIndex ? "text-[#ffff00]" : "text-white"}`}
-            style={{
-              backgroundImage:
-                focusIndex === backIndex
-                  ? "url('/images/button_highlighted.png')"
-                  : "url('/images/Button_Background.png')",
-              backgroundSize: "100% 100%",
-              imageRendering: "pixelated",
-            }}
-          >
-            Back
-          </button>
-        );
-      })()}
+          return (
+            <button
+              data-index={backIndex}
+              onMouseEnter={() => setFocusIndex(backIndex)}
+              onClick={backItem.onClick}
+              className={`w-40 h-10 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none border-none hover:text-[#ffff00] mt-4 ${focusIndex === backIndex ? "text-[#ffff00]" : "text-white"}`}
+              style={{
+                backgroundImage:
+                  focusIndex === backIndex
+                    ? "url('/images/button_highlighted.png')"
+                    : "url('/images/Button_Background.png')",
+                backgroundSize: "100% 100%",
+                imageRendering: "pixelated",
+              }}
+            >
+              Back
+            </button>
+          );
+        })()}
 
       {showModal === "args" && (
         <motion.div

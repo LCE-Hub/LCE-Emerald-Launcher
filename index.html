@@ -4,6 +4,14 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      if (/Android/i.test(navigator.userAgent)) {
+        document.documentElement.classList.add("is-android");
+        document
+          .querySelector('meta[name="viewport"]')
+          .setAttribute("content", "width=1280");
+      }
+    </script>
     <link rel="preload" href="/fonts/Mojangles.ttf" as="font" type="font/truetype" crossorigin>
     <link rel="preload" href="/images/MenuTitle.png" as="image">
     <title>Emerald Legacy Launcher</title>

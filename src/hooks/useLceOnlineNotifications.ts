@@ -20,7 +20,7 @@ export function useLceOnlineNotifications() {
         requestsData.requests.forEach((r) => {
           if (!seenRequests.current.has(r.username)) {
             seenRequests.current.add(r.username);
-            setFriendRequestMessage(`${r.displayName} wants to be friends!`);
+            setFriendRequestMessage(`${r.displayName || r.username} wants to be friends!`);
           }
         });
       } catch (e) {}
@@ -30,7 +30,7 @@ export function useLceOnlineNotifications() {
         invitesData.forEach((i) => {
           if (!seenInvites.current.has(i.inviteid)) {
             seenInvites.current.add(i.inviteid);
-            setInviteMessage(`${i.from.displayName} invited you to play!`);
+            setInviteMessage(`${i.from.displayName || i.from.username} invited you to play!`);
           }
         });
       } catch {}
@@ -53,7 +53,7 @@ export function useLceOnlineNotifications() {
           invitesData.forEach((i) => {
             if (!seenInvites.current.has(i.inviteid)) {
               seenInvites.current.add(i.inviteid);
-              setInviteMessage(`${i.from.displayName} invited you to play!`);
+              setInviteMessage(`${i.from.displayName || i.from.username} invited you to play!`);
             }
           });
         } catch {}

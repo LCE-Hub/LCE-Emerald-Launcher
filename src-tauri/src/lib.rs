@@ -1,3 +1,4 @@
+#![cfg_attr(target_os = "android", allow(dead_code, unused))]
 mod types;
 mod state;
 mod config;
@@ -6,6 +7,9 @@ mod playtime;
 mod platform;
 mod networking;
 mod workshop_server;
+mod lce_auth;
+#[cfg(target_os = "android")]
+mod android_runtime;
 mod commands;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -30,25 +34,34 @@ use state::{DownloadState, GameState, ProxyGuard};
 fn webview_deep_link_interceptor() -> impl tauri::plugin::Plugin<tauri::Wry> { tauri::plugin::Builder::<tauri::Wry>::new("emerald-deep-link-interceptor").on_navigation(|webview, url| { if url.scheme() == "emerald" || url.scheme() == "emeraldlauncher" { let _ = webview.app_handle().emit("deep-link", vec![url.to_string()]); false } else { true }}).build()}
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_deep_link::init())
         .plugin(webview_deep_link_interceptor())
-        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
-            let urls: Vec<String> = args
-                .iter()
-                .filter(|a| {
-                    a.starts_with("emerald://")
-                        || a.starts_with("emeraldlauncher://")
-                        || a.starts_with("discord-1482504445152460871://")
-                })
-                .cloned()
-                .collect();
-            if !urls.is_empty() {
-                let _ = app.emit("deep-link", urls);
-            }
-        }))
+        .plugin(lce_auth::init())
         .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_gamepad::init())
+        .plugin(tauri_plugin_opener::init());
+    #[cfg(desktop)]
+    {
+        builder = builder
+            .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+                let urls: Vec<String> = args
+                    .iter()
+                    .filter(|a| {
+                        a.starts_with("emerald://")
+                            || a.starts_with("emeraldlauncher://")
+                            || a.starts_with("discord-1482504445152460871://")
+                    })
+                    .cloned()
+                    .collect();
+                if !urls.is_empty() {
+                    let _ = app.emit("deep-link", urls);
+                }
+            }))
+            .plugin(tauri_plugin_updater::Builder::new().build())
+            .plugin(tauri_plugin_drpc::init());
+    }
+    builder
         .manage(DownloadState {
             tokens: Arc::new(Mutex::new(HashMap::new())),
         })
@@ -61,9 +74,6 @@ pub fn run() {
             cancel_tokens: Arc::new(Mutex::new(HashMap::new())),
             local_port: Arc::new(Mutex::new(None)),
         })
-        .plugin(tauri_plugin_gamepad::init())
-        .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_drpc::init())
         .invoke_handler(tauri::generate_handler![
             macos_setup::setup_macos_runtime,
             dlc::list_git_directory,
@@ -75,12 +85,17 @@ pub fn run() {
             config_cmds::load_config,
             download::download_and_install,
             game::open_instance_folder,
+            game::open_container_settings,
             download::cancel_download,
             runners::get_available_runners,
             config_cmds::get_external_palettes,
+            #[cfg(desktop)]
             config_cmds::import_theme,
+            #[cfg(desktop)]
             config_cmds::export_settings,
+            #[cfg(desktop)]
             config_cmds::import_settings,
+            #[cfg(desktop)]
             file_dialogs::pick_folder,
             download::download_runner,
             game::delete_instance,
@@ -97,7 +112,9 @@ pub fn run() {
             macos_setup::check_macos_runtime_installed,
             macos_setup::check_macos_runtime_installed_fast,
             skin::download_logo,
+            #[cfg(desktop)]
             file_dialogs::pick_file,
+            #[cfg(desktop)]
             file_dialogs::save_file_dialog,
             file_dialogs::write_binary_file,
             file_dialogs::read_binary_file,
@@ -107,7 +124,10 @@ pub fn run() {
             game::get_instance_path,
             game::get_playtime,
             game::get_playtime_daily,
+            game::get_instance_args_schema,
+            #[cfg(desktop)]
             game::backup_instance,
+            #[cfg(desktop)]
             game::restore_instance,
             commands::console2lce::import_world,
             commands::console2lce::import_lce_save,
@@ -119,43 +139,65 @@ pub fn run() {
             relay::stop_proxy,
             relay::stop_all_proxies,
             relay::join_game,
+            lce_auth::start_lce_auth,
             plugins::get_plugins_dir,
             plugins::list_directory,
             plugins::create_plugin_dir,
             plugins::remove_plugin_dir,
+            game::switch_proton,
+            game::install_latest_driver,
+            game::set_audio_backend,
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();
-            let config = config::load_config_raw(app_handle.clone());
-            if config.start_fullscreen.unwrap_or(false) {
-                if let Some(window) = app_handle.get_webview_window("main") {
-                    let _ = window.set_fullscreen(true);
+            #[cfg(desktop)]
+            {
+                let config = config::load_config_raw(app_handle.clone());
+                if config.start_fullscreen.unwrap_or(false) {
+                    if let Some(window) = app_handle.get_webview_window("main") {
+                        let _ = window.set_fullscreen(true);
+                    }
                 }
             }
 
-            let args: Vec<String> = std::env::args().collect();
-            if args.len() > 1 && !args[1].starts_with('-') {
-                let first = &args[1];
-                let is_deep_link = first.starts_with("emerald://")
-                    || first.starts_with("emeraldlauncher://")
-                    || first.starts_with("discord-1482504445152460871://");
-                if !is_deep_link {
-                    let instance_id = first.clone();
-                    let app_handle_clone = app.handle().clone();
-                    tauri::async_runtime::spawn(async move {
-                        if let Some(window) = app_handle_clone.get_webview_window("main") {
-                            let _ = window.hide();
-                        }
-                        let state = app_handle_clone.state::<GameState>();
-                        match game::launch_game(app_handle_clone.clone(), state, instance_id, Vec::new(), vec![]).await {
-                            Ok(_) => app_handle_clone.exit(0),
-                            Err(e) => {
-                                let _ = app_handle_clone.emit("backend-error", format!("Auto-launch: {e}"));
-                                eprintln!("Auto-launch error: {}", e);
-                                app_handle_clone.exit(1);
-                            }
+            #[cfg(target_os = "android")]
+            {
+                let handle = app_handle.clone();
+                if let Some(window) = app_handle.get_webview_window("main") {
+                    window.on_window_event(move |event| {
+                        if let tauri::WindowEvent::Focused(true) = event {
+                            playtime::finish_active_session(&handle);
                         }
                     });
+                }
+            }
+
+            #[cfg(desktop)]
+            {
+                let args: Vec<String> = std::env::args().collect();
+                if args.len() > 1 && !args[1].starts_with('-') {
+                    let first = &args[1];
+                    let is_deep_link = first.starts_with("emerald://")
+                        || first.starts_with("emeraldlauncher://")
+                        || first.starts_with("discord-1482504445152460871://");
+                    if !is_deep_link {
+                        let instance_id = first.clone();
+                        let app_handle_clone = app.handle().clone();
+                        tauri::async_runtime::spawn(async move {
+                            if let Some(window) = app_handle_clone.get_webview_window("main") {
+                                let _ = window.hide();
+                            }
+                            let state = app_handle_clone.state::<GameState>();
+                            match game::launch_game(app_handle_clone.clone(), state, instance_id, Vec::new(), vec![]).await {
+                                Ok(_) => app_handle_clone.exit(0),
+                                Err(e) => {
+                                    let _ = app_handle_clone.emit("backend-error", format!("Auto-launch: {e}"));
+                                    eprintln!("Auto-launch error: {}", e);
+                                    app_handle_clone.exit(1);
+                                }
+                            }
+                        });
+                    }
                 }
             }
             Ok(())

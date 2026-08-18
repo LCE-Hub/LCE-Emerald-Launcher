@@ -33,6 +33,7 @@ pub fn get_external_palettes(app: AppHandle) -> Vec<ThemePalette> {
     palettes
 }
 
+#[cfg(desktop)]
 #[tauri::command]
 pub fn import_theme(app: AppHandle) -> Result<String, String> {
     let file = rfd::FileDialog::new()
@@ -54,6 +55,7 @@ pub fn import_theme(app: AppHandle) -> Result<String, String> {
     }
 }
 
+#[cfg(desktop)]
 #[tauri::command]
 pub fn export_settings(app: AppHandle) -> Result<(), String> {
     let config = config::load_config_raw(app.clone());
@@ -72,6 +74,7 @@ pub fn export_settings(app: AppHandle) -> Result<(), String> {
     }
 }
 
+#[cfg(desktop)]
 #[tauri::command]
 pub fn import_settings(app: AppHandle) -> Result<String, String> {
     let file = rfd::FileDialog::new()

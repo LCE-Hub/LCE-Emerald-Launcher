@@ -25,6 +25,7 @@ import {
   type CustomEdition,
 } from "../../services/TauriService";
 import { PluginManager } from "../../plugins/PluginManager";
+import { usePlatform } from "../../hooks/usePlatform";
 import { BASE_EDITIONS } from "../../hooks/useGameManager";
 const REGISTRY_URL =
   "https://raw.githubusercontent.com/LCE-Hub/LCE-Workshop/refs/heads/main/registry.json";
@@ -183,6 +184,7 @@ const WorkshopView = memo(function WorkshopView({
 }: WorkshopViewProps) {
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
+  const { isAndroid } = usePlatform();
   const config = useConfig();
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -722,10 +724,6 @@ const WorkshopView = memo(function WorkshopView({
       transition={{ duration: config.animationsEnabled ? 0.3 : 0 }}
       className="flex flex-col items-center w-full h-full max-h-full relative font-['Mojangles'] text-white select-none outline-none focus:outline-none"
     >
-      <h2 className="text-2xl text-white mc-text-shadow mt-4 mb-6 border-b-2 border-[#373737] pb-2 w-[30%] max-w-[250px] text-center tracking-widest uppercase opacity-80 font-bold whitespace-nowrap px-4">
-        Workshop
-      </h2>
-
       <div className="flex items-center justify-center gap-0 mb-4 w-full px-4">
         <div
           className="flex items-center gap-1 px-[11px] py-1 rounded-sm bg-[#696969] border-2 border-black"
@@ -1109,30 +1107,32 @@ const WorkshopView = memo(function WorkshopView({
         )}
       </div>
 
-      <div className="w-full mt-6 mb-4 flex justify-center">
-        <button
-          onClick={() => {
-            playBackSound();
-            setActiveView("main");
-          }}
-          className="w-72 h-10 flex items-center justify-center text-xl mc-text-shadow hover:text-[#FFFF55] text-white border-none outline-none transition-all"
-          style={{
-            backgroundImage: "url('/images/Button_Background.png')",
-            backgroundSize: "100% 100%",
-            imageRendering: "pixelated",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.backgroundImage =
-              "url('/images/button_highlighted.png')";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.backgroundImage =
-              "url('/images/Button_Background.png')";
-          }}
-        >
-          Back
-        </button>
-      </div>
+      {!isAndroid && (
+        <div className="w-full mt-6 mb-4 flex justify-center">
+          <button
+            onClick={() => {
+              playBackSound();
+              setActiveView("main");
+            }}
+            className="w-72 h-10 flex items-center justify-center text-xl mc-text-shadow hover:text-[#FFFF55] text-white border-none outline-none transition-all"
+            style={{
+              backgroundImage: "url('/images/Button_Background.png')",
+              backgroundSize: "100% 100%",
+              imageRendering: "pixelated",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.backgroundImage =
+                "url('/images/button_highlighted.png')";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.backgroundImage =
+                "url('/images/Button_Background.png')";
+            }}
+          >
+            Back
+          </button>
+        </div>
+      )}
 
       <AnimatePresence>
         {selectedPkg && (
@@ -2035,9 +2035,11 @@ function InstallModal({
     const targets: { id: string; zips: number }[] = [];
     for (const depId of dependencies) {
       const dep = allPackages.find((p) => p.id === depId);
-      if (dep?.zips) targets.push({ id: dep.id, zips: Object.keys(dep.zips).length });
+      if (dep?.zips)
+        targets.push({ id: dep.id, zips: Object.keys(dep.zips).length });
     }
-    if (pkg.zips) targets.push({ id: pkg.id, zips: Object.keys(pkg.zips).length });
+    if (pkg.zips)
+      targets.push({ id: pkg.id, zips: Object.keys(pkg.zips).length });
     return targets;
   }, [dependencies, allPackages, pkg.zips, pkg.id]);
 
@@ -2262,7 +2264,9 @@ function InstallModal({
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[11px] text-[#FFFF55] mc-text-shadow truncate">
                     {progressLabel ||
-                      (isPluginTab ? "Downloading plugin files" : "Downloading assets")}
+                      (isPluginTab
+                        ? "Downloading plugin files"
+                        : "Downloading assets")}
                   </span>
                   <span className="text-[11px] text-[#FFFF55] mc-text-shadow shrink-0">
                     {Math.floor(isPluginTab ? progress : overallProgress)}%

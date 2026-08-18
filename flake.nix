@@ -24,8 +24,8 @@
         };
 
       # Bump these together when packaging a new upstream stable release.
-      stableVersion = "1.5.1";
-      stableSrcHash = "sha256-XDR6YCWfVeQgIokMfksakw7tqQ+2uWGFqUkLumJU0EA=";
+      stableVersion = "1.6.0";
+      stableSrcHash = "sha256-VlqBCZa42MLmJ1nUNlH7PIcLp/X7mBLCS/hm/ISiHNA=";
     in
     {
       overlays.default = final: _prev: {

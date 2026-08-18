@@ -1,4 +1,5 @@
 use std::fs;
+#[cfg(desktop)]
 #[tauri::command]
 pub fn pick_folder() -> Result<String, String> {
     let folder = rfd::FileDialog::new()
@@ -12,6 +13,7 @@ pub fn pick_folder() -> Result<String, String> {
     }
 }
 
+#[cfg(desktop)]
 #[tauri::command]
 pub fn pick_file(title: String, filters: Vec<String>) -> Result<String, String> {
     let mut dialog = rfd::FileDialog::new().set_title(&title);
@@ -26,6 +28,7 @@ pub fn pick_file(title: String, filters: Vec<String>) -> Result<String, String> 
     }
 }
 
+#[cfg(desktop)]
 #[tauri::command]
 pub fn save_file_dialog(title: String, filename: String, filters: Vec<String>) -> Result<String, String> {
     let mut dialog = rfd::FileDialog::new().set_title(&title).set_file_name(&filename);

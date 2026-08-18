@@ -10,6 +10,15 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "security": {
+      "assetProtocol": {
+        "enable": true,
+        "scope": {
+          "allow": ["**"],
+          "requireLiteralLeadingDot": false
+        }
+      }
+    },
     "windows": [
       {
         "label": "main",
@@ -65,6 +74,10 @@
       "frameworks": [],
       "minimumSystemVersion": "10.15",
       "signingIdentity": null
+    },
+    "android": {
+      "minSdkVersion": 26,
+      "versionCode": 1006000
     }
   }
 }

@@ -15,7 +15,7 @@ pub async fn add_to_steam(
     let (exe_str, launch_options, start_dir) = if in_flatpak {
         (
             "/usr/bin/flatpak".to_string(),
-            format!("run io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher \"{}\"", instance_id),
+            format!("run io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher \"{}\"", instance_id), //neo: yes i'm hardcoding it lmfao
             std::env::var("HOME").unwrap_or_default(),
         )
     } else {

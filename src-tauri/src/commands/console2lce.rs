@@ -429,7 +429,7 @@ fn build_empty_chunk_nbt(chunk_x: i32, chunk_z: i32) -> Vec<u8> {
     out.extend_from_slice(&0i64.to_be_bytes());
     out.extend_from_slice(b"\x01\x00\x10TerrainPopulated\x01");
     out.extend_from_slice(b"\x09\x00\x08Entities\x0a\x00\x00\x00\x00");
-    out.extend_from_slice(b"\x09\x00\x0cTileEntities\x0a\x00\x00\x00\x00");
+    out.extend_from_slice(b"\x09\x00\x0cTileEntities\x0a\x00\x00\x00\x00"); //neo: someone send help
     out.push(0x00);
     out.push(0x00);
     out

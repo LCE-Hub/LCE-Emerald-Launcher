@@ -1,6 +1,7 @@
-import { useEffect, memo, useState } from "react";
+import { useEffect, useMemo, memo, useState } from "react";
 import { motion } from "framer-motion";
 import { useUI, useAudio } from "../../context/LauncherContext";
+import { usePlatform } from "../../hooks/usePlatform";
 
 interface CreditCategory {
   category: string;
@@ -31,7 +32,56 @@ interface CreditCategory {
 const CreditsView = memo(function CreditsView() {
   const { setActiveView } = useUI();
   const { playPressSound } = useAudio();
+  const { isAndroid } = usePlatform();
   const [isHovered, setIsHovered] = useState(false);
+  const shuffledAndroid = useMemo(
+    //neo: yes im shuffling it
+    () =>
+      [
+        "Peppinaramenisblack",
+        "kacper",
+        "tjdownchurch",
+        "tjdownchurch's dad (rip)",
+        "dadael3",
+        "bekhens",
+        "notrainbowsteve",
+        "moth_scribe",
+        "leader",
+        "raymanroy",
+        "fin",
+        "liugu",
+        "Zrox2013 (Zameras2013)",
+        "kierwa",
+        "cartox",
+        "necmi",
+        "theunknown",
+        "XeroChunks (double thanks!)",
+        "bee (quickjinxy_)",
+        "loss_less",
+        "ttfly",
+        "harper",
+        "dllie (tofou)",
+        "recycleordie",
+        "nezzled",
+        "frenchwith0skill",
+        "tarknim",
+        "thehuckle",
+        "gabrielblast",
+        "nedjouamario",
+        "bossanova",
+        "jayem",
+        "andrewjcf",
+        "thingthing",
+        "toastybaguette",
+        "goobert",
+        "Erickk64",
+        "flamingphoenex",
+        "Tymszn21",
+        "DaPogLord",
+        "turniphead",
+      ].sort(() => Math.random() - 0.5),
+    [],
+  );
 
   const credits: CreditCategory[] = [
     {
@@ -96,10 +146,6 @@ const CreditsView = memo(function CreditsView() {
                   members: [
                     { name: "Huckle", url: "https://github.com/TheHuckleDev" },
                     { name: "Andi_pog", url: "https://github.com/Andi-pog" },
-                    {
-                      name: "LordCambion",
-                      url: "https://github.com/LordCambion",
-                    },
                     { name: "neoapps", url: "https://github.com/neoapps-dev" },
                     { name: "tranqlmao", url: "https://github.com/tranqlmao" },
                   ],
@@ -111,6 +157,10 @@ const CreditsView = memo(function CreditsView() {
                     { name: "Rockefeler", url: "#" },
                     { name: "CDevJoud", url: "#" },
                     { name: "Rhys Evolution", url: "#" },
+                    {
+                      name: "LordCambion",
+                      url: "https://github.com/LordCambion",
+                    },
                   ],
                 },
               ],
@@ -172,12 +222,12 @@ const CreditsView = memo(function CreditsView() {
           ],
         },
         {
-          name: "Portable LCE",
-          icon: "",
+          name: "Project Lost Legacy",
+          icon: "/images/lostlegacy.png",
           roles: [
             {
               role: "Founder",
-              members: [{ name: "TBD", url: "#" }],
+              members: [{ name: "SailsYT", url: "#" }],
             },
           ],
         },
@@ -197,6 +247,23 @@ const CreditsView = memo(function CreditsView() {
       category: "SPECIAL THANKS",
       icon: "",
       subcategories: [
+        ...(isAndroid
+          ? [
+              {
+                name: "Android Beta Testers",
+                icon: "",
+                roles: [
+                  {
+                    role: "",
+                    members: shuffledAndroid.map((name) => ({
+                      name,
+                      url: "#",
+                    })),
+                  },
+                ],
+              },
+            ]
+          : []),
         {
           name: "Discord Booster",
           icon: "/images/Nitro Boost.png",
@@ -242,25 +309,27 @@ const CreditsView = memo(function CreditsView() {
 
   return (
     <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-      <button
-        onClick={() => {
-          playPressSound();
-          setActiveView("main");
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        className="fixed bottom-8 left-8 z-50 h-10 flex items-center justify-center gap-2 px-4 text-xl mc-text-shadow outline-none border-none"
-        style={{
-          backgroundImage: isHovered
-            ? "url('/images/button_highlighted.png')"
-            : "url('/images/Button_Background.png')",
-          backgroundSize: "100% 100%",
-          imageRendering: "pixelated",
-          color: isHovered ? "#FFFF55" : "white",
-        }}
-      >
-        Back to Menu
-      </button>
+      {!isAndroid && (
+        <button
+          onClick={() => {
+            playPressSound();
+            setActiveView("main");
+          }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className="fixed bottom-8 left-8 z-50 h-10 flex items-center justify-center gap-2 px-4 text-xl mc-text-shadow outline-none border-none"
+          style={{
+            backgroundImage: isHovered
+              ? "url('/images/button_highlighted.png')"
+              : "url('/images/Button_Background.png')",
+            backgroundSize: "100% 100%",
+            imageRendering: "pixelated",
+            color: isHovered ? "#FFFF55" : "white",
+          }}
+        >
+          Back to Menu
+        </button>
+      )}
 
       <motion.div
         initial={{ y: "50%" }}

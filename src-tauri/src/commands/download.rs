@@ -28,7 +28,7 @@ async fn stream_download(
         lock.insert(instance_id.to_string(), token);
     }
 
-    let response = reqwest::get(url).await.map_err(|e| e.to_string())?;
+    let response = reqwest::Client::new().get(url).header(reqwest::header::USER_AGENT, "Emerald-Launcher").send().await.map_err(|e| e.to_string())?;
     if !response.status().is_success() {
         { state.tokens.lock().await.remove(instance_id); }
         return Err(format!("Download failed: {}", response.status()));
@@ -181,7 +181,18 @@ pub async fn download_and_install(
         }
     }
 
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(target_os = "android")]
+    {
+        let status = std::process::Command::new("unzip")
+            .args(["-o", zip_path.to_str().unwrap(), "-d", instance_dir.to_str().unwrap()])
+            .status()
+            .map_err(|e| e.to_string())?;
+        if !status.success() {
+            return Err("Extraction failed".into());
+        }
+    }
+
+    #[cfg(all(not(target_os = "linux"), not(target_os = "android")))]
     {
         let mut cmd = std::process::Command::new("tar");
         cmd.args(["-xf", zip_path.to_str().unwrap(), "-C", instance_dir.to_str().unwrap()]);
@@ -291,6 +302,7 @@ pub async fn check_game_update(
 
     let response = reqwest::Client::new()
         .head(&url)
+        .header(reqwest::header::USER_AGENT, "Emerald-Launcher")
         .send()
         .await
         .map_err(|e| e.to_string())?;

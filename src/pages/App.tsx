@@ -262,19 +262,19 @@ export default function App() {
       if (unlistenEvent) unlistenEvent();
     };
   }, [queueDeepLink]);
-  const { isMac } = usePlatform();
+  const { isMac, isAndroid } = usePlatform();
   const [isFullscreen, setIsFullscreen] = useState(false);
   useEffect(() => {
     const appWindow = getCurrentWindow();
-    if (!isMac) appWindow.setDecorations(false);
+    if (!isMac && !isAndroid) appWindow.setDecorations(false);
     const checkFs = async () => setIsFullscreen(await appWindow.isFullscreen());
     checkFs();
     const unlisten = appWindow.onResized(checkFs);
     return () => {
       unlisten.then((fn: () => void) => fn());
     };
-  }, [isMac]);
-  const showHeader = !isMac || isFullscreen;
+  }, [isMac, isAndroid]);
+  const showHeader = (!isMac || isFullscreen) && !isAndroid;
   useEffect(() => {
     if (config.isLoaded) {
       const setupCompleted =
@@ -291,6 +291,21 @@ export default function App() {
   const selectedVersionName = selectedEdition?.name ?? "";
   const hasAnyInstall = game.installs.length > 0;
   const titleImage = selectedEdition?.titleImage ?? "/images/MenuTitle.png";
+  const TITLE_HIDDEN_VIEWS = new Set([
+    //neo: why an entire Set for that? yes. the answer is yes.
+    "workshop",
+    "lceonline",
+    "devtools",
+    "guides",
+    "pck-editor",
+    "arc-editor",
+    "loc-editor",
+    "grf-editor",
+    "col-editor",
+    "options-editor",
+    "model-editor",
+    "swf-editor",
+  ]);
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
     document.addEventListener("contextmenu", handleContextMenu);
@@ -456,7 +471,7 @@ export default function App() {
           animate={{ opacity: 1 }}
           className={`flex flex-col h-full z-10 w-full relative ${showHeader ? "pt-12" : ""}`}
         >
-          {!config.legacyMode && (
+          {!config.legacyMode && !isAndroid && (
             <motion.div {...uiFade} className="absolute top-10 left-8 z-50">
               <button
                 onClick={() => {
@@ -474,6 +489,49 @@ export default function App() {
                   className="w-10 h-10 cursor-pointer object-contain"
                   style={{ imageRendering: "pixelated" }}
                 />
+              </button>
+            </motion.div>
+          )}
+
+          {isAndroid && activeView !== "main" && (
+            <motion.div {...uiFade} className="absolute top-10 left-8 z-50">
+              <button
+                onClick={() => {
+                  audio.playBackSound();
+                  setActiveView("main");
+                }}
+                className="outline-none border-none flex items-center justify-center w-10 h-10 cursor-pointer"
+                aria-label="Back"
+                style={{
+                  backgroundImage: "url('/images/Button_Square.png')",
+                  backgroundSize: "100% 100%",
+                  imageRendering: "pixelated",
+                }}
+                onMouseEnter={(e) =>
+                  ((
+                    e.currentTarget as HTMLButtonElement
+                  ).style.backgroundImage =
+                    "url('/images/Button_Square_Highlighted.png')")
+                }
+                onMouseLeave={(e) =>
+                  ((
+                    e.currentTarget as HTMLButtonElement
+                  ).style.backgroundImage = "url('/images/Button_Square.png')")
+                }
+              >
+                <svg
+                  width="26"
+                  height="26"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#FFFFFF"
+                  strokeWidth="2.5"
+                  strokeLinecap="square"
+                  strokeLinejoin="miter"
+                  className="drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]"
+                >
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
               </button>
             </motion.div>
           )}
@@ -540,35 +598,37 @@ export default function App() {
 
           <div className="shrink-0 flex justify-center py-4 relative w-full pt-4">
             <div className="relative w-full max-w-135 flex justify-center">
-              {activeView !== "credits" && (
-                <motion.img
-                  layoutId="mainLogo"
-                  src={titleImage}
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 25,
-                  }}
-                  className="w-full drop-shadow-[0_8px_6px_rgba(0,0,0,0.8)] pointer-events-none"
-                  style={{ imageRendering: "pixelated" }}
-                />
-              )}
-              {activeView !== "credits" && (
-                <motion.div
-                  {...uiFade}
-                  className="absolute bottom-[20%] right-[5%] w-0 h-0 flex items-center justify-center"
-                >
-                  <div
-                    onClick={audio.cycleSplash}
-                    className="mc-splash text-[#FFFF55] text-[28px] z-100 cursor-pointer whitespace-nowrap"
-                    style={{ textShadow: "2px 2px 0px #3F3F00" }}
+              {activeView !== "credits" &&
+                !TITLE_HIDDEN_VIEWS.has(activeView) && (
+                  <motion.img
+                    layoutId="mainLogo"
+                    src={titleImage}
+                    transition={{
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 25,
+                    }}
+                    className="w-full drop-shadow-[0_8px_6px_rgba(0,0,0,0.8)] pointer-events-none"
+                    style={{ imageRendering: "pixelated" }}
+                  />
+                )}
+              {activeView !== "credits" &&
+                !TITLE_HIDDEN_VIEWS.has(activeView) && (
+                  <motion.div
+                    {...uiFade}
+                    className="absolute bottom-[20%] right-[5%] w-0 h-0 flex items-center justify-center"
                   >
-                    {audio.splashIndex === -1
-                      ? `Welcome ${config.username}!`
-                      : audio.splashes[audio.splashIndex]}
-                  </div>
-                </motion.div>
-              )}
+                    <div
+                      onClick={audio.cycleSplash}
+                      className="mc-splash text-[#FFFF55] text-[28px] z-100 cursor-pointer whitespace-nowrap"
+                      style={{ textShadow: "2px 2px 0px #3F3F00" }}
+                    >
+                      {audio.splashIndex === -1
+                        ? `Welcome ${config.username}!`
+                        : audio.splashes[audio.splashIndex]}
+                    </div>
+                  </motion.div>
+                )}
               {activeView === "main" &&
                 hasAnyInstall &&
                 titleImage === "/images/MenuTitle.png" && (
@@ -600,6 +660,7 @@ export default function App() {
                     setIsUiHidden={setIsUiHidden}
                     isFocusedSection={focusSection === "skin"}
                     onNavigateRight={onNavigateToMenu}
+                    slim={skin.skinIsSlim}
                   />
                 )}
               </AnimatePresence>
@@ -684,10 +745,6 @@ export default function App() {
           >
             <div className="flex-1 text-left whitespace-nowrap">
               Version: {pkg.version} ({__BUILD_DATE__})
-            </div>
-            <div className="flex-[2] text-center whitespace-nowrap">
-              Not affiliated with Mojang AB or Microsoft. "Minecraft" is a
-              trademark of Mojang Synergies AB.
             </div>
             <div className="flex-1 text-right whitespace-nowrap">
               {connected && "CONTROLLER CONNECTED"}
