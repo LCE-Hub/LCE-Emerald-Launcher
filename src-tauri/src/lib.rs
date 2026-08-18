@@ -22,6 +22,7 @@ use commands::download;
 use commands::file_dialogs;
 use commands::game;
 use commands::macos_setup;
+use commands::platform as platform_cmd;
 use commands::plugins;
 use commands::proxy_cmd;
 use commands::runners;
@@ -75,6 +76,7 @@ pub fn run() {
             local_port: Arc::new(Mutex::new(None)),
         })
         .invoke_handler(tauri::generate_handler![
+            platform_cmd::get_platform,
             macos_setup::setup_macos_runtime,
             dlc::list_git_directory,
             dlc::download_dlc_files,

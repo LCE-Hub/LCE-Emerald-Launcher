@@ -1,14 +1,23 @@
-import { useMemo } from 'react';
+import { useState, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
+//neo: "why the fuck are you doing it in rust instead of UserAgent", well, Linux was being detected as Android SOMEHOW I DONT FUCKING KNOW HOW OH MY GOD
+const DEFAULT = {
+  isLinux: false,
+  isMac: false,
+  isWindows: false,
+  isAndroid: false,
+};
 export function usePlatform() {
-  const platform = useMemo(() => {
-    if (typeof window === 'undefined') return { isLinux: false, isMac: false, isWindows: false, isAndroid: false };
-    const ua = window.navigator.userAgent.toLowerCase();
-    const plat = window.navigator.platform.toLowerCase();
-    const isAndroid = ua.includes('android');
-    const isLinux = !isAndroid && (plat.includes('linux') || ua.includes('linux'));
-    const isMac = !isAndroid && (plat.includes('mac') || ua.includes('mac'));
-    const isWindows = !isAndroid && (plat.includes('win') || ua.includes('win'));
-    return { isLinux, isMac, isWindows, isAndroid };
+  const [platform, setPlatform] = useState(DEFAULT);
+  useEffect(() => {
+    invoke<{
+      isLinux: boolean;
+      isMac: boolean;
+      isWindows: boolean;
+      isAndroid: boolean;
+    }>("get_platform")
+      .then(setPlatform)
+      .catch(() => setPlatform(DEFAULT));
   }, []);
 
   return platform;
