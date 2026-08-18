@@ -36,9 +36,6 @@ export class LceOnlineService {
   private _listeners: Array<() => void> = [];
   constructor() {
     this.loadSession();
-    if (this._session) {
-      this.refreshToken();
-    }
   }
 
   onSessionChange(listener: () => void): () => void {
@@ -209,28 +206,6 @@ export class LceOnlineService {
     }
 
     return data;
-  }
-
-  async refreshToken(): Promise<boolean> {
-    if (!this._session) return false;
-
-    try {
-      const res = await this.request<string>("POST", "/refreshtoken", null, AUTH_BASE_URL);
-      if (typeof res === "string" && res.startsWith("-")) {
-        const [username, token] = res.slice(1).split(":");
-        this._session.accessToken = token;
-        this._session.account = { username, displayName: username };
-        this.saveSession();
-        this._notify();
-        return true;
-      }
-      this.logoutLocal();
-      return false;
-    } catch (e) {
-      console.warn("Failed to refresh token", e);
-      this.logoutLocal()
-      return false;
-    }
   }
 
   async getSocialLists() {
