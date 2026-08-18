@@ -45,7 +45,7 @@ export const BASE_EDITIONS = [
     url: "https://git.revela.dev/itsRevela/LCE-Revelations/releases/download/Nightly/LCE-Revelations-Client-Win64.zip",
     titleImage: "/images/minecraft_title_revelations.png",
     supportsSlimSkins: false,
-    panorama: "vanilla_tu24",
+    panorama: "vanilla_tu19",
     logo: "/images/revelations.png",
   },
   /*{
