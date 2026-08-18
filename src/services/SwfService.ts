@@ -17,7 +17,12 @@ export interface SwfImage {
 }
 
 export class SwfService {
-  static parse(buffer: Uint8Array): { version: number; compressed: boolean; frameHeader: Uint8Array; tags: SwfTag[] } {
+  static parse(buffer: Uint8Array): {
+    version: number;
+    compressed: boolean;
+    frameHeader: Uint8Array;
+    tags: SwfTag[];
+  } {
     if (buffer.length < 8) throw new Error("Invalid SWF: file too small");
     const sig = String.fromCharCode(buffer[0], buffer[1], buffer[2]);
     const version = buffer[3];
@@ -48,7 +53,11 @@ export class SwfService {
       const code = tagHeader >> 6;
       let length = tagHeader & 0x3f;
       if (length === 0x3f) {
-        length = data[offset] | (data[offset + 1] << 8) | (data[offset + 2] << 16) | (data[offset + 3] << 24);
+        length =
+          data[offset] |
+          (data[offset + 1] << 8) |
+          (data[offset + 2] << 16) |
+          (data[offset + 3] << 24);
         offset += 4;
       }
       const tagData = data.slice(offset, offset + length);
@@ -60,7 +69,12 @@ export class SwfService {
     return { version, compressed: sig === "CWS", frameHeader, tags };
   }
 
-  static serialize(version: number, compressed: boolean, frameHeader: Uint8Array, tags: SwfTag[]): Uint8Array {
+  static serialize(
+    version: number,
+    compressed: boolean,
+    frameHeader: Uint8Array,
+    tags: SwfTag[],
+  ): Uint8Array {
     const payloads: Uint8Array[] = [frameHeader];
     let bodyLength = frameHeader.length;
 
@@ -89,7 +103,9 @@ export class SwfService {
     }
 
     const fileLength = 8 + uncompressedBody.length;
-    const finalBody = compressed ? pako.deflate(uncompressedBody) : uncompressedBody;
+    const finalBody = compressed
+      ? pako.deflate(uncompressedBody)
+      : uncompressedBody;
     const result = new Uint8Array(8 + finalBody.length);
     result.set(new TextEncoder().encode(compressed ? "CWS" : "FWS"), 0);
     result[3] = version;
@@ -125,15 +141,32 @@ export class SwfService {
         const charId = tag.data[0] | (tag.data[1] << 8);
         const imgData = tag.data.slice(2);
         const fixed = this.fixJpeg(imgData, tag.code === 6 ? jpegTables : null);
-        images.push({ id: charId, type: "jpeg", data: fixed, name: nameMap[charId] });
+        images.push({
+          id: charId,
+          type: "jpeg",
+          data: fixed,
+          name: nameMap[charId],
+        });
       } else if (tag.code === 35) {
         const charId = tag.data[0] | (tag.data[1] << 8);
-        const alphaOffset = tag.data[2] | (tag.data[3] << 8) | (tag.data[4] << 16) | (tag.data[5] << 24);
+        const alphaOffset =
+          tag.data[2] |
+          (tag.data[3] << 8) |
+          (tag.data[4] << 16) |
+          (tag.data[5] << 24);
         const imgData = tag.data.slice(6, 6 + alphaOffset);
         const alphaRaw = tag.data.slice(6 + alphaOffset);
         let alpha = undefined;
-        try { alpha = pako.inflate(alphaRaw); } catch (e) { }
-        images.push({ id: charId, type: "jpeg", data: this.fixJpeg(imgData), alphaData: alpha, name: nameMap[charId] });
+        try {
+          alpha = pako.inflate(alphaRaw);
+        } catch (e) {}
+        images.push({
+          id: charId,
+          type: "jpeg",
+          data: this.fixJpeg(imgData),
+          alphaData: alpha,
+          name: nameMap[charId],
+        });
       } else if (tag.code === 20 || tag.code === 36) {
         const charId = tag.data[0] | (tag.data[1] << 8);
         const format = tag.data[2];
@@ -144,20 +177,23 @@ export class SwfService {
 
         images.push({
           id: charId,
-          type: "lossless",
+          type: "lossless", //neo: aka PNG
           data: raw,
           width,
           height,
           format,
           hasAlpha,
-          name: nameMap[charId]
+          name: nameMap[charId],
         });
       }
     }
     return images;
   }
 
-  private static fixJpeg(data: Uint8Array, jtt: Uint8Array | null = null): Uint8Array {
+  private static fixJpeg(
+    data: Uint8Array,
+    jtt: Uint8Array | null = null,
+  ): Uint8Array {
     let combined = data;
     if (jtt && jtt.length > 0) {
       let tLen = jtt.length;
@@ -172,7 +208,8 @@ export class SwfService {
   }
 
   static async decodeLosslessToRGBA(img: SwfImage): Promise<Uint8Array> {
-    if (img.type !== "lossless" || !img.width || !img.height) return new Uint8Array(0);
+    if (img.type !== "lossless" || !img.width || !img.height)
+      return new Uint8Array(0);
     const decoded = pako.inflate(img.data);
     const rgba = new Uint8Array(img.width * img.height * 4);
     if (img.format === 3) {
@@ -189,7 +226,7 @@ export class SwfService {
             a > 0 ? Math.min(255, (r_pm * 255) / a) : 0,
             a > 0 ? Math.min(255, (g_pm * 255) / a) : 0,
             a > 0 ? Math.min(255, (b_pm * 255) / a) : 0,
-            a
+            a,
           ]);
         } else {
           palette.push([decoded[ptr++], decoded[ptr++], decoded[ptr++], 255]);
@@ -211,7 +248,9 @@ export class SwfService {
       const rowStride = Math.ceil((img.width * 2) / 4) * 4;
       for (let y = 0; y < img.height; y++) {
         for (let x = 0; x < img.width; x++) {
-          const p = decoded[y * rowStride + x * 2] | (decoded[y * rowStride + x * 2 + 1] << 8);
+          const p =
+            decoded[y * rowStride + x * 2] |
+            (decoded[y * rowStride + x * 2 + 1] << 8);
           const r = ((p >> 10) & 0x1f) << 3;
           const g = ((p >> 5) & 0x1f) << 3;
           const b = (p & 0x1f) << 3;
@@ -248,9 +287,20 @@ export class SwfService {
     return rgba;
   }
 
-  static updateImageTag(tags: SwfTag[], charId: number, newData: Uint8Array, type: SwfImage["type"]): SwfTag[] {
-    return tags.map(tag => {
-      if (tag.code === 6 || tag.code === 21 || tag.code === 35 || tag.code === 20 || tag.code === 36) {
+  static updateImageTag(
+    tags: SwfTag[],
+    charId: number,
+    newData: Uint8Array,
+    type: SwfImage["type"],
+  ): SwfTag[] {
+    return tags.map((tag) => {
+      if (
+        tag.code === 6 ||
+        tag.code === 21 ||
+        tag.code === 35 ||
+        tag.code === 20 ||
+        tag.code === 36
+      ) {
         const id = tag.data[0] | (tag.data[1] << 8);
         if (id === charId) {
           let payload: Uint8Array;

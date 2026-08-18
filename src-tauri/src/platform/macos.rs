@@ -50,6 +50,9 @@ pub fn is_macos_runtime_installed(app: &AppHandle) -> bool {
     if !toolkit_dir.exists() {
         return false;
     }
-    let candidates = ["Game Porting Toolkit.app"];
-    candidates.iter().any(|name| find_executable_recursive(&toolkit_dir, name).is_some())
+    if find_executable_recursive(&toolkit_dir, "Game Porting Toolkit.app").is_some() {
+        return true;
+    }
+    find_executable_recursive(&toolkit_dir, "wine").is_some()
+        || find_executable_recursive(&toolkit_dir, "wine64").is_some()
 }

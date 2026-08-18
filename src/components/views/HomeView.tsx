@@ -7,13 +7,13 @@ import {
   useGame,
 } from "../../context/LauncherContext";
 import { usePluginActions } from "../../plugins/PluginContext";
+import { usePlatform } from "../../hooks/usePlatform";
 import type { Edition } from "../../types/edition";
 
 const HomeView = memo(function HomeView() {
-  const { setActiveView, focusSection, onNavigateToSkin } =
-    useUI();
+  const { setActiveView, focusSection, onNavigateToSkin } = useUI();
   const { profile, legacyMode } = useConfig();
-  const { playPressSound, playSfx } = useAudio();
+  const { playPressSound } = useAudio();
   const {
     handleLaunch,
     editions,
@@ -25,6 +25,7 @@ const HomeView = memo(function HomeView() {
     updatesAvailable,
   } = useGame();
   const pluginActions = usePluginActions("home-menu");
+  const { isAndroid } = usePlatform();
 
   const isFocusedSection = focusSection === "menu";
   const selectedEdition = editions.find((e: Edition) => e.id === profile);
@@ -35,79 +36,85 @@ const HomeView = memo(function HomeView() {
 
   const hasAnyInstall = installs.length > 0;
 
-  const buttonsVal = useMemo(
-    () => {
-      const mainBtn = {
-        label: !hasAnyInstall
-          ? "Install a version"
-          : isGameRunning
-            ? "Stop Game"
-            : isDownloading
-              ? "Installation in progress..."
-              : isInstalled
-                ? "Play Game"
-                : `Download ${selectedVersionName}`,
-        action: !hasAnyInstall
-          ? () => setActiveView("versions")
-          : isGameRunning
-            ? stopGame
-            : isDownloading
-              ? () => {}
-              : isInstalled
-                ? handleLaunch
-                : () => toggleInstall(profile),
-        isDanger: isGameRunning,
-        disabled: isDownloading,
-        id: "main-action",
-      };
+  const buttonsVal = useMemo(() => {
+    const mainBtn = {
+      label: !hasAnyInstall
+        ? "Install a version"
+        : isGameRunning
+          ? "Stop Game"
+          : isDownloading
+            ? "Installation in progress..."
+            : isInstalled
+              ? "Play Game"
+              : `Download ${selectedVersionName}`,
+      action: !hasAnyInstall
+        ? () => setActiveView("versions")
+        : isGameRunning
+          ? stopGame
+          : isDownloading
+            ? () => {}
+            : isInstalled
+              ? handleLaunch
+              : () => toggleInstall(profile),
+      isDanger: isGameRunning,
+      disabled: isDownloading,
+      id: "main-action",
+    };
 
-      const pluginBtns = pluginActions.map((a) => ({
-        label: a.label,
-        action: () => a.onClick(),
+    const pluginBtns = pluginActions.map((a) => ({
+      label: a.label,
+      action: () => a.onClick(),
+      isDanger: false,
+      disabled: false,
+      id: a.id,
+    }));
+
+    const menuBtns = [
+      {
+        label: "Help & Options",
+        action: () => setActiveView("settings"),
         isDanger: false,
         disabled: false,
-        id: a.id,
-      }));
+        id: "settings",
+      },
+      {
+        label: "Versions",
+        action: () => setActiveView("versions"),
+        isDanger: false,
+        disabled: false,
+        id: "versions",
+      },
+      {
+        label: "Workshop",
+        action: () => setActiveView("workshop"),
+        isDanger: false,
+        disabled: false,
+        id: "workshop",
+      },
+      {
+        label: "Developer Tools",
+        action: () => setActiveView("devtools"),
+        isDanger: false,
+        disabled: false,
+        id: "devtools",
+      },
+    ].filter((b) => !(isAndroid && b.id === "devtools"));
 
-      const menuBtns = [
-        {
-          label: "Help & Options",
-          action: () => setActiveView("settings"),
-          isDanger: false,
-          disabled: false,
-          id: "settings",
-        },
-        {
-          label: "Versions",
-          action: () => setActiveView("versions"),
-          isDanger: false,
-          disabled: false,
-          id: "versions",
-        },
-        {
-          label: "Workshop",
-          action: () => setActiveView("workshop"),
-          isDanger: false,
-          disabled: false,
-          id: "workshop",
-        },
-        {
-          label: "Developer Tools",
-          action: () => setActiveView("devtools"),
-          isDanger: false,
-          disabled: false,
-          id: "devtools",
-        },
-      ];
-
-      return [mainBtn, ...pluginBtns, ...menuBtns];
-    },
-    [
-      isDownloading, hasAnyInstall, isInstalled, selectedVersionName,
-      handleLaunch, toggleInstall, profile, setActiveView,
-      isGameRunning, stopGame, pluginActions,
-    ],
-  );
+    return [mainBtn, ...pluginBtns, ...menuBtns];
+  }, [
+    isDownloading,
+    hasAnyInstall,
+    isInstalled,
+    selectedVersionName,
+    handleLaunch,
+    toggleInstall,
+    profile,
+    setActiveView,
+    isGameRunning,
+    stopGame,
+    pluginActions,
+    isAndroid,
+  ]);
 
   useEffect(() => {
     if (!isFocusedSection) {
@@ -125,7 +132,8 @@ const HomeView = memo(function HomeView() {
           prev === null ? buttonsVal.length - 1 : prev > 0 ? prev - 1 : prev,
         );
       if (e.key === "ArrowLeft") onNavigateToSkin();
-      if (e.key === "Enter" && menuFocus !== null) buttonsVal[menuFocus].action();
+      if (e.key === "Enter" && menuFocus !== null)
+        buttonsVal[menuFocus].action();
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
@@ -187,6 +195,7 @@ const HomeView = memo(function HomeView() {
 
       {!legacyMode && (
         <div className="pt-4 flex flex-col items-center w-full gap-3">
+          <div className="border-b-[3px] border-[#A0A0A0] w-48 opacity-60" />
           <div className="flex gap-8">
             <a
               href="https://discord.gg/cQVKhQXcCx"
@@ -223,18 +232,6 @@ const HomeView = memo(function HomeView() {
               />
             </a>
           </div>
-          <div className="border-b-[3px] border-[#A0A0A0] w-48 opacity-60" />
-          <button
-            onClick={() => {
-              if (isFocusedSection) {
-                playSfx("orb.ogg");
-                setActiveView("credits");
-              }
-            }}
-            className={`text-white hover:text-[#FFFF55] text-xl mc-text-shadow tracking-widest transition-colors mt-1 bg-transparent border-none outline-none ${!isFocusedSection ? "pointer-events-none" : ""}`}
-          >
-            CREDITS
-          </button>
         </div>
       )}
     </motion.div>

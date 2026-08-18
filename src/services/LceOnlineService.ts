@@ -80,7 +80,7 @@ export class LceOnlineService {
     const res = await this.request<string>(
       "POST",
       "/login",
-      `${username}:${password}`,
+      `${JSON.stringify({ username: username, password: password })}`,
       AUTH_BASE_URL,
     );
     const text = typeof res === "string" ? res : "";
@@ -95,7 +95,7 @@ export class LceOnlineService {
     const res = await this.request<string>(
       "POST",
       "/register",
-      `${username}:${password}`,
+      `${JSON.stringify({ username: username, password: password })}`,
       AUTH_BASE_URL,
     );
     const text = typeof res === "string" ? res : "";
@@ -125,9 +125,10 @@ export class LceOnlineService {
     this._notify();
     try {
       const raw: string = await this.request<string>("POST", "/accountinfo");
-      if (typeof raw === "string" && raw.startsWith("-")) {
-        const username = raw.slice(1);
-        this._session!.account = { username, displayName: username };
+      if (typeof raw === "object" && raw !== null) {
+        const data = JSON.parse(raw);
+        const username = data.username;
+        this._session!.account = { username, displayName: data.displayName };
         this.saveSession();
         this._notify();
       }
@@ -163,7 +164,7 @@ export class LceOnlineService {
   ): Promise<T> {
     const headers: Record<string, string> = {
       Accept: "text/plain, application/json",
-      "User-Agent": "MCLCE-LCEOnline/1.0",
+      "User-Agent": "MCLCE-LCEOnline/1.1", // str1k3r - changed the user agent to use 1.1 so older versions use older apis & get older responses.
     };
 
     if (body) {
@@ -248,7 +249,7 @@ export class LceOnlineService {
 
   async sendInvite(target: string): Promise<void> {
     const res = await this.request<string>("POST", "/invite", target);
-    if (typeof res === "string" && res !== "Invite Sent") {
+    if (typeof res === "string" && res !== "Successfully Sent Invite") {
       throw new Error(res);
     }
   }
@@ -264,7 +265,7 @@ export class LceOnlineService {
       await this.request("POST", "/declineinvite", from);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "";
-      if (msg !== "Declined Invite") throw e;
+      if (msg !== "Successfully Declined Invite") throw e;
     }
   }
 

@@ -1,0 +1,29 @@
+{
+  "identifier": "mobile-capability",
+  "description": "Mobile permissions",
+  "platforms": ["android", "iOS"],
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:app:default",
+    "core:event:default",
+    "core:image:default",
+    "core:path:default",
+    "core:resources:default",
+    "core:webview:default",
+    "core:webview:allow-create-webview-window",
+    "core:window:default",
+    "opener:default",
+    {
+      "identifier": "opener:allow-open-path",
+      "allow": [
+        {
+          "path": "**"
+        }
+      ]
+    },
+    "gamepad:default",
+    "process:default",
+    "deep-link:default"
+  ]
+}

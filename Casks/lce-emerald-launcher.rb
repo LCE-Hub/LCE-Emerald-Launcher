@@ -1,7 +1,7 @@
 cask "lce-emerald-launcher" do
-  version "1.5.1"
-  sha256 intel: "7826e105f283f22cb5784b7e0dd3c90b8fc493a636ca11333a4b867f3e1a9891",
-         arm:   "e1c392213e0d34546f55971a1e381b942d2c896671576a18ab1db4ff1d4270b9"
+  version "1.6.1"
+  sha256 intel: "dd86c3f63088585f71ab94acd7c3e3ec0b535fc06ef71e7770741e08fe60782f",
+         arm:   "e2e6c50a5b0b847ed7c857ab8a4ae421fa8666096f3c9fa8bb216f21639dcfd2"
 
   url "https://github.com/LCE-Hub/LCE-Emerald-Launcher/releases/download/v#{version}/LCE.Emerald.Launcher_#{version}_#{arch}.dmg"
   name "LCE Emerald Launcher"

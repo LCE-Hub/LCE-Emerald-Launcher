@@ -30,7 +30,9 @@ export function useAudioController({
   isWindowVisible,
 }: AudioControllerProps) {
   const [currentTrack, setCurrentTrack] = useState(0);
-  const [splashIndex, setSplashIndex] = useState(-1);
+  const [splashIndex, setSplashIndex] = useState(
+    () => Math.floor(Math.random() * SPLASHES.length),
+  );
   const audioContextRef = useRef<AudioContext | null>(null);
   const musicSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const musicGainRef = useRef<GainNode | null>(null);

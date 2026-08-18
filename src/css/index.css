@@ -1,8 +1,40 @@
 @import "tailwindcss";
 
+@layer base {
+    *,
+    ::before,
+    ::after {
+        -webkit-font-smoothing: none;
+        -moz-osx-font-smoothing: auto;
+    }
+    button,
+    input,
+    select,
+    textarea {
+        font-weight: normal;
+    }
+    body {
+        font-synthesis: none;
+    }
+}
+
 @font-face {
     font-family: "Mojangles";
     src: url("/fonts/Mojangles.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Mojang7";
+    src: url("/fonts/Mojang Font_7.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Mojang11";
+    src: url("/fonts/Mojang Font_11.ttf") format("truetype");
     font-weight: normal;
     font-style: normal;
 }
@@ -122,7 +154,6 @@ body {
     margin: 0;
     background-color: #000;
     font-family: "Mojangles", monospace;
-    -webkit-font-smoothing: none;
 }
 
 .mc-button {
@@ -178,7 +209,7 @@ body {
 }
 
 ::-webkit-scrollbar {
-    width: 14px;
+    width: 16px;
 }
 
 ::-webkit-scrollbar-track {
@@ -188,14 +219,25 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: url("/images/Slider_Handle.png") no-repeat center;
-    background-size: 100% 100%;
+    background-image:
+        url("/images/Slider_Handle_top.png"),
+        url("/images/Slider_Handle_mid.png"),
+        url("/images/Slider_Handle_bottom.png");
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-position:
+        50% 4px,
+        50% 8px,
+        50% 100%;
+    background-size:
+        16px 4px,
+        16px calc(100% - 14px),
+        16px 6px;
     image-rendering: pixelated;
     min-height: 44px;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-    width: 14px;
+    width: 16px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -205,8 +247,19 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: url("/images/Slider_Handle.png") no-repeat center;
-    background-size: 100% 100%;
+    background-image:
+        url("/images/Slider_Handle_top.png"),
+        url("/images/Slider_Handle_mid.png"),
+        url("/images/Slider_Handle_bottom.png");
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-position:
+        50% 4px,
+        50% 8px,
+        50% 100%;
+    background-size:
+        16px 4px,
+        16px calc(100% - 14px),
+        16px 6px;
     image-rendering: pixelated;
     min-height: 44px;
 }

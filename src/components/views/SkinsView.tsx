@@ -10,6 +10,7 @@ import {
 } from "../../context/LauncherContext";
 import SkinViewer from "../common/SkinViewer";
 import CapePreview from "../common/CapePreview";
+import { usePlatform } from "../../hooks/usePlatform";
 
 interface SavedSkin {
   id: string;
@@ -55,16 +56,40 @@ const DEFAULT_SKINS: SavedSkin[] = [
     isSlim: false,
   },
   { id: "striker", name: "str1k3r", url: "/Skins/str1k3r.png", isSlim: true },
+  {
+    id: "bytebukkit",
+    name: "ByteBukkit",
+    url: "/Skins/byte.png",
+    isSlim: false,
+  },
   { id: "andipog", name: "Andi_Pog", url: "/Skins/andi.png", isSlim: false },
   { id: "sevenhundred", name: "700", url: "/Skins/700.png", isSlim: false },
   {
     id: "prismachunk0",
-    name: "PrismaChunk0",
+    name: "XeroChunks",
     url: "/Skins/PrismaChunk0.png",
     isSlim: false,
   },
   { id: "amy", name: "Amy", url: "/Skins/amy.png", isSlim: true }, //neo: she's the best btw
+  { id: "avalilac", name: "AvaLilac", url: "/Skins/ava.png", isSlim: true },
   { id: "huckle", name: "Huckle", url: "/Skins/huckle.png", isSlim: true },
+  {
+    id: "counterract",
+    name: "CounterrAct",
+    url: "/Skins/counterr.png",
+    isSlim: true,
+  },
+  {
+    id: "tranqlmao",
+    name: "Tranq",
+    url: "/Skins/tranq.png",
+    isSlim: true,
+  },
+];
+
+const DEFAULT_CAPES: SavedCape[] = [
+  { id: "4j", name: "4J Studios", url: "/Capes/4J.png" },
+  { id: "unused2", name: "Unused Cape 2", url: "/Capes/Unused_Cape_2.png" },
 ];
 
 const HeadPreview = memo(function HeadPreview({ src }: { src: string }) {
@@ -101,7 +126,15 @@ const HeadPreview = memo(function HeadPreview({ src }: { src: string }) {
 const SkinsView = memo(function SkinsView() {
   const { setActiveView, setIsUiHidden } = useUI();
   const { playPressSound, playBackSound } = useAudio();
-  const { skinUrl, setSkinUrl, setSkinIsSlim, capeUrl, setCapeUrl } = useSkin();
+  const { isAndroid } = usePlatform();
+  const {
+    skinUrl,
+    setSkinUrl,
+    skinIsSlim,
+    setSkinIsSlim,
+    capeUrl,
+    setCapeUrl,
+  } = useSkin();
 
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"skin" | "cape">("skin");
@@ -121,13 +154,17 @@ const SkinsView = memo(function SkinsView() {
     "lce-custom-capes",
     [],
   );
+  const savedCapes = [
+    ...DEFAULT_CAPES,
+    ...storedCapes.filter((c) => !DEFAULT_CAPES.some((d) => d.id === c.id)),
+  ];
   const [activeCapeId, setActiveCapeId] = useState<string | null>(null);
 
-  const TOP_BUTTONS_COUNT = viewMode === "skin" ? 3 : 3;
+  const TOP_BUTTONS_COUNT = viewMode === "skin" ? 4 : 3;
   const SKINS_START_INDEX = TOP_BUTTONS_COUNT;
   const BACK_BUTTON_INDEX =
     SKINS_START_INDEX +
-    (viewMode === "skin" ? savedSkins.length : storedCapes.length);
+    (viewMode === "skin" ? savedSkins.length : savedCapes.length);
   const ITEM_COUNT = BACK_BUTTON_INDEX + 1;
 
   const setSavedSkins = (
@@ -229,10 +266,10 @@ const SkinsView = memo(function SkinsView() {
 
   useEffect(() => {
     if (!activeCapeId) {
-      const match = storedCapes.find((c) => c.url === capeUrl);
+      const match = savedCapes.find((c) => c.url === capeUrl);
       if (match) setActiveCapeId(match.id);
     }
-  }, [activeCapeId, storedCapes, capeUrl]);
+  }, [activeCapeId, savedCapes, capeUrl]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -319,7 +356,7 @@ const SkinsView = memo(function SkinsView() {
           setFocusIndex(0);
         } else if (focusIndex === BACK_BUTTON_INDEX) {
           const itemCount =
-            viewMode === "cape" ? storedCapes.length + 1 : savedSkins.length;
+            viewMode === "cape" ? savedCapes.length + 1 : savedSkins.length;
           setFocusIndex(SKINS_START_INDEX + itemCount - 1);
         } else if (focusIndex >= SKINS_START_INDEX) {
           const rowCount = 4;
@@ -334,10 +371,29 @@ const SkinsView = memo(function SkinsView() {
           if (viewMode === "skin") handleDeleteActive();
           else handleDeleteActiveCape();
         } else if (focusIndex === 2) {
+          if (viewMode === "skin") {
+            playPressSound();
+            setActiveView("skin-editor");
+          } else {
+            playPressSound();
+            setViewMode("skin");
+          }
+        } else if (focusIndex === 3 && viewMode === "skin") {
           playPressSound();
-          setViewMode(viewMode === "skin" ? "cape" : "skin");
+          setViewMode("cape");
         } else if (focusIndex < BACK_BUTTON_INDEX) {
-          handleSkinSelect(savedSkins[focusIndex - SKINS_START_INDEX]);
+          if (viewMode === "cape") {
+            const capeIdx = focusIndex - SKINS_START_INDEX;
+            if (capeIdx === 0) {
+              playPressSound();
+              setCapeUrl(null);
+              setActiveCapeId(null);
+            } else {
+              handleCapeSelect(savedCapes[capeIdx - 1]);
+            }
+          } else {
+            handleSkinSelect(savedSkins[focusIndex - SKINS_START_INDEX]);
+          }
         } else {
           playBackSound();
           setActiveView("main");
@@ -349,7 +405,7 @@ const SkinsView = memo(function SkinsView() {
   }, [
     focusIndex,
     savedSkins.length,
-    storedCapes.length,
+    savedCapes.length,
     playBackSound,
     setActiveView,
     playPressSound,
@@ -400,6 +456,9 @@ const SkinsView = memo(function SkinsView() {
   const isDefaultSkin = (id: string | null) =>
     DEFAULT_SKINS.some((d) => d.id === id);
 
+  const isDefaultCape = (id: string | null) =>
+    DEFAULT_CAPES.some((d) => d.id === id);
+
   const handleDeleteActive = () => {
     if (!activeSkinId || isDefaultSkin(activeSkinId)) return;
     playPressSound();
@@ -443,7 +502,7 @@ const SkinsView = memo(function SkinsView() {
   };
 
   const handleDeleteActiveCape = () => {
-    if (!activeCapeId) return;
+    if (!activeCapeId || isDefaultCape(activeCapeId)) return;
     playPressSound();
     const updatedCapes = storedCapes.filter((c) => c.id !== activeCapeId);
     setStoredCapes(updatedCapes);
@@ -462,6 +521,8 @@ const SkinsView = memo(function SkinsView() {
     isDefaultSkin(activeSkinId) ||
     (!activeSkinId && skinUrl === "/images/Default.png");
   const isActiveCapeDefault = !activeCapeId && !capeUrl;
+  const isCapeDeleteDisabled =
+    isActiveCapeDefault || isDefaultCape(activeCapeId);
 
   return (
     <motion.div
@@ -504,7 +565,7 @@ const SkinsView = memo(function SkinsView() {
             data-index="1"
             onMouseEnter={() => {
               if (viewMode === "skin" && !isActiveDefault) setFocusIndex(1);
-              else if (viewMode === "cape" && !isActiveCapeDefault)
+              else if (viewMode === "cape" && !isCapeDeleteDisabled)
                 setFocusIndex(1);
             }}
             onClick={() => {
@@ -514,7 +575,7 @@ const SkinsView = memo(function SkinsView() {
             }}
             className={`w-40 h-10 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none ${
               (viewMode === "skin" && isActiveDefault) ||
-              (viewMode === "cape" && isActiveCapeDefault)
+              (viewMode === "cape" && isCapeDeleteDisabled)
                 ? "text-gray-400 opacity-80 cursor-not-allowed"
                 : focusIndex === 1
                   ? "text-[#FFFF55]"
@@ -523,7 +584,7 @@ const SkinsView = memo(function SkinsView() {
             style={{
               backgroundImage:
                 (viewMode === "skin" && isActiveDefault) ||
-                (viewMode === "cape" && isActiveCapeDefault)
+                (viewMode === "cape" && isCapeDeleteDisabled)
                   ? "url('/images/Button_Background2.png')"
                   : focusIndex === 1
                     ? "url('/images/button_highlighted.png')"
@@ -535,11 +596,36 @@ const SkinsView = memo(function SkinsView() {
             {viewMode === "skin" ? "Delete Skin" : "Delete Cape"}
           </button>
 
-          <div className="flex-1"></div>
-          <div className="flex justify-end z-10">
+          {viewMode === "skin" && (
             <button
               data-index="2"
               onMouseEnter={() => setFocusIndex(2)}
+              onClick={() => {
+                playPressSound();
+                setActiveView("skin-editor");
+              }}
+              className={`w-40 h-10 flex items-center 
+                justify-center transition-colors text-2xl 
+                mc-text-shadow outline-none border-none hover:text-[#FFFF55] 
+                ${focusIndex === 2 ? "text-[#FFFF55]" : "text-white"}`}
+              style={{
+                backgroundImage:
+                  focusIndex === 2
+                    ? "url('/images/button_highlighted.png')"
+                    : "url('/images/Button_Background.png')",
+                backgroundSize: "100% 100%",
+                imageRendering: "pixelated",
+              }}
+            >
+              Edit Skin
+            </button>
+          )}
+
+          <div className="flex-1"></div>
+          <div className="flex justify-end z-10">
+            <button
+              data-index={viewMode === "skin" ? 3 : 2}
+              onMouseEnter={() => setFocusIndex(viewMode === "skin" ? 3 : 2)}
               onClick={() => {
                 playPressSound();
                 setViewMode(viewMode === "skin" ? "cape" : "skin");
@@ -547,7 +633,7 @@ const SkinsView = memo(function SkinsView() {
               className={`mc-sq-btn w-10 h-10 flex items-center justify-center outline-none border-none transition-all`}
               style={{
                 backgroundImage:
-                  focusIndex === 2
+                  focusIndex === (viewMode === "skin" ? 3 : 2)
                     ? "url('/images/Button_Square_Highlighted.png')"
                     : "url('/images/Button_Square.png')",
                 backgroundSize: "100% 100%",
@@ -659,7 +745,7 @@ const SkinsView = memo(function SkinsView() {
                   No Cape
                 </span>
               </div>
-              {storedCapes.map((cape, i) => {
+              {savedCapes.map((cape, i) => {
                 const idx = SKINS_START_INDEX + 1 + i;
                 const isActive = activeCapeId
                   ? activeCapeId === cape.id
@@ -693,9 +779,10 @@ const SkinsView = memo(function SkinsView() {
                       onChange={(e) =>
                         handleCapeNameChange(cape.id, e.target.value)
                       }
-                      className={`bg-transparent text-center outline-none border-none text-base mc-text-shadow w-full truncate transition-colors relative z-10 ${isActive || isFocused ? "text-[#FFFF55]" : "text-white"}`}
+                      className={`bg-transparent text-center outline-none border-none text-base mc-text-shadow w-full truncate transition-colors relative z-10 ${isActive || isFocused ? "text-[#FFFF55]" : "text-white"} ${isDefaultCape(cape.id) ? "pointer-events-none" : ""}`}
                       onClick={(e) => e.stopPropagation()}
                       spellCheck={false}
+                      readOnly={isDefaultCape(cape.id)}
                     />
                   </div>
                 );
@@ -719,28 +806,31 @@ const SkinsView = memo(function SkinsView() {
           onNavigateRight={() => {}}
           hideControls
           style={{ top: "45%" }}
+          slim={skinIsSlim}
         />
       </div>
 
-      <button
-        data-index={BACK_BUTTON_INDEX}
-        onMouseEnter={() => setFocusIndex(BACK_BUTTON_INDEX)}
-        onClick={() => {
-          playBackSound();
-          setActiveView("main");
-        }}
-        className={`w-72 h-14 shrink-0 flex items-center justify-center transition-colors text-2xl mc-text-shadow mt-2 outline-none border-none hover:text-[#FFFF55] ${focusIndex === BACK_BUTTON_INDEX ? "text-[#FFFF55]" : "text-white"}`}
-        style={{
-          backgroundImage:
-            focusIndex === BACK_BUTTON_INDEX
-              ? "url('/images/button_highlighted.png')"
-              : "url('/images/Button_Background.png')",
-          backgroundSize: "100% 100%",
-          imageRendering: "pixelated",
-        }}
-      >
-        Back
-      </button>
+      {!isAndroid && (
+        <button
+          data-index={BACK_BUTTON_INDEX}
+          onMouseEnter={() => setFocusIndex(BACK_BUTTON_INDEX)}
+          onClick={() => {
+            playBackSound();
+            setActiveView("main");
+          }}
+          className={`w-72 h-14 shrink-0 flex items-center justify-center transition-colors text-2xl mc-text-shadow mt-2 outline-none border-none hover:text-[#FFFF55] ${focusIndex === BACK_BUTTON_INDEX ? "text-[#FFFF55]" : "text-white"}`}
+          style={{
+            backgroundImage:
+              focusIndex === BACK_BUTTON_INDEX
+                ? "url('/images/button_highlighted.png')"
+                : "url('/images/Button_Background.png')",
+            backgroundSize: "100% 100%",
+            imageRendering: "pixelated",
+          }}
+        >
+          Back
+        </button>
+      )}
 
       {showImportModal && viewMode === "skin" && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">

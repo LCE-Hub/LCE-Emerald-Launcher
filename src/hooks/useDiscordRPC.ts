@@ -64,6 +64,7 @@ export function useDiscordRPC({
           settings: "In Settings",
           devtools: "Developing for LCE",
           skins: "Changing Skins",
+          "skin-editor": "Editing a Skin",
           workshop: "Browsing Workshop",
           lceonline: "Browsing Friends",
           "pck-editor": "Editing a PCK file",
@@ -78,7 +79,22 @@ export function useDiscordRPC({
         details = tabNames[activeView] || "In Menus";
       }
 
-      await RpcService.updateActivity(details, state, isGameRunning, username);
+      const skinUrl = (() => {
+        try {
+          return (
+            JSON.parse(localStorage.getItem("lce-skin") || "null") || undefined
+          );
+        } catch {
+          return undefined;
+        }
+      })();
+      await RpcService.updateActivity(
+        details,
+        state,
+        isGameRunning,
+        username,
+        skinUrl,
+      );
     };
 
     updateRPC();

@@ -1,7 +1,7 @@
 {
   "name": "emerald-legacy-launcher",
   "private": true,
-  "version": "1.6.0",
+  "version": "1.6.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,6 +10,7 @@
     "tauri": "tauri",
     "tauri:build": "tauri build && pnpm run post-build:macos",
     "post-build:macos": "bash src-tauri/scripts/post-build-macos.sh",
+    "android:assets": "node scripts/download-android-assets.mjs",
     "flatpak": "flatpak-builder --user --install-deps-from=flathub --repo=emerald-repo --force-clean build-flatpak flatpak/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.yml && flatpak build-bundle emerald-repo emerald.flatpak io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher"
   },
   "dependencies": {

@@ -9,8 +9,9 @@ import {
 } from "react";
 import { TauriService, type CustomEdition } from "../services/TauriService";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { usePlatform } from "./usePlatform";
+import { HIDDEN_INSTANCE_URL } from "../types/edition";
 import type { Edition } from "../types/edition";
-
 async function imageUrlToBase64(url: string): Promise<string> {
   const response = await fetch(url);
   const blob = await response.blob();
@@ -30,7 +31,7 @@ export const BASE_EDITIONS = [
     id: "legacy_evolved",
     name: "neoLegacy",
     desc: "Backporting newer title updates and Minigames back to LCE",
-    url: "https://bucket.ibatv.xyz/neolegacy/Release.zip",
+    url: "https://git.neolegacy.dev/neoStudiosLCE/neoLegacy/releases/download/latest/neoLegacyWindows64.zip", //neo: fuck IBA (Julia)
     titleImage: "/images/minecraft_title_neoLegacy.png",
     supportsSlimSkins: true,
     logo: "/images/neoLegacy.png",
@@ -47,6 +48,28 @@ export const BASE_EDITIONS = [
     panorama: "vanilla_tu24",
     logo: "/images/revelations.png",
   },
+  /*{
+    id: "cafeberry",
+    name: "Cafeberry",
+    desc: "Project aiming to faithfully backport TUs, add cross-play and more!",
+    url: "https://gitea.str1k3r.xyz/cafeberry/cafeberry/releases/download/latest/LCEWindows64.zip",
+    titleImage: "/images/cafeberry_title.png",
+    supportsSlimSkins: false,
+    logo: "", //neo: TODO: add Cafeberry logo
+    panorama: "vanilla_tu24",
+    lceOnline: false, //neo: for now.
+  },*/
+  {
+    id: "lostlegacy",
+    name: "Project Lost Legacy",
+    desc: "Downporting project aiming at bringing back the feel of Title Update 1 with extra QoL features.",
+    url: "no", //neo: TODO: update url when sails makes it public
+    titleImage: "/images/lostlegacy_title.png",
+    logo: "/images/lostlegacy.png",
+    supportsSlimSkins: false,
+    panorama: "vanilla_tu1",
+    comingSoon: true,
+  },
   {
     id: "360revived",
     name: "360 Revived",
@@ -56,6 +79,7 @@ export const BASE_EDITIONS = [
     supportsSlimSkins: false,
     logo: "/images/360_revived.png",
     panorama: "360revived",
+    hideOnAndroid: true, //neo: 360revived shows a black screen on Android
   },
   {
     id: "legacy_nether_fork",
@@ -78,15 +102,26 @@ export const BASE_EDITIONS = [
     panorama: "moonedition",
   },
   {
+    //neo: disabled.
     id: "lceonline",
     name: "LCE Online Client",
-    desc: "Restoring the classic LCE online experience with friends, world hosting, leaderboards & more.",
-    url: "https://github.com/lceonline/MCLEClient/releases/latest/download/LCENWindows64.zip",
+    desc: "[DISCONTINUED!] Restoring the classic LCE online experience with friends, world hosting, leaderboards & more.",
+    url: HIDDEN_INSTANCE_URL, //neo: was "https://github.com/lceonline/MCLEClient/releases/latest/download/LCENWindows64.zip"
     titleImage: "/images/lceonline.png",
     supportsSlimSkins: false,
     logo: "/images/lce_online.png",
     panorama: "vanilla_tu19",
     lceOnline: true,
+  },
+  {
+    id: "amythest",
+    name: "Amethyst LCE",
+    desc: "A project aimed towards backporting modern Java edition features and their feel into LCE! ",
+    logo: "/images/amythest.png",
+    panorama: "vanilla_tu24", //neo: TODO: use the Amythest's panorama
+    supportsSlimSkins: false, //neo: TODO: check properly lol
+    titleImage: "/images/amythest_title.png",
+    url: "https://github.com/ducttapesucker9000-svg/Amethyst_Source/releases/download/latest/Amethyst-Windows-Release.zip",
   },
 ];
 
@@ -105,7 +140,7 @@ const PARTNERSHIP_SERVERS = [
     name: "LapboardMC",
     ip: "104.168.125.227",
     port: 4444,
-  }
+  },
 ];
 
 interface GameManagerProps {
@@ -149,6 +184,7 @@ export function useGameManager({
   setCustomizations,
   extraLaunchArgs,
 }: GameManagerProps) {
+  const { isAndroid } = usePlatform();
   const [installs, setInstalls] = useState<string[]>([]);
   const [isGameRunning, setIsGameRunning] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState<
@@ -283,36 +319,38 @@ export function useGameManager({
 
   const editions = useMemo((): Edition[] => {
     return [
-      ...BASE_EDITIONS.map((e) => {
-        const availableBranches = branches[e.id] || ["Stable"];
-        const selectedBranch = selectedBranches[e.id] || availableBranches[0];
-        let url = dynamicUrls[e.id] || e.url;
-        const defaultBranchFromUrl = e.url.includes("/releases/download/")
-          ? e.url.split("/releases/download/")[1].split("/")[0]
-          : "nightly";
-        const branchToUse =
-          selectedBranch === "Stable"
-            ? dynamicUrls[`${e.id}_Stable`] || defaultBranchFromUrl
-            : selectedBranch;
-        if (e.url.includes("/releases/download/")) {
-          const baseUrl = e.url.split("/releases/download/")[0];
-          const filename = e.url.split("/").pop();
-          url = `${baseUrl}/releases/download/${branchToUse}/${filename}`;
-        }
+      ...BASE_EDITIONS.filter((e) => !(isAndroid && e.hideOnAndroid)).map(
+        (e) => {
+          const availableBranches = branches[e.id] || ["Stable"];
+          const selectedBranch = selectedBranches[e.id] || availableBranches[0];
+          let url = dynamicUrls[e.id] || e.url;
+          const defaultBranchFromUrl = e.url.includes("/releases/download/")
+            ? e.url.split("/releases/download/")[1].split("/")[0]
+            : "nightly";
+          const branchToUse =
+            selectedBranch === "Stable"
+              ? dynamicUrls[`${e.id}_Stable`] || defaultBranchFromUrl
+              : selectedBranch;
+          if (e.url.includes("/releases/download/")) {
+            const baseUrl = e.url.split("/releases/download/")[0];
+            const filename = e.url.split("/").pop();
+            url = `${baseUrl}/releases/download/${branchToUse}/${filename}`;
+          }
 
-        const edition = {
-          ...e,
-          url,
-          branches: availableBranches,
-          selectedBranch,
-          instanceId:
-            selectedBranch === "Stable" ? e.id : `${e.id}_${selectedBranch}`,
-        };
-        const custom = customizations[e.id];
-        if (custom?.titleImage) edition.titleImage = custom.titleImage;
-        if (custom?.panorama) edition.panorama = custom.panorama;
-        return edition;
-      }),
+          const edition = {
+            ...e,
+            url,
+            branches: availableBranches,
+            selectedBranch,
+            instanceId:
+              selectedBranch === "Stable" ? e.id : `${e.id}_${selectedBranch}`,
+          };
+          const custom = customizations[e.id];
+          if (custom?.titleImage) edition.titleImage = custom.titleImage;
+          if (custom?.panorama) edition.panorama = custom.panorama;
+          return edition;
+        },
+      ),
       ...customEditions.map((e) => {
         const edition: Edition = { ...e, instanceId: e.id };
         const custom = customizations[e.id];
@@ -321,7 +359,14 @@ export function useGameManager({
         return edition;
       }),
     ];
-  }, [customEditions, dynamicUrls, branches, selectedBranches, customizations]);
+  }, [
+    customEditions,
+    dynamicUrls,
+    branches,
+    selectedBranches,
+    customizations,
+    isAndroid,
+  ]);
 
   const checkInstalls = useCallback(async () => {
     const results = await Promise.all(
@@ -340,6 +385,8 @@ export function useGameManager({
     const checks = await Promise.all(
       editions.map(async (edition) => {
         if (!installs.includes(edition.instanceId))
+          return [edition.instanceId, false] as const;
+        if (edition.url === HIDDEN_INSTANCE_URL)
           return [edition.instanceId, false] as const;
         try {
           const isUpdate = await TauriService.checkGameUpdate(
@@ -401,7 +448,7 @@ export function useGameManager({
       gameLogRef.current = true;
       setError(null);
       setGameLog(log);
-      getCurrentWindow().unminimize();
+      if (!isAndroid) getCurrentWindow().unminimize();
     });
     return () => {
       unlistenDownload.then((u) => u());
@@ -410,7 +457,7 @@ export function useGameManager({
       unlistenRetry.then((u) => u());
       unlistenGameLog.then((u) => u());
     };
-  }, [customEditions, checkInstalls]);
+  }, [customEditions, checkInstalls, isAndroid]);
 
   const downloadRunner = useCallback(
     async (name: string, url: string) => {
@@ -508,7 +555,7 @@ export function useGameManager({
     setError(null);
     setIsGameRunning(true);
     try {
-      getCurrentWindow().minimize();
+      if (!isAndroid) getCurrentWindow().minimize();
       const currentEdition = editions.find((e) => e.instanceId === profile);
       await TauriService.launchGame(
         profile,
@@ -537,7 +584,7 @@ export function useGameManager({
     } finally {
       setIsGameRunning(false);
     }
-  }, [isGameRunning, profile, extraLaunchArgs]);
+  }, [isGameRunning, profile, extraLaunchArgs, isAndroid]);
 
   const stopGame = useCallback(async () => {
     try {

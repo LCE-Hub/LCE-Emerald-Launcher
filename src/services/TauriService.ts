@@ -48,6 +48,12 @@ export interface AppConfig {
   customizations?: Record<string, { titleImage?: string; panorama?: string }>;
   customPaths?: Record<string, string>;
   skipIntro?: boolean;
+  instanceLaunchArgs?: Record<
+    string,
+    { values: Record<string, unknown>; args: string[] }
+  >;
+  androidRunner?: string;
+  androidAudioBackend?: "alsa" | "pulseaudio";
 }
 
 export interface ThemePalette {
@@ -60,7 +66,7 @@ export interface Runner {
   id: string;
   name: string;
   path: string;
-  type: "wine" | "proton";
+  type: "wine" | "proton"; //neo: i beg you please use Proton dont use WINE, WineD3D sickens me
 }
 
 export interface MacOSSetupProgress {
@@ -127,6 +133,10 @@ export class TauriService {
     return invoke("open_instance_folder", { instanceId });
   }
 
+  static async openContainerSettings(instanceId: string): Promise<void> {
+    return invoke("open_container_settings", { instanceId });
+  }
+
   static async deleteInstance(instanceId: string): Promise<void> {
     return invoke("delete_instance", { instanceId });
   }
@@ -188,15 +198,25 @@ export class TauriService {
     return invoke("workshop_list_installed");
   }
 
-  static onDownloadProgress(callback: (data: { instanceId: string; percent: number }) => void) {
-    return listen<{ instanceId: string; percent: number }>("download-progress", (event) =>
-      callback(event.payload),
+  static onDownloadProgress(
+    callback: (data: { instanceId: string; percent: number }) => void,
+  ) {
+    return listen<{ instanceId: string; percent: number }>(
+      "download-progress",
+      (event) => callback(event.payload),
     );
   }
 
-  static onWorkshopProgress(callback: (data: { packageId: string; percent: number }) => void) {
-    return listen<{ instanceId: string; percent: number }>("workshop-progress", (event) =>
-      callback({ packageId: event.payload.instanceId, percent: event.payload.percent }),
+  static onWorkshopProgress(
+    callback: (data: { packageId: string; percent: number }) => void,
+  ) {
+    return listen<{ instanceId: string; percent: number }>(
+      "workshop-progress",
+      (event) =>
+        callback({
+          packageId: event.payload.instanceId,
+          percent: event.payload.percent,
+        }),
     );
   }
 
@@ -213,25 +233,23 @@ export class TauriService {
   }
 
   static onBackendError(callback: (message: string) => void) {
-    return listen<string>("backend-error", (event) =>
-      callback(event.payload),
-    );
+    return listen<string>("backend-error", (event) => callback(event.payload));
   }
 
   static onGameLog(callback: (log: string) => void) {
-    return listen<string>("game-log", (event) =>
-      callback(event.payload),
-    );
+    return listen<string>("game-log", (event) => callback(event.payload));
   }
 
   static onDownloadRetry(callback: (attempt: number) => void) {
-    return listen<number>("download-retry", (event) =>
-      callback(event.payload),
-    );
+    return listen<number>("download-retry", (event) => callback(event.payload));
   }
 
   static async openUrl(url: string): Promise<void> {
     return invoke("plugin:opener|open_url", { url });
+  }
+
+  static async startLceOnlineAuth(): Promise<string> {
+    return invoke("start_lce_auth");
   }
 
   static async restartLauncher(): Promise<void> {
@@ -379,6 +397,12 @@ export class TauriService {
     return invoke("get_instance_path", { instanceId });
   }
 
+  static async getInstanceArgsSchema(
+    instanceId: string,
+  ): Promise<string | null> {
+    return invoke("get_instance_args_schema", { instanceId });
+  }
+
   static async readScreenshotAsDataUrl(path: string): Promise<string> {
     return invoke("read_screenshot_as_data_url", { path });
   }
@@ -423,7 +447,12 @@ export class TauriService {
     branch: string,
     dlcFolder: string,
   ): Promise<void> {
-    return invoke("download_dlc_files", { instanceId, repoUrl, branch, dlcFolder });
+    return invoke("download_dlc_files", {
+      instanceId,
+      repoUrl,
+      branch,
+      dlcFolder,
+    });
   }
 
   static async importWorld(
@@ -452,5 +481,17 @@ export class TauriService {
     javaWorldOutput: string,
   ): Promise<string> {
     return invoke("lce_to_java", { inputMsPath, javaWorldOutput });
+  }
+
+  static async installLatestDriver(): Promise<void> {
+    return invoke("install_latest_driver");
+  }
+
+  static async switchProton(version: string): Promise<void> {
+    return invoke("switch_proton", { version });
+  }
+
+  static async setAudioBackend(backend: string): Promise<void> {
+    return invoke("set_audio_backend", { backend });
   }
 }

@@ -1285,6 +1285,7 @@ static MODERN_DIRECT_MAP: once_cell::sync::Lazy<HashMap<&'static str, LegacyBloc
             "lava_cauldron",
             LegacyBlockState { id: 118, data: 0 },
         );
+        //neo: m.insert("help", neo {thisis: verytiring});
         m
     });
 

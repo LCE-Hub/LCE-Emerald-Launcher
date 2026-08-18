@@ -144,13 +144,37 @@ const CapePreview = memo(function CapePreview({
         render();
       }
     };
+    const onTouchStart = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (!t) return;
+      isDragging = true;
+      previousMousePosition = { x: t.clientX, y: t.clientY };
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (isDragging && groupRef.current && t) {
+        e.preventDefault();
+        groupRef.current.rotation.y +=
+          (t.clientX - previousMousePosition.x) * 0.01;
+        previousMousePosition = { x: t.clientX, y: t.clientY };
+        render();
+      }
+    };
+    const onTouchEnd = () => {
+      isDragging = false;
+    };
     renderer.domElement.addEventListener("mousedown", onMouseDown);
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
+    renderer.domElement.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("touchend", onTouchEnd);
     return () => {
       active = false;
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh) {
           if (object.geometry) object.geometry.dispose();

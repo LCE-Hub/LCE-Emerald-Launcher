@@ -1,3 +1,4 @@
+export const HIDDEN_INSTANCE_URL = "emerald://PLEASE_IM_TIRED_OF_ALL_THIS";
 export interface Edition {
   id: string;
   name: string;
@@ -14,6 +15,7 @@ export interface Edition {
   category?: string[];
   officialDLC?: string;
   lceOnline?: boolean;
+  hideOnAndroid?: boolean;
 }
 
 export interface CustomEditionInput {

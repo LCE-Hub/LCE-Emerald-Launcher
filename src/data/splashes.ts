@@ -1,4 +1,5 @@
 export const SPLASHES = [
+  "Holy moly! - Counterract",
   "Legacy is back!",
   "Pixelated goodness!",
   "Console Edition vibe!",

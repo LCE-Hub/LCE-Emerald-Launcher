@@ -16,6 +16,7 @@ interface SkinViewerProps {
   onNavigateRight: () => void;
   hideControls?: boolean;
   style?: React.CSSProperties;
+  slim?: boolean;
 }
 
 const SkinViewer = memo(function SkinViewer({
@@ -30,6 +31,7 @@ const SkinViewer = memo(function SkinViewer({
   onNavigateRight,
   hideControls,
   style,
+  slim,
 }: SkinViewerProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -181,17 +183,19 @@ const SkinViewer = memo(function SkinViewer({
       });
 
       const isSlim =
-        !isLegacy &&
-        (() => {
-          const canvas = document.createElement("canvas");
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext("2d");
-          if (!ctx) return false;
-          ctx.drawImage(img, 0, 0);
-          const data = ctx.getImageData(42, 48, 1, 1).data;
-          return data[3] === 0;
-        })();
+        slim !== undefined
+          ? slim
+          : !isLegacy &&
+            (() => {
+              const canvas = document.createElement("canvas");
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext("2d");
+              if (!ctx) return false;
+              ctx.drawImage(img, 0, 0);
+              const data = ctx.getImageData(42, 48, 1, 1).data;
+              return data[3] === 0;
+            })();
       const armW = isSlim ? 3 : 4;
       const headUv = {
         top: [8, 0, 8, 8],
@@ -269,7 +273,7 @@ const SkinViewer = memo(function SkinViewer({
         4,
         isLegacy ? limbUv(40, 16, armW) : limbUv(32, 48, armW),
         isLegacy ? undefined : limbUv(48, 48, armW),
-        true,
+        isLegacy,
         isLegacy,
       );
       leftArm.position.set(isSlim ? 5.5 : 6, 0, 0);
@@ -289,7 +293,7 @@ const SkinViewer = memo(function SkinViewer({
         4,
         isLegacy ? limbUv(0, 16) : limbUv(16, 48),
         isLegacy ? undefined : limbUv(0, 48),
-        true,
+        isLegacy,
         isLegacy,
       );
       leftLeg.position.set(2, -12, 0);
@@ -379,7 +383,7 @@ const SkinViewer = memo(function SkinViewer({
       }
 
       const name = username.toLowerCase();
-      playerGroup.rotation.y = -0.3;
+      playerGroup.rotation.y = 0.3;
       if (name === "dinnerbone" || name === "grumm") {
         playerGroup.scale.y = -1;
         playerGroup.position.y = 1.5;
@@ -404,15 +408,39 @@ const SkinViewer = memo(function SkinViewer({
         requestRenderRef.current?.();
       }
     };
+    const onTouchStart = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (!t) return;
+      isDragging = true;
+      previousMousePosition = { x: t.clientX, y: t.clientY };
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (isDragging && t) {
+        e.preventDefault();
+        const delta = (t.clientX - previousMousePosition.x) * 0.01;
+        playerGroup.rotation.y += delta;
+        previousMousePosition = { x: t.clientX, y: t.clientY };
+        requestRenderRef.current?.();
+      }
+    };
+    const onTouchEnd = () => {
+      isDragging = false;
+    };
 
     requestRenderRef.current = () => renderer.render(scene, camera);
     requestRenderRef.current();
     renderer.domElement.addEventListener("mousedown", onMouseDown);
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
+    renderer.domElement.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("touchend", onTouchEnd);
     return () => {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh) {
           if (object.geometry) object.geometry.dispose();
@@ -437,7 +465,7 @@ const SkinViewer = memo(function SkinViewer({
       easterEggRef.current = null;
       requestRenderRef.current = null;
     };
-  }, [skinUrl, capeUrl]);
+  }, [skinUrl, capeUrl, slim]);
 
   useEffect(() => {
     const group = playerGroupRef.current;
