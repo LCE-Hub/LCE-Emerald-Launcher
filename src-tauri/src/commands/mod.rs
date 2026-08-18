@@ -6,6 +6,7 @@ pub mod file_dialogs;
 pub mod game;
 pub mod java2lce;
 pub mod macos_setup;
+pub mod platform;
 pub mod plugins;
 pub mod proxy_cmd;
 pub mod runners;

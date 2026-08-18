@@ -79,6 +79,10 @@ const CreditsView = memo(function CreditsView() {
         "Tymszn21",
         "DaPogLord",
         "turniphead",
+        "ArthurDotPNG",
+        "CounterrAct",
+        "luckyduuckxd",
+        "PixelatedCheese1",
       ].sort(() => Math.random() - 0.5),
     [],
   );
@@ -96,6 +100,8 @@ const CreditsView = memo(function CreditsView() {
               role: "Founder & Maintainer",
               members: [
                 { name: "KayJann", url: "https://github.com/KayJannOnGit" },
+                { name: "Architect", url: "#" },
+                { name: "neoapps", url: "https://github.com/neoapps-dev" },
               ],
             },
             {
@@ -119,6 +125,7 @@ const CreditsView = memo(function CreditsView() {
                 },
                 { name: "Leon", url: "https://github.com/hornyalcoholic" },
                 { name: "Criador_Mods", url: "https://github.com/CriadorMods" },
+                { name: "j-carv", url: "https://github.com/j-carv" },
               ],
             },
           ],
@@ -277,6 +284,7 @@ const CreditsView = memo(function CreditsView() {
                 { name: "alreadywarned", url: "#" },
                 { name: "andrewjcf", url: "#" },
                 { name: "dille", url: "#" },
+                { name: "neoapps", url: "#" },
               ],
             },
           ],
@@ -334,7 +342,7 @@ const CreditsView = memo(function CreditsView() {
       <motion.div
         initial={{ y: "50%" }}
         animate={{ y: "-200%" }}
-        transition={{ duration: 45, ease: "linear" }}
+        transition={{ duration: 60, ease: "linear" }}
         className="flex flex-col items-center justify-center space-y-8 py-20"
       >
         <div className="mb-8">
