@@ -7,6 +7,7 @@ import VersionsView from "../components/views/VersionsView";
 import DevtoolsView from "../components/views/DevtoolsView";
 import GuidesView from "../components/views/GuidesView";
 import SkinsView from "../components/views/SkinsView";
+import SkinEditorView from "../components/views/SkinEditorView";
 import WorkshopView from "../components/views/WorkshopView";
 import SetupView from "../components/views/SetupView";
 import PckEditorView from "../components/views/PckEditorView";
@@ -656,6 +657,9 @@ export default function App() {
                     />
                   )}
                   {activeView === "skins" && <SkinsView key="skins-view" />}
+                  {activeView === "skin-editor" && (
+                    <SkinEditorView key="skin-editor-view" />
+                  )}
                   {activeView === "screenshots" && (
                     <ScreenshotsView key="screenshots-view" />
                   )}

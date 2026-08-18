@@ -269,7 +269,7 @@ const SkinViewer = memo(function SkinViewer({
         4,
         isLegacy ? limbUv(40, 16, armW) : limbUv(32, 48, armW),
         isLegacy ? undefined : limbUv(48, 48, armW),
-        true,
+        isLegacy,
         isLegacy,
       );
       leftArm.position.set(isSlim ? 5.5 : 6, 0, 0);
@@ -289,7 +289,7 @@ const SkinViewer = memo(function SkinViewer({
         4,
         isLegacy ? limbUv(0, 16) : limbUv(16, 48),
         isLegacy ? undefined : limbUv(0, 48),
-        true,
+        isLegacy,
         isLegacy,
       );
       leftLeg.position.set(2, -12, 0);
