@@ -50,7 +50,7 @@ const CreditsView = memo(function CreditsView() {
         "raymanroy",
         "fin",
         "liugu",
-        "Zrox2013 (Zameras2013)",
+        "Zrox2013 (Zamers2013)",
         "kierwa",
         "cartox",
         "necmi",
