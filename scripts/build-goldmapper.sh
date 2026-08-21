@@ -35,5 +35,6 @@ echo "Copying binaries to resources..."
 mkdir -p "$RESOURCES_DIR"
 cp "$BUILD_DIR/GoldMapperLib.dll" "$RESOURCES_DIR/"
 cp "$BUILD_DIR/GoldMapperLauncher.exe" "$RESOURCES_DIR/"
+cp "$BUILD_DIR/../third_party/SDL2-2.32.6/lib/x64/SDL2.dll" "$RESOURCES_DIR/"
 
 echo "GoldMapper build complete."
