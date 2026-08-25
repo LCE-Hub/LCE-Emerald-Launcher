@@ -3,6 +3,7 @@ import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import "../css/App.css";
 import HomeView from "../components/views/HomeView";
 import SettingsView from "../components/views/SettingsView";
+import GoldMapperView from "../components/views/GoldMapperView";
 import VersionsView from "../components/views/VersionsView";
 import DevtoolsView from "../components/views/DevtoolsView";
 import GuidesView from "../components/views/GuidesView";
@@ -305,6 +306,7 @@ export default function App() {
     "options-editor",
     "model-editor",
     "swf-editor",
+    "goldmapper",
   ]);
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
@@ -670,6 +672,9 @@ export default function App() {
                   {activeView === "main" && <HomeView key="main-view" />}
                   {activeView === "settings" && (
                     <SettingsView key="settings-view" />
+                  )}
+                  {activeView === "goldmapper" && (
+                    <GoldMapperView key="goldmapper-view" />
                   )}
                   {activeView === "versions" && (
                     <VersionsView key="versions-view" />

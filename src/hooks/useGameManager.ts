@@ -74,12 +74,12 @@ export const BASE_EDITIONS = [
     id: "360revived",
     name: "360 Revived",
     desc: "PC port of Xbox 360 Edition TU19",
-    url: "https://github.com/BlackHoleSpirit/360-Revived/releases/download/nightly/360-Revived.zip",
+    url: HIDDEN_INSTANCE_URL, //neo: was "https://github.com/BlackHoleSpirit/360-Revived/releases/download/nightly/360-Revived.zip"
     titleImage: "/images/minecraft_title_360revived.png",
     supportsSlimSkins: false,
     logo: "/images/360_revived.png",
     panorama: "360revived",
-    hideOnAndroid: true, //neo: 360revived shows a black screen on Android
+    hideOnAndroid: true, //neo: [NOT EFFECT BECAUSE OF `url`] 360revived shows a black screen on Android
   },
   {
     id: "legacy_nether_fork",

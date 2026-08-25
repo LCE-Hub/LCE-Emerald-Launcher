@@ -318,6 +318,17 @@ const SettingsView = memo(function SettingsView() {
           setFocusIndex(0);
         },
       });
+      if (!isAndroid) {
+        items.push({
+          id: "controls_menu",
+          label: "Controls",
+          type: "button",
+          onClick: () => {
+            playPressSound();
+            setActiveView("goldmapper");
+          },
+        });
+      }
       items.push({
         id: "plugins_menu",
         label: "Plugins",

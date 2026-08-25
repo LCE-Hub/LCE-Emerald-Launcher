@@ -295,7 +295,10 @@ const CreditsView = memo(function CreditsView() {
           roles: [
             {
               role: "",
-              members: [{ name: "faisal508508", url: "#" }],
+              members: [
+                { name: "faisal508508", url: "#" },
+                { name: "HingedxHooligan", url: "#" },
+              ],
             },
           ],
         },

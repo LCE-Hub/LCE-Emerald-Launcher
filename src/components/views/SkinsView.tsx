@@ -70,7 +70,7 @@ const DEFAULT_SKINS: SavedSkin[] = [
     url: "/Skins/PrismaChunk0.png",
     isSlim: false,
   },
-  { id: "amy", name: "Amy", url: "/Skins/amy.png", isSlim: true }, //neo: she's the best btw
+  { id: "amy", name: "Amy", url: "/Skins/amy.png", isSlim: true }, //neo: :c
   { id: "avalilac", name: "AvaLilac", url: "/Skins/ava.png", isSlim: true },
   { id: "huckle", name: "Huckle", url: "/Skins/huckle.png", isSlim: true },
   {
@@ -604,9 +604,9 @@ const SkinsView = memo(function SkinsView() {
                 playPressSound();
                 setActiveView("skin-editor");
               }}
-              className={`w-40 h-10 flex items-center 
-                justify-center transition-colors text-2xl 
-                mc-text-shadow outline-none border-none hover:text-[#FFFF55] 
+              className={`w-40 h-10 flex items-center
+                justify-center transition-colors text-2xl
+                mc-text-shadow outline-none border-none hover:text-[#FFFF55]
                 ${focusIndex === 2 ? "text-[#FFFF55]" : "text-white"}`}
               style={{
                 backgroundImage:
