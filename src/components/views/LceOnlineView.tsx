@@ -41,7 +41,7 @@ const LceOnlineView = memo(function LceOnlineView({
   const [incomingReqs, setIncomingReqs] = useState<SocialEntry[]>([]);
   const [outgoingReqs, setOutgoingReqs] = useState<SocialEntry[]>([]);
   const invites = invitesProp ?? [];
-  const [isHosting, setIsHosting] = useState(false);
+  const [isHosting, setIsHosting] = useState(lceOnlineService.isHosting);
   const [isAddingFriend, setIsAddingFriend] = useState(false);
   const [addFriendUsername, setAddFriendUsername] = useState("");
   const addFriendInputRef = useRef<HTMLInputElement>(null);
@@ -74,6 +74,7 @@ const LceOnlineView = memo(function LceOnlineView({
   useEffect(() => {
     return lceOnlineService.onSessionChange(() => {
       setIsSignedIn(lceOnlineService.signedIn);
+      setIsHosting(lceOnlineService.isHosting);
     });
   }, []);
 
@@ -137,7 +138,7 @@ const LceOnlineView = memo(function LceOnlineView({
       const token = lceOnlineService.accessToken ?? "";
       if (!token) return;
       TauriService.startHostRelay(token, 25565).catch(() => {});
-      setIsHosting(true);
+      lceOnlineService.isHosting = true;
     } catch (e: unknown) {
       setErrorModal(e instanceof Error ? e.message : "Failed to start hosting");
     }
@@ -150,7 +151,7 @@ const LceOnlineView = memo(function LceOnlineView({
     } catch (e: unknown) {
       console.warn("Stop hosting failed", e);
     }
-    setIsHosting(false);
+    lceOnlineService.isHosting = false;
   };
 
   const handleAction = async (action: () => Promise<void>) => {
