@@ -249,8 +249,12 @@ const SettingsView = memo(function SettingsView() {
     const fullPath = tracks[currentTrack];
     if (fullPath) {
       trackName =
-        fullPath.split("/").pop()?.replace(".ogg", "").replace(".wav", "") ||
-        "Unknown";
+        fullPath
+          .split("/")
+          .pop()
+          ?.replace(".ogg", "")
+          .replace(".wav", "")
+          .replace(".opus", "") || "Unknown";
     }
   }
 
@@ -778,20 +782,6 @@ const SettingsView = memo(function SettingsView() {
       transition={{ duration: animationsEnabled ? 0.3 : 0 }}
       className="flex flex-col items-center w-full max-w-5xl outline-none"
     >
-      <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 border-b-2 border-[#373737] pb-2 w-[40%] max-w-[200px] text-center tracking-widest uppercase opacity-80 whitespace-nowrap px-4">
-        {currentSubMenu === "main"
-          ? "Settings"
-          : currentSubMenu === "audio"
-            ? "Audio"
-            : currentSubMenu === "video"
-              ? "Video"
-              : currentSubMenu === "game"
-                ? "Game"
-                : currentSubMenu === "plugins"
-                  ? "Plugins"
-                  : "Launcher"}
-      </h2>
-
       {currentSubMenu === "main" ? (
         <div className="w-full max-w-[680px] space-y-2 mb-4 p-6 flex flex-col items-center overflow-y-auto max-h-[55vh] settings-scrollbar">
           {settingsItems.map((item, index) => {
@@ -821,7 +811,7 @@ const SettingsView = memo(function SettingsView() {
                       value={item.value}
                       onChange={(e) => item.onChange(parseInt(e.target.value))}
                       onMouseUp={playPressSound}
-                      className="mc-slider-custom w-[calc(100%+16px)] h-full opacity-100 cursor-pointer z-20 outline-none m-0"
+                      className="mc-slider-custom w-[calc(100%+16px)] h-full opacity-100 cursor-pointer z-0 outline-none m-0"
                     />
                   </div>
                 </div>
@@ -851,7 +841,7 @@ const SettingsView = memo(function SettingsView() {
                 style={getItemStyle(index)}
               >
                 <span
-                  className={`mc-text-shadow tracking-widest uppercase ${isSmall ? "text-xs" : item.label.length > 20 ? "text-lg" : "text-xl"} truncate w-full text-center`}
+                  className={`mc-text-shadow ${isSmall ? "text-xs" : item.label.length > 20 ? "text-lg" : "text-xl"} truncate w-full text-center`}
                 >
                   {item.label}
                 </span>
@@ -943,7 +933,7 @@ const SettingsView = memo(function SettingsView() {
                     style={getSliderStyle(index)}
                   >
                     <span
-                      className={`absolute z-10 text-xl pointer-events-none transition-colors tracking-widest ${focusIndex === index ? "text-[#ffff00]" : item.id === "music" || item.id === "sfx" ? "text-white" : "text-[#2a2a2a]"}`}
+                      className={`absolute z-30 text-xl mc-text-shadow pointer-events-none transition-colors tracking-widest ${focusIndex === index ? "text-[#ffff00]" : item.id === "music" || item.id === "sfx" ? "text-white" : "text-[#2a2a2a]"}`}
                     >
                       {item.label}
                     </span>
@@ -958,7 +948,7 @@ const SettingsView = memo(function SettingsView() {
                           item.onChange(parseInt(e.target.value))
                         }
                         onMouseUp={playPressSound}
-                        className="mc-slider-custom w-[calc(100%+16px)] h-full opacity-100 cursor-pointer z-20 outline-none m-0"
+                        className="mc-slider-custom w-[calc(100%+16px)] h-full opacity-100 cursor-pointer z-10 outline-none m-0"
                       />
                     </div>
                   </div>

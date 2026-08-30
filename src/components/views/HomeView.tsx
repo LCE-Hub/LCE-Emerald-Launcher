@@ -162,7 +162,7 @@ const HomeView = memo(function HomeView() {
               }
             }}
             disabled={btn.disabled}
-            className={`w-full h-12 flex items-center justify-between px-6 text-2xl mc-text-shadow transition-colors outline-none border-none ${btn.disabled ? "text-gray-400 cursor-not-allowed" : menuFocus === i ? (btn.isDanger ? "text-red-400" : "text-[#FFFF55]") : btn.isDanger ? "text-red-500" : "text-white"}`}
+            className={`w-full h-12 flex items-center justify-between px-6 text-xl mc-text-shadow transition-colors outline-none border-none ${btn.disabled ? "text-gray-400 cursor-not-allowed" : menuFocus === i ? (btn.isDanger ? "text-red-400" : "text-[#FFFF55]") : btn.isDanger ? "text-red-500" : "text-white"}`}
             style={{
               backgroundImage: btn.disabled
                 ? "url('/images/Button_Background.png')"

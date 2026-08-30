@@ -5,9 +5,6 @@ import {
   type GoldMapperMapping,
 } from "../../services/TauriService";
 import { useUI, useConfig, useAudio } from "../../context/LauncherContext";
-
-const EMERALD_ICON = "/images/emerald_0.png";
-
 const KEY_FALLBACK = [
   "KEY_A",
   "KEY_D",
@@ -21,7 +18,6 @@ const KEY_FALLBACK = [
 ];
 
 const MOUSE_IDS = ["MOUSE_LEFT", "MOUSE_MIDDLE", "MOUSE_RIGHT"];
-
 const MOUSE_LABELS: Record<string, string> = {
   MOUSE_LEFT: "Left Click",
   MOUSE_MIDDLE: "Middle Click",
@@ -81,7 +77,6 @@ const GoldMapperView = memo(function GoldMapperView() {
   const [keyInputError, setKeyInputError] = useState<string | null>(null);
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     TauriService.goldMapperGetDefaults()
       .then((defaults) => {
@@ -112,11 +107,7 @@ const GoldMapperView = memo(function GoldMapperView() {
       .catch(console.error);
   }, []);
 
-  const getTo = useCallback(
-    (id: string) => binds[id] ?? id,
-    [binds],
-  );
-
+  const getTo = useCallback((id: string) => binds[id] ?? id, [binds]);
   const buildPayload = useCallback(
     (nextBinds: Record<string, string>): GoldMapperMapping[] => {
       const rows: GoldMapperMapping[] = [];
@@ -154,9 +145,7 @@ const GoldMapperView = memo(function GoldMapperView() {
       playPressSound();
       setEditing(id);
       setModalFocusIndex(0);
-      setKeyInput(
-        /^KEY_/.test(getTo(id)) ? displayName(getTo(id)) : "",
-      );
+      setKeyInput(/^KEY_/.test(getTo(id)) ? displayName(getTo(id)) : "");
       setKeyInputError(null);
     },
     [playPressSound, getTo],
@@ -202,7 +191,11 @@ const GoldMapperView = memo(function GoldMapperView() {
   const rows: Row[] = useMemo(() => {
     const list: Row[] = [{ kind: "reset", key: "reset" }];
     list.push({ kind: "enable", key: "enable" });
-    list.push({ kind: "header", key: "controller_header", label: "Controller" });
+    list.push({
+      kind: "header",
+      key: "controller_header",
+      label: "Controller",
+    });
     for (const id of controllerIds) {
       list.push({
         kind: "bind",
@@ -341,7 +334,6 @@ const GoldMapperView = memo(function GoldMapperView() {
     const isEnable = row.kind === "enable";
     const focusIdx = nextFocusIndex();
     const focused = focusIndex === focusIdx;
-
     return (
       <button
         key={row.key}
@@ -397,16 +389,14 @@ const GoldMapperView = memo(function GoldMapperView() {
               ? "Enable GoldMapper"
               : row.label}
         </span>
-        {!isReset &&
-          !isEnable &&
-          row.kind === "bind" && (
-            <span className="tracking-widest text-base opacity-70 ml-3 shrink-0">
-              {displayName(getTo(row.id))}
-            </span>
-          )}
+        {!isReset && !isEnable && row.kind === "bind" && (
+          <span className="tracking-widest text-base opacity-70 ml-3 shrink-0">
+            {displayName(getTo(row.id))}
+          </span>
+        )}
         {isEnable && (
           <img
-            src={EMERALD_ICON}
+            src="/images/goldmapper.png"
             alt=""
             className="w-6 h-6 object-contain shrink-0 ml-3"
             style={{ imageRendering: "pixelated" }}
@@ -470,9 +460,7 @@ const GoldMapperView = memo(function GoldMapperView() {
                       onMouseEnter={() => setModalFocusIndex(i)}
                       onClick={() => pickTarget(editing, id)}
                       className={`h-10 px-2 flex items-center justify-center text-sm tracking-widest outline-none border-none cursor-pointer transition-colors ${
-                        getTo(editing) === id
-                          ? "text-[#ffff00]"
-                          : "text-white"
+                        getTo(editing) === id ? "text-[#ffff00]" : "text-white"
                       }`}
                       style={stoneButtonStyle(modalFocusIndex === i)}
                     >
@@ -556,8 +544,7 @@ const GoldMapperView = memo(function GoldMapperView() {
               }
               onClick={closeModal}
               className={`w-full h-12 flex items-center justify-center text-xl mc-text-shadow transition-colors outline-none border-none cursor-pointer ${
-                modalFocusIndex ===
-                MOUSE_IDS.length + controllerIds.length + 1
+                modalFocusIndex === MOUSE_IDS.length + controllerIds.length + 1
                   ? "text-[#ffff00]"
                   : "text-white"
               }`}
