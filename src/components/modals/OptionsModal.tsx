@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, type RefObject } from "react";
+import { useTranslation } from "react-i18next";
 import { TauriService } from "../../services/TauriService";
 import {
   parseSchema,
@@ -33,6 +34,7 @@ export default function OptionsModal({
     args: string[],
   ) => void;
 }) {
+  const { t } = useTranslation();
   const [schema, setSchema] = useState<ArgsSchema | null>(null);
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [error, setError] = useState<string | null>(null);
@@ -56,13 +58,13 @@ export default function OptionsModal({
       .then((raw) => {
         if (cancelled) return;
         if (!raw) {
-          setError("This instance does not provide a launch options schema.");
+          setError(t("modals.options.noSchema"));
           setLoading(false);
           return;
         }
         const parsed = parseSchema(raw);
         if (!parsed) {
-          setError("The launch options schema is invalid or unsupported.");
+          setError(t("modals.options.invalidSchema"));
           setLoading(false);
           return;
         }
@@ -433,7 +435,7 @@ export default function OptionsModal({
     >
       <div className="relative w-[620px] max-w-[95vw] max-h-[88vh] p-5 flex flex-col items-center font-['Mojangles'] mc-options-bg">
         <h2 className="text-xl text-black mc-text-shadow mb-1 text-center">
-          Options
+          {t("modals.options.title")}
         </h2>
         <p className="text-[#333333] text-sm mb-4 text-center truncate max-w-full">
           {instanceName}
@@ -443,7 +445,7 @@ export default function OptionsModal({
           <div className="flex flex-col items-center gap-4 py-10">
             <div className="w-12 h-12 border-4 border-[#FFFF55] border-t-transparent rounded-full animate-spin" />
             <p className="text-black text-lg mc-text-shadow">
-              Loading options...
+              {t("modals.options.loading")}
             </p>
           </div>
         ) : error ? (
@@ -452,7 +454,7 @@ export default function OptionsModal({
               {error}
             </p>
             <div className="flex gap-4 mt-2 w-full">
-              {actionButton(cancelRef, optionOrder.length + 1, "OK", () => {
+              {actionButton(cancelRef, optionOrder.length + 1, t("modals.options.ok"), () => {
                 playBackSound();
                 onClose();
               })}
@@ -477,7 +479,7 @@ export default function OptionsModal({
               {sections.general.length > 0 && (
                 <div className="mb-3">
                   <h3 className="text-[#333333] mc-text-shadow uppercase tracking-widest text-sm px-3 pt-2 pb-1">
-                    General
+                    {t("modals.options.general")}
                   </h3>
                   {sections.general.map(renderOption)}
                 </div>
@@ -488,18 +490,18 @@ export default function OptionsModal({
               {actionButton(
                 resetRef,
                 optionOrder.length,
-                "Reset",
+                t("modals.options.reset"),
                 handleReset,
                 true,
               )}
-              {actionButton(cancelRef, optionOrder.length + 1, "Cancel", () => {
+              {actionButton(cancelRef, optionOrder.length + 1, t("modals.options.cancel"), () => {
                 playBackSound();
                 onClose();
               })}
               {actionButton(
                 saveRef,
                 optionOrder.length + 2,
-                "Save",
+                t("modals.options.save"),
                 handleSave,
               )}
             </div>

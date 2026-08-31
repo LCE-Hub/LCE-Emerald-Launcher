@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { TauriService } from "../../services/TauriService";
 export default function ImportWorldModal({
@@ -16,6 +17,7 @@ export default function ImportWorldModal({
   targetInstanceId: string;
   targetInstanceName: string;
 }) {
+  const { t } = useTranslation();
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [isImporting, setIsImporting] = useState(false);
@@ -32,9 +34,9 @@ export default function ImportWorldModal({
     playPressSound();
     setIsImporting(true);
     setError("");
-    setStatus("Selecting source...");
+    setStatus(t("modals.importWorld.selectingSource"));
     try {
-      setStatus("Selecting saveData.ms file...");
+      setStatus(t("modals.importWorld.selectingMsFile"));
       const picked = await TauriService.pickFile("Select saveData.ms", [
         "*.ms",
         "*",
@@ -44,13 +46,15 @@ export default function ImportWorldModal({
         return;
       }
       const worldName = deriveWorldName(picked);
-      setStatus("Copying LCE save...");
+      setStatus(t("modals.importWorld.copyingLceSave"));
 
       const instancePath = await TauriService.getInstancePath(targetInstanceId);
       const saveDir = `${instancePath}/Windows64/GameHDD/${worldName}`;
       await TauriService.importWorld(picked, `${saveDir}/saveData.ms`);
 
-      setStatus(`World imported into "${targetInstanceName}"!`);
+      setStatus(
+        t("modals.importWorld.worldImported", { name: targetInstanceName }),
+      );
       setTimeout(() => {
         onClose();
       }, 2000);
@@ -66,9 +70,9 @@ export default function ImportWorldModal({
     playPressSound();
     setIsImporting(true);
     setError("");
-    setStatus("Selecting source...");
+    setStatus(t("modals.importWorld.selectingSource"));
     try {
-      setStatus("Selecting Xbox 360 save (.bin)...");
+      setStatus(t("modals.importWorld.selectingXboxSave"));
       const picked = await TauriService.pickFile(
         "Select Xbox 360 Minecraft save",
         ["*.bin", "*"],
@@ -77,11 +81,13 @@ export default function ImportWorldModal({
         setIsImporting(false);
         return;
       }
-      setStatus("Converting Xbox 360 save...");
+      setStatus(t("modals.importWorld.convertingXbox"));
       const instancePath = await TauriService.getInstancePath(targetInstanceId);
       const gameHdd = `${instancePath}/Windows64/GameHDD`;
       await TauriService.importLceSave(picked, gameHdd);
-      setStatus(`Xbox 360 save converted into "${targetInstanceName}"!`);
+      setStatus(
+        t("modals.importWorld.xboxConverted", { name: targetInstanceName }),
+      );
       setTimeout(() => {
         onClose();
       }, 2000);
@@ -97,19 +103,21 @@ export default function ImportWorldModal({
     playPressSound();
     setIsImporting(true);
     setError("");
-    setStatus("Selecting source...");
+    setStatus(t("modals.importWorld.selectingSource"));
     try {
-      setStatus("Selecting PS3 save folder...");
+      setStatus(t("modals.importWorld.selectingPs3Folder"));
       const picked = await TauriService.pickFolder();
       if (!picked) {
         setIsImporting(false);
         return;
       }
-      setStatus("Converting PS3 save...");
+      setStatus(t("modals.importWorld.convertingPs3"));
       const instancePath = await TauriService.getInstancePath(targetInstanceId);
       const gameHdd = `${instancePath}/Windows64/GameHDD`;
       await TauriService.importLceSave(picked, gameHdd);
-      setStatus(`PS3 save converted into "${targetInstanceName}"!`);
+      setStatus(
+        t("modals.importWorld.ps3Converted", { name: targetInstanceName }),
+      );
       setTimeout(() => {
         onClose();
       }, 2000);
@@ -125,20 +133,22 @@ export default function ImportWorldModal({
     playPressSound();
     setIsImporting(true);
     setError("");
-    setStatus("Selecting source...");
+    setStatus(t("modals.importWorld.selectingSource"));
     try {
-      setStatus("Selecting Java world folder...");
+      setStatus(t("modals.importWorld.selectingJavaFolder"));
       const picked = await TauriService.pickFolder();
       if (!picked) {
         setIsImporting(false);
         return;
       }
       const worldName = deriveWorldName(picked);
-      setStatus("Converting Java world to LCE...");
+      setStatus(t("modals.importWorld.convertingJava"));
       const instancePath = await TauriService.getInstancePath(targetInstanceId);
       const saveDir = `${instancePath}/Windows64/GameHDD/${worldName}`;
       await TauriService.javaToLce(picked, `${saveDir}/saveData.ms`);
-      setStatus(`Java world converted into "${targetInstanceName}"!`);
+      setStatus(
+        t("modals.importWorld.javaConverted", { name: targetInstanceName }),
+      );
       setTimeout(() => {
         onClose();
       }, 2000);
@@ -154,9 +164,9 @@ export default function ImportWorldModal({
     playPressSound();
     setIsImporting(true);
     setError("");
-    setStatus("Selecting source...");
+    setStatus(t("modals.importWorld.selectingSource"));
     try {
-      setStatus("Selecting saveData.ms file...");
+      setStatus(t("modals.importWorld.selectingMsFile"));
       const picked = await TauriService.pickFile("Select saveData.ms", [
         "*.ms",
         "*",
@@ -165,15 +175,17 @@ export default function ImportWorldModal({
         setIsImporting(false);
         return;
       }
-      setStatus("Selecting output folder for Java world...");
+      setStatus(t("modals.importWorld.selectingOutputFolder"));
       const outputFolder = await TauriService.pickFolder();
       if (!outputFolder) {
         setIsImporting(false);
         return;
       }
-      setStatus("Converting LCE save to Java world...");
+      setStatus(t("modals.importWorld.convertingLceToJava"));
       await TauriService.lceToJava(picked, outputFolder);
-      setStatus(`Java world exported to "${outputFolder}"!`);
+      setStatus(
+        t("modals.importWorld.javaExported", { path: outputFolder }),
+      );
       setTimeout(() => {
         onClose();
       }, 2000);

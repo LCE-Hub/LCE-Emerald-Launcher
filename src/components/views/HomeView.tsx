@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, memo } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
   useUI,
@@ -11,6 +12,7 @@ import { usePlatform } from "../../hooks/usePlatform";
 import type { Edition } from "../../types/edition";
 
 const HomeView = memo(function HomeView() {
+  const { t } = useTranslation();
   const { setActiveView, focusSection, onNavigateToSkin } = useUI();
   const { profile, legacyMode } = useConfig();
   const { playPressSound } = useAudio();
@@ -39,14 +41,14 @@ const HomeView = memo(function HomeView() {
   const buttonsVal = useMemo(() => {
     const mainBtn = {
       label: !hasAnyInstall
-        ? "Install a version"
+        ? t("home.installVersion")
         : isGameRunning
-          ? "Stop Game"
+          ? t("home.stopGame")
           : isDownloading
-            ? "Installation in progress..."
+            ? t("home.installing")
             : isInstalled
-              ? "Play Game"
-              : `Download ${selectedVersionName}`,
+              ? t("home.playGame")
+              : t("home.downloadVersion", { name: selectedVersionName }),
       action: !hasAnyInstall
         ? () => setActiveView("versions")
         : isGameRunning
@@ -71,28 +73,28 @@ const HomeView = memo(function HomeView() {
 
     const menuBtns = [
       {
-        label: "Help & Options",
+        label: t("home.helpAndOptions"),
         action: () => setActiveView("settings"),
         isDanger: false,
         disabled: false,
         id: "settings",
       },
       {
-        label: "Versions",
+        label: t("home.versions"),
         action: () => setActiveView("versions"),
         isDanger: false,
         disabled: false,
         id: "versions",
       },
       {
-        label: "Workshop",
+        label: t("home.workshop"),
         action: () => setActiveView("workshop"),
         isDanger: false,
         disabled: false,
         id: "workshop",
       },
       {
-        label: "Developer Tools",
+        label: t("home.developerTools"),
         action: () => setActiveView("devtools"),
         isDanger: false,
         disabled: false,
@@ -102,6 +104,7 @@ const HomeView = memo(function HomeView() {
 
     return [mainBtn, ...pluginBtns, ...menuBtns];
   }, [
+    t,
     isDownloading,
     hasAnyInstall,
     isInstalled,

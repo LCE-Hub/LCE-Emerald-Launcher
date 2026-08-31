@@ -1,4 +1,5 @@
 import { useState, useEffect, memo } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePlatform } from "../../hooks/usePlatform";
 import {
@@ -14,6 +15,7 @@ import {
 } from "../../services/ScreenshotService";
 import { ScreenshotImage } from "../common/ScreenshotImage";
 const ScreenshotsView = memo(function ScreenshotsView() {
+  const { t } = useTranslation();
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { isAndroid } = usePlatform();
@@ -163,7 +165,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
       className="flex flex-col items-center w-full h-full max-w-6xl relative font-['Mojangles'] text-white select-none outline-none focus:outline-none"
     >
       <h2 className="text-2xl text-white mc-text-shadow mt-4 mb-6 border-b-2 border-[#373737] pb-2 w-[30%] max-w-[250px] text-center tracking-widest uppercase opacity-80 font-bold whitespace-nowrap px-4">
-        Screenshots
+        {t("screenshots.title")}
       </h2>
 
       <div className="w-[98%] flex-1 relative overflow-hidden">
@@ -171,16 +173,16 @@ const ScreenshotsView = memo(function ScreenshotsView() {
           {loading ? (
             <div className="flex flex-col items-center justify-center h-full gap-4">
               <span className="text-3xl text-[#FFFF55] mc-text-shadow tracking-widest animate-pulse uppercase">
-                Scanning Archives...
+                {t("screenshots.scanning")}
               </span>
             </div>
           ) : screenshots.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full space-y-4 opacity-40">
               <span className="text-2xl mc-text-shadow uppercase tracking-widest">
-                No screenshots found
+                {t("screenshots.noScreenshots")}
               </span>
               <span className="text-sm mc-text-shadow tracking-widest italic">
-                Take some in-game with F2
+                {t("screenshots.takeInGameWithF2")}
               </span>
             </div>
           ) : (
@@ -263,7 +265,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                 "url('/images/Button_Background.png')";
             }}
           >
-            Back
+            {t("common.back")}
           </button>
         </div>
       )}
@@ -302,10 +304,11 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                       {selectedScreenshot.name}
                     </span>
                     <span className="text-sm text-[#FFFF55] mc-text-shadow uppercase tracking-widest opacity-90">
-                      Captured on{" "}
-                      {new Date(
-                        selectedScreenshot.date * 1000,
-                      ).toLocaleString()}
+                      {t("screenshots.capturedOn", {
+                        date: new Date(
+                          selectedScreenshot.date * 1000,
+                        ).toLocaleString(),
+                      })}
                     </span>
                   </div>
                   {getEditionLogo(selectedScreenshot.instanceId) && (
@@ -335,9 +338,8 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                     imageRendering: "pixelated",
                   }}
                 >
-                  OPEN FOLDER
-                </button>
-                <button
+                  {t("screenshots.openFolder")}
+                </button>                <button
                   onMouseEnter={() => setModalFocusIndex(1)}
                   onClick={() => {
                     playPressSound();
@@ -357,7 +359,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                     imageRendering: "pixelated",
                   }}
                 >
-                  DELETE
+                  {t("screenshots.delete")}
                 </button>
                 <button
                   onMouseEnter={() => setModalFocusIndex(2)}
@@ -375,7 +377,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                     imageRendering: "pixelated",
                   }}
                 >
-                  CLOSE
+                  {t("screenshots.close")}
                 </button>
               </div>
             </motion.div>
@@ -404,7 +406,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
               onClick={(e) => e.stopPropagation()}
             >
               <span className="text-2xl text-white mc-text-shadow text-center mb-6 px-4">
-                Are you sure you want to delete this screenshot?
+                {t("screenshots.deleteConfirm")}
               </span>
 
               <div className="flex gap-4 w-full">
@@ -427,7 +429,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                     imageRendering: "pixelated",
                   }}
                 >
-                  CANCEL
+                  {t("common.cancel")}
                 </button>
                 <button
                   onMouseEnter={() => setDeleteConfirmFocusIndex(1)}
@@ -445,7 +447,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
                     imageRendering: "pixelated",
                   }}
                 >
-                  DELETE
+                  {t("screenshots.delete")}
                 </button>
               </div>
             </motion.div>

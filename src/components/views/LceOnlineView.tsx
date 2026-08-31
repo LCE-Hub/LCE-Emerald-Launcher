@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, memo } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useUI,
@@ -26,6 +27,7 @@ const LceOnlineView = memo(function LceOnlineView({
   onClearAddFriendTarget,
   invites: invitesProp,
 }: LceOnlineViewProps) {
+  const { t } = useTranslation();
   const { setActiveView, setIsUiHidden } = useUI();
   const { animationsEnabled } = useConfig();
   const { playPressSound, playBackSound } = useAudio();
@@ -140,7 +142,7 @@ const LceOnlineView = memo(function LceOnlineView({
       TauriService.startHostRelay(token, 25565).catch(() => {});
       lceOnlineService.isHosting = true;
     } catch (e: unknown) {
-      setErrorModal(e instanceof Error ? e.message : "Failed to start hosting");
+      setErrorModal(e instanceof Error ? e.message : t("lceOnline.failedToStartHosting"));
     }
   };
 
@@ -160,7 +162,7 @@ const LceOnlineView = memo(function LceOnlineView({
       await action();
       fetchSocialData();
     } catch (e: unknown) {
-      setErrorModal(e instanceof Error ? e.message : "An error occurred");
+      setErrorModal(e instanceof Error ? e.message : t("lceOnline.anErrorOccurred"));
     }
   };
 
@@ -179,21 +181,21 @@ const LceOnlineView = memo(function LceOnlineView({
         items.push({
           id: "host_game",
           type: "button",
-          label: "Host Game",
+          label: t("lceOnline.hostGame"),
           onClick: handleStartHosting,
         });
       } else {
         items.push({
           id: "stop_hosting",
           type: "button",
-          label: "Stop Hosting",
+          label: t("lceOnline.stopHosting"),
           onClick: handleStopHosting,
         });
       }
       items.push({
         id: "add_friend",
         type: "button",
-        label: "Add Friend",
+        label: t("lceOnline.addFriend"),
         onClick: () => {
           playPressSound();
           setIsAddingFriend(true);
@@ -203,7 +205,7 @@ const LceOnlineView = memo(function LceOnlineView({
       items.push({
         id: "sign_out",
         type: "button",
-        label: "Sign Out",
+        label: t("lceOnline.signOut"),
         onClick: handleLogout,
       });
       friends.forEach((f) => {
@@ -272,6 +274,7 @@ const LceOnlineView = memo(function LceOnlineView({
     invites,
     playPressSound,
     isHosting,
+    t,
   ]);
 
   const tabs: ("friends" | "requests" | "invites")[] = [
@@ -511,7 +514,7 @@ const LceOnlineView = memo(function LceOnlineView({
             />
           </h2>
           <p className="text-white text-lg mc-text-shadow mb-8 max-w-sm">
-            Awaiting authentication...
+            {t("lceOnline.awaitingAuthentication")}
           </p>
         </div>
       );
@@ -552,10 +555,10 @@ const LceOnlineView = memo(function LceOnlineView({
           <div className="bg-black/10 px-4 py-3 text-[#2a2a2a] font-bold tracking-widest uppercase border-b-4 border-[#222] flex justify-between shadow-sm z-10">
             <span>
               {currentTab === "friends"
-                ? "Friends"
+                ? t("lceOnline.friends")
                 : currentTab === "invites"
-                  ? "Invites"
-                  : "Pending Requests"}
+                  ? t("lceOnline.invites")
+                  : t("lceOnline.pendingRequests")}
             </span>
             <span className="text-[#111]">{listItems.length}</span>
           </div>
@@ -563,7 +566,7 @@ const LceOnlineView = memo(function LceOnlineView({
           <div ref={scrollRef} className="flex-1 overflow-y-auto w-full">
             {listItems.length === 0 ? (
               <div className="flex items-center justify-center h-[200px] text-[#555] font-bold">
-                None available
+                {t("lceOnline.noneAvailable")}
               </div>
             ) : (
               <div className="flex flex-col p-2 space-y-2">
@@ -591,7 +594,7 @@ const LceOnlineView = memo(function LceOnlineView({
                                 ? incomingReqs.find((r) => `req_in_${r.username}` === item.id)?.username
                                 : item.type === "request_out"
                                   ? outgoingReqs.find((r) => `req_out_${r.username}` === item.id)?.username
-                                  : "Invite"}
+                                  : t("lceOnline.invite")}
                           </span>
                         </div>
                       </div>
@@ -612,7 +615,7 @@ const LceOnlineView = memo(function LceOnlineView({
                                   item.onClickSecondary?.();
                                 }}
                               >
-                                INVITE
+                                {t("lceOnline.invite").toUpperCase()}
                               </button>
                             )}
                             <button
@@ -625,7 +628,7 @@ const LceOnlineView = memo(function LceOnlineView({
                               }}
                               onClick={item.onClick}
                             >
-                              REMOVE
+                              {t("lceOnline.remove").toUpperCase()}
                             </button>
                           </>
                         )}
@@ -640,7 +643,7 @@ const LceOnlineView = memo(function LceOnlineView({
                             }}
                             onClick={item.onClick}
                           >
-                            CANCEL
+                            {t("lceOnline.cancel").toUpperCase()}
                           </button>
                         )}
                         {item.type === "invite" && (
@@ -655,7 +658,7 @@ const LceOnlineView = memo(function LceOnlineView({
                               }}
                               onClick={item.onClick}
                             >
-                              ACCEPT
+                              {t("lceOnline.accept").toUpperCase()}
                             </button>
                             <button
                               className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow ${isFocused ? "text-white shadow-md" : "text-gray-300"}`}
@@ -670,7 +673,7 @@ const LceOnlineView = memo(function LceOnlineView({
                                 item.onClickSecondary?.();
                               }}
                             >
-                              DECLINE
+                              {t("lceOnline.decline").toUpperCase()}
                             </button>
                           </>
                         )}
@@ -686,7 +689,7 @@ const LceOnlineView = memo(function LceOnlineView({
                               }}
                               onClick={item.onClick}
                             >
-                              ACCEPT
+                              {t("lceOnline.accept").toUpperCase()}
                             </button>
                             <button
                               className={`px-6 h-12 flex items-center justify-center font-bold text-base outline-none uppercase tracking-widest mc-text-shadow ${isFocused ? "text-white shadow-md" : "text-gray-300"}`}
@@ -701,7 +704,7 @@ const LceOnlineView = memo(function LceOnlineView({
                                 item.onClickSecondary?.();
                               }}
                             >
-                              DECLINE
+                              {t("lceOnline.decline").toUpperCase()}
                             </button>
                           </>
                         )}
@@ -733,10 +736,10 @@ const LceOnlineView = memo(function LceOnlineView({
             className="flex z-10 space-x-2 px-12 relative w-full items-end"
             style={{ marginBottom: "-4px" }}
           >
-            {tabs.map((t) => (
+            {tabs.map((tab) => (
               <button
-                key={t}
-                className={`flex-1 font-bold text-xl outline-none uppercase transition-all duration-200 ease-in-out ${currentTab === t ? "text-[#2a2a2a] z-20 pb-6 pt-5 text-2xl drop-shadow-[5px_-5px_15px_rgba(0,0,0,0.3)] rounded-t border-4 border-[#222] border-b-0" : "text-[#555] mt-2 py-4 hover:bg-black/30 bg-black/10 hover:text-[#222] border-4 border-transparent border-b-0"}`}
+                key={tab}
+                className={`flex-1 font-bold text-xl outline-none uppercase transition-all duration-200 ease-in-out ${currentTab === tab ? "text-[#2a2a2a] z-20 pb-6 pt-5 text-2xl drop-shadow-[5px_-5px_15px_rgba(0,0,0,0.3)] rounded-t border-4 border-[#222] border-b-0" : "text-[#555] mt-2 py-4 hover:bg-black/30 bg-black/10 hover:text-[#222] border-4 border-transparent border-b-0"}`}
                 style={{
                   backgroundImage: "url('/images/background.png')",
                   backgroundSize: "100% 100%",
@@ -745,23 +748,27 @@ const LceOnlineView = memo(function LceOnlineView({
                   imageRendering: "pixelated",
                 }}
                 onClick={() => {
-                  setCurrentTab(t);
+                  setCurrentTab(tab);
                   setFocusIndex(0);
                   playPressSound();
                 }}
               >
                 <div className="flex items-center justify-center">
-                  {t}
-                  {t === "requests" && incomingReqs.length > 0 && (
+                  {tab === "friends"
+                    ? t("lceOnline.friends")
+                    : tab === "requests"
+                      ? t("lceOnline.requests")
+                      : t("lceOnline.invites")}
+                  {tab === "requests" && incomingReqs.length > 0 && (
                     <span
-                      className={`ml-3 text-white text-base px-3 py-1 rounded-full shadow-inner border-2 font-normal ${currentTab === t ? "bg-[#d72f2f] border-[#8a1a1a]" : "bg-[#a81f1f] border-[#111]"}`}
+                      className={`ml-3 text-white text-base px-3 py-1 rounded-full shadow-inner border-2 font-normal ${currentTab === tab ? "bg-[#d72f2f] border-[#8a1a1a]" : "bg-[#a81f1f] border-[#111]"}`}
                     >
                       {incomingReqs.length}
                     </span>
                   )}
-                  {t === "invites" && invites.length > 0 && (
+                  {tab === "invites" && invites.length > 0 && (
                     <span
-                      className={`ml-3 text-white text-base px-3 py-1 rounded-full shadow-inner border-2 font-normal ${currentTab === t ? "bg-[#d72f2f] border-[#8a1a1a]" : "bg-[#a81f1f] border-[#111]"}`}
+                      className={`ml-3 text-white text-base px-3 py-1 rounded-full shadow-inner border-2 font-normal ${currentTab === tab ? "bg-[#d72f2f] border-[#8a1a1a]" : "bg-[#a81f1f] border-[#111]"}`}
                     >
                       {invites.length}
                     </span>
@@ -811,13 +818,13 @@ const LceOnlineView = memo(function LceOnlineView({
               }}
             >
               <h2 className="text-[#FFFF55] text-3xl mc-text-shadow mb-6 border-b-2 border-[#373737] pb-2 w-full text-center uppercase tracking-widest">
-                Add Friend
+                {t("lceOnline.addFriend")}
               </h2>
               <input
                 ref={addFriendInputRef}
                 type="text"
                 className="bg-black/20 border-4 border-[#555] text-white p-4 w-full text-2xl font-bold outline-none focus:border-[#FFFF55] transition-colors placeholder:text-[#888] mb-6 mc-text-shadow"
-                placeholder="Username"
+                placeholder={t("lceOnline.username")}
                 value={addFriendUsername}
                 onChange={(e) => setAddFriendUsername(e.target.value)}
               />
@@ -838,25 +845,25 @@ const LceOnlineView = memo(function LceOnlineView({
                         ),
                       );
                       setIsAddingFriend(false);
-                    }
-                  }}
-                >
-                  Send
-                </button>
-                <button
-                  className="h-12 flex-1 flex items-center justify-center text-white mc-text-shadow text-xl font-bold uppercase tracking-widest hover:text-[#FFFF55] outline-none border-none"
-                  style={{
-                    backgroundImage: "url('/images/Button_Background.png')",
-                    backgroundSize: "100% 100%",
-                    imageRendering: "pixelated",
-                  }}
-                  onClick={() => {
-                    setIsAddingFriend(false);
-                    playBackSound();
-                  }}
-                >
-                  Cancel
-                </button>
+                      }
+                    }}
+                  >
+                    {t("lceOnline.send")}
+                  </button>
+                  <button
+                    className="h-12 flex-1 flex items-center justify-center text-white mc-text-shadow text-xl font-bold uppercase tracking-widest hover:text-[#FFFF55] outline-none border-none"
+                    style={{
+                      backgroundImage: "url('/images/Button_Background.png')",
+                      backgroundSize: "100% 100%",
+                      imageRendering: "pixelated",
+                    }}
+                    onClick={() => {
+                      setIsAddingFriend(false);
+                      playBackSound();
+                    }}
+                  >
+                    {t("lceOnline.cancel")}
+                  </button>
               </div>
             </div>
           </motion.div>
@@ -879,7 +886,7 @@ const LceOnlineView = memo(function LceOnlineView({
               }}
             >
               <h2 className="text-[#FFFF55] text-2xl mc-text-shadow mb-4 border-b-2 border-[#373737] pb-2 w-full text-center uppercase tracking-widest">
-                Error
+                {t("lceOnline.error")}
               </h2>
               <p className="text-white text-lg mc-text-shadow text-center mb-6">
                 {errorModal}
@@ -893,7 +900,7 @@ const LceOnlineView = memo(function LceOnlineView({
                 }}
                 onClick={() => setErrorModal(null)}
               >
-                OK
+                {t("lceOnline.ok")}
               </button>
             </div>
           </motion.div>

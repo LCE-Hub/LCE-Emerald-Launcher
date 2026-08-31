@@ -1,9 +1,11 @@
 import { useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUI, useAudio, useConfig } from "../../context/LauncherContext";
 import { GrfService } from "../../services/GrfService";
 import { GrfFile, GrfNode, GrfFileEntry } from "../../types/grf";
 export default function GrfEditorView() {
+  const { t } = useTranslation();
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { animationsEnabled } = useConfig();
@@ -27,10 +29,10 @@ export default function GrfEditorView() {
       const parsedGrf = GrfService.readGRF(buffer);
       setGrf(parsedGrf);
       setFilename(file.name);
-      showNotification(`Loaded ${file.name}`);
+      showNotification(t("grfEditor.loaded", { name: file.name }));
     } catch (err: unknown) {
       console.error("Failed to parse GRF", err);
-      showNotification(err instanceof Error ? err.message : "Failed to parse GRF", "error");
+      showNotification(err instanceof Error ? err.message : t("grfEditor.failedToParse"), "error");
     }
     e.target.value = "";
   };
@@ -39,7 +41,7 @@ export default function GrfEditorView() {
     playPressSound();
     setGrf(GrfService.createDefaultGRF());
     setFilename("new_rules.grf");
-    showNotification("New GRF Created");
+    showNotification(t("grfEditor.newGrfCreated"));
   };
 
   const handleAddFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,7 +57,7 @@ export default function GrfEditorView() {
       ...grf,
       files: [...grf.files, newFile]
     });
-    showNotification(`Added ${file.name}`);
+    showNotification(t("grfEditor.added", { name: file.name }));
     e.target.value = "";
   };
 
@@ -65,7 +67,7 @@ export default function GrfEditorView() {
     const newFiles = [...grf.files];
     const removed = newFiles.splice(index, 1)[0];
     setGrf({ ...grf, files: newFiles });
-    showNotification(`Removed ${removed.filename}`);
+    showNotification(t("grfEditor.removed", { name: removed.filename }));
   };
 
   const handleUpdateParameter = (nodePath: string[], paramIndex: number, value: string) => {
@@ -101,10 +103,10 @@ export default function GrfEditorView() {
       a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
-      showNotification("GRF Saved Successfully");
+      showNotification(t("grfEditor.savedSuccessfully"));
     } catch (err: unknown) {
       console.error("Failed to save GRF", err);
-      showNotification(err instanceof Error ? err.message : "Failed to save GRF", "error");
+      showNotification(err instanceof Error ? err.message : t("grfEditor.failedToSave"), "error");
     }
   };
 
@@ -120,8 +122,8 @@ export default function GrfEditorView() {
       <input type="file" ref={addFileInputRef} onChange={handleAddFile} className="hidden" />
       <div className="flex items-center justify-between mb-6 px-4">
         <div className="flex items-center gap-6">
-          <h2 className="text-3xl text-white mc-text-shadow tracking-widest uppercase font-bold">GRF Editor</h2>
-          {grf && <span className="text-white/40 mc-text-shadow italic">editing: <span className="text-[#FFFF55]">{filename}</span></span>}
+          <h2 className="text-3xl text-white mc-text-shadow tracking-widest uppercase font-bold">{t("grfEditor.title")}</h2>
+          {grf && <span className="text-white/40 mc-text-shadow italic">{t("grfEditor.editing")} <span className="text-[#FFFF55]">{filename}</span></span>}
         </div>
         <div className="flex gap-4">
           <button
@@ -129,14 +131,14 @@ export default function GrfEditorView() {
             className="px-6 py-2 text-white mc-text-shadow text-lg"
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
-            New GRF
+            {t("grfEditor.newGrf")}
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
             className="px-6 py-2 text-white mc-text-shadow text-lg"
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
-            Open GRF
+            {t("grfEditor.openGrf")}
           </button>
           <button
             onClick={handleSaveGrf}
@@ -144,7 +146,7 @@ export default function GrfEditorView() {
             className={`px-6 py-2 text-white mc-text-shadow text-lg ${!grf ? "opacity-50 grayscale" : ""}`}
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
-            Save GRF
+            {t("grfEditor.saveGrf")}
           </button>
         </div>
       </div>
@@ -152,7 +154,7 @@ export default function GrfEditorView() {
       {!grf ? (
         <div className="flex-1 w-full flex flex-col items-center justify-center p-12"
           style={{ backgroundImage: "url('/images/frame_background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}>
-          <h3 className="text-2xl text-white/40 mc-text-shadow italic">Open a GRF file to begin editing</h3>
+          <h3 className="text-2xl text-white/40 mc-text-shadow italic">{t("grfEditor.openToBegin")}</h3>
         </div>
       ) : (
         <div className="flex-1 w-full flex flex-col overflow-hidden" style={{ backgroundImage: "url('/images/frame_background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}>
@@ -161,13 +163,13 @@ export default function GrfEditorView() {
               onClick={() => { playPressSound(); setActiveTab("rules"); }}
               className={`flex items-center gap-3 px-6 py-2 mc-text-shadow ${activeTab === "rules" ? "text-[#FFFF55] opacity-100" : "text-white opacity-40"}`}
             >
-              <span className="text-lg">Game Rules</span>
+              <span className="text-lg">{t("grfEditor.gameRules")}</span>
             </button>
             <button
               onClick={() => { playPressSound(); setActiveTab("files"); }}
               className={`flex items-center gap-3 px-6 py-2 mc-text-shadow ${activeTab === "files" ? "text-[#FFFF55] opacity-100" : "text-white opacity-40"}`}
             >
-              <span className="text-lg">Files ({grf.files.length})</span>
+              <span className="text-lg">{t("grfEditor.files", { count: grf.files.length })}</span>
             </button>
           </div>
 
@@ -177,7 +179,7 @@ export default function GrfEditorView() {
                 {grf.root.children.map((node, i) => (
                   <GrfNodeView key={i} node={node} level={0} path={[]} onUpdate={handleUpdateParameter} />
                 ))}
-                {grf.root.children.length === 0 && <span className="text-white/40 italic">No rules found</span>}
+                {grf.root.children.length === 0 && <span className="text-white/40 italic">{t("grfEditor.noRulesFound")}</span>}
               </div>
             )}
             {activeTab === "files" && (
@@ -187,19 +189,19 @@ export default function GrfEditorView() {
                   className="self-start px-6 py-2 text-white mc-text-shadow text-sm"
                   style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
                 >
-                  Add File
+                  {t("grfEditor.addFile")}
                 </button>
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-[#252525]">
                     <tr className="border-b-2 border-[#373737]">
-                      <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold">Filename</th>
-                      <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold text-right">Size</th>
-                      <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold text-center">Actions</th>
+                      <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold">{t("grfEditor.filename")}</th>
+                      <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold text-right">{t("grfEditor.size")}</th>
+                      <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold text-center">{t("grfEditor.actions")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {grf.files.length === 0 && (
-                      <tr><td colSpan={3} className="p-4 text-center text-white/40">No files in GRF</td></tr>
+                      <tr><td colSpan={3} className="p-4 text-center text-white/40">{t("grfEditor.noFilesInGrf")}</td></tr>
                     )}
                     {grf.files.map((f, i) => (
                       <tr key={i} className="border-b border-[#373737]/30">
@@ -210,7 +212,7 @@ export default function GrfEditorView() {
                             onClick={() => handleDeleteFile(i)}
                             className="text-[#FF5555] hover:text-[#FF8888] transition-colors"
                           >
-                            Delete
+                            {t("grfEditor.delete")}
                           </button>
                         </td>
                       </tr>
@@ -229,7 +231,7 @@ export default function GrfEditorView() {
           className="w-72 h-full shrink-0 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] text-white"
           style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
         >
-          Back
+          {t("grfEditor.back")}
         </button>
       </div>
 
@@ -253,6 +255,7 @@ export default function GrfEditorView() {
 }
 
 function GrfNodeView({ node, level, path, onUpdate }: { node: GrfNode, level: number, path: string[], onUpdate: (path: string[], paramIdx: number, val: string) => void }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(level < 1);
   const currentPath = [...path, node.name];
 
@@ -279,7 +282,7 @@ function GrfNodeView({ node, level, path, onUpdate }: { node: GrfNode, level: nu
           onError={(e) => (e.currentTarget.src = "/images/tools/pck.png")}
         />
         <span className="text-[#FFFF55] font-bold">{node.name}</span>
-        {node.parameters.length > 0 && <span className="text-white/40 text-xs ml-2">[{node.parameters.length} props]</span>}
+        {node.parameters.length > 0 && <span className="text-white/40 text-xs ml-2">{t("grfEditor.props", { count: node.parameters.length })}</span>}
       </div>
       {expanded && (
         <div className="flex flex-col border-l-2 border-[#373737] ml-2 pl-2">

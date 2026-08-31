@@ -1,4 +1,5 @@
 import { useEffect, useMemo, memo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useUI, useAudio } from "../../context/LauncherContext";
 import { usePlatform } from "../../hooks/usePlatform";
@@ -30,6 +31,7 @@ interface CreditCategory {
 }
 
 const CreditsView = memo(function CreditsView() {
+  const { t } = useTranslation();
   const { setActiveView } = useUI();
   const { playPressSound } = useAudio();
   const { isAndroid } = usePlatform();
@@ -338,9 +340,8 @@ const CreditsView = memo(function CreditsView() {
             color: isHovered ? "#FFFF55" : "white",
           }}
         >
-          Back to Menu
-        </button>
-      )}
+          {t("credits.backToMenu")}
+        </button>      )}
 
       <motion.div
         initial={{ y: "50%" }}

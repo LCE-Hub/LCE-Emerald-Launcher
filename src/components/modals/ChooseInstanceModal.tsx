@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { TauriService } from "../../services/TauriService";
 import { lceOnlineService } from "../../services/LceOnlineService";
@@ -30,6 +31,7 @@ export default function ChooseInstanceModal({
   installs: string[];
   invite: GameInvite | null;
 }) {
+  const { t } = useTranslation();
   const [selectedInstance, setSelectedInstance] = useState<string>("");
   const [status, setStatus] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -60,17 +62,17 @@ export default function ChooseInstanceModal({
     playPressSound();
     setIsJoining(true);
     setError("");
-    setStatus("Launching game...");
+    setStatus(t("modals.chooseInstance.launching"));
     try {
       const sessionId = invite.sessionId || "";
       if (sessionId) {
-        setStatus("Connecting via relay...");
+        setStatus(t("modals.chooseInstance.connectingRelay"));
         const accessToken = lceOnlineService.accessToken ?? "";
         const relayPromise = TauriService.startRelayProxy(
           accessToken,
           sessionId,
         );
-        setStatus("Launching game...");
+        setStatus(t("modals.chooseInstance.launching"));
         await TauriService.launchGame(
           selectedInstance,
           [
@@ -163,10 +165,12 @@ export default function ChooseInstanceModal({
         {!isJoining ? (
           <>
             <h2 className="text-[#FFFF55] text-2xl mc-text-shadow mb-2 border-b-2 border-[#373737] pb-2 w-full text-center uppercase">
-              Join Game
+              {t("modals.chooseInstance.title")}
             </h2>
             <p className="text-white text-sm mc-text-shadow mb-4 text-center">
-              Joining {hostName}'s game. Choose an instance:
+              {t("modals.chooseInstance.joinPrompt", {
+                name: hostName,
+              })}
             </p>
 
             {validInstances.length > 0 ? (
@@ -213,7 +217,7 @@ export default function ChooseInstanceModal({
               </div>
             ) : (
               <p className="text-red-400 text-sm mc-text-shadow mb-4 text-center">
-                No installed instances available. Install a version first.
+                {t("modals.chooseInstance.noInstances")}
               </p>
             )}
 
@@ -250,7 +254,7 @@ export default function ChooseInstanceModal({
                   imageRendering: "pixelated",
                 }}
               >
-                Cancel
+                {t("modals.chooseInstance.cancel")}
               </button>
               {validInstances.length > 0 && (
                 <button
@@ -266,7 +270,7 @@ export default function ChooseInstanceModal({
                     imageRendering: "pixelated",
                   }}
                 >
-                  Join
+                  {t("modals.chooseInstance.join")}
                 </button>
               )}
             </div>
@@ -274,7 +278,7 @@ export default function ChooseInstanceModal({
         ) : (
           <>
             <h2 className="text-[#FFFF55] text-2xl mc-text-shadow mb-4 border-b-2 border-[#373737] pb-2 w-full text-center uppercase">
-              Joining Game
+              {t("modals.chooseInstance.joiningTitle")}
             </h2>
             <div className="flex flex-col items-center gap-4 py-8">
               <div className="w-12 h-12 border-4 border-[#FFFF55] border-t-transparent rounded-full animate-spin" />

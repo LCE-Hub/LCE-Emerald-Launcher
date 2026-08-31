@@ -1,4 +1,5 @@
 import { useState, useEffect, memo } from "react";
+import { useTranslation } from "react-i18next";
 
 interface ModalButtonProps {
   label: string;
@@ -50,6 +51,7 @@ export default function CustomTUModal({
   editingEdition?: { name: string; desc: string; url: string; path?: string } | null;
   initialPath?: string;
 }) {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const [url, setUrl] = useState("");
@@ -107,19 +109,19 @@ export default function CustomTUModal({
 
   const handleImport = () => {
     if (!name) {
-      setError("Name is required");
+      setError(t("modals.customTu.nameRequired"));
       return;
     }
     if (!url && !path) {
-      setError("URL or Path is required");
+      setError(t("modals.customTu.urlOrPathRequired"));
       return;
     }
     if (url && !url.startsWith("http")) {
-      setError("Invalid URL");
+      setError(t("modals.customTu.invalidUrl"));
       return;
     }
     setError("");
-    onImport({ name, desc: desc || "Custom imported TU", url, path: path || undefined });
+    onImport({ name, desc: desc || t("modals.customTu.defaultDesc"), url, path: path || undefined });
     onClose();
     setName("");
     setDesc("");
@@ -133,13 +135,13 @@ export default function CustomTUModal({
         className="relative w-[400px] p-6 flex flex-col items-center mc-options-bg"
       >
         <h2 className="text-xl text-black mc-text-shadow mb-4 text-center">
-          {editingEdition ? "Edit Custom TU" : "Import Custom TU"}
+          {editingEdition ? t("modals.customTu.editTitle") : t("modals.customTu.importTitle")}
         </h2>
 
         <div className="flex flex-col gap-4 w-full">
           <div className="flex flex-col gap-1">
             <label className="text-gray text-sm mc-text-shadow uppercase tracking-widest">
-              TU Name
+              {t("modals.customTu.tuName")}
             </label>
             <input
               type="text"
@@ -147,7 +149,7 @@ export default function CustomTUModal({
               value={name}
               onChange={(e) => setName(e.target.value)}
               onFocus={() => setFocusIndex(0)}
-              placeholder="e.g. My Awesome Mod"
+              placeholder={t("modals.customTu.namePlaceholder")}
               className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-['Mojangles']"
               style={{ imageRendering: "pixelated" }}
             />
@@ -155,14 +157,14 @@ export default function CustomTUModal({
 
           <div className="flex flex-col gap-1">
             <label className="text-gray text-sm mc-text-shadow uppercase tracking-widest">
-              Description (Optional)
+              {t("modals.customTu.description")}
             </label>
             <input
               type="text"
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
               onFocus={() => setFocusIndex(1)}
-              placeholder="A brief description..."
+              placeholder={t("modals.customTu.descPlaceholder")}
               className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-['Mojangles']"
               style={{ imageRendering: "pixelated" }}
             />
@@ -170,14 +172,14 @@ export default function CustomTUModal({
 
           <div className="flex flex-col gap-1">
             <label className="text-gray text-sm mc-text-shadow uppercase tracking-widest">
-              Download URL (.zip)
+              {t("modals.customTu.downloadUrl")}
             </label>
             <input
               type="text"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onFocus={() => setFocusIndex(2)}
-              placeholder="optional if path is set"
+              placeholder={t("modals.customTu.urlPlaceholder")}
               className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-['Mojangles']"
               style={{ imageRendering: "pixelated" }}
             />
@@ -186,7 +188,7 @@ export default function CustomTUModal({
           {path && (
             <div className="flex flex-col gap-1">
               <label className="text-gray text-sm mc-text-shadow uppercase tracking-widest">
-                Local Path
+                {t("modals.customTu.localPath")}
               </label>
               <input
                 type="text"
@@ -207,14 +209,14 @@ export default function CustomTUModal({
 
         <div className="flex gap-4 mt-6 w-full">
           <ModalButton
-            label="Cancel"
+            label={t("modals.customTu.cancel")}
             onClick={() => {
               playBackSound("close_click.wav");
               onClose();
             }}
           />
           <ModalButton
-            label={editingEdition ? "Save" : "Import"}
+            label={editingEdition ? t("modals.customTu.save") : t("modals.customTu.import")}
             onClick={() => {
               playPressSound("save_click.wav");
               handleImport();

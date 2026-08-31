@@ -1,6 +1,7 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { motion } from "framer-motion";
 import { memo } from "react";
+import { useTranslation } from "react-i18next";
 
 const appWindow = getCurrentWindow();
 
@@ -13,6 +14,7 @@ export const AppHeader = memo(function AppHeader({
   playPressSound,
   uiFade,
 }: AppHeaderProps) {
+  const { t } = useTranslation();
   return (
     <motion.div
       key="header"
@@ -30,7 +32,7 @@ export const AppHeader = memo(function AppHeader({
           style={{ imageRendering: "pixelated" }}
         />
         <span className="text-xs text-gray-30 mc-text-shadow block pt-[1px] pointer-events-none">
-          Emerald Legacy Launcher
+          {t("header.title")}
         </span>
       </div>
       <div className="flex items-center gap-1 pr-2">

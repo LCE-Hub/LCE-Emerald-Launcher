@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { TauriService } from "../../services/TauriService";
 import type { Edition } from "../../types/edition";
@@ -20,6 +21,7 @@ export default function SetUidModal({
   installedVersions: string[];
   targetInstanceId: string;
 }) {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<"manual" | "copy">("manual");
   const [uid, setUid] = useState("0xFF02F0C87E8AC1F2");
   const [selectedInstance, setSelectedInstance] = useState("");
@@ -60,7 +62,7 @@ export default function SetUidModal({
       let finalUid = uid;
       if (mode === "copy") {
         if (!selectedInstance) {
-          setError("Select an instance to copy from.");
+          setError(t("modals.setUid.selectToCopy"));
           return;
         }
         const sourcePath = await TauriService.getInstancePath(selectedInstance);
@@ -68,13 +70,13 @@ export default function SetUidModal({
           const sourceData = await TauriService.readBinaryFile(`${sourcePath}/uid.dat`);
           finalUid = new TextDecoder().decode(sourceData);
         } catch (e) {
-          setError("Source instance has no uid.dat or it could not be read.");
+          setError(t("modals.setUid.sourceNoUid"));
           return;
         }
       }
 
       if (!finalUid) {
-        setError("UID cannot be empty.");
+        setError(t("modals.setUid.uidEmpty"));
         return;
       }
 
@@ -140,7 +142,7 @@ export default function SetUidModal({
         }}
       >
         <h2 className="text-[#FFFF55] text-2xl mc-text-shadow mb-4 border-b-2 border-[#373737] pb-2 w-full text-center uppercase">
-          Set UID
+          {t("modals.setUid.title")}
         </h2>
 
         <div className="flex gap-4 mb-5 w-full justify-center">
@@ -156,7 +158,7 @@ export default function SetUidModal({
               imageRendering: "pixelated",
             }}
           >
-            Manual
+            {t("modals.setUid.manual")}
           </button>
           <button
             onMouseEnter={() => setFocusIndex(1)}
@@ -170,7 +172,7 @@ export default function SetUidModal({
               imageRendering: "pixelated",
             }}
           >
-            Copy
+            {t("modals.setUid.copy")}
           </button>
         </div>
 
@@ -178,7 +180,7 @@ export default function SetUidModal({
           {mode === "manual" ? (
             <div className="flex flex-col gap-1 items-center w-full">
               <label className="text-gray text-xs mc-text-shadow uppercase tracking-widest text-[#AAAAAA]">
-                Enter UID
+                {t("modals.setUid.enterUid")}
               </label>
               <input
                 type="text"
@@ -194,7 +196,7 @@ export default function SetUidModal({
           ) : (
             <div className="flex flex-col gap-1 items-center w-full relative">
               <label className="text-gray text-xs mc-text-shadow uppercase tracking-widest text-[#AAAAAA]">
-                Select Installed Instance
+                {t("modals.setUid.selectInstance")}
               </label>
 
               <div
@@ -208,9 +210,9 @@ export default function SetUidModal({
                   {selectedInstance
                     ? (() => {
                       const i = validInstances.find((inst: Edition) => inst.instanceId === selectedInstance);
-                      return i ? `${i.name} ${i.selectedBranch ? `(${i.selectedBranch})` : ""}` : "-- Select an Instance --";
+                      return i ? `${i.name} ${i.selectedBranch ? `(${i.selectedBranch})` : ""}` : t("modals.setUid.selectPlaceholder");
                     })()
-                    : "-- Select an Instance --"}
+                    : t("modals.setUid.selectPlaceholder")}
                 </span>
                 <span className="text-xs">▼</span>
               </div>
@@ -234,7 +236,7 @@ export default function SetUidModal({
               )}
 
               {validInstances.length === 0 && (
-                <p className="text-red-400 text-xs text-center mt-1">No other installed instances available.</p>
+                <p className="text-red-400 text-xs text-center mt-1">{t("modals.setUid.noInstances")}</p>
               )}
             </div>
           )}
@@ -262,7 +264,7 @@ export default function SetUidModal({
               imageRendering: "pixelated",
             }}
           >
-            Cancel
+            {t("modals.setUid.cancel")}
           </button>
           <button
             onMouseEnter={() => setFocusIndex(4)}
@@ -276,7 +278,7 @@ export default function SetUidModal({
               imageRendering: "pixelated",
             }}
           >
-            Save
+            {t("modals.setUid.save")}
           </button>
         </div>
       </div>

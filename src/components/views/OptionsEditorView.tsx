@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUI, useAudio, useConfig } from "../../context/LauncherContext";
 import { OptionsService } from "../../services/OptionsService";
@@ -11,6 +12,7 @@ const BUTTONS: Record<number, string> = {
 };
 
 export default function OptionsEditorView() {
+  const { t } = useTranslation();
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { animationsEnabled } = useConfig();
@@ -31,10 +33,10 @@ export default function OptionsEditorView() {
     try {
       const parsed = OptionsService.readOptions(buffer);
       setOpt(parsed);
-      showNotification(`Loaded options.dat`);
+      showNotification(t("optionsEditor.loaded"));
     } catch (err: unknown) {
       console.error("Failed to parse Options", err);
-      showNotification(err instanceof Error ? err.message : "Failed to parse Options", "error");
+      showNotification(err instanceof Error ? err.message : t("optionsEditor.failedToParse"), "error");
     }
     e.target.value = "";
   };
@@ -51,9 +53,9 @@ export default function OptionsEditorView() {
       a.download = "options.dat";
       a.click();
       URL.revokeObjectURL(url);
-      showNotification("Options Saved");
+      showNotification(t("optionsEditor.saved"));
     } catch (err: unknown) {
-      showNotification("Failed to save", "error");
+      showNotification(t("optionsEditor.failedToSave"), "error");
     }
   };
 
@@ -85,7 +87,7 @@ export default function OptionsEditorView() {
       <input type="file" ref={fileInputRef} onChange={handleFileLoad} className="hidden" accept=".dat,.bin" />
       <div className="flex items-center justify-between mb-6 px-4">
         <div className="flex items-center gap-6">
-          <h2 className="text-3xl text-white mc-text-shadow tracking-widest uppercase font-bold">Options Editor</h2>
+          <h2 className="text-3xl text-white mc-text-shadow tracking-widest uppercase font-bold">{t("optionsEditor.title")}</h2>
         </div>
         <div className="flex gap-4">
           <button
@@ -93,7 +95,7 @@ export default function OptionsEditorView() {
             className="px-6 py-2 text-white mc-text-shadow text-lg"
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
-            Open settings.dat
+            {t("optionsEditor.openSettings")}
           </button>
           <button
             onClick={handleSaveOptions}
@@ -101,7 +103,7 @@ export default function OptionsEditorView() {
             className={`px-6 py-2 text-white mc-text-shadow text-lg ${!opt ? "opacity-50 grayscale" : ""}`}
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
-            Save settings.dat
+            {t("optionsEditor.saveSettings")}
           </button>
         </div>
       </div>
@@ -109,7 +111,7 @@ export default function OptionsEditorView() {
       {!opt ? (
         <div className="flex-1 w-full flex flex-col items-center justify-center p-12"
           style={{ backgroundImage: "url('/images/frame_background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}>
-          <h3 className="text-2xl text-white/40 mc-text-shadow italic">Open settings.dat to begin</h3>
+          <h3 className="text-2xl text-white/40 mc-text-shadow italic">{t("optionsEditor.openToBegin")}</h3>
         </div>
       ) : (
         <div className="flex-1 w-full flex flex-col overflow-hidden" style={{ backgroundImage: "url('/images/frame_background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}>
@@ -120,7 +122,7 @@ export default function OptionsEditorView() {
                 onClick={() => { playPressSound(); setActiveTab(tab); }}
                 className={`flex items-center gap-3 px-6 py-2 mc-text-shadow ${activeTab === tab ? "text-[#FFFF55] opacity-100" : "text-white opacity-40"}`}
               >
-                <span className="text-lg capitalize">{tab}</span>
+                <span className="text-lg capitalize">{tab === "settings" ? t("optionsEditor.tabSettings") : tab === "skins" ? t("optionsEditor.tabSkins") : t("optionsEditor.tabActions")}</span>
               </button>
             ))}
           </div>
@@ -158,21 +160,21 @@ export default function OptionsEditorView() {
             {activeTab === "skins" && (
               <div className="flex flex-col gap-8 max-w-xl mx-auto">
                 <div className="flex flex-col gap-2">
-                  <span className="text-white/80 uppercase tracking-widest">Chosen Skin ID</span>
+                  <span className="text-white/80 uppercase tracking-widest">{t("optionsEditor.chosenSkinId")}</span>
                   <input
                     type="number" value={opt.chosenSkin} onChange={(e) => updateSetting("chosenSkin", parseInt(e.target.value) || 0)}
                     className="bg-black/40 border border-[#373737] p-2 text-white outline-none focus:border-[#FFFF55] font-mono text-lg"
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <span className="text-white/80 uppercase tracking-widest">Player Cape ID</span>
+                  <span className="text-white/80 uppercase tracking-widest">{t("optionsEditor.playerCapeId")}</span>
                   <input
                     type="number" value={opt.playerCape} onChange={(e) => updateSetting("playerCape", parseInt(e.target.value) || 0)}
                     className="bg-black/40 border border-[#373737] p-2 text-white outline-none focus:border-[#FFFF55] font-mono text-lg"
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <span className="text-white/80 uppercase tracking-widest">Favorite Skins</span>
+                  <span className="text-white/80 uppercase tracking-widest">{t("optionsEditor.favoriteSkins")}</span>
                   {opt.favoriteSkins.map((s, i) => (
                     <div key={i} className="flex items-center gap-4">
                       <span className="text-white/40 w-8">{i + 1}.</span>
@@ -217,7 +219,7 @@ export default function OptionsEditorView() {
           className="w-72 h-full shrink-0 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] text-white"
           style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
         >
-          Back
+          {t("optionsEditor.back")}
         </button>
       </div>
 

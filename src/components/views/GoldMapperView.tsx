@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
   TauriService,
@@ -18,11 +19,6 @@ const KEY_FALLBACK = [
 ];
 
 const MOUSE_IDS = ["MOUSE_LEFT", "MOUSE_MIDDLE", "MOUSE_RIGHT"];
-const MOUSE_LABELS: Record<string, string> = {
-  MOUSE_LEFT: "Left Click",
-  MOUSE_MIDDLE: "Middle Click",
-  MOUSE_RIGHT: "Right Click",
-};
 
 const CONTROLLER_FALLBACK = [
   "PAD_A",
@@ -63,6 +59,7 @@ const stoneButtonStyle = (highlighted: boolean) => ({
 });
 
 const GoldMapperView = memo(function GoldMapperView() {
+  const { t } = useTranslation();
   const { setActiveView } = useUI();
   const { animationsEnabled, goldmapperEnabled, setGoldmapperEnabled } =
     useConfig();
@@ -108,6 +105,11 @@ const GoldMapperView = memo(function GoldMapperView() {
   }, []);
 
   const getTo = useCallback((id: string) => binds[id] ?? id, [binds]);
+  const mouseLabel = (id: string) => {
+    if (id === "MOUSE_LEFT") return t("goldMapper.leftClick");
+    if (id === "MOUSE_MIDDLE") return t("goldMapper.middleClick");
+    return t("goldMapper.rightClick");
+  };
   const buildPayload = useCallback(
     (nextBinds: Record<string, string>): GoldMapperMapping[] => {
       const rows: GoldMapperMapping[] = [];
@@ -182,11 +184,11 @@ const GoldMapperView = memo(function GoldMapperView() {
       .replace(/\s+/g, "_")
       .replace(/^KEY_/, "");
     if (!norm || !keyboardIds.includes(`KEY_${norm}`)) {
-      setKeyInputError("Unknown key name");
+      setKeyInputError(t("goldMapper.unknownKeyName"));
       return;
     }
     pickTarget(editing, `KEY_${norm}`);
-  }, [editing, keyInput, keyboardIds, pickTarget]);
+  }, [editing, keyInput, keyboardIds, pickTarget, t]);
 
   const rows: Row[] = useMemo(() => {
     const list: Row[] = [{ kind: "reset", key: "reset" }];
@@ -194,7 +196,7 @@ const GoldMapperView = memo(function GoldMapperView() {
     list.push({
       kind: "header",
       key: "controller_header",
-      label: "Controller",
+      label: t("goldMapper.controller"),
     });
     for (const id of controllerIds) {
       list.push({
@@ -204,16 +206,16 @@ const GoldMapperView = memo(function GoldMapperView() {
         label: displayName(id),
       });
     }
-    list.push({ kind: "header", key: "mouse_header", label: "Mouse" });
+    list.push({ kind: "header", key: "mouse_header", label: t("goldMapper.mouse") });
     for (const id of MOUSE_IDS) {
       list.push({
         kind: "bind",
         key: `mouse_${id}`,
         id,
-        label: MOUSE_LABELS[id],
+        label: mouseLabel(id),
       });
     }
-    list.push({ kind: "header", key: "keyboard_header", label: "Keyboard" });
+    list.push({ kind: "header", key: "keyboard_header", label: t("goldMapper.keyboard") });
     for (const id of keyboardIds) {
       list.push({
         kind: "bind",
@@ -223,7 +225,7 @@ const GoldMapperView = memo(function GoldMapperView() {
       });
     }
     return list;
-  }, [controllerIds, keyboardIds]);
+  }, [controllerIds, keyboardIds, t, mouseLabel]);
 
   const focusableCount = rows.filter((r) => r.kind !== "header").length;
   const modalItemCount = MOUSE_IDS.length + controllerIds.length + 2;
@@ -384,9 +386,9 @@ const GoldMapperView = memo(function GoldMapperView() {
           }`}
         >
           {isReset
-            ? "Reset to Defaults"
+            ? t("goldMapper.resetToDefaults")
             : isEnable
-              ? "Enable GoldMapper"
+              ? t("goldMapper.enableGoldMapper")
               : row.label}
         </span>
         {!isReset && !isEnable && row.kind === "bind" && (
@@ -431,7 +433,7 @@ const GoldMapperView = memo(function GoldMapperView() {
           imageRendering: "pixelated",
         }}
       >
-        Back
+        {t("goldMapper.back")}
       </button>
 
       {editing !== null && (
@@ -443,13 +445,13 @@ const GoldMapperView = memo(function GoldMapperView() {
         >
           <div className="relative w-[620px] max-w-[95vw] h-[580px] max-h-[88vh] p-5 flex flex-col font-['Mojangles'] mc-options-bg">
             <h2 className="text-xl text-black mc-text-shadow mb-4 text-center">
-              Assign {displayName(editing)}
+              {t("goldMapper.assign", { name: displayName(editing) })}
             </h2>
 
             <div className="w-full flex-1 min-h-0 overflow-y-auto custom-scrollbar mb-4">
               <div className="mb-3">
                 <h3 className="text-[#333333] mc-text-shadow uppercase tracking-widest text-sm px-3 pt-2 pb-1">
-                  Mouse
+                  {t("goldMapper.mouse")}
                 </h3>
                 <div className="grid grid-cols-4 gap-2 p-1 content-start">
                   {MOUSE_IDS.map((id, i) => (
@@ -464,7 +466,7 @@ const GoldMapperView = memo(function GoldMapperView() {
                       }`}
                       style={stoneButtonStyle(modalFocusIndex === i)}
                     >
-                      <span className="truncate">{MOUSE_LABELS[id]}</span>
+                      <span className="truncate">{mouseLabel(id)}</span>
                     </button>
                   ))}
                 </div>
@@ -472,7 +474,7 @@ const GoldMapperView = memo(function GoldMapperView() {
 
               <div className="mb-3">
                 <h3 className="text-[#333333] mc-text-shadow uppercase tracking-widest text-sm px-3 pt-2 pb-1">
-                  Controller
+                  {t("goldMapper.controller")}
                 </h3>
                 <div className="grid grid-cols-4 gap-2 p-1 content-start">
                   {controllerIds.map((id, i) => {
@@ -500,7 +502,7 @@ const GoldMapperView = memo(function GoldMapperView() {
 
               <div className="mb-3">
                 <h3 className="text-[#333333] mc-text-shadow uppercase tracking-widest text-sm px-3 pt-2 pb-1">
-                  Keyboard
+                  {t("goldMapper.keyboard")}
                 </h3>
                 <input
                   data-modal-index={MOUSE_IDS.length + controllerIds.length}
@@ -518,7 +520,7 @@ const GoldMapperView = memo(function GoldMapperView() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") submitKeyInput();
                   }}
-                  placeholder="Type a key name and press Enter"
+                  placeholder={t("goldMapper.typeKeyName")}
                   className={`w-full h-10 px-3 bg-black/40 border-2 text-white text-base outline-none text-center ${
                     keyInputError
                       ? "border-red-600"
@@ -558,7 +560,7 @@ const GoldMapperView = memo(function GoldMapperView() {
                 imageRendering: "pixelated",
               }}
             >
-              Cancel
+              {t("goldMapper.cancel")}
             </button>
           </div>
         </div>

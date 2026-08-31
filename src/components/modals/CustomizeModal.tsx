@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { TauriService } from "../../services/TauriService";
 
@@ -37,6 +38,7 @@ export default function CustomizeModal({
   currentPanorama?: string;
   onSave: (updates: { titleImage?: string; panorama?: string }) => void;
 }) {
+  const { t } = useTranslation();
   const [titleImage, setTitleImage] = useState(currentTitleImage || "");
   const [panorama, setPanorama] = useState(currentPanorama || "");
   const [focusIndex, setFocusIndex] = useState(0);
@@ -90,7 +92,7 @@ export default function CustomizeModal({
   const handlePickFile = async (field: "titleImage" | "panorama") => {
     try {
       const path = await TauriService.pickFile(
-        field === "titleImage" ? "Select Title Image" : "Select Panorama Background",
+        field === "titleImage" ? t("modals.customize.selectTitleImage") : t("modals.customize.selectPanorama"),
         ["png", "jpg", "jpeg", "bmp"],
       );
       if (path) {
@@ -119,7 +121,7 @@ export default function CustomizeModal({
   ) => (
     <div className="flex flex-col gap-2">
       <label className="text-[#AAAAAA] text-xs mc-text-shadow uppercase tracking-widest">
-        {field === "titleImage" ? "Title Image" : "Panorama Background"}
+        {field === "titleImage" ? t("modals.customize.titleImage") : t("modals.customize.panoramaBackground")}
       </label>
       <div className="flex gap-2">
         <button
@@ -135,7 +137,7 @@ export default function CustomizeModal({
             imageRendering: "pixelated",
           }}
         >
-          {value ? "Change Image" : "Pick Image"}
+          {value ? t("modals.customize.changeImage") : t("modals.customize.pickImage")}
         </button>
         {value && (
           <button
@@ -151,7 +153,7 @@ export default function CustomizeModal({
               imageRendering: "pixelated",
             }}
           >
-            Reset
+            {t("modals.customize.reset")}
           </button>
         )}
       </div>
@@ -159,7 +161,7 @@ export default function CustomizeModal({
         <div className="flex items-center gap-2 mt-1">
           <img
             src={value}
-            alt="Preview"
+            alt={t("modals.customize.preview")}
             className="w-10 h-6 object-contain border border-[#555]"
             style={{ imageRendering: "pixelated" }}
             onError={(e) => {
@@ -190,7 +192,7 @@ export default function CustomizeModal({
         }}
       >
         <h2 className="text-[#FFFF55] text-2xl mc-text-shadow mb-4 border-b-2 border-[#373737] pb-2 w-full text-center uppercase">
-          Customize
+          {t("modals.customize.title")}
         </h2>
         <p className="text-white/70 text-xs mc-text-shadow mb-4 -mt-2 truncate max-w-full">
           {editionName}
@@ -220,7 +222,7 @@ export default function CustomizeModal({
               imageRendering: "pixelated",
             }}
           >
-            Cancel
+            {t("modals.customize.cancel")}
           </button>
           <button
             onMouseEnter={() => setFocusIndex(5)}
@@ -237,7 +239,7 @@ export default function CustomizeModal({
               imageRendering: "pixelated",
             }}
           >
-            Save
+            {t("modals.customize.save")}
           </button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, memo } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { TauriService, PlaytimeResponse } from "../../services/TauriService";
 import CustomTUModal from "../modals/CustomTUModal";
@@ -62,6 +63,7 @@ function formatPlaytime(seconds: number): string {
 }
 
 const VersionsView = memo(function VersionsView() {
+  const { t } = useTranslation();
   const { setActiveView } = useUI();
   const {
     profile: selectedProfile,
@@ -339,7 +341,7 @@ const VersionsView = memo(function VersionsView() {
       className="flex flex-col items-center w-full max-w-5xl outline-none"
     >
       <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 pb-2 w-[40%] max-w-[200px] text-center tracking-widest uppercase font-bold">
-        Versions
+        {t("versions.title")}
       </h2>
 
       <div className="w-full min-w-[480px] p-6 mb-4 mc-options-bg">
@@ -429,7 +431,7 @@ const VersionsView = memo(function VersionsView() {
                             setIsPlaytimeModalOpen(true);
                           }}
                           className="flex items-center gap-1.5 px-2 py-1 bg-black/60 border border-[#555] hover:border-[#FFFF55] group transition-colors flex-shrink-0"
-                          title="View playtime"
+                          title={t("versions.viewPlaytime")}
                         >
                           <svg
                             width="12"
@@ -465,7 +467,7 @@ const VersionsView = memo(function VersionsView() {
                         ))}
                       {isCustom && !edition.category && (
                         <span className="text-[10px] px-1.5 py-0.5 bg-[#777] text-[#222] font-bold uppercase">
-                          Custom
+                          {t("versions.custom")}
                         </span>
                       )}
                     </div>
@@ -586,11 +588,10 @@ const VersionsView = memo(function VersionsView() {
                               className="w-3 h-3 object-contain"
                               style={{ imageRendering: "pixelated" }}
                             />
-                            Update Available!
+                            {t("versions.updateAvailable")}
                           </button>
                         )}
-                        {!isAndroid && !isInstalled && (
-                          <button
+                        {!isAndroid && !isInstalled && (                          <button
                             onClick={async (e) => {
                               e.stopPropagation();
                               playPressSound();
@@ -607,10 +608,10 @@ const VersionsView = memo(function VersionsView() {
                                       "fixed inset-0 bg-black/80 flex items-center justify-center z-50";
                                     dialog.innerHTML = `
                                       <div class="w-[420px] p-4 flex flex-col items-center mc-options-bg">
-                                        <h3 class="text-2xl font-bold text-[#333333] mb-4 text-left w-full px-4 mc-text-shadow">Invalid Directory</h3>
-                                        <p class="text-[#333333] mb-6 text-left w-full px-4">Please select an empty directory for installation.</p>
+                                        <h3 class="text-2xl font-bold text-[#333333] mb-4 text-left w-full px-4 mc-text-shadow">${t("versions.invalidDirectory")}</h3>
+                                        <p class="text-[#333333] mb-6 text-left w-full px-4">${t("versions.selectEmptyDirectory")}</p>
                                         <div class="flex flex-col gap-3 w-full px-4">
-                                          <button id="empty-dir-ok" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">OK</button>
+                                          <button id="empty-dir-ok" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">${t("common.ok")}</button>
                                         </div>
                                       </div>
                                     `;
@@ -643,7 +644,7 @@ const VersionsView = memo(function VersionsView() {
                               className="w-3.5 h-3.5 object-contain"
                               style={{ imageRendering: "pixelated" }}
                             />
-                            Download to custom path
+                            {t("versions.downloadToCustomPath")}
                           </button>
                         )}
                         {edition.officialDLC && isInstalled ? (
@@ -670,10 +671,9 @@ const VersionsView = memo(function VersionsView() {
                               <polyline points="17 8 12 3 7 8" />
                               <line x1="12" y1="3" x2="12" y2="15" />
                             </svg>
-                            Download DLC
+                            {t("versions.downloadDlc")}
                           </button>
-                        ) : null}
-                        {argsSchemas[edition.instanceId] && (
+                        ) : null}                        {argsSchemas[edition.instanceId] && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -706,7 +706,7 @@ const VersionsView = memo(function VersionsView() {
                               <line x1="9" y1="8" x2="15" y2="8" />
                               <line x1="17" y1="16" x2="23" y2="16" />
                             </svg>
-                            Options
+                            {t("versions.options")}
                           </button>
                         )}
                         {Array.isArray(edition.branches) &&
@@ -720,10 +720,10 @@ const VersionsView = memo(function VersionsView() {
                               className="w-full text-left px-3 py-1.5 text-[10px] text-white mc-text-shadow flex items-center justify-between group"
                             >
                               <span className="text-[#AAAAAA] font-bold">
-                                Channel
+                                {t("versions.channel")}
                               </span>
                               <span className="text-[#ffff55] font-bold">
-                                {edition.selectedBranch ?? "Latest"}
+                                {edition.selectedBranch ?? t("versions.latest")}
                               </span>
                             </button>
                           )}
@@ -746,10 +746,9 @@ const VersionsView = memo(function VersionsView() {
                               className="w-3.5 h-3.5 object-contain"
                               style={{ imageRendering: "pixelated" }}
                             />
-                            Open Folder
+                            {t("versions.openFolder")}
                           </button>
-                        )}
-                        {!isAndroid && (
+                        )}                        {!isAndroid && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -782,10 +781,9 @@ const VersionsView = memo(function VersionsView() {
                               className="w-3.5 h-3.5 object-contain invert brightness-0"
                               style={{ imageRendering: "pixelated" }}
                             />
-                            Add to Steam
+                            {t("versions.addToSteam")}
                           </button>
-                        )}
-                        {!isAndroid && (
+                        )}                        {!isAndroid && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -808,10 +806,9 @@ const VersionsView = memo(function VersionsView() {
                               <polyline points="7 10 12 15 17 10" />
                               <line x1="12" y1="15" x2="12" y2="3" />
                             </svg>
-                            Import World
+                            {t("versions.importWorld")}
                           </button>
-                        )}
-                        {!isAndroid && (
+                        )}                        {!isAndroid && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -838,10 +835,9 @@ const VersionsView = memo(function VersionsView() {
                               <polyline points="17 21 17 13 7 13 7 21" />
                               <polyline points="7 3 7 8 15 8" />
                             </svg>
-                            Backup
+                            {t("versions.backup")}
                           </button>
-                        )}
-                        {!isAndroid && (
+                        )}                        {!isAndroid && (
                           <button
                             onClick={async (e) => {
                               e.stopPropagation();
@@ -867,10 +863,9 @@ const VersionsView = memo(function VersionsView() {
                               <path d="M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9z" />
                               <polyline points="12 7 12 12 15 15" />
                             </svg>
-                            Restore
+                            {t("versions.restore")}
                           </button>
-                        )}
-                        {!isAndroid && (
+                        )}                        {!isAndroid && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -892,10 +887,9 @@ const VersionsView = memo(function VersionsView() {
                             >
                               <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                             </svg>
-                            Customize
+                            {t("versions.customize")}
                           </button>
-                        )}
-                        <button
+                        )}                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             playPressSound();
@@ -917,9 +911,8 @@ const VersionsView = memo(function VersionsView() {
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                           </svg>
-                          Set UID
-                        </button>
-                        {isCustom ? (
+                          {t("versions.setUid")}
+                        </button>                        {isCustom ? (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -941,10 +934,9 @@ const VersionsView = memo(function VersionsView() {
                             >
                               <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                             </svg>
-                            Edit Custom
+                            {t("versions.editCustom")}
                           </button>
-                        ) : null}
-                        <div className="h-[2px] bg-[#555] my-0.5 mx-1" />
+                        ) : null}                        <div className="h-[2px] bg-[#555] my-0.5 mx-1" />
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -964,7 +956,7 @@ const VersionsView = memo(function VersionsView() {
                             className="w-3.5 h-3.5 object-contain"
                             style={{ imageRendering: "pixelated" }}
                           />
-                          {isCustom ? "Remove Custom" : "Uninstall"}
+                          {isCustom ? t("versions.removeCustom") : t("versions.uninstall")}
                         </button>
                       </div>
                     )}
@@ -1015,7 +1007,7 @@ const VersionsView = memo(function VersionsView() {
                   }}
                   onMouseEnter={() => setFocusIndex(visibleEditions.length + 1)}
                   onMouseLeave={() => setHoveredBtn(null)}
-                  title="Import Custom TU"
+                  title={t("modals.customTu.importTitle")}
                   className="w-8 h-8 flex items-center justify-center text-[#3a3a3a]"
                   style={{
                     backgroundImage:
@@ -1030,7 +1022,7 @@ const VersionsView = memo(function VersionsView() {
                 >
                   <img
                     src="/images/Folder_Icon.png"
-                    alt="Import Custom TU"
+                    alt={t("modals.customTu.importTitle")}
                     className="w-5 h-5 object-contain"
                     style={{ imageRendering: "pixelated" }}
                   />
@@ -1060,9 +1052,8 @@ const VersionsView = memo(function VersionsView() {
               imageRendering: "pixelated",
             }}
           >
-            Done
-          </button>
-        </div>
+            {t("common.done")}
+          </button>        </div>
       )}
 
       <CustomTUModal
@@ -1200,22 +1191,21 @@ const VersionsView = memo(function VersionsView() {
             }}
           >
             <h3 className="text-xl text-white mc-text-shadow mb-4 text-center">
-              Delete {deleteConfirmEdition.name}?
+              {t("versions.deleteTitle", { name: deleteConfirmEdition.name })}
             </h3>
             <p className="text-sm text-white mb-6 text-center leading-relaxed">
-              Warning: All your saves and worlds for this version will be
-              permanently deleted!
+              {t("versions.deleteWarning")}
             </p>
             <div className="flex justify-center gap-4">
               <DeleteConfirmButton
-                label="Cancel"
+                label={t("common.cancel")}
                 onClick={() => {
                   playBackSound();
                   setDeleteConfirmEdition(null);
                 }}
               />
               <DeleteConfirmButton
-                label="Delete"
+                label={t("common.delete")}
                 isDanger
                 onClick={() => {
                   playPressSound();

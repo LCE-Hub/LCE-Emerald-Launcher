@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUI, useAudio, useConfig } from "../../context/LauncherContext";
 import { ModelFile, ModelPart, ModelBox, Vec3, Vec2 } from "../../types/model";
@@ -13,6 +14,7 @@ interface Selection {
 }
 
 export default function ModelEditorView() {
+  const { t } = useTranslation();
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { animationsEnabled } = useConfig();
@@ -73,16 +75,16 @@ export default function ModelEditorView() {
         const idx = models.length;
         setExpandedModels((prev) => new Set(prev).add(idx));
         setSelection({ type: "model", modelIdx: idx });
-        showNotify(`Imported: ${model.name}`);
+        showNotify(t("modelEditor.imported", { name: model.name }));
       } else {
         const text = new TextDecoder("utf-8").decode(buffer);
         const imported = ModelService.importFromJSON(text);
         setModels((prev) => [...prev, ...imported]);
-        showNotify(`Loaded ${imported.length} model(s)`);
+        showNotify(t("modelEditor.loadedModels", { count: imported.length }));
       }
     } catch (err: unknown) {
       showNotify(
-        err instanceof Error ? err.message : "Failed to parse",
+        err instanceof Error ? err.message : t("modelEditor.failedToParse"),
         "error",
       );
     }
@@ -106,7 +108,7 @@ export default function ModelEditorView() {
       next[mi] = { ...model, textures };
       return next;
     });
-    showNotify(`Added texture: ${name}`);
+    showNotify(t("modelEditor.addedTexture", { name }));
     e.target.value = "";
   };
 
@@ -118,7 +120,7 @@ export default function ModelEditorView() {
     setModels((prev) => [...prev, model]);
     setExpandedModels((prev) => new Set(prev).add(idx));
     setSelection({ type: "model", modelIdx: idx });
-    showNotify(`Created: ${name}`);
+    showNotify(t("modelEditor.created", { name }));
   };
 
   const handleExport = () => {
@@ -133,9 +135,9 @@ export default function ModelEditorView() {
       a.download = `${activeModel.name}.bbmodel`;
       a.click();
       URL.revokeObjectURL(url);
-      showNotify(`Exported: ${activeModel.name}.bbmodel`);
+      showNotify(t("modelEditor.exported", { name: `${activeModel.name}.bbmodel` }));
     } catch {
-      showNotify("Export failed", "error");
+      showNotify(t("modelEditor.exportFailed"), "error");
     }
   };
 
@@ -148,7 +150,7 @@ export default function ModelEditorView() {
     playBackSound();
     setModels((prev) => prev.filter((_, i) => i !== idx));
     if (selection?.modelIdx === idx) setSelection(null);
-    showNotify("Model deleted");
+    showNotify(t("modelEditor.modelDeleted"));
   };
 
   const handleDeletePart = (modelIdx: number, partIdx: number) => {
@@ -333,7 +335,7 @@ export default function ModelEditorView() {
 
       <div className="flex items-center justify-between mb-4 px-4 shrink-0">
         <h2 className="text-2xl text-white mc-text-shadow tracking-widest uppercase font-bold">
-          Model Editor
+          {t("modelEditor.title")}
         </h2>
         <div className="flex items-center gap-3">
           <button
@@ -344,7 +346,7 @@ export default function ModelEditorView() {
               backgroundSize: "100% 100%",
             }}
           >
-            Import
+            {t("modelEditor.import")}
           </button>
           <button
             onClick={handleExport}
@@ -355,7 +357,7 @@ export default function ModelEditorView() {
               backgroundSize: "100% 100%",
             }}
           >
-            Export
+            {t("modelEditor.export")}
           </button>
           <button
             onClick={handleSave}
@@ -366,7 +368,7 @@ export default function ModelEditorView() {
               backgroundSize: "100% 100%",
             }}
           >
-            Save
+            {t("modelEditor.save")}
           </button>
           <div className="w-px h-6 bg-[#373737]" />
           <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -375,7 +377,7 @@ export default function ModelEditorView() {
               className={`w-4 h-4 border-2 transition-colors ${showBounds ? "bg-[#FFFF55] border-[#FFFF55]" : "bg-black/40 border-[#373737]"}`}
             />
             <span className="text-white/50 text-[10px] uppercase tracking-widest">
-              Bounds
+              {t("modelEditor.bounds")}
             </span>
           </label>
         </div>
@@ -391,7 +393,7 @@ export default function ModelEditorView() {
           }}
         >
           <h3 className="text-2xl text-white/40 mc-text-shadow italic">
-            Import a .bbmodel or .json file to begin
+            {t("modelEditor.importToBegin")}
           </h3>
           <button
             onClick={handleNewModel}
@@ -401,7 +403,7 @@ export default function ModelEditorView() {
               backgroundSize: "100% 100%",
             }}
           >
-            Start with Default Model
+            {t("modelEditor.startDefaultModel")}
           </button>
         </div>
       ) : (
@@ -416,13 +418,13 @@ export default function ModelEditorView() {
           <div className="w-72 min-w-72 border-r-2 border-[#373737] flex flex-col overflow-hidden">
             <div className="p-3 pt-4 pl-5 border-b-2 border-[#373737] flex items-center justify-between">
               <span className="text-white/60 uppercase text-xs tracking-widest font-bold pl-1">
-                Models ({models.length})
+                {t("modelEditor.models", { count: models.length })}
               </span>
               <button
                 onClick={handleNewModel}
                 className="text-[#FFFF55] text-sm hover:opacity-80 pr-1"
               >
-                + Add
+                {t("modelEditor.add")}
               </button>
             </div>
             <div className="flex-1 overflow-y-auto custom-scrollbar p-3 pl-5">
@@ -436,14 +438,14 @@ export default function ModelEditorView() {
                     onContextMenu={(e) =>
                       handleContextMenu(e, [
                         {
-                          label: "Export",
+                          label: t("modelEditor.export"),
                           action: () => {
                             setSelection({ type: "model", modelIdx: mi });
                             setTimeout(handleExport, 0);
                           },
                         },
                         {
-                          label: "Remove",
+                          label: t("modelEditor.remove"),
                           action: () => handleDeleteModel(mi),
                         },
                       ])
@@ -482,10 +484,10 @@ export default function ModelEditorView() {
                         onClick={() => handleAddPart(mi)}
                       >
                         <span className="text-[10px] uppercase tracking-widest text-white/40">
-                          Parts ({model.parts.length})
+                          {t("modelEditor.parts", { count: model.parts.length })}
                         </span>
                         <span className="text-[#FFFF55] text-xs cursor-pointer">
-                          + Add
+                          {t("modelEditor.add")}
                         </span>
                       </div>
                       {model.parts.map((part, pi) => {
@@ -505,7 +507,7 @@ export default function ModelEditorView() {
                               onContextMenu={(e) =>
                                 handleContextMenu(e, [
                                   {
-                                    label: "Edit",
+                                    label: t("modelEditor.edit"),
                                     action: () =>
                                       setEditingPart({
                                         modelIdx: mi,
@@ -513,7 +515,7 @@ export default function ModelEditorView() {
                                       }),
                                   },
                                   {
-                                    label: "Remove",
+                                    label: t("modelEditor.remove"),
                                     action: () => handleDeletePart(mi, pi),
                                   },
                                 ])
@@ -549,10 +551,10 @@ export default function ModelEditorView() {
                                   onClick={() => handleAddBox(mi, pi)}
                                 >
                                   <span className="text-[9px] uppercase tracking-widest text-white/40">
-                                    Boxes ({part.boxes.length})
+                                    {t("modelEditor.boxes", { count: part.boxes.length })}
                                   </span>
                                   <span className="text-[#FFFF55] text-[10px] cursor-pointer">
-                                    + Add
+                                    {t("modelEditor.add")}
                                   </span>
                                 </div>
                                 {part.boxes.map((_box, bi) => (
@@ -569,7 +571,7 @@ export default function ModelEditorView() {
                                     onContextMenu={(e) =>
                                       handleContextMenu(e, [
                                         {
-                                          label: "Edit",
+                                          label: t("modelEditor.edit"),
                                           action: () =>
                                             setEditingBox({
                                               modelIdx: mi,
@@ -578,7 +580,7 @@ export default function ModelEditorView() {
                                             }),
                                         },
                                         {
-                                          label: "Remove",
+                                          label: t("modelEditor.remove"),
                                           action: () =>
                                             handleDeleteBox(mi, pi, bi),
                                         },
@@ -588,7 +590,7 @@ export default function ModelEditorView() {
                                   >
                                     <div className="w-2 h-2 rounded-sm border border-white/20 shrink-0" />
                                     <span className="truncate text-[10px] mc-text-shadow">
-                                      Box {bi + 1}
+                                      {t("modelEditor.box", { index: bi + 1 })}
                                     </span>
                                     <button
                                       onClick={(e) => {
@@ -631,19 +633,19 @@ export default function ModelEditorView() {
                 <div className="h-44 shrink-0 border-t-2 border-[#373737] bg-black/10 overflow-y-auto custom-scrollbar">
                   <div className="p-2 border-b border-[#373737]/50 flex items-center justify-between">
                     <span className="text-white/40 text-[10px] uppercase tracking-widest font-bold">
-                      Textures ({activeTextures.length})
+                      {t("modelEditor.textures", { count: activeTextures.length })}
                     </span>
                     <button
                       onClick={() => textureInputRef.current?.click()}
                       className="text-white/40 hover:text-white text-xs uppercase tracking-widest transition-colors pr-2"
                     >
-                      Add
+                      {t("modelEditor.add")}
                     </button>
                   </div>
                   {activeTextures.length === 0 ? (
                     <div className="flex items-center justify-center h-20">
                       <span className="text-white/20 text-xs italic">
-                        No textures
+                        {t("modelEditor.noTextures")}
                       </span>
                     </div>
                   ) : (
@@ -674,7 +676,7 @@ export default function ModelEditorView() {
             ) : (
               <div className="flex-1 flex items-center justify-center">
                 <span className="text-white/20 mc-text-shadow text-lg italic">
-                  Select a model to preview
+                  {t("modelEditor.selectModel")}
                 </span>
               </div>
             )}
@@ -695,7 +697,7 @@ export default function ModelEditorView() {
             imageRendering: "pixelated",
           }}
         >
-          Back
+          {t("modelEditor.back")}
         </button>
       </div>
 
@@ -830,6 +832,7 @@ function PartEditModal({
   onClose: () => void;
   onConfirm: (updated: { name: string; translation: Vec3 | undefined }) => void;
 }) {
+  const { t } = useTranslation();
   const [name, setName] = useState(part.name);
   const [tx, setTx] = useState(part.translation?.X ?? 0);
   const [ty, setTy] = useState(part.translation?.Y ?? 0);
@@ -855,12 +858,12 @@ function PartEditModal({
         }}
       >
         <h3 className="text-2xl text-[#FFFF55] mc-text-shadow font-bold mb-6 tracking-widest uppercase">
-          Edit Part
+          {t("modelEditor.editPart")}
         </h3>
         <div className="flex flex-col gap-4">
           <div>
             <label className="text-white/40 text-[10px] uppercase tracking-widest mb-1 block">
-              Name
+              {t("modelEditor.name")}
             </label>
             <input
               type="text"
@@ -872,7 +875,7 @@ function PartEditModal({
           </div>
           <div>
             <label className="text-white/40 text-[10px] uppercase tracking-widest mb-1 block">
-              Translation
+              {t("modelEditor.translation")}
             </label>
             <div className="flex gap-3">
               {(["X", "Y", "Z"] as const).map((axis) => (
@@ -902,7 +905,7 @@ function PartEditModal({
             onClick={onClose}
             className="px-6 py-2 text-white/60 hover:text-white transition-colors uppercase tracking-widest text-sm"
           >
-            Cancel
+            {t("modelEditor.cancel")}
           </button>
           <button
             onClick={() =>
@@ -915,13 +918,13 @@ function PartEditModal({
               })
             }
             className="px-8 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none"
-            style={{
-              backgroundImage: "url('/images/Button_Background.png')",
-              backgroundSize: "100% 100%",
-            }}
-          >
-            Save
-          </button>
+              style={{
+                backgroundImage: "url('/images/Button_Background.png')",
+                backgroundSize: "100% 100%",
+              }}
+            >
+              {t("modelEditor.save")}
+            </button>
         </div>
       </motion.div>
     </div>
@@ -937,6 +940,7 @@ function BoxEditModal({
   onClose: () => void;
   onConfirm: (updated: ModelBox) => void;
 }) {
+  const { t } = useTranslation();
   const [posX, setPosX] = useState(box.pos.X);
   const [posY, setPosY] = useState(box.pos.Y);
   const [posZ, setPosZ] = useState(box.pos.Z);
@@ -968,12 +972,12 @@ function BoxEditModal({
         }}
       >
         <h3 className="text-2xl text-[#FFFF55] mc-text-shadow font-bold mb-6 tracking-widest uppercase">
-          Edit Box
+          {t("modelEditor.editBox")}
         </h3>
         <div className="grid grid-cols-2 gap-x-6 gap-y-4">
           <div className="col-span-2">
             <label className="text-white/40 text-[10px] uppercase tracking-widest mb-1 block">
-              Position
+              {t("modelEditor.position")}
             </label>
             <div className="flex gap-3">
               {(["X", "Y", "Z"] as const).map((axis) => (
@@ -999,7 +1003,7 @@ function BoxEditModal({
           </div>
           <div className="col-span-2">
             <label className="text-white/40 text-[10px] uppercase tracking-widest mb-1 block">
-              Size
+              {t("modelEditor.size")}
             </label>
             <div className="flex gap-3">
               {(["X", "Y", "Z"] as const).map((axis) => (
@@ -1026,7 +1030,7 @@ function BoxEditModal({
           </div>
           <div className="col-span-2">
             <label className="text-white/40 text-[10px] uppercase tracking-widest mb-1 block">
-              UV Offset
+              {t("modelEditor.uvOffset")}
             </label>
             <div className="flex gap-3">
               {(["X", "Y"] as const).map((axis) => (
@@ -1051,7 +1055,7 @@ function BoxEditModal({
           </div>
           <div className="flex items-center gap-3">
             <label className="text-white/40 text-[10px] uppercase tracking-widest">
-              Inflate
+              {t("modelEditor.inflate")}
             </label>
             <input
               type="number"
@@ -1063,7 +1067,7 @@ function BoxEditModal({
           </div>
           <div className="flex items-center gap-3 justify-end">
             <label className="text-white/40 text-[10px] uppercase tracking-widest">
-              Mirror UV
+              {t("modelEditor.mirrorUv")}
             </label>
             <div
               onClick={() => setMirror(!mirror)}
@@ -1076,7 +1080,7 @@ function BoxEditModal({
             onClick={onClose}
             className="px-6 py-2 text-white/60 hover:text-white transition-colors uppercase tracking-widest text-sm"
           >
-            Cancel
+            {t("modelEditor.cancel")}
           </button>
           <button
             onClick={() =>
@@ -1094,7 +1098,7 @@ function BoxEditModal({
               backgroundSize: "100% 100%",
             }}
           >
-            Save
+            {t("modelEditor.save")}
           </button>
         </div>
       </motion.div>

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAudio } from "../../context/LauncherContext";
 
@@ -14,10 +15,12 @@ export function AchievementToast({
   message,
   onClose,
   onClick,
-  title = "Error!",
+  title,
   variant = "error",
 }: AchievementToastProps) {
+  const { t } = useTranslation();
   const { playSfx } = useAudio();
+  const displayTitle = title ?? t("common.error");
   const prevMessage = useRef(message);
   useEffect(() => {
     const wasNull = !prevMessage.current;
@@ -125,7 +128,7 @@ export function AchievementToast({
             </div>
             <div className="flex flex-col">
               <span className="text-[#FFFF55] text-lg font-bold mc-text-shadow leading-tight">
-                {title}
+                {displayTitle}
               </span>
               <span className="text-white text-base mc-text-shadow leading-tight break-words">
                 {message}
