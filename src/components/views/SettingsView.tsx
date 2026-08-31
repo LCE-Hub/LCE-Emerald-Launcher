@@ -589,12 +589,13 @@ const SettingsView = memo(function SettingsView() {
       const availableLanguages = [
         //neo: here goes the list, dont ask why its here
         { code: "en", label: "English" },
+        { code: "fr", label: "Français (French)" }, // by Dydymiku (thanks!!)
       ];
       for (const lang of availableLanguages) {
         const isCurrent = i18n.resolvedLanguage?.startsWith(lang.code);
         items.push({
           id: `lang_${lang.code}`,
-          label: `${lang.label}${isCurrent ? ` (${t("common.enabled")})` : ""}`,
+          label: `${lang.label}:${isCurrent ? ` ${t("common.on")}` : ` ${t("common.off")}`}`,
           type: "button",
           onClick: () => {
             playPressSound();
