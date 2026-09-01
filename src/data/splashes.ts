@@ -235,5 +235,5 @@ export const SPLASHES = [
   "Guess who's back, back again!",
   "Minecraft: Playstation®4 Edition!",
   "Also try LegacyOrbis!",
-  "bytebukkit was here!"
+  "bytebukkit was here!",
 ];
