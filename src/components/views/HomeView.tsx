@@ -152,7 +152,7 @@ const HomeView = memo(function HomeView() {
       className="relative w-full max-w-[540px] flex flex-col space-y-3 outline-none"
     >
       {buttonsVal.map((btn, i) => (
-        <div key={i} className="relative w-full group">
+        <div key={i} className="relative w-full group flex justify-center">
           <button
             onMouseEnter={() =>
               isFocusedSection && !btn.disabled && setMenuFocus(i)
@@ -165,7 +165,7 @@ const HomeView = memo(function HomeView() {
               }
             }}
             disabled={btn.disabled}
-            className={`w-full h-12 flex items-center justify-between px-6 text-xl mc-text-shadow transition-colors outline-none border-none ${btn.disabled ? "text-gray-400 cursor-not-allowed" : menuFocus === i ? (btn.isDanger ? "text-red-400" : "text-[#FFFF55]") : btn.isDanger ? "text-red-500" : "text-white"}`}
+            className={`w-[90%] h-11 flex items-center justify-between px-6 text-xl mc-text-shadow transition-colors outline-none border-none ${btn.disabled ? "text-gray-400 cursor-not-allowed" : menuFocus === i ? (btn.isDanger ? "text-red-400" : "text-[#FFFF55]") : btn.isDanger ? "text-red-500" : "text-white"}`}
             style={{
               backgroundImage: btn.disabled
                 ? "url('/images/Button_Background.png')"
