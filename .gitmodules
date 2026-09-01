@@ -4,3 +4,6 @@
 [submodule "DiamondRuntime"]
 	path = DiamondRuntime
 	url = https://github.com/LCE-Hub/DiamondRuntime.git
+[submodule "GoldMapper"]
+	path = GoldMapper
+	url = https://github.com/LCE-Hub/GoldMapper
