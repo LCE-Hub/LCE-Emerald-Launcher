@@ -37,7 +37,9 @@ jobs:
           node-version: lts/*
           cache: "pnpm"
       - name: build GoldMapper
-        run: pnpm goldmapper
+        run: |
+          pnpm install
+          pnpm goldmapper
       - uses: actions/upload-artifact@v4
         with:
           name: goldmapper
@@ -118,6 +120,7 @@ jobs:
           args: ${{ matrix.args }}
 
   build-appimage:
+    needs: [build-goldmapper]
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
@@ -147,6 +150,12 @@ jobs:
             cargo cargo-tauri \
             gtk3 libayatana-appindicator webkit2gtk-4.1 glib-networking librsvg \
             xorg-server-xvfb
+
+      - name: download GoldMapper
+        uses: actions/download-artifact@v4
+        with:
+          name: goldmapper
+          path: src-tauri/resources
 
       - name: setup pnpm
         uses: pnpm/action-setup@v4
@@ -256,7 +265,7 @@ jobs:
           path: src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
 
   publish-flatpak:
-    needs: [get-version, build-appimage, build-android]
+    needs: [get-version, build-goldmapper, build-appimage, build-android]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -267,6 +276,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
+      - name: download GoldMapper
+        uses: actions/download-artifact@v4
+        with:
+          name: goldmapper
+          path: src-tauri/resources
       - name: sleep for 20 seconds
         run: sleep 20
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
