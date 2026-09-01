@@ -51,11 +51,6 @@ const outputs = [
     names: ["GoldMapperLib.dll", "libGoldMapperLib.dll"], //neo: dont ask me vro idk why it does that
   },
   { source: "GoldMapperLauncher.exe", names: ["GoldMapperLauncher.exe"] },
-  {
-    source: "SDL2.dll",
-    names: ["SDL2.dll"],
-    dir: path.join(GOLDMAPPER_DIR, "third_party", "SDL2-2.32.6", "lib", "x64"),
-  },
 ];
 
 for (const entry of outputs) {
