@@ -12,7 +12,7 @@
     "post-build:macos": "bash src-tauri/scripts/post-build-macos.sh",
     "android:assets": "node scripts/download-android-assets.mjs",
     "flatpak": "flatpak-builder --user --install-deps-from=flathub --repo=emerald-repo --force-clean build-flatpak flatpak/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.yml && flatpak build-bundle emerald-repo emerald.flatpak io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher",
-    "goldmapper": "bash scripts/build-goldmapper.sh"
+    "goldmapper": "node scripts/build-goldmapper.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
