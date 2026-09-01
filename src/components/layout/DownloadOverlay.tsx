@@ -32,7 +32,11 @@ export const DownloadOverlay = memo(function DownloadOverlay({ downloadProgress,
         {downloadingIds.map((id) => {
           const pct = downloadProgress[id] ?? 0;
           const edition = editions.find((e) => e.instanceId === id || e.id === id);
-          const name = edition?.name || t("download.gameFiles");
+          const name =
+            edition?.name ||
+            (id.startsWith("runner_")
+              ? id.replace(/^runner_/, "")
+              : t("download.gameFiles"));
           return (
             <div key={id} className="flex items-center gap-2.5">
               {edition?.logo ? (

@@ -61,7 +61,7 @@ const SettingsView = memo(function SettingsView() {
     runnerDownloadProgress,
     downloadRunner,
   } = useGame();
-  const { isLinux, isMac, isAndroid } = usePlatform();
+  const { isLinux, isMac, isAndroid, arch } = usePlatform();
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const [currentSubMenu, setCurrentSubMenu] = useState<
     | "main"
@@ -535,15 +535,15 @@ const SettingsView = memo(function SettingsView() {
               })
             : t("settings.downloadRunner"),
           type: "button",
+          textured: true,
           onClick: () => {
             if (!isRunnerDownloading) {
               downloadRunner(
-                "GE-Proton9-25",
-                "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton9-25/GE-Proton9-25.tar.gz",
+                `GE-Proton11-6-${arch}`,
+                `https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-6/GE-Proton11-6-${arch}.tar.gz`,
               );
             }
           },
-          small: true,
         });
       }
 

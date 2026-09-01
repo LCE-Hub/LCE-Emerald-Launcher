@@ -464,12 +464,14 @@ export function useGameManager({
   const downloadRunner = useCallback(
     async (name: string, url: string) => {
       if (isRunnerDownloading) return;
+      const runnerKey = `runner_${name}`;
       setIsRunnerDownloading(true);
       setRunnerDownloadProgress(0);
+      setDownloadingIds((prev) => [...prev, runnerKey]);
+      setDownloadProgress((prev) => ({ ...prev, [runnerKey]: 0 }));
       setError(null);
       try {
         await TauriService.downloadRunner(name, url);
-        setRunnerDownloadProgress(null);
       } catch (e: unknown) {
         console.error(e);
         setError(
@@ -480,11 +482,28 @@ export function useGameManager({
               : "Failed to download runner",
         );
       } finally {
+        setRunnerDownloadProgress(null);
+        setDownloadingIds((prev) => prev.filter((id) => id !== runnerKey));
+        setDownloadProgress((prev) => {
+          const next = { ...prev };
+          delete next[runnerKey];
+          return next;
+        });
         setIsRunnerDownloading(false);
       }
     },
     [isRunnerDownloading],
   );
+
+  useEffect(() => {
+    if (!isRunnerDownloading) return;
+    const runnerKey = Object.keys(downloadProgress).find((key) =>
+      key.startsWith("runner_"),
+    );
+    if (runnerKey && downloadProgress[runnerKey] !== undefined) {
+      setRunnerDownloadProgress(downloadProgress[runnerKey]);
+    }
+  }, [downloadProgress, isRunnerDownloading]);
 
   const toggleInstall = useCallback(
     async (id: string) => {
