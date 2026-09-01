@@ -48,6 +48,18 @@ export const BASE_EDITIONS = [
     panorama: "vanilla_tu19",
     logo: "/images/revelations.png",
   },
+  {
+    id: "legacyorbis",
+    name: "LegacyOrbis",
+    desc: "A LCE Project which aims to bring the feel and functionality from Minecraft: Playstation®4 Edition directly natively to your PC!",
+    url: "https://git.neolegacy.dev/LegacyOrbis/Client/releases/download/latest/MinecraftPS4Edition.zip", // LO-Byte: No CDN right now, direct download from the git
+    titleImage: "/images/MinecraftPS4Edition.png",
+    supportsSlimSkins: true, // LO-Byte: Slim skins are supported, might have to change a few things in the code to match neoLegacy's implementation
+    logo: "/images/LegacyOrbis.png",
+    panorama: "legacyorbis",
+    // LO-Byte: Store is built differently to what emerald expects, branch for emerald will be added soon
+    //officialDLC: "main:https://git.neolegacy.dev/LegacyOrbis/Store",
+  },
   /*{
     id: "cafeberry",
     name: "Cafeberry",
@@ -112,16 +124,6 @@ export const BASE_EDITIONS = [
     logo: "/images/lce_online.png",
     panorama: "vanilla_tu19",
     lceOnline: true,
-  },
-  {
-    id: "amythest",
-    name: "Amethyst LCE",
-    desc: "A project aimed towards backporting modern Java edition features and their feel into LCE! ",
-    logo: "/images/amythest.png",
-    panorama: "vanilla_tu24", //neo: TODO: use the Amythest's panorama
-    supportsSlimSkins: false, //neo: TODO: check properly lol
-    titleImage: "/images/amythest_title.png",
-    url: "https://github.com/ducttapesucker9000-svg/Amethyst_Source/releases/download/latest/Amethyst-Windows-Release.zip",
   },
 ];
 
