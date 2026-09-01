@@ -162,7 +162,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: animationsEnabled ? 0.3 : 0 }}
-      className="flex flex-col items-center w-full h-full max-w-6xl relative font-['Mojangles'] text-white select-none outline-none focus:outline-none"
+      className="flex flex-col items-center w-full h-full max-w-6xl relative font-[var(--font-base)] text-white select-none outline-none focus:outline-none"
     >
       <h2 className="text-2xl text-white mc-text-shadow mt-4 mb-6 border-b-2 border-[#373737] pb-2 w-[30%] max-w-[250px] text-center tracking-widest uppercase opacity-80 font-bold whitespace-nowrap px-4">
         {t("screenshots.title")}

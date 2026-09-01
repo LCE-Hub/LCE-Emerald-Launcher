@@ -273,7 +273,7 @@ export default function OptionsModal({
               }));
             }}
             onFocus={() => setFocusIndex(index)}
-            className={`w-24 h-8 bg-black/40 border-2 border-[#373737] text-white text-sm px-2 outline-none text-center font-['Mojangles'] focus:border-[#FFFF55] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+            className={`w-24 h-8 bg-black/40 border-2 border-[#373737] text-white text-sm px-2 outline-none text-center font-[var(--font-base)] focus:border-[#FFFF55] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
               disabled ? "opacity-40 cursor-not-allowed" : ""
             }`}
             style={{ imageRendering: "pixelated" }}
@@ -293,7 +293,7 @@ export default function OptionsModal({
               setValues((prev) => ({ ...prev, [option.id]: e.target.value }));
             }}
             onFocus={() => setFocusIndex(index)}
-            className={`w-44 h-8 bg-black/40 border-2 border-[#373737] text-white text-sm px-2 outline-none font-['Mojangles'] focus:border-[#FFFF55] ${
+            className={`w-44 h-8 bg-black/40 border-2 border-[#373737] text-white text-sm px-2 outline-none font-[var(--font-base)] focus:border-[#FFFF55] ${
               disabled ? "opacity-40 cursor-not-allowed" : ""
             }`}
             style={{ imageRendering: "pixelated" }}
@@ -311,7 +311,7 @@ export default function OptionsModal({
               setValues((prev) => ({ ...prev, [option.id]: e.target.value }));
             }}
             onFocus={() => setFocusIndex(index)}
-            className={`w-44 h-8 bg-white border-2 border-[#373737] text-black text-sm px-2 outline-none font-['Mojangles'] focus:border-[#FFFF55] ${
+            className={`w-44 h-8 bg-white border-2 border-[#373737] text-black text-sm px-2 outline-none font-[var(--font-base)] focus:border-[#FFFF55] ${
               disabled ? "opacity-40 cursor-not-allowed" : ""
             }`}
             style={{ imageRendering: "pixelated" }}
@@ -433,7 +433,7 @@ export default function OptionsModal({
         }
       }}
     >
-      <div className="relative w-[620px] max-w-[95vw] max-h-[88vh] p-5 flex flex-col items-center font-['Mojangles'] mc-options-bg">
+      <div className="relative w-[620px] max-w-[95vw] max-h-[88vh] p-5 flex flex-col items-center font-[var(--font-base)] mc-options-bg">
         <h2 className="text-xl text-black mc-text-shadow mb-1 text-center">
           {t("modals.options.title")}
         </h2>

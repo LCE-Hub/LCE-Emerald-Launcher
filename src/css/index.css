@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
 @layer base {
+    :root {
+        --font-base: "Mojangles", monospace;
+    }
     *,
     ::before,
     ::after {
@@ -153,7 +156,7 @@
 body {
     margin: 0;
     background-color: #000;
-    font-family: "Mojangles", monospace;
+    font-family: var(--font-base, "Mojangles", monospace);
 }
 
 .mc-button {

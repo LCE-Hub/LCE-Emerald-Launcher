@@ -135,7 +135,7 @@ export default function GameLogModal({
         exit={{ y: 20, opacity: 0 }}
         transition={{ duration: 0.15 }}
         onClick={(e) => e.stopPropagation()}
-        className="flex flex-col w-[640px] max-w-[92vw] max-h-[85vh] p-5 font-['Mojangles'] mc-options-bg"
+        className="flex flex-col w-[640px] max-w-[92vw] max-h-[85vh] p-5 font-[var(--font-base)] mc-options-bg"
       >
         <h3 className="text-2xl font-bold text-[#333333] mb-3 text-left w-full px-2 mc-text-shadow">
           {t("modals.gameLog.title")}

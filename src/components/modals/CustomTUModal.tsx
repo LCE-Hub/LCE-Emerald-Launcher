@@ -150,7 +150,7 @@ export default function CustomTUModal({
               onChange={(e) => setName(e.target.value)}
               onFocus={() => setFocusIndex(0)}
               placeholder={t("modals.customTu.namePlaceholder")}
-              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-['Mojangles']"
+              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-[var(--font-base)]"
               style={{ imageRendering: "pixelated" }}
             />
           </div>
@@ -165,7 +165,7 @@ export default function CustomTUModal({
               onChange={(e) => setDesc(e.target.value)}
               onFocus={() => setFocusIndex(1)}
               placeholder={t("modals.customTu.descPlaceholder")}
-              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-['Mojangles']"
+              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-[var(--font-base)]"
               style={{ imageRendering: "pixelated" }}
             />
           </div>
@@ -180,7 +180,7 @@ export default function CustomTUModal({
               onChange={(e) => setUrl(e.target.value)}
               onFocus={() => setFocusIndex(2)}
               placeholder={t("modals.customTu.urlPlaceholder")}
-              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-['Mojangles']"
+              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-[var(--font-base)]"
               style={{ imageRendering: "pixelated" }}
             />
           </div>
@@ -194,7 +194,7 @@ export default function CustomTUModal({
                 type="text"
                 readOnly
                 value={path}
-                className="w-full h-10 px-3 bg-black/20 border-2 border-[#222] text-black text-xs outline-none font-['Mojangles'] cursor-not-allowed"
+                className="w-full h-10 px-3 bg-black/20 border-2 border-[#222] text-black text-xs outline-none font-[var(--font-base)] cursor-not-allowed"
                 style={{ imageRendering: "pixelated" }}
               />
             </div>

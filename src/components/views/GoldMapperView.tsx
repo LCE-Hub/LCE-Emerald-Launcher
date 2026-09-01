@@ -443,7 +443,7 @@ const GoldMapperView = memo(function GoldMapperView() {
             if (e.target === e.currentTarget) closeModal();
           }}
         >
-          <div className="relative w-[620px] max-w-[95vw] h-[580px] max-h-[88vh] p-5 flex flex-col font-['Mojangles'] mc-options-bg">
+          <div className="relative w-[620px] max-w-[95vw] h-[580px] max-h-[88vh] p-5 flex flex-col font-[var(--font-base)] mc-options-bg">
             <h2 className="text-xl text-black mc-text-shadow mb-4 text-center">
               {t("goldMapper.assign", { name: displayName(editing) })}
             </h2>

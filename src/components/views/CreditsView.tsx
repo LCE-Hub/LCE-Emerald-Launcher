@@ -256,6 +256,19 @@ const CreditsView = memo(function CreditsView() {
       category: "SPECIAL THANKS",
       icon: "",
       subcategories: [
+        {
+          name: "Emerald Translations",
+          icon: "",
+          roles: [
+            {
+              role: "",
+              members: [
+                { name: "dydymiku (French)", url: "#" },
+                { name: "DimsMaybe/Hvrket (Russian)", url: "#" },
+              ],
+            },
+          ],
+        },
         ...(isAndroid
           ? [
               {
@@ -341,7 +354,8 @@ const CreditsView = memo(function CreditsView() {
           }}
         >
           {t("credits.backToMenu")}
-        </button>      )}
+        </button>
+      )}
 
       <motion.div
         initial={{ y: "50%" }}

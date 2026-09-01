@@ -590,6 +590,7 @@ const SettingsView = memo(function SettingsView() {
         //neo: here goes the list, dont ask why its here
         { code: "en", label: "English" },
         { code: "fr", label: "Français (French)" }, // by Dydymiku (thanks!!)
+        { code: "ru", label: "Pусский (Russian)" }, // by brnwvshed (thanks!!)
       ];
       for (const lang of availableLanguages) {
         const isCurrent = i18n.resolvedLanguage?.startsWith(lang.code);
@@ -1122,7 +1123,7 @@ const SettingsView = memo(function SettingsView() {
               value={argsInput}
               onChange={(e) => setArgsInput(e.target.value)}
               placeholder="e.g. -quitondisconnect -ip 127.0.0.1"
-              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-['Mojangles'] text-center"
+              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-[var(--font-base)] text-center"
               style={{ imageRendering: "pixelated" }}
             />
             <div className="flex gap-4 mt-6 w-full justify-center">
@@ -1202,7 +1203,7 @@ const SettingsView = memo(function SettingsView() {
               value={prefixInput}
               onChange={(e) => setPrefixInput(e.target.value)}
               placeholder="e.g. gamemoderun"
-              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-['Mojangles'] text-center"
+              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-[var(--font-base)] text-center"
               style={{ imageRendering: "pixelated" }}
             />
             <div className="flex gap-4 mt-6 w-full justify-center">
@@ -1282,7 +1283,7 @@ const SettingsView = memo(function SettingsView() {
               onChange={(e) => setEnvVarsInput(e.target.value)}
               placeholder="WINEDLLOVERRIDES=foo=n&#10;MANGOHUD=1"
               rows={6}
-              className="w-full px-3 py-2 bg-black/40 border-2 border-[#373737] text-white text-sm outline-none font-['Mojangles'] resize-none"
+              className="w-full px-3 py-2 bg-black/40 border-2 border-[#373737] text-white text-sm outline-none font-[var(--font-base)] resize-none"
               style={{ imageRendering: "pixelated" }}
             />
             <div className="flex gap-4 mt-6 w-full justify-center">

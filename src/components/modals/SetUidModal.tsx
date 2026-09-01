@@ -189,7 +189,7 @@ export default function SetUidModal({
                 onChange={(e) => setUid(e.target.value)}
                 onFocus={() => setFocusIndex(2)}
                 placeholder="0xFF02F0C87E8AC1F2"
-                className={`w-full h-10 px-3 bg-black/40 border-2 ${focusIndex === 2 ? 'border-white' : 'border-[#373737]'} text-white text-base outline-none font-['Mojangles'] text-center`}
+                className={`w-full h-10 px-3 bg-black/40 border-2 ${focusIndex === 2 ? 'border-white' : 'border-[#373737]'} text-white text-base outline-none font-[var(--font-base)] text-center`}
                 style={{ imageRendering: "pixelated", filter: focusIndex === 2 ? 'brightness(1.2)' : 'none' }}
               />
             </div>
@@ -203,7 +203,7 @@ export default function SetUidModal({
                 onClick={() => { playPressSound(); setIsDropdownOpen(!isDropdownOpen); }}
                 onFocus={() => { setFocusIndex(2); setIsDropdownOpen(false); }}
                 tabIndex={0}
-                className={`w-full h-10 px-3 bg-black/40 border-2 ${focusIndex === 2 ? 'border-white' : 'border-[#373737]'} flex items-center justify-between text-white text-base outline-none font-['Mojangles'] cursor-pointer`}
+                className={`w-full h-10 px-3 bg-black/40 border-2 ${focusIndex === 2 ? 'border-white' : 'border-[#373737]'} flex items-center justify-between text-white text-base outline-none font-[var(--font-base)] cursor-pointer`}
                 style={{ imageRendering: "pixelated", filter: focusIndex === 2 ? 'brightness(1.2)' : 'none' }}
               >
                 <span className="truncate">
@@ -227,7 +227,7 @@ export default function SetUidModal({
                         setSelectedInstance(i.instanceId);
                         setIsDropdownOpen(false);
                       }}
-                      className="px-3 py-2 text-white text-sm cursor-pointer truncate font-['Mojangles']"
+                      className="px-3 py-2 text-white text-sm cursor-pointer truncate font-[var(--font-base)]"
                     >
                       {i.name} {i.selectedBranch ? `(${i.selectedBranch})` : ""}
                     </div>

@@ -344,7 +344,7 @@ export default function App() {
   if (showSetup) {
     return (
       <div
-        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-['Mojangles'] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
+        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-[var(--font-base)] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
       >
         {showHeader && (
           <AppHeader playPressSound={audio.playPressSound} uiFade={uiFade} />
@@ -376,7 +376,7 @@ export default function App() {
   if (showIntro && !config.skipIntro) {
     return (
       <div
-        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-['Mojangles'] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
+        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-[var(--font-base)] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
       >
         <CinematicIntro
           onComplete={() => {
@@ -391,7 +391,7 @@ export default function App() {
   return (
     <MotionConfig transition={config.animationsEnabled ? {} : { duration: 0 }}>
       <div
-        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-['Mojangles'] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
+        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-[var(--font-base)] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
       >
         <div className="absolute inset-0">
           <AnimatePresence>
@@ -638,7 +638,7 @@ export default function App() {
                 titleImage === "/images/MenuTitle.png" && (
                   <motion.div
                     {...uiFade}
-                    className="absolute -bottom-6 text-[#A0A0A0] text-sm mc-text-shadow tracking-widest uppercase opacity-80 font-['Mojangles']"
+                    className="absolute -bottom-6 text-[#A0A0A0] text-sm mc-text-shadow tracking-widest uppercase opacity-80 font-[var(--font-base)]"
                   >
                     {selectedVersionName}
                   </motion.div>
@@ -747,7 +747,7 @@ export default function App() {
 
           <motion.footer
             {...uiFade}
-            className="shrink-0 p-4 flex justify-between items-end text-[10px] text-[#A0A0A0] mc-text-shadow bg-gradient-to-t from-black/80 to-transparent uppercase tracking-widest opacity-60 font-['Mojangles']"
+            className="shrink-0 p-4 flex justify-between items-end text-[10px] text-[#A0A0A0] mc-text-shadow bg-gradient-to-t from-black/80 to-transparent uppercase tracking-widest opacity-60 font-[var(--font-base)]"
             style={{ fontWeight: "normal" }}
           >
               <div className="flex-1 text-left whitespace-nowrap">

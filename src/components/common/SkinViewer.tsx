@@ -703,7 +703,7 @@ const SkinViewer = memo(function SkinViewer({
                 e.stopPropagation();
               }
             }}
-            className="bg-transparent text-white focus:text-[#FFFF55] outline-none border-none text-center font-['Mojangles'] mc-text-shadow tracking-widest text-xl cursor-text"
+            className="bg-transparent text-white focus:text-[#FFFF55] outline-none border-none text-center font-[var(--font-base)] mc-text-shadow tracking-widest text-xl cursor-text"
           />
         </div>
       )}

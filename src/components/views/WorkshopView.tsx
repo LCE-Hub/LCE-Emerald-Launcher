@@ -753,7 +753,7 @@ const WorkshopView = memo(function WorkshopView({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: config.animationsEnabled ? 0.3 : 0 }}
-      className="flex flex-col items-center w-full h-full max-h-full relative font-['Mojangles'] text-white select-none outline-none focus:outline-none"
+      className="flex flex-col items-center w-full h-full max-h-full relative font-[var(--font-base)] text-white select-none outline-none focus:outline-none"
     >
       <div className="flex items-center justify-center gap-0 mb-4 w-full px-4">
         <div
@@ -873,7 +873,7 @@ const WorkshopView = memo(function WorkshopView({
                   }
                   spellCheck={false}
                   autoFocus={isSearchTab}
-                  className="bg-transparent border-none outline-none text-white text-lg mc-text-shadow w-full placeholder-white/40 font-['Mojangles'] tracking-widest"
+                  className="bg-transparent border-none outline-none text-white text-lg mc-text-shadow w-full placeholder-white/40 font-[var(--font-base)] tracking-widest"
                 />
                 {search && (
                   <button
@@ -1499,7 +1499,7 @@ function PackageModal({
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className="flex flex-col w-[640px] max-h-[85vh] overflow-hidden font-['Mojangles'] mc-options-bg"
+          className="flex flex-col w-[640px] max-h-[85vh] overflow-hidden font-[var(--font-base)] mc-options-bg"
         >
           {isPluginTab ? (
             <div className="w-full h-[100px] flex-shrink-0 bg-black/60 flex items-center px-6 border-b border-[#444]">
@@ -1926,7 +1926,7 @@ function PackageModal({
               exit={{ y: 20, opacity: 0 }}
               transition={{ duration: 0.15 }}
               onClick={(e) => e.stopPropagation()}
-              className="flex flex-col w-[520px] font-['Mojangles'] text-white border-2 border-[#555] rounded-sm overflow-hidden"
+              className="flex flex-col w-[520px] font-[var(--font-base)] text-white border-2 border-[#555] rounded-sm overflow-hidden"
               style={{
                 backgroundImage: "url('/images/frame_background.png')",
                 backgroundSize: "100% 100%",
@@ -2265,7 +2265,7 @@ function InstallModal({
         exit={{ y: 20, opacity: 0 }}
         transition={{ duration: 0.15 }}
         onClick={(e) => e.stopPropagation()}
-        className="flex flex-col w-[520px] font-['Mojangles'] text-white border-2 border-[#555] rounded-sm overflow-hidden"
+        className="flex flex-col w-[520px] font-[var(--font-base)] text-white border-2 border-[#555] rounded-sm overflow-hidden"
         style={{
           backgroundImage: "url('/images/frame_background.png')",
           backgroundSize: "100% 100%",
@@ -2543,7 +2543,7 @@ function UninstallModal({
         exit={{ y: 20, opacity: 0 }}
         transition={{ duration: 0.15 }}
         onClick={(e) => e.stopPropagation()}
-        className="flex flex-col w-[520px] font-['Mojangles'] text-white border-2 border-[#555] rounded-sm overflow-hidden"
+        className="flex flex-col w-[520px] font-[var(--font-base)] text-white border-2 border-[#555] rounded-sm overflow-hidden"
         style={{
           backgroundImage: "url('/images/frame_background.png')",
           backgroundSize: "100% 100%",
