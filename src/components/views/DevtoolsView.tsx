@@ -72,6 +72,7 @@ export default function DevtoolsView() {
           setFocusIndex(0);
         }
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (focusIndex === BACK_BUTTON_INDEX) {
           playBackSound();
           setActiveView("main");

@@ -103,6 +103,7 @@ export default function SetUidModal({
         e.preventDefault();
         setFocusIndex((prev) => (prev - 1 + 5) % 5);
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (focusIndex === 0) {
           playPressSound();
           setMode("manual");

@@ -73,6 +73,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
           playPressSound();
           setDeleteConfirmFocusIndex((prev) => (prev === 0 ? 1 : 0));
         } else if (e.key === "Enter") {
+          e.preventDefault();
           if (deleteConfirmFocusIndex === 1) confirmDelete();
           else {
             playBackSound();
@@ -94,6 +95,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
           playPressSound();
           setModalFocusIndex((prev) => (prev < 2 ? prev + 1 : 0));
         } else if (e.key === "Enter") {
+          e.preventDefault();
           if (modalFocusIndex === 0) handleOpenFolder(selectedScreenshot);
           else if (modalFocusIndex === 1) {
             playPressSound();
@@ -124,6 +126,7 @@ const ScreenshotsView = memo(function ScreenshotsView() {
           prev <= screenshots.length - 1 - cols ? prev + cols : prev,
         );
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (screenshots[gridFocusIndex]) {
           playPressSound();
           setModalFocusIndex(2);

@@ -100,6 +100,7 @@ export default function GuidesView() {
       } else if (e.key === "ArrowUp") {
         setFocusIndex((p) => (p <= 0 ? BACK_BUTTON_INDEX : p - 1));
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (focusIndex === BACK_BUTTON_INDEX) {
           goBack();
         } else {

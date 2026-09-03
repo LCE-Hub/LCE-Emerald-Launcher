@@ -119,6 +119,7 @@ export default function ChooseInstanceModal({
         const max = 1 + (validInstances.length > 0 ? 1 : 0) + 1;
         setFocusIndex((prev) => (prev - 1 + max) % max);
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (focusIndex === 0 && validInstances.length > 0) {
           const currentIdx = validInstances.findIndex(
             (i: Edition) => i.instanceId === selectedInstance,

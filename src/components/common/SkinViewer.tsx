@@ -523,6 +523,7 @@ const SkinViewer = memo(function SkinViewer({
       } else if (e.key === "ArrowUp") {
         setFocusIndex((prev) => (prev > 0 ? prev - 1 : prev));
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (focusIndex === 0) {
           (
             containerRef.current?.querySelector("input") as HTMLElement

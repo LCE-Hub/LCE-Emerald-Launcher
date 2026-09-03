@@ -366,6 +366,7 @@ const SkinsView = memo(function SkinsView() {
           setFocusIndex(next < SKINS_START_INDEX ? 0 : next);
         }
       } else if (e.key === "Enter" && focusIndex !== null) {
+        e.preventDefault();
         if (focusIndex === 0) {
           if (viewMode === "skin") handleImportClick();
           else capeFileInputRef.current?.click();

@@ -775,6 +775,7 @@ const SettingsView = memo(function SettingsView() {
           item.onChange(newVal);
         }
       } else if (e.key === "Enter" && focusIndex !== null) {
+        e.preventDefault();
         const item = settingsItems[focusIndex];
         if (item.type === "button") {
           item.onClick();

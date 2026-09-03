@@ -86,6 +86,7 @@ export default function CustomTUModal({
         playBackSound("close_click.wav");
         onClose();
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (focusIndex === 3) {
           playBackSound("close_click.wav");
           onClose();

@@ -348,6 +348,7 @@ const LceOnlineView = memo(function LceOnlineView({
             prev === null || prev <= 0 ? itemCount - 1 : prev - 1,
           );
         } else if (e.key === "Enter" && focusIndex !== null) {
+          e.preventDefault();
           menuItems[focusIndex]?.onClick();
         }
       }

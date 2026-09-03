@@ -127,6 +127,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
         e.preventDefault();
         setFocusIndex((prev) => (prev - 1 + count) % count);
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (currentStep === 0) {
           if (focusIndex === 0) handleNext();
           else if (focusIndex === 1) handleNext();

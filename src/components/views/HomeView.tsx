@@ -135,8 +135,10 @@ const HomeView = memo(function HomeView() {
           prev === null ? buttonsVal.length - 1 : prev > 0 ? prev - 1 : prev,
         );
       if (e.key === "ArrowLeft") onNavigateToSkin();
-      if (e.key === "Enter" && menuFocus !== null)
+      if (e.key === "Enter" && menuFocus !== null) {
+        e.preventDefault();
         buttonsVal[menuFocus].action();
+      }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);

@@ -688,6 +688,7 @@ const WorkshopView = memo(function WorkshopView({
         setFocusedIdx((p) => Math.max((p ?? 1) - (isPluginTab ? 1 : COLS), 0));
         playPressSound();
       } else if (e.key === "Enter" && focusedIdx !== null) {
+        e.preventDefault();
         const pkg = filteredItems[focusedIdx];
         if (pkg) openModal(pkg);
       }
@@ -1402,6 +1403,7 @@ function PackageModal({
           return focusOptions[(idx + 1) % focusOptions.length];
         });
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (modalFocus === "close") onClose();
         else if (modalFocus === "install") handleAction();
         else if (modalFocus === "uninstall") setShowUninstall(true);
@@ -2171,8 +2173,10 @@ function InstallModal({
       e.stopPropagation();
       if (status === "installing") return;
       if (status === "success") {
-        if (e.key === "Escape" || e.key === "Backspace" || e.key === "Enter")
+        if (e.key === "Escape" || e.key === "Backspace" || e.key === "Enter") {
+          e.preventDefault();
           onClose();
+        }
         return;
       }
 
@@ -2187,6 +2191,7 @@ function InstallModal({
         playPressSound();
         setFocusedIdx((p) => Math.min(p + 1, editionOptions.length - 1));
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (editionOptions.length > 0) {
           installTo(editionOptions[focusedIdx].instanceId);
         }
@@ -2480,8 +2485,10 @@ function UninstallModal({
       e.stopPropagation();
       if (status === "removing") return;
       if (status === "success") {
-        if (e.key === "Escape" || e.key === "Backspace" || e.key === "Enter")
+        if (e.key === "Escape" || e.key === "Backspace" || e.key === "Enter") {
+          e.preventDefault();
           onClose();
+        }
         return;
       }
 
@@ -2496,6 +2503,7 @@ function UninstallModal({
         playPressSound();
         setFocusedIdx((p) => Math.min(p + 1, installedEntries.length - 1));
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (installedEntries.length > 0) {
           uninstallFrom(installedEntries[focusedIdx].instanceId);
         }

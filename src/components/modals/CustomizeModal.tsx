@@ -58,6 +58,7 @@ export default function CustomizeModal({
         playBackSound("close_click.wav");
         onClose();
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (focusIndex === 4) {
           playBackSound("close_click.wav");
           onClose();
