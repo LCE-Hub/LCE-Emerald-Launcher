@@ -47,10 +47,19 @@ pub fn copy_dir_all(src: impl AsRef<std::path::Path>, dst: impl AsRef<std::path:
 pub fn build_http_client(proxy: Option<&str>) -> Result<reqwest::Client, String> {
     let mut builder = reqwest::Client::builder();
     builder = builder.user_agent("Emerald-Launcher");
+    builder = builder
+        .connect_timeout(std::time::Duration::from_secs(15))
+        .timeout(std::time::Duration::from_secs(500));
     if let Some(p) = proxy {
         let trimmed = p.trim();
         if !trimmed.is_empty() {
-            let proxy = reqwest::Proxy::all(trimmed).map_err(|e| format!("Invalid proxy: {e}"))?;
+            let has_scheme = trimmed.contains("://");
+            let full = if has_scheme {
+                trimmed.to_string()
+            } else {
+                format!("http://{}", trimmed)
+            };
+            let proxy = reqwest::Proxy::all(&full).map_err(|e| format!("Invalid proxy: {e}"))?;
             builder = builder.proxy(proxy);
         }
     }
