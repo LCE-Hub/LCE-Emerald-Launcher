@@ -36,7 +36,7 @@ const SkinViewer = memo(function SkinViewer({
   const mountRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [focusIndex, setFocusIndex] = useState(0);
-  const { legacyMode } = useConfig();
+  const { legacyMode, animationsEnabled } = useConfig();
   const overlaysRef = useRef<THREE.Mesh[]>([]);
   const capeRef = useRef<THREE.Group | null>(null);
   const capeOrigRef = useRef<{ y: number; rx: number; meshY: number } | null>(
@@ -679,10 +679,10 @@ const SkinViewer = memo(function SkinViewer({
   return (
     <motion.div
       ref={containerRef}
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: useConfig().animationsEnabled ? 0.3 : 0 }}
+      initial={{ opacity: animationsEnabled ? 0 : 1 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: animationsEnabled ? 0 : 1 }}
+      transition={{ duration: animationsEnabled ? 0.3 : 0 }}
       className={`absolute ${legacyMode ? "left-[calc(50vw-340px)]" : "left-16"} ${legacyMode ? "top-1/2" : "top-[40%]"} -translate-y-1/2 flex flex-col items-center gap-1 outline-none z-10`}
       style={style}
     >

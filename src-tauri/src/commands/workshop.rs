@@ -70,7 +70,8 @@ async fn download_and_assemble(
     let mut downloaded: Vec<PathBuf> = Vec::new();
     for part in parts {
         let url = format!("{}/{}", raw_base, part);
-        let response = reqwest::get(&url).await.map_err(|e| e.to_string())?;
+        let client = util::build_http_client_from_app(app).map_err(|e| e.to_string())?;
+        let response = client.get(&url).send().await.map_err(|e| e.to_string())?;
         if !response.status().is_success() {
             return Err(format!("Failed to download {}: HTTP {}", part, response.status()));
         }

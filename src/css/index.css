@@ -391,3 +391,18 @@ body {
     border-top: 2px solid #373737;
     margin: 1.5rem 0;
 }
+
+.mc-textinput-outer {
+    border: 2px solid transparent;
+    image-rendering: pixelated;
+}
+
+.mc-textinput-outer:focus-within {
+    border: 2px solid #ffff00;
+}
+
+.mc-textinput {
+    background-color: #646464 !important;
+    border: 2px solid #323232 !important;
+    image-rendering: pixelated;
+}

@@ -61,6 +61,7 @@ export interface AppConfig {
   androidAudioBackend?: "alsa" | "pulseaudio";
   goldmapperEnabled?: boolean;
   goldmapperMappings?: GoldMapperMapping[];
+  httpProxy?: string;
 }
 
 export interface ThemePalette {

@@ -77,6 +77,7 @@ pub struct AppConfig {
     pub android_audio_backend: Option<String>,
     pub goldmapper_enabled: Option<bool>,
     pub goldmapper_mappings: Option<Vec<GoldMapperMapping>>,
+    pub http_proxy: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

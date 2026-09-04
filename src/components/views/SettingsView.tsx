@@ -51,6 +51,8 @@ const SettingsView = memo(function SettingsView() {
     setAndroidRunner: _setAndroidRuntime,
     androidAudioBackend,
     setAndroidAudioBackend,
+    proxy,
+    setProxy,
   } = useConfig();
   const { currentTrack, skipTrack, tracks, playPressSound, playBackSound } =
     useAudio();
@@ -80,6 +82,9 @@ const SettingsView = memo(function SettingsView() {
   const [argsInput, setArgsInput] = useState("");
   const [prefixInput, setPrefixInput] = useState("");
   const [envVarsInput, setEnvVarsInput] = useState("");
+  const [launcherSubMenu, setLauncherSubMenu] = useState<
+    "display" | "network" | "integrations" | "linux" | "data" | null
+  >(null);
   const [showModal, setShowModal] = useState<
     "args" | "prefix" | "envVars" | null
   >(null);
@@ -287,6 +292,13 @@ const SettingsView = memo(function SettingsView() {
         small?: boolean;
         color?: string;
         textured?: boolean;
+      }
+    | {
+        id: string;
+        label: string;
+        type: "textinput";
+        value: string;
+        onChange: (val: string) => void;
       };
 
   const settingsItems = useMemo<SettingsItem[]>(() => {
@@ -477,44 +489,122 @@ const SettingsView = memo(function SettingsView() {
         },
       });
     } else if (currentSubMenu === "launcher") {
-      if (!isAndroid) {
+      if (!launcherSubMenu) {
         items.push({
-          id: "fullscreen",
-          label: `${t("settings.startInFullscreen")}: ${startFullscreen ? t("common.on") : t("common.off")}`,
+          id: "cat_display",
+          label: t("settings.launcherDisplay"),
           type: "button",
-          onClick: handleFullscreenToggle,
+          textured: true,
+          onClick: () => {
+            playPressSound();
+            setLauncherSubMenu("display");
+            setFocusIndex(0);
+          },
         });
         items.push({
-          id: "rpc",
-          label: `${t("settings.discordRpc")}: ${rpcEnabled ? t("common.on") : t("common.off")}`,
+          id: "cat_network",
+          label: t("settings.launcherNetwork"),
           type: "button",
-          onClick: handleRpcToggle,
+          textured: true,
+          onClick: () => {
+            playPressSound();
+            setLauncherSubMenu("network");
+            setFocusIndex(0);
+          },
         });
-      }
-      items.push({
-        id: "skip_intro",
-        label: `${t("settings.skipIntro")}: ${skipIntro ? t("common.on") : t("common.off")}`,
-        type: "button",
-        onClick: handleSkipIntroToggle,
-      });
-      items.push({
-        id: "legacy",
-        label: `${t("settings.legacyMode")}: ${legacyMode ? t("common.on") : t("common.off")}`,
-        type: "button",
-        onClick: handleLegacyToggle,
-      });
-      items.push({
-        id: "languages",
-        label: t("settings.languages"),
-        type: "button",
-        textured: true,
-        onClick: () => {
-          playPressSound();
-          setCurrentSubMenu("language");
-          setFocusIndex(0);
-        },
-      });
-      if (isLinux && !isAndroid) {
+        items.push({
+          id: "cat_integrations",
+          label: t("settings.launcherMisc"),
+          type: "button",
+          textured: true,
+          onClick: () => {
+            playPressSound();
+            setLauncherSubMenu("integrations");
+            setFocusIndex(0);
+          },
+        });
+        if (isLinux && !isAndroid) {
+          items.push({
+            id: "cat_linux",
+            label: t("settings.launcherLinux"),
+            type: "button",
+            textured: true,
+            onClick: () => {
+              playPressSound();
+              setLauncherSubMenu("linux");
+              setFocusIndex(0);
+            },
+          });
+        }
+        items.push({
+          id: "cat_data",
+          label: t("settings.launcherData"),
+          type: "button",
+          textured: true,
+          onClick: () => {
+            playPressSound();
+            setLauncherSubMenu("data");
+            setFocusIndex(0);
+          },
+        });
+      } else if (launcherSubMenu === "display") {
+        if (!isAndroid) {
+          items.push({
+            id: "fullscreen",
+            label: `${t("settings.startInFullscreen")}: ${startFullscreen ? t("common.on") : t("common.off")}`,
+            type: "button",
+            onClick: handleFullscreenToggle,
+          });
+        }
+        items.push({
+          id: "animations",
+          label: `${t("settings.animations")}: ${animationsEnabled ? t("common.on") : t("common.off")}`,
+          type: "button",
+          onClick: handleAnimationsToggle,
+        });
+        items.push({
+          id: "skip_intro",
+          label: `${t("settings.skipIntro")}: ${skipIntro ? t("common.on") : t("common.off")}`,
+          type: "button",
+          onClick: handleSkipIntroToggle,
+        });
+        items.push({
+          id: "legacy",
+          label: `${t("settings.legacyMode")}: ${legacyMode ? t("common.on") : t("common.off")}`,
+          type: "button",
+          onClick: handleLegacyToggle,
+        });
+      } else if (launcherSubMenu === "network") {
+        items.push({
+          id: "proxy",
+          label: t("settings.httpProxy"),
+          type: "textinput",
+          value: proxy ?? "",
+          onChange: (val: string) => {
+            setProxy(val.trim() || undefined);
+          },
+        });
+      } else if (launcherSubMenu === "integrations") {
+        if (!isAndroid) {
+          items.push({
+            id: "rpc",
+            label: `${t("settings.discordRpc")}: ${rpcEnabled ? t("common.on") : t("common.off")}`,
+            type: "button",
+            onClick: handleRpcToggle,
+          });
+        }
+        items.push({
+          id: "languages",
+          label: t("settings.languages"),
+          type: "button",
+          textured: true,
+          onClick: () => {
+            playPressSound();
+            setCurrentSubMenu("language");
+            setFocusIndex(0);
+          },
+        });
+      } else if (launcherSubMenu === "linux") {
         items.push({
           id: "runner",
           label: `${t("settings.runner")}: ${selectedRunnerName}`,
@@ -545,46 +635,46 @@ const SettingsView = memo(function SettingsView() {
             }
           },
         });
-      }
-
-      if (!isAndroid) {
+      } else if (launcherSubMenu === "data") {
+        if (!isAndroid) {
+          items.push({
+            id: "export_settings",
+            label: t("settings.exportSettings"),
+            type: "button",
+            textured: true,
+            onClick: async () => {
+              playPressSound();
+              try {
+                await TauriService.exportSettings();
+              } catch (e) {
+                if (e !== "CANCELED") console.error(e);
+              }
+            },
+          });
+          items.push({
+            id: "import_settings",
+            label: t("settings.importSettings"),
+            type: "button",
+            textured: true,
+            onClick: async () => {
+              playPressSound();
+              try {
+                await TauriService.importSettings();
+                window.location.reload();
+              } catch (e) {
+                if (e !== "CANCELED") console.error(e);
+              }
+            },
+          });
+        }
         items.push({
-          id: "export_settings",
-          label: t("settings.exportSettings"),
+          id: "reset_setup",
+          label: t("settings.resetSetup"),
           type: "button",
-          onClick: async () => {
-            playPressSound();
-            try {
-              await TauriService.exportSettings();
-            } catch (e) {
-              if (e !== "CANCELED") console.error(e);
-            }
-          },
+          onClick: handleResetSetup,
+          color: "orange",
         });
       }
-      if (!isAndroid) {
-        items.push({
-          id: "import_settings",
-          label: t("settings.importSettings"),
-          type: "button",
-          onClick: async () => {
-            playPressSound();
-            try {
-              await TauriService.importSettings();
-              window.location.reload();
-            } catch (e) {
-              if (e !== "CANCELED") console.error(e);
-            }
-          },
-        });
-      }
-      items.push({
-        id: "reset_setup",
-        label: t("settings.resetSetup"),
-        type: "button",
-        onClick: handleResetSetup,
-        color: "orange",
-      });
     } else if (currentSubMenu === "language") {
       const availableLanguages = [
         //neo: here goes the list, dont ask why its here
@@ -682,6 +772,9 @@ const SettingsView = memo(function SettingsView() {
         } else if (currentSubMenu === "language") {
           setCurrentSubMenu("launcher");
           setFocusIndex(0);
+        } else if (currentSubMenu === "launcher" && launcherSubMenu) {
+          setLauncherSubMenu(null);
+          setFocusIndex(0);
         } else {
           setCurrentSubMenu("main");
           setFocusIndex(0);
@@ -745,7 +838,10 @@ const SettingsView = memo(function SettingsView() {
           return;
         }
         playBackSound();
-        if (currentSubMenu !== "main") {
+        if (launcherSubMenu) {
+          setLauncherSubMenu(null);
+          setFocusIndex(0);
+        } else if (currentSubMenu !== "main") {
           setCurrentSubMenu(
             currentSubMenu === "language" ? "launcher" : "main",
           );
@@ -757,6 +853,13 @@ const SettingsView = memo(function SettingsView() {
       }
 
       const itemCount = settingsItems.length;
+
+      if (
+        document.activeElement instanceof HTMLInputElement &&
+        document.activeElement.type === "text"
+      ) {
+        return;
+      }
 
       if (e.key === "ArrowDown") {
         setFocusIndex((prev) =>
@@ -791,6 +894,7 @@ const SettingsView = memo(function SettingsView() {
     setActiveView,
     currentSubMenu,
     showModal,
+    launcherSubMenu,
   ]);
 
   useEffect(() => {
@@ -835,13 +939,14 @@ const SettingsView = memo(function SettingsView() {
     <motion.div
       ref={containerRef}
       tabIndex={-1}
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: animationsEnabled ? 0 : 1, scale: animationsEnabled ? 0.95 : 1 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
+      exit={{ opacity: animationsEnabled ? 0 : 1, scale: animationsEnabled ? 0.95 : 1 }}
       transition={{ duration: animationsEnabled ? 0.3 : 0 }}
       className="flex flex-col items-center w-full max-w-5xl outline-none"
     >
-      {currentSubMenu === "main" ? (
+      {currentSubMenu === "main" ||
+      (currentSubMenu === "launcher" && !launcherSubMenu) ? (
         <div className="w-full max-w-[680px] space-y-2 mb-4 p-6 flex flex-col items-center overflow-y-auto max-h-[55vh] settings-scrollbar">
           {settingsItems.map((item, index) => {
             if (item.id === "back") return null;
@@ -871,6 +976,29 @@ const SettingsView = memo(function SettingsView() {
                       onChange={(e) => item.onChange(parseInt(e.target.value))}
                       onMouseUp={playPressSound}
                       className="mc-slider-custom w-[calc(100%+16px)] h-full opacity-100 cursor-pointer z-0 outline-none m-0"
+                    />
+                  </div>
+                </div>
+              );
+            }
+
+            if (item.type === "textinput") {
+              return (
+                <div
+                  key={item.id}
+                  data-index={index}
+                  onMouseEnter={() => setFocusIndex(index)}
+                  className="relative w-[480px] flex flex-col cursor-pointer transition-all outline-none shrink-0"
+                >
+                  <span className="text-black text-base font-[var(--font-base)] mb-1">
+                    {item.label}
+                  </span>
+                  <div className="mc-textinput-outer">
+                    <input
+                      type="text"
+                      value={item.value}
+                      onChange={(e) => item.onChange(e.target.value)}
+                      className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)]"
                     />
                   </div>
                 </div>
@@ -1009,6 +1137,29 @@ const SettingsView = memo(function SettingsView() {
                         }
                         onMouseUp={playPressSound}
                         className="mc-slider-custom w-[calc(100%+16px)] h-full opacity-100 cursor-pointer z-10 outline-none m-0"
+                      />
+                    </div>
+                  </div>
+                );
+              }
+
+              if (item.type === "textinput") {
+                return (
+                  <div
+                    key={item.id}
+                    data-index={index}
+                    onMouseEnter={() => setFocusIndex(index)}
+                    className="relative w-[600px] flex flex-col cursor-pointer transition-all outline-none shrink-0"
+                  >
+                    <span className="text-black text-base font-[var(--font-base)] mb-1">
+                      {item.label}
+                    </span>
+                    <div className="mc-textinput-outer">
+                      <input
+                        type="text"
+                        value={item.value}
+                        onChange={(e) => item.onChange(e.target.value)}
+                        className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)]"
                       />
                     </div>
                   </div>

@@ -14,7 +14,7 @@ import type { Edition } from "../../types/edition";
 const HomeView = memo(function HomeView() {
   const { t } = useTranslation();
   const { setActiveView, focusSection, onNavigateToSkin } = useUI();
-  const { profile, legacyMode } = useConfig();
+  const { profile, legacyMode, animationsEnabled } = useConfig();
   const { playPressSound } = useAudio();
   const {
     handleLaunch,
@@ -147,10 +147,10 @@ const HomeView = memo(function HomeView() {
   return (
     <motion.div
       tabIndex={-1}
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: animationsEnabled ? 0 : 1, y: animationsEnabled ? 10 : 0 }}
       animate={{ opacity: isFocusedSection ? 1 : 0.5, y: 0 }}
-      exit={{ opacity: 0, y: 10 }}
-      transition={{ duration: useConfig().animationsEnabled ? 0.3 : 0 }}
+      exit={{ opacity: animationsEnabled ? 0 : 1, y: animationsEnabled ? 10 : 0 }}
+      transition={{ duration: animationsEnabled ? 0.3 : 0 }}
       className="relative w-full max-w-[540px] flex flex-col space-y-3 outline-none"
     >
       {buttonsVal.map((btn, i) => (

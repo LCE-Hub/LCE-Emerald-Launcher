@@ -257,7 +257,8 @@ export default function PckEditorView() {
       await TauriService.writeBinaryFile(path, asset.data);
       showNotification(t("pckEditor.exported", { name: fileName }));
     } catch (err: unknown) {
-      if (err !== "CANCELED") showNotification(t("pckEditor.exportFailed"), "error");
+      if (err !== "CANCELED")
+        showNotification(t("pckEditor.exportFailed"), "error");
     }
   };
 
@@ -589,7 +590,9 @@ export default function PckEditorView() {
                 }}
                 className={`${pck.xmlSupport ? "text-[#FFFF55]" : "text-white/20"} text-sm uppercase hover:underline`}
               >
-                {pck.xmlSupport ? t("pckEditor.enabled") : t("pckEditor.disabled")}
+                {pck.xmlSupport
+                  ? t("pckEditor.enabled")
+                  : t("pckEditor.disabled")}
               </button>
             </div>
             <div className="flex items-center gap-2 ml-auto">

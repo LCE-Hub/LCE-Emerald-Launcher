@@ -1,10 +1,8 @@
-use once_cell::sync::Lazy;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpListener;
 use tokio_util::sync::CancellationToken;
 use tauri::{AppHandle, Emitter};
 const REGISTRY_URL: &str = "https://raw.githubusercontent.com/LCE-Hub/LCE-Workshop/refs/heads/main"; //neo: more hardcoding!
-static CLIENT: Lazy<reqwest::Client> = Lazy::new(|| reqwest::Client::new());
 pub struct Guard {
     cancel: Option<CancellationToken>,
 }
@@ -48,7 +46,8 @@ async fn serve(app: AppHandle, cancel: CancellationToken) {
             result = listener.accept() => {
                 match result {
                     Ok((stream, _)) => {
-                        tokio::spawn(handle(stream));
+                        let handle_app = app.clone();
+                        tokio::spawn(handle(stream, handle_app));
                     }
                     Err(e) => {
                         let _ = app.emit("backend-error", format!("Workshop server accept error: {e}"));
@@ -61,7 +60,7 @@ async fn serve(app: AppHandle, cancel: CancellationToken) {
     }
 }
 
-async fn handle(stream: tokio::net::TcpStream) {
+async fn handle(stream: tokio::net::TcpStream, app: AppHandle) {
     let (reader, mut writer) = stream.into_split();
     let mut buf_reader = BufReader::new(reader);
     let mut request_line = String::new();
@@ -81,7 +80,7 @@ async fn handle(stream: tokio::net::TcpStream) {
 
     if request_line.starts_with("GET /workshop/") && request_line.ends_with(" HTTP/1.1") {
         let path = &request_line["GET /workshop/".len()..request_line.len() - " HTTP/1.1".len()];
-        match fetch_workshop_file(path).await {
+        match fetch_workshop_file(&app, path).await {
             Ok(body) => {
                 let body_bytes = &body;
                 let content_type = if path.ends_with(".json") {
@@ -123,9 +122,10 @@ async fn handle(stream: tokio::net::TcpStream) {
     }
 }
 
-async fn fetch_workshop_file(path: &str) -> Result<Vec<u8>, String> {
+async fn fetch_workshop_file(app: &AppHandle, path: &str) -> Result<Vec<u8>, String> {
     let url = format!("{}/{}", REGISTRY_URL, path);
-    let resp = CLIENT.get(&url).send().await.map_err(|e| e.to_string())?;
+    let client = crate::util::build_http_client_from_app(app)?;
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
     if resp.status().is_success() {
         resp.bytes().await.map(|b| b.to_vec()).map_err(|e| e.to_string())
     } else {

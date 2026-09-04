@@ -37,6 +37,7 @@ export function useAppConfig() {
   const [androidAudioBackend, setAndroidAudioBackend] = useLocalStorage<"alsa" | "pulseaudio">("lce-android-audio", "pulseaudio");
   const [goldmapperEnabled, setGoldmapperEnabled] = useLocalStorage("lce-goldmapper", true);
   const [goldmapperMappings, setGoldmapperMappings] = useState<GoldMapperMapping[] | undefined>();
+  const [proxy, setProxy] = useState<string | undefined>();
   useEffect(() => {
     TauriService.loadConfig().then((config) => {
       if (config.username) setUsername(config.username);
@@ -65,6 +66,7 @@ export function useAppConfig() {
       if (config.androidAudioBackend) setAndroidAudioBackend(config.androidAudioBackend);
       if (config.goldmapperEnabled !== undefined) setGoldmapperEnabled(config.goldmapperEnabled);
       if (config.goldmapperMappings) setGoldmapperMappings(config.goldmapperMappings);
+      if (config.httpProxy !== undefined) setProxy(config.httpProxy);
       setIsLoaded(true);
     });
   }, []);
@@ -97,9 +99,10 @@ export function useAppConfig() {
         androidAudioBackend,
         goldmapperEnabled,
         goldmapperMappings,
+        httpProxy: proxy,
       }).catch(console.error);
     }
-  }, [username, theme, linuxRunner, perfBoost, profile, customEditions, customPaths, customizations, animationsEnabled, vfxEnabled, rpcEnabled, startFullscreen, musicVol, sfxVol, legacyMode, mangohudEnabled, extraLaunchArgs, launchPrefix, launchEnvVars, skipIntro, isLoaded, instanceLaunchArgs, androidRunner, androidAudioBackend, goldmapperEnabled, goldmapperMappings]);
+  }, [username, theme, linuxRunner, perfBoost, profile, customEditions, customPaths, customizations, animationsEnabled, vfxEnabled, rpcEnabled, startFullscreen, musicVol, sfxVol, legacyMode, mangohudEnabled, extraLaunchArgs, launchPrefix, launchEnvVars, skipIntro, isLoaded, instanceLaunchArgs, androidRunner, androidAudioBackend, goldmapperEnabled, goldmapperMappings, proxy]);
 
   return {
     username,
@@ -159,5 +162,7 @@ export function useAppConfig() {
     setGoldmapperEnabled,
     goldmapperMappings,
     setGoldmapperMappings,
+    proxy,
+    setProxy,
   };
 }

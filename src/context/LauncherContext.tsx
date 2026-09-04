@@ -112,6 +112,7 @@ export function LauncherProvider({ children }: { children: React.ReactNode }) {
       configRaw.androidRunner,
       configRaw.androidAudioBackend,
       configRaw.goldmapperEnabled,
+      configRaw.proxy,
     ],
   );
 
@@ -215,6 +216,7 @@ export function LauncherProvider({ children }: { children: React.ReactNode }) {
         skipIntro: config.skipIntro,
         instanceLaunchArgs: config.instanceLaunchArgs,
         goldmapperEnabled: config.goldmapperEnabled,
+        httpProxy: config.proxy,
       }).catch(console.error);
     }
   }, [
@@ -242,6 +244,7 @@ export function LauncherProvider({ children }: { children: React.ReactNode }) {
     config.skipIntro,
     config.instanceLaunchArgs,
     config.goldmapperEnabled,
+    config.proxy,
   ]);
 
   useEffect(() => {

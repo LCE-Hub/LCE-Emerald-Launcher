@@ -531,9 +531,9 @@ const SkinsView = memo(function SkinsView() {
     <motion.div
       ref={containerRef}
       tabIndex={-1}
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       transition={{ duration: useConfig().animationsEnabled ? 0.3 : 0 }}
       className="flex flex-col items-center w-full max-w-3xl h-full outline-none"
     >
