@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -16,6 +17,7 @@ interface GuideEntry {
 }
 
 export default function GuidesView() {
+  const { t } = useTranslation();
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { animationsEnabled } = useConfig();
@@ -98,6 +100,7 @@ export default function GuidesView() {
       } else if (e.key === "ArrowUp") {
         setFocusIndex((p) => (p <= 0 ? BACK_BUTTON_INDEX : p - 1));
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (focusIndex === BACK_BUTTON_INDEX) {
           goBack();
         } else {
@@ -130,7 +133,7 @@ export default function GuidesView() {
       return (
         <div className="flex items-center justify-center h-full">
           <span className="text-white mc-text-shadow text-lg">
-            Loading guide...
+            {t("guides.loadingGuide")}
           </span>
         </div>
       );
@@ -145,7 +148,7 @@ export default function GuidesView() {
           }}
           className="text-[#FFFF55] mc-text-shadow text-sm hover:underline mb-2 block"
         >
-          &larr; Back to guides
+          {t("guides.backToGuides")}
         </button>
         <h2 className="text-2xl text-white mc-text-shadow font-bold border-b border-[#373737] pb-2">
           {selectedGuide.name.replace(/\.md$/i, "")}
@@ -189,7 +192,7 @@ export default function GuidesView() {
       <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 border-b-2 border-[#373737] pb-2 w-[60%] max-w-75 text-center tracking-widest uppercase opacity-80 font-bold">
         {selectedGuide
           ? selectedGuide.name.replace(/\.md$/i, "")
-          : "Community Guides"}
+          : t("guides.communityGuides")}
       </h2>
 
       <div
@@ -205,13 +208,13 @@ export default function GuidesView() {
         ) : loading ? (
           <div className="flex items-center justify-center h-full">
             <span className="text-white mc-text-shadow text-lg">
-              Loading guides...
+              {t("guides.loadingGuides")}
             </span>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-full gap-4">
             <span className="text-red-400 mc-text-shadow text-lg">
-              Failed to load guides
+              {t("guides.failedToLoadGuides")}
             </span>
             <span className="text-[#AAAAAA] mc-text-shadow text-sm text-center px-8">
               {error}
@@ -220,7 +223,7 @@ export default function GuidesView() {
         ) : guides.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4">
             <span className="text-[#AAAAAA] mc-text-shadow text-lg">
-              No guides found
+              {t("guides.noGuidesFound")}
             </span>
           </div>
         ) : (
@@ -277,7 +280,7 @@ export default function GuidesView() {
           imageRendering: "pixelated",
         }}
       >
-        Back
+        {t("common.back")}
       </button>
     </motion.div>
   );

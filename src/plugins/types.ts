@@ -134,6 +134,7 @@ export interface PluginAPI {
   ui: {
     showToast(message: string, options?: ToastOptions): void;
     playSound(name: string): void;
+    addSplash(splash: string): UnsubscribeFn;
     openUrl(url: string): Promise<void>;
   };
   log: {

@@ -1,8 +1,10 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import "../css/App.css";
 import HomeView from "../components/views/HomeView";
 import SettingsView from "../components/views/SettingsView";
+import GoldMapperView from "../components/views/GoldMapperView";
 import VersionsView from "../components/views/VersionsView";
 import DevtoolsView from "../components/views/DevtoolsView";
 import GuidesView from "../components/views/GuidesView";
@@ -50,6 +52,7 @@ import { getCurrent, onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 export default function App() {
+  const { t } = useTranslation();
   const ui = useUI();
   const {
     showIntro,
@@ -305,6 +308,7 @@ export default function App() {
     "options-editor",
     "model-editor",
     "swf-editor",
+    "goldmapper",
   ]);
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
@@ -340,7 +344,7 @@ export default function App() {
   if (showSetup) {
     return (
       <div
-        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-['Mojangles'] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
+        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-[var(--font-base)] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
       >
         {showHeader && (
           <AppHeader playPressSound={audio.playPressSound} uiFade={uiFade} />
@@ -372,7 +376,7 @@ export default function App() {
   if (showIntro && !config.skipIntro) {
     return (
       <div
-        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-['Mojangles'] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
+        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-[var(--font-base)] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
       >
         <CinematicIntro
           onComplete={() => {
@@ -387,7 +391,7 @@ export default function App() {
   return (
     <MotionConfig transition={config.animationsEnabled ? {} : { duration: 0 }}>
       <div
-        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-['Mojangles'] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
+        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-[var(--font-base)] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
       >
         <div className="absolute inset-0">
           <AnimatePresence>
@@ -435,7 +439,7 @@ export default function App() {
                 "https://github.com/LCE-Hub/LCE-Emerald-Launcher/releases/latest",
             )
           }
-          title="Update Available!"
+          title={t("download.updateAvailable")}
           variant="update"
         />
 
@@ -446,14 +450,14 @@ export default function App() {
             clearGameUpdate();
             setActiveView("versions");
           }}
-          title="Game Update Available!"
+          title={t("download.gameUpdateAvailable")}
           variant="update"
         />
 
         <AchievementToast
           message={game.steamSuccessMessage}
           onClose={clearSteamSuccess}
-          title="Steam Integration"
+          title={t("download.steamIntegration")}
           variant="steam"
         />
 
@@ -501,7 +505,7 @@ export default function App() {
                   setActiveView("main");
                 }}
                 className="outline-none border-none flex items-center justify-center w-10 h-10 cursor-pointer"
-                aria-label="Back"
+                aria-label={t("common.back")}
                 style={{
                   backgroundImage: "url('/images/Button_Square.png')",
                   backgroundSize: "100% 100%",
@@ -542,7 +546,7 @@ export default function App() {
               className="absolute bottom-6 right-8 z-50 flex items-center gap-3"
             >
               <span className="text-[#E0E0E0] text-[10px] mc-text-shadow tracking-widest uppercase opacity-70 mt-1">
-                {displayIsDay ? "Day" : "Night"}
+                {displayIsDay ? t("app.day") : t("app.night")}
               </span>
               <button
                 onClick={() => {
@@ -557,7 +561,7 @@ export default function App() {
                       ? "/images/Day_Toggle.png"
                       : "/images/Night_Toggle.png"
                   }
-                  alt="Toggle Time"
+                  alt={t("app.toggleTime")}
                   className="w-12 h-12 cursor-pointer block object-contain"
                   style={{ imageRendering: "pixelated" }}
                 />
@@ -590,7 +594,7 @@ export default function App() {
                   }}
                 />
                 <span className="text-[#FFFF55] text-sm mc-text-shadow">
-                  SWF Editor
+                  {t("app.swfEditor")}
                 </span>
               </button>
             </motion.div>
@@ -624,7 +628,7 @@ export default function App() {
                       style={{ textShadow: "2px 2px 0px #3F3F00" }}
                     >
                       {audio.splashIndex === -1
-                        ? `Welcome ${config.username}!`
+                        ? t("app.welcome", { name: config.username })
                         : audio.splashes[audio.splashIndex]}
                     </div>
                   </motion.div>
@@ -634,7 +638,7 @@ export default function App() {
                 titleImage === "/images/MenuTitle.png" && (
                   <motion.div
                     {...uiFade}
-                    className="absolute -bottom-6 text-[#A0A0A0] text-sm mc-text-shadow tracking-widest uppercase opacity-80 font-['Mojangles']"
+                    className="absolute -bottom-6 text-[#A0A0A0] text-sm mc-text-shadow tracking-widest uppercase opacity-80 font-[var(--font-base)]"
                   >
                     {selectedVersionName}
                   </motion.div>
@@ -670,6 +674,9 @@ export default function App() {
                   {activeView === "main" && <HomeView key="main-view" />}
                   {activeView === "settings" && (
                     <SettingsView key="settings-view" />
+                  )}
+                  {activeView === "goldmapper" && (
+                    <GoldMapperView key="goldmapper-view" />
                   )}
                   {activeView === "versions" && (
                     <VersionsView key="versions-view" />
@@ -740,15 +747,15 @@ export default function App() {
 
           <motion.footer
             {...uiFade}
-            className="shrink-0 p-4 flex justify-between items-end text-[10px] text-[#A0A0A0] mc-text-shadow bg-gradient-to-t from-black/80 to-transparent uppercase tracking-widest opacity-60 font-['Mojangles']"
+            className="shrink-0 p-4 flex justify-between items-end text-[10px] text-[#A0A0A0] mc-text-shadow bg-gradient-to-t from-black/80 to-transparent uppercase tracking-widest opacity-60 font-[var(--font-base)]"
             style={{ fontWeight: "normal" }}
           >
-            <div className="flex-1 text-left whitespace-nowrap">
-              Version: {pkg.version} ({__BUILD_DATE__})
-            </div>
-            <div className="flex-1 text-right whitespace-nowrap">
-              {connected && "CONTROLLER CONNECTED"}
-            </div>
+              <div className="flex-1 text-left whitespace-nowrap">
+                {t("app.version", { version: `${pkg.version} (${__BUILD_DATE__})` })}
+              </div>
+              <div className="flex-1 text-right whitespace-nowrap">
+                {connected && t("app.controllerConnected")}
+              </div>
           </motion.footer>
         </motion.div>
 
@@ -759,7 +766,7 @@ export default function App() {
             clearFriendRequestMessage();
             setActiveView("lceonline");
           }}
-          title="Friend Request"
+          title={t("download.friendRequest")}
           variant="update"
         />
 
@@ -770,7 +777,7 @@ export default function App() {
             clearInviteMessage();
             setActiveView("lceonline");
           }}
-          title="Game Invite"
+          title={t("download.gameInvite")}
           variant="update"
         />
       </div>

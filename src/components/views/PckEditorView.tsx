@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUI, useAudio, useConfig } from "../../context/LauncherContext";
 import { PckService } from "../../services/PckService";
@@ -6,6 +7,7 @@ import { PCKFile, PCKAsset, PCKAssetType } from "../../types/pck";
 import SkinPreview3D from "../common/SkinPreview3D";
 import { TauriService } from "../../services/TauriService";
 export default function PckEditorView() {
+  const { t } = useTranslation();
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { animationsEnabled } = useConfig();
@@ -201,7 +203,7 @@ export default function PckEditorView() {
 
   const handleFileLoad = async () => {
     try {
-      const path = await TauriService.pickFile("Open PCK", ["pck"]);
+      const path = await TauriService.pickFile(t("pckEditor.openPck"), ["pck"]);
       if (!path) return;
       playPressSound();
       const bytes = await TauriService.readBinaryFile(path);
@@ -213,7 +215,7 @@ export default function PckEditorView() {
     } catch (err: unknown) {
       if (err !== "CANCELED") {
         console.error("Failed to parse PCK", err);
-        showNotification("Failed to parse PCK", "error");
+        showNotification(t("pckEditor.failedToParse"), "error");
       }
     }
   };
@@ -231,7 +233,7 @@ export default function PckEditorView() {
     setOpenedPath(null);
     setSelectedAssetId(null);
     setExpandedFolders(new Set());
-    showNotification("New PCK Created");
+    showNotification(t("pckEditor.newPckCreated"));
   };
 
   const showNotification = (
@@ -246,16 +248,17 @@ export default function PckEditorView() {
     try {
       const fileName = asset.path.split("/").pop() || "asset";
       const path = await TauriService.saveFileDialog(
-        "Export Asset",
+        t("pckEditor.exportAssetDialog"),
         fileName,
         [],
       );
       if (!path) return;
       playPressSound();
       await TauriService.writeBinaryFile(path, asset.data);
-      showNotification(`Exported: ${fileName}`);
+      showNotification(t("pckEditor.exported", { name: fileName }));
     } catch (err: unknown) {
-      if (err !== "CANCELED") showNotification("Export failed", "error");
+      if (err !== "CANCELED")
+        showNotification(t("pckEditor.exportFailed"), "error");
     }
   };
 
@@ -266,7 +269,9 @@ export default function PckEditorView() {
     const assetPath = pck.files.find((f) => f.id === id)?.path;
     setPck({ ...pck, files: newFiles });
     if (selectedAssetId === id) setSelectedAssetId(newFiles[0]?.id || null);
-    showNotification(`Deleted: ${assetPath?.split("/").pop()}`);
+    showNotification(
+      t("pckEditor.deleted", { name: assetPath?.split("/").pop() }),
+    );
   };
 
   const handleReplaceAsset = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -283,7 +288,7 @@ export default function PckEditorView() {
     );
     setPck({ ...pck, files: newFiles });
     e.target.value = "";
-    showNotification("Asset Replaced");
+    showNotification(t("pckEditor.assetReplaced"));
   };
 
   const handleAddAsset = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -316,7 +321,7 @@ export default function PckEditorView() {
     setPck({ ...pck, files: [...pck.files, newAsset] });
     setSelectedAssetId(newAsset.id);
     setShowTypeModal(null);
-    showNotification("Asset Added");
+    showNotification(t("pckEditor.assetAdded"));
   };
 
   const handlePropertyEdit = (idx: number, newVal: string, isKey = false) => {
@@ -402,7 +407,7 @@ export default function PckEditorView() {
       return f;
     });
     setPck({ ...pck, files: newFiles });
-    showNotification("Asset Renamed");
+    showNotification(t("pckEditor.assetRenamed"));
   };
 
   const handleExportAll = async () => {
@@ -411,7 +416,7 @@ export default function PckEditorView() {
       const baseFolder = await TauriService.pickFolder();
       if (!baseFolder) return;
       playPressSound();
-      showNotification("Exporting all assets...");
+      showNotification(t("pckEditor.exportingAllAssets"));
       for (const asset of pck.files) {
         const parts = asset.path.split("/");
         const fileName = parts.join("_");
@@ -420,9 +425,10 @@ export default function PckEditorView() {
           asset.data,
         );
       }
-      showNotification("All Assets Exported");
+      showNotification(t("pckEditor.allAssetsExported"));
     } catch (err: unknown) {
-      if (err !== "CANCELED") showNotification("Export failed", "error");
+      if (err !== "CANCELED")
+        showNotification(t("pckEditor.exportFailed"), "error");
     }
   };
 
@@ -435,7 +441,7 @@ export default function PckEditorView() {
       let targetPath = openedPath;
       if (!targetPath) {
         targetPath = await TauriService.saveFileDialog(
-          "Save PCK",
+          t("pckEditor.savePckDialog"),
           pck.files.length > 0 ? "new.pck" : "empty.pck",
           ["pck"],
         );
@@ -444,10 +450,11 @@ export default function PckEditorView() {
       if (targetPath) {
         await TauriService.writeBinaryFile(targetPath, data);
         setOpenedPath(targetPath);
-        showNotification("PCK Saved Successfully");
+        showNotification(t("pckEditor.pckSaved"));
       }
     } catch (err: unknown) {
-      if (err !== "CANCELED") showNotification("Export failed", "error");
+      if (err !== "CANCELED")
+        showNotification(t("pckEditor.exportFailed"), "error");
     }
   };
 
@@ -504,7 +511,7 @@ export default function PckEditorView() {
     >
       <div className="w-full flex justify-between items-center mb-4 px-8">
         <h2 className="text-2xl text-white mc-text-shadow border-b-2 border-[#373737] pb-1 tracking-widest uppercase font-bold">
-          PCK Editor
+          {t("pckEditor.title")}
         </h2>
         <div className="flex gap-4">
           <button
@@ -515,7 +522,7 @@ export default function PckEditorView() {
               backgroundSize: "100% 100%",
             }}
           >
-            Open PCK
+            {t("pckEditor.openPck")}
           </button>
           <button
             onClick={handleNewPCK}
@@ -525,7 +532,7 @@ export default function PckEditorView() {
               backgroundSize: "100% 100%",
             }}
           >
-            New PCK
+            {t("pckEditor.newPck")}
           </button>
           <button
             onClick={handleExportAll}
@@ -536,7 +543,7 @@ export default function PckEditorView() {
               backgroundSize: "100% 100%",
             }}
           >
-            Export All
+            {t("pckEditor.exportAll")}
           </button>
           <button
             onClick={handleSavePCK}
@@ -547,7 +554,7 @@ export default function PckEditorView() {
               backgroundSize: "100% 100%",
             }}
           >
-            Save PCK
+            {t("pckEditor.savePck")}
           </button>
         </div>
       </div>
@@ -557,7 +564,7 @@ export default function PckEditorView() {
           <div className="flex gap-6 bg-black/40 border-2 border-[#373737] p-3 w-full">
             <div className="flex items-center gap-2">
               <span className="text-white/40 text-xs uppercase font-bold tracking-widest">
-                Endianness:
+                {t("pckEditor.endianness")}
               </span>
               <button
                 onClick={() => {
@@ -574,7 +581,7 @@ export default function PckEditorView() {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-white/40 text-xs uppercase font-bold tracking-widest">
-                XML Support:
+                {t("pckEditor.xmlSupport")}
               </span>
               <button
                 onClick={() => {
@@ -583,12 +590,14 @@ export default function PckEditorView() {
                 }}
                 className={`${pck.xmlSupport ? "text-[#FFFF55]" : "text-white/20"} text-sm uppercase hover:underline`}
               >
-                {pck.xmlSupport ? "Enabled" : "Disabled"}
+                {pck.xmlSupport
+                  ? t("pckEditor.enabled")
+                  : t("pckEditor.disabled")}
               </button>
             </div>
             <div className="flex items-center gap-2 ml-auto">
               <span className="text-white/40 text-xs uppercase font-bold tracking-widest">
-                Version:
+                {t("pckEditor.version")}
               </span>
               <span className="text-white text-sm">{pck.version}</span>
             </div>
@@ -623,7 +632,7 @@ export default function PckEditorView() {
             style={{ imageRendering: "pixelated" }}
           />
           <h3 className="text-2xl text-white/40 mc-text-shadow italic">
-            Open a PCK file to begin editing
+            {t("pckEditor.openToBegin")}
           </h3>
         </div>
       ) : (
@@ -639,7 +648,7 @@ export default function PckEditorView() {
             <div className="mb-4 flex gap-4">
               <input
                 type="text"
-                placeholder="Search assets..."
+                placeholder={t("pckEditor.searchAssets")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="flex-1 bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
@@ -652,7 +661,7 @@ export default function PckEditorView() {
                   backgroundSize: "100% 100%",
                 }}
               >
-                Add Asset
+                {t("pckEditor.addAsset")}
               </button>
             </div>
             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
@@ -675,7 +684,7 @@ export default function PckEditorView() {
                     className="w-16 h-16 opacity-10 grayscale"
                     style={{ imageRendering: "pixelated" }}
                   />
-                  <span>Select an asset to view details</span>
+                  <span>{t("pckEditor.selectAsset")}</span>
                 </div>
               ) : (
                 <motion.div
@@ -811,10 +820,10 @@ export default function PckEditorView() {
                       )}
                       <div className="absolute top-2 right-2 bg-black/60 px-2 py-1 rounded text-[10px] text-white/60 pointer-events-none uppercase tracking-widest">
                         {selectedAsset.type === PCKAssetType.SKIN
-                          ? "3D Skin View"
+                          ? t("pckEditor.view3dSkin")
                           : selectedAsset.type === PCKAssetType.CAPE
-                            ? "3D Cape View"
-                            : "Texture Preview"}
+                            ? t("pckEditor.view3dCape")
+                            : t("pckEditor.texturePreview")}
                       </div>
                     </div>
                   )}
@@ -823,13 +832,13 @@ export default function PckEditorView() {
                     <div>
                       <div className="flex justify-between items-end mb-2 px-1">
                         <div className="text-white/40 text-[10px] uppercase tracking-widest text-[#FFFF55]/60">
-                          Metadata Properties
+                          {t("pckEditor.metadataProperties")}
                         </div>
                         <button
                           onClick={handleAddProperty}
                           className="text-[#FFFF55] text-[10px] uppercase hover:underline"
                         >
-                          + Add Property
+                          + {t("pckEditor.addProperty")}
                         </button>
                       </div>
                       <div className="space-y-4">
@@ -851,7 +860,7 @@ export default function PckEditorView() {
                                 onClick={() => handleRemoveProperty(idx)}
                                 className="text-red-500/0 group-hover/prop:text-red-500/40 hover:text-red-500 transition-colors text-[10px] uppercase"
                               >
-                                Remove
+                                {t("pckEditor.remove")}
                               </button>
                             </div>
                             <div className="relative">
@@ -961,7 +970,7 @@ export default function PckEditorView() {
                         ))}
                         {selectedAsset.properties.length === 0 && (
                           <div className="text-white/20 italic text-sm px-1 py-4 border-2 border-dashed border-[#373737] text-center">
-                            No metadata properties
+                            {t("pckEditor.noMetadataProperties")}
                           </div>
                         )}
                       </div>
@@ -978,7 +987,7 @@ export default function PckEditorView() {
                             backgroundSize: "100% 100%",
                           }}
                         >
-                          Export
+                          {t("pckEditor.export")}
                         </button>
                         <button
                           onClick={() => replaceInputRef.current?.click()}
@@ -989,7 +998,7 @@ export default function PckEditorView() {
                             backgroundSize: "100% 100%",
                           }}
                         >
-                          Replace
+                          {t("pckEditor.replace")}
                         </button>
                       </div>
                       <button
@@ -1001,7 +1010,7 @@ export default function PckEditorView() {
                           backgroundSize: "100% 100%",
                         }}
                       >
-                        Rename Asset (Path)
+                        {t("pckEditor.renameAsset")}
                       </button>
                       <button
                         onClick={() => handleDeleteAsset(selectedAsset.id)}
@@ -1012,7 +1021,7 @@ export default function PckEditorView() {
                           backgroundSize: "100% 100%",
                         }}
                       >
-                        Delete This Asset
+                        {t("pckEditor.deleteAsset")}
                       </button>
                     </div>
                   </div>
@@ -1035,7 +1044,7 @@ export default function PckEditorView() {
           imageRendering: "pixelated",
         }}
       >
-        Back
+        {t("pckEditor.back")}
       </button>
 
       <AnimatePresence>
@@ -1080,7 +1089,7 @@ export default function PckEditorView() {
               }}
             >
               <h3 className="text-2xl text-[#FFFF55] mc-text-shadow font-bold mb-6 tracking-widest uppercase">
-                Select Asset Type
+                {t("pckEditor.selectAssetType")}
               </h3>
               <div className="grid grid-cols-2 gap-4 w-full">
                 {Object.keys(PCKAssetType)
@@ -1103,7 +1112,7 @@ export default function PckEditorView() {
                 onClick={() => setShowTypeModal(null)}
                 className="mt-8 px-8 py-2 text-white/60 mc-text-shadow text-sm hover:text-white transition-colors"
               >
-                Cancel
+                {t("pckEditor.cancel")}
               </button>
             </motion.div>
           </div>
@@ -1136,6 +1145,7 @@ function RenameAssetModal({
   onClose: () => void;
   onConfirm: (path: string) => void;
 }) {
+  const { t } = useTranslation();
   const [path, setPath] = useState(initialPath);
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
@@ -1158,12 +1168,12 @@ function RenameAssetModal({
         }}
       >
         <h3 className="text-2xl text-[#FFFF55] mc-text-shadow font-bold mb-6 tracking-widest uppercase">
-          Rename Asset
+          {t("pckEditor.renameTitle")}
         </h3>
         <div className="flex flex-col gap-4">
           <div>
             <label className="text-white/40 text-[10px] uppercase tracking-widest mb-1 block">
-              New Asset Path
+              {t("pckEditor.newAssetPath")}
             </label>
             <input
               type="text"
@@ -1178,7 +1188,7 @@ function RenameAssetModal({
               onClick={onClose}
               className="px-6 py-2 text-white/60 hover:text-white transition-colors uppercase tracking-widest text-sm"
             >
-              Cancel
+              {t("pckEditor.cancel")}
             </button>
             <button
               onClick={() => onConfirm(path)}
@@ -1188,7 +1198,7 @@ function RenameAssetModal({
                 backgroundSize: "100% 100%",
               }}
             >
-              Rename
+              {t("pckEditor.rename")}
             </button>
           </div>
         </div>

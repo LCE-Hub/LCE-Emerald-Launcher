@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, memo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { TauriService, Runner } from "../../services/TauriService";
 import { usePlatform } from "../../hooks/usePlatform";
@@ -10,8 +11,10 @@ import {
 } from "../../context/LauncherContext";
 import { PluginManager, type PluginInfo } from "../../plugins/PluginManager";
 import { usePluginActions } from "../../plugins/PluginContext";
+import i18n from "../../i18n/config";
 
 const SettingsView = memo(function SettingsView() {
+  const { t } = useTranslation();
   const { setActiveView } = useUI();
   const {
     vfxEnabled,
@@ -48,6 +51,8 @@ const SettingsView = memo(function SettingsView() {
     setAndroidRunner: _setAndroidRuntime,
     androidAudioBackend,
     setAndroidAudioBackend,
+    proxy,
+    setProxy,
   } = useConfig();
   const { currentTrack, skipTrack, tracks, playPressSound, playBackSound } =
     useAudio();
@@ -58,10 +63,17 @@ const SettingsView = memo(function SettingsView() {
     runnerDownloadProgress,
     downloadRunner,
   } = useGame();
-  const { isLinux, isMac, isAndroid } = usePlatform();
+  const { isLinux, isMac, isAndroid, arch } = usePlatform();
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const [currentSubMenu, setCurrentSubMenu] = useState<
-    "main" | "audio" | "video" | "launcher" | "game" | "plugins" | "android"
+    | "main"
+    | "audio"
+    | "video"
+    | "launcher"
+    | "game"
+    | "plugins"
+    | "android"
+    | "language"
   >("main");
   const [runners, setRunners] = useState<Runner[]>([]);
   const [pluginsInfo, setPluginsInfo] = useState<PluginInfo[]>([]);
@@ -70,6 +82,9 @@ const SettingsView = memo(function SettingsView() {
   const [argsInput, setArgsInput] = useState("");
   const [prefixInput, setPrefixInput] = useState("");
   const [envVarsInput, setEnvVarsInput] = useState("");
+  const [launcherSubMenu, setLauncherSubMenu] = useState<
+    "display" | "network" | "integrations" | "linux" | "data" | null
+  >(null);
   const [showModal, setShowModal] = useState<
     "args" | "prefix" | "envVars" | null
   >(null);
@@ -155,11 +170,11 @@ const SettingsView = memo(function SettingsView() {
       "fixed inset-0 bg-black/80 flex items-center justify-center z-50";
     dialog.innerHTML = `
       <div class="w-[420px] p-4 flex flex-col items-center mc-options-bg">
-        <h3 class="text-2xl text-[#333333] mb-4 text-left w-full px-4 mc-text-shadow">Reset Setup</h3>
-        <p class="text-[#333333] mb-8 text-left w-full px-4">Are you sure you want to reset launcher setup?</p>
+        <h3 class="text-2xl text-[#333333] mb-4 text-left w-full px-4 mc-text-shadow">${t("settings.reset.title")}</h3>
+        <p class="text-[#333333] mb-8 text-left w-full px-4">${t("settings.reset.confirm")}</p>
         <div class="flex flex-col gap-3 w-full px-4">
-          <button id="reset-cancel" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">Cancel</button>
-          <button id="reset-ok" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">OK</button>
+          <button id="reset-cancel" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">${t("common.cancel")}</button>
+          <button id="reset-ok" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">${t("common.ok")}</button>
         </div>
       </div>
     `;
@@ -193,20 +208,20 @@ const SettingsView = memo(function SettingsView() {
       "fixed inset-0 bg-black/80 flex items-center justify-center z-50";
     dialog.innerHTML = `
       <div class="w-[420px] p-4 flex flex-col items-center mc-options-bg">
-        <h3 class="text-2xl text-[#333333] mb-2 text-left w-full px-4 mc-text-shadow">CONFIRM RESET</h3>
+        <h3 class="text-2xl text-[#333333] mb-2 text-left w-full px-4 mc-text-shadow">${t("settings.reset.confirmTitle")}</h3>
         <div class="text-[#333333] mb-6 text-left w-full px-4">
-          <p class="mb-2">⚠️ This will:</p>
+          <p class="mb-2">${t("settings.reset.warning")}</p>
           <ul class="list-none space-y-1 text-sm">
-            <li>Clear all launcher settings</li>
-            <li>Reset your username</li>
-            <li>Show setup screen again</li>
-            <li>Require reconfiguration</li>
+            <li>${t("settings.reset.clearAllSettings")}</li>
+            <li>${t("settings.reset.resetUsername")}</li>
+            <li>${t("settings.reset.showSetupAgain")}</li>
+            <li>${t("settings.reset.requireReconfiguration")}</li>
           </ul>
-          <p class="mt-3 text-[#333333]">This action cannot be undone!</p>
+          <p class="mt-3 text-[#333333]">${t("settings.reset.cannotBeUndone")}</p>
         </div>
         <div class="flex flex-col gap-3 w-full px-4">
-          <button id="reset-final-cancel" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">Cancel</button>
-          <button id="reset-final-ok" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">OK</button>
+          <button id="reset-final-cancel" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">${t("common.cancel")}</button>
+          <button id="reset-final-ok" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">${t("common.ok")}</button>
         </div>
       </div>
     `;
@@ -249,8 +264,12 @@ const SettingsView = memo(function SettingsView() {
     const fullPath = tracks[currentTrack];
     if (fullPath) {
       trackName =
-        fullPath.split("/").pop()?.replace(".ogg", "").replace(".wav", "") ||
-        "Unknown";
+        fullPath
+          .split("/")
+          .pop()
+          ?.replace(".ogg", "")
+          .replace(".wav", "")
+          .replace(".opus", "") || "Unknown";
     }
   }
 
@@ -272,6 +291,14 @@ const SettingsView = memo(function SettingsView() {
         onClick: () => void;
         small?: boolean;
         color?: string;
+        textured?: boolean;
+      }
+    | {
+        id: string;
+        label: string;
+        type: "textinput";
+        value: string;
+        onChange: (val: string) => void;
       };
 
   const settingsItems = useMemo<SettingsItem[]>(() => {
@@ -280,7 +307,7 @@ const SettingsView = memo(function SettingsView() {
     if (currentSubMenu === "main") {
       items.push({
         id: "audio_menu",
-        label: "Audio",
+        label: t("settings.audio"),
         type: "button",
         onClick: () => {
           playPressSound();
@@ -290,7 +317,7 @@ const SettingsView = memo(function SettingsView() {
       });
       items.push({
         id: "video_menu",
-        label: "Video",
+        label: t("settings.video"),
         type: "button",
         onClick: () => {
           playPressSound();
@@ -300,7 +327,7 @@ const SettingsView = memo(function SettingsView() {
       });
       items.push({
         id: "launcher_menu",
-        label: "Launcher",
+        label: t("settings.launcher"),
         type: "button",
         onClick: () => {
           playPressSound();
@@ -310,7 +337,7 @@ const SettingsView = memo(function SettingsView() {
       });
       items.push({
         id: "game_menu",
-        label: "Game",
+        label: t("settings.game"),
         type: "button",
         onClick: () => {
           playPressSound();
@@ -318,9 +345,20 @@ const SettingsView = memo(function SettingsView() {
           setFocusIndex(0);
         },
       });
+      if (!isAndroid) {
+        items.push({
+          id: "controls_menu",
+          label: t("settings.controls"),
+          type: "button",
+          onClick: () => {
+            playPressSound();
+            setActiveView("goldmapper");
+          },
+        });
+      }
       items.push({
         id: "plugins_menu",
-        label: "Plugins",
+        label: t("settings.plugins"),
         type: "button",
         onClick: () => {
           playPressSound();
@@ -331,7 +369,7 @@ const SettingsView = memo(function SettingsView() {
       if (isAndroid) {
         items.push({
           id: "android_menu",
-          label: "Android",
+          label: t("settings.android"),
           type: "button",
           onClick: () => {
             playPressSound();
@@ -353,7 +391,7 @@ const SettingsView = memo(function SettingsView() {
       }
       items.push({
         id: "credits",
-        label: "Credits",
+        label: t("settings.credits"),
         type: "button",
         onClick: () => {
           playPressSound();
@@ -363,14 +401,14 @@ const SettingsView = memo(function SettingsView() {
     } else if (currentSubMenu === "audio") {
       items.push({
         id: "music",
-        label: `Music: ${musicVolume ?? 50}%`,
+        label: t("settings.music", { value: musicVolume ?? 50 }),
         type: "slider",
         value: musicVolume ?? 50,
         onChange: setMusicVolume,
       });
       items.push({
         id: "sfx",
-        label: `Sound: ${sfxVolume ?? 100}%`,
+        label: t("settings.sound", { value: sfxVolume ?? 100 }),
         type: "slider",
         value: sfxVolume ?? 100,
         onChange: setSfxVolume,
@@ -384,20 +422,20 @@ const SettingsView = memo(function SettingsView() {
     } else if (currentSubMenu === "video") {
       items.push({
         id: "vfx",
-        label: `Click effects: ${vfxEnabled ? "ON" : "OFF"}`,
+        label: `${t("settings.clickEffects")}: ${vfxEnabled ? t("common.on") : t("common.off")}`,
         type: "button",
         onClick: handleVfxToggle,
       });
       items.push({
         id: "animations",
-        label: `Animations: ${animationsEnabled ? "ON" : "OFF"}`,
+        label: `${t("settings.animations")}: ${animationsEnabled ? t("common.on") : t("common.off")}`,
         type: "button",
         onClick: handleAnimationsToggle,
       });
       if (isMac) {
         items.push({
           id: "perf",
-          label: `Apple silicon performance boost: ${perfBoost ? "Enabled" : "Disabled"}`,
+          label: `${t("settings.appleSiliconPerfBoost")}: ${perfBoost ? t("common.enabled") : t("common.disabled")}`,
           type: "button",
           onClick: handlePerfToggle,
         });
@@ -410,8 +448,8 @@ const SettingsView = memo(function SettingsView() {
         id: "extra_launch_args",
         label:
           extraLaunchArgs && extraLaunchArgs.length > 0
-            ? `Extra Args: ${extraLaunchArgs.join(" ")}`
-            : "Extra Launch Args: None",
+            ? `${t("settings.extraLaunchArgs")}: ${extraLaunchArgs.join(" ")}`
+            : `${t("settings.extraLaunchArgs")}: ${t("common.none")}`,
         type: "button",
         onClick: () => {
           playPressSound();
@@ -421,7 +459,9 @@ const SettingsView = memo(function SettingsView() {
       });
       items.push({
         id: "launch_prefix",
-        label: launchPrefix ? `Prefix: ${launchPrefix}` : "Launch Prefix: None",
+        label: launchPrefix
+          ? `${t("settings.launchPrefix")}: ${launchPrefix}`
+          : `${t("settings.launchPrefix")}: ${t("common.none")}`,
         type: "button",
         onClick: () => {
           playPressSound();
@@ -431,7 +471,11 @@ const SettingsView = memo(function SettingsView() {
       });
       items.push({
         id: "launch_env_vars",
-        label: `Launch Env Vars: ${envVarsCount > 0 ? `${envVarsCount} set` : "None"}`,
+        label: `${t("settings.launchEnvVars")}: ${
+          envVarsCount > 0
+            ? `${envVarsCount} ${t("common.set")}`
+            : t("common.none")
+        }`,
         type: "button",
         onClick: () => {
           playPressSound();
@@ -445,106 +489,216 @@ const SettingsView = memo(function SettingsView() {
         },
       });
     } else if (currentSubMenu === "launcher") {
-      if (!isAndroid) {
+      if (!launcherSubMenu) {
         items.push({
-          id: "fullscreen",
-          label: `Start in Fullscreen: ${startFullscreen ? "ON" : "OFF"}`,
+          id: "cat_display",
+          label: t("settings.launcherDisplay"),
           type: "button",
-          onClick: handleFullscreenToggle,
+          textured: true,
+          onClick: () => {
+            playPressSound();
+            setLauncherSubMenu("display");
+            setFocusIndex(0);
+          },
         });
         items.push({
-          id: "rpc",
-          label: `Discord RPC: ${rpcEnabled ? "ON" : "OFF"}`,
+          id: "cat_network",
+          label: t("settings.launcherNetwork"),
           type: "button",
-          onClick: handleRpcToggle,
+          textured: true,
+          onClick: () => {
+            playPressSound();
+            setLauncherSubMenu("network");
+            setFocusIndex(0);
+          },
         });
-      }
-      items.push({
-        id: "skip_intro",
-        label: `Skip Intro: ${skipIntro ? "ON" : "OFF"}`,
-        type: "button",
-        onClick: handleSkipIntroToggle,
-      });
-      items.push({
-        id: "legacy",
-        label: `Legacy Mode: ${legacyMode ? "ON" : "OFF"}`,
-        type: "button",
-        onClick: handleLegacyToggle,
-      });
-      if (isLinux && !isAndroid) {
+        items.push({
+          id: "cat_integrations",
+          label: t("settings.launcherMisc"),
+          type: "button",
+          textured: true,
+          onClick: () => {
+            playPressSound();
+            setLauncherSubMenu("integrations");
+            setFocusIndex(0);
+          },
+        });
+        if (isLinux && !isAndroid) {
+          items.push({
+            id: "cat_linux",
+            label: t("settings.launcherLinux"),
+            type: "button",
+            textured: true,
+            onClick: () => {
+              playPressSound();
+              setLauncherSubMenu("linux");
+              setFocusIndex(0);
+            },
+          });
+        }
+        items.push({
+          id: "cat_data",
+          label: t("settings.launcherData"),
+          type: "button",
+          textured: true,
+          onClick: () => {
+            playPressSound();
+            setLauncherSubMenu("data");
+            setFocusIndex(0);
+          },
+        });
+      } else if (launcherSubMenu === "display") {
+        if (!isAndroid) {
+          items.push({
+            id: "fullscreen",
+            label: `${t("settings.startInFullscreen")}: ${startFullscreen ? t("common.on") : t("common.off")}`,
+            type: "button",
+            onClick: handleFullscreenToggle,
+          });
+        }
+        items.push({
+          id: "animations",
+          label: `${t("settings.animations")}: ${animationsEnabled ? t("common.on") : t("common.off")}`,
+          type: "button",
+          onClick: handleAnimationsToggle,
+        });
+        items.push({
+          id: "skip_intro",
+          label: `${t("settings.skipIntro")}: ${skipIntro ? t("common.on") : t("common.off")}`,
+          type: "button",
+          onClick: handleSkipIntroToggle,
+        });
+        items.push({
+          id: "legacy",
+          label: `${t("settings.legacyMode")}: ${legacyMode ? t("common.on") : t("common.off")}`,
+          type: "button",
+          onClick: handleLegacyToggle,
+        });
+      } else if (launcherSubMenu === "network") {
+        items.push({
+          id: "proxy",
+          label: t("settings.httpProxy"),
+          type: "textinput",
+          value: proxy ?? "",
+          onChange: (val: string) => {
+            setProxy(val.trim() || undefined);
+          },
+        });
+      } else if (launcherSubMenu === "integrations") {
+        if (!isAndroid) {
+          items.push({
+            id: "rpc",
+            label: `${t("settings.discordRpc")}: ${rpcEnabled ? t("common.on") : t("common.off")}`,
+            type: "button",
+            onClick: handleRpcToggle,
+          });
+        }
+        items.push({
+          id: "languages",
+          label: t("settings.languages"),
+          type: "button",
+          textured: true,
+          onClick: () => {
+            playPressSound();
+            setCurrentSubMenu("language");
+            setFocusIndex(0);
+          },
+        });
+      } else if (launcherSubMenu === "linux") {
         items.push({
           id: "runner",
-          label: `Runner: ${selectedRunnerName}`,
+          label: `${t("settings.runner")}: ${selectedRunnerName}`,
           type: "button",
           onClick: handleRunnerToggle,
         });
         items.push({
           id: "mangohud",
-          label: `MangoHud: ${mangohudEnabled ? "ON" : "OFF"}`,
+          label: `${t("settings.mangohud")}: ${mangohudEnabled ? t("common.on") : t("common.off")}`,
           type: "button",
           onClick: handleMangohudToggle,
         });
         items.push({
           id: "download_runner",
           label: isRunnerDownloading
-            ? `Downloading Runner... ${Math.floor(runnerDownloadProgress || 0)}%`
-            : "Download GE-Proton (Recommended)",
+            ? t("settings.downloadingRunner", {
+                progress: Math.floor(runnerDownloadProgress || 0),
+              })
+            : t("settings.downloadRunner"),
           type: "button",
+          textured: true,
           onClick: () => {
             if (!isRunnerDownloading) {
               downloadRunner(
-                "GE-Proton9-25",
-                "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton9-25/GE-Proton9-25.tar.gz",
+                `GE-Proton11-6-${arch}`,
+                `https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-6/GE-Proton11-6-${arch}.tar.gz`,
               );
             }
           },
-          small: true,
+        });
+      } else if (launcherSubMenu === "data") {
+        if (!isAndroid) {
+          items.push({
+            id: "export_settings",
+            label: t("settings.exportSettings"),
+            type: "button",
+            textured: true,
+            onClick: async () => {
+              playPressSound();
+              try {
+                await TauriService.exportSettings();
+              } catch (e) {
+                if (e !== "CANCELED") console.error(e);
+              }
+            },
+          });
+          items.push({
+            id: "import_settings",
+            label: t("settings.importSettings"),
+            type: "button",
+            textured: true,
+            onClick: async () => {
+              playPressSound();
+              try {
+                await TauriService.importSettings();
+                window.location.reload();
+              } catch (e) {
+                if (e !== "CANCELED") console.error(e);
+              }
+            },
+          });
+        }
+        items.push({
+          id: "reset_setup",
+          label: t("settings.resetSetup"),
+          type: "button",
+          onClick: handleResetSetup,
+          color: "orange",
         });
       }
-
-      if (!isAndroid) {
+    } else if (currentSubMenu === "language") {
+      const availableLanguages = [
+        //neo: here goes the list, dont ask why its here
+        { code: "en", label: "English" },
+        { code: "fr", label: "Français (French)" }, // by Dydymiku (thanks!!)
+        { code: "ru", label: "Pусский (Russian)" }, // by brnwvshed (thanks!!)
+      ];
+      for (const lang of availableLanguages) {
+        const isCurrent = i18n.resolvedLanguage?.startsWith(lang.code);
         items.push({
-          id: "export_settings",
-          label: "Export Settings",
+          id: `lang_${lang.code}`,
+          label: `${lang.label}:${isCurrent ? ` ${t("common.on")}` : ` ${t("common.off")}`}`,
           type: "button",
-          onClick: async () => {
+          onClick: () => {
             playPressSound();
-            try {
-              await TauriService.exportSettings();
-            } catch (e) {
-              if (e !== "CANCELED") console.error(e);
-            }
+            void i18n.changeLanguage(lang.code);
           },
         });
       }
-      if (!isAndroid) {
-        items.push({
-          id: "import_settings",
-          label: "Import Settings",
-          type: "button",
-          onClick: async () => {
-            playPressSound();
-            try {
-              await TauriService.importSettings();
-              window.location.reload();
-            } catch (e) {
-              if (e !== "CANCELED") console.error(e);
-            }
-          },
-        });
-      }
-      items.push({
-        id: "reset_setup",
-        label: "Reset Setup",
-        type: "button",
-        onClick: handleResetSetup,
-        color: "orange",
-      });
     } else if (currentSubMenu === "android") {
       if (profile) {
         items.push({
           id: "android_container_settings",
-          label: "Container Settings",
+          label: t("settings.containerSettings"),
           type: "button",
           onClick: () => {
             playPressSound();
@@ -553,7 +707,7 @@ const SettingsView = memo(function SettingsView() {
         });
         items.push({
           id: "android_open_container",
-          label: "Open Container",
+          label: t("settings.openContainer"),
           type: "button",
           onClick: () => {
             playPressSound();
@@ -583,7 +737,10 @@ const SettingsView = memo(function SettingsView() {
         });*/
       items.push({
         id: "android_audio",
-        label: `Audio: ${androidAudioBackend === "alsa" ? "ALSA" : "PulseAudio (Default)"}`,
+        label: t("settings.androidAudio", {
+          backend:
+            androidAudioBackend === "alsa" ? "ALSA" : "PulseAudio (Default)",
+        }),
         type: "button",
         onClick: () => {
           playPressSound();
@@ -597,7 +754,7 @@ const SettingsView = memo(function SettingsView() {
     if (isGameRunning) {
       items.push({
         id: "stop",
-        label: "STOP GAME",
+        label: t("settings.stopGameButton"),
         type: "button",
         onClick: stopGame,
         color: "red",
@@ -606,12 +763,18 @@ const SettingsView = memo(function SettingsView() {
 
     items.push({
       id: "back",
-      label: currentSubMenu === "main" ? "Done" : "Back",
+      label: currentSubMenu === "main" ? t("common.done") : t("common.back"),
       type: "button",
       onClick: () => {
         playBackSound();
         if (currentSubMenu === "main") {
           setActiveView("main");
+        } else if (currentSubMenu === "language") {
+          setCurrentSubMenu("launcher");
+          setFocusIndex(0);
+        } else if (currentSubMenu === "launcher" && launcherSubMenu) {
+          setLauncherSubMenu(null);
+          setFocusIndex(0);
         } else {
           setCurrentSubMenu("main");
           setFocusIndex(0);
@@ -621,6 +784,7 @@ const SettingsView = memo(function SettingsView() {
 
     return items;
   }, [
+    t,
     currentSubMenu,
     pluginSettingsActions,
     musicVolume,
@@ -674,8 +838,13 @@ const SettingsView = memo(function SettingsView() {
           return;
         }
         playBackSound();
-        if (currentSubMenu !== "main") {
-          setCurrentSubMenu("main");
+        if (launcherSubMenu) {
+          setLauncherSubMenu(null);
+          setFocusIndex(0);
+        } else if (currentSubMenu !== "main") {
+          setCurrentSubMenu(
+            currentSubMenu === "language" ? "launcher" : "main",
+          );
           setFocusIndex(0);
         } else {
           setActiveView("main");
@@ -684,6 +853,13 @@ const SettingsView = memo(function SettingsView() {
       }
 
       const itemCount = settingsItems.length;
+
+      if (
+        document.activeElement instanceof HTMLInputElement &&
+        document.activeElement.type === "text"
+      ) {
+        return;
+      }
 
       if (e.key === "ArrowDown") {
         setFocusIndex((prev) =>
@@ -702,6 +878,7 @@ const SettingsView = memo(function SettingsView() {
           item.onChange(newVal);
         }
       } else if (e.key === "Enter" && focusIndex !== null) {
+        e.preventDefault();
         const item = settingsItems[focusIndex];
         if (item.type === "button") {
           item.onClick();
@@ -717,6 +894,7 @@ const SettingsView = memo(function SettingsView() {
     setActiveView,
     currentSubMenu,
     showModal,
+    launcherSubMenu,
   ]);
 
   useEffect(() => {
@@ -761,27 +939,14 @@ const SettingsView = memo(function SettingsView() {
     <motion.div
       ref={containerRef}
       tabIndex={-1}
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: animationsEnabled ? 0 : 1, scale: animationsEnabled ? 0.95 : 1 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
+      exit={{ opacity: animationsEnabled ? 0 : 1, scale: animationsEnabled ? 0.95 : 1 }}
       transition={{ duration: animationsEnabled ? 0.3 : 0 }}
       className="flex flex-col items-center w-full max-w-5xl outline-none"
     >
-      <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 border-b-2 border-[#373737] pb-2 w-[40%] max-w-[200px] text-center tracking-widest uppercase opacity-80 whitespace-nowrap px-4">
-        {currentSubMenu === "main"
-          ? "Settings"
-          : currentSubMenu === "audio"
-            ? "Audio"
-            : currentSubMenu === "video"
-              ? "Video"
-              : currentSubMenu === "game"
-                ? "Game"
-                : currentSubMenu === "plugins"
-                  ? "Plugins"
-                  : "Launcher"}
-      </h2>
-
-      {currentSubMenu === "main" ? (
+      {currentSubMenu === "main" ||
+      (currentSubMenu === "launcher" && !launcherSubMenu) ? (
         <div className="w-full max-w-[680px] space-y-2 mb-4 p-6 flex flex-col items-center overflow-y-auto max-h-[55vh] settings-scrollbar">
           {settingsItems.map((item, index) => {
             if (item.id === "back") return null;
@@ -810,7 +975,30 @@ const SettingsView = memo(function SettingsView() {
                       value={item.value}
                       onChange={(e) => item.onChange(parseInt(e.target.value))}
                       onMouseUp={playPressSound}
-                      className="mc-slider-custom w-[calc(100%+16px)] h-full opacity-100 cursor-pointer z-20 outline-none m-0"
+                      className="mc-slider-custom w-[calc(100%+16px)] h-full opacity-100 cursor-pointer z-0 outline-none m-0"
+                    />
+                  </div>
+                </div>
+              );
+            }
+
+            if (item.type === "textinput") {
+              return (
+                <div
+                  key={item.id}
+                  data-index={index}
+                  onMouseEnter={() => setFocusIndex(index)}
+                  className="relative w-[480px] flex flex-col cursor-pointer transition-all outline-none shrink-0"
+                >
+                  <span className="text-black text-base font-[var(--font-base)] mb-1">
+                    {item.label}
+                  </span>
+                  <div className="mc-textinput-outer">
+                    <input
+                      type="text"
+                      value={item.value}
+                      onChange={(e) => item.onChange(e.target.value)}
+                      className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)]"
                     />
                   </div>
                 </div>
@@ -840,7 +1028,7 @@ const SettingsView = memo(function SettingsView() {
                 style={getItemStyle(index)}
               >
                 <span
-                  className={`mc-text-shadow tracking-widest uppercase ${isSmall ? "text-xs" : item.label.length > 20 ? "text-lg" : "text-xl"} truncate w-full text-center`}
+                  className={`mc-text-shadow ${isSmall ? "text-xs" : item.label.length > 20 ? "text-lg" : "text-xl"} truncate w-full text-center`}
                 >
                   {item.label}
                 </span>
@@ -853,7 +1041,7 @@ const SettingsView = memo(function SettingsView() {
           <div className="w-full space-y-3 flex flex-col items-center overflow-y-auto max-h-[50vh] py-2 settings-scrollbar">
             {pluginsInfo.length === 0 ? (
               <div className="text-[#888888] text-lg mc-text-shadow py-8">
-                No plugins installed
+                {t("settings.noPluginsInstalled")}
               </div>
             ) : (
               pluginsInfo.map((p, index) => {
@@ -907,7 +1095,8 @@ const SettingsView = memo(function SettingsView() {
                         {p.manifest.description}
                       </span>
                       <span className="text-xs mc-text-shadow opacity-50">
-                        by {p.manifest.author} &middot; v{p.manifest.version}
+                        {t("settings.byAuthor", { author: p.manifest.author })}{" "}
+                        &middot; v{p.manifest.version}
                       </span>
                     </div>
                   </div>
@@ -932,7 +1121,7 @@ const SettingsView = memo(function SettingsView() {
                     style={getSliderStyle(index)}
                   >
                     <span
-                      className={`absolute z-10 text-xl pointer-events-none transition-colors tracking-widest ${focusIndex === index ? "text-[#ffff00]" : item.id === "music" || item.id === "sfx" ? "text-white" : "text-[#2a2a2a]"}`}
+                      className={`absolute z-30 text-xl mc-text-shadow pointer-events-none transition-colors tracking-widest ${focusIndex === index ? "text-[#ffff00]" : item.id === "music" || item.id === "sfx" ? "text-white" : "text-[#2a2a2a]"}`}
                     >
                       {item.label}
                     </span>
@@ -947,7 +1136,30 @@ const SettingsView = memo(function SettingsView() {
                           item.onChange(parseInt(e.target.value))
                         }
                         onMouseUp={playPressSound}
-                        className="mc-slider-custom w-[calc(100%+16px)] h-full opacity-100 cursor-pointer z-20 outline-none m-0"
+                        className="mc-slider-custom w-[calc(100%+16px)] h-full opacity-100 cursor-pointer z-10 outline-none m-0"
+                      />
+                    </div>
+                  </div>
+                );
+              }
+
+              if (item.type === "textinput") {
+                return (
+                  <div
+                    key={item.id}
+                    data-index={index}
+                    onMouseEnter={() => setFocusIndex(index)}
+                    className="relative w-[600px] flex flex-col cursor-pointer transition-all outline-none shrink-0"
+                  >
+                    <span className="text-black text-base font-[var(--font-base)] mb-1">
+                      {item.label}
+                    </span>
+                    <div className="mc-textinput-outer">
+                      <input
+                        type="text"
+                        value={item.value}
+                        onChange={(e) => item.onChange(e.target.value)}
+                        className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)]"
                       />
                     </div>
                   </div>
@@ -956,16 +1168,27 @@ const SettingsView = memo(function SettingsView() {
 
               const isRed = item.type === "button" && item.color === "red";
               const isSmall = item.type === "button" && !!item.small;
+              const isTextured = item.type === "button" && !!item.textured;
               const isToggle = isToggleOption(item.label);
               const toggleState = isToggle ? getToggleState(item.label) : false;
-
               return (
                 <button
                   key={item.id}
                   data-index={index}
                   onMouseEnter={() => setFocusIndex(index)}
                   onClick={item.onClick}
-                  className={`w-[600px] h-10 flex items-center pl-1.5 pr-4 relative z-30 outline-none border-none shrink-0 rounded ${focusIndex === index ? "text-[#ffff00]" : isRed ? "text-red-600" : "text-[#333333]"}`}
+                  className={`w-[600px] h-10 flex items-center relative z-30 outline-none border-none shrink-0 rounded ${isTextured ? "pl-3" : "pl-1.5 pr-4"} ${
+                    isTextured
+                      ? focusIndex === index
+                        ? "text-[#ffff00]"
+                        : "text-white"
+                      : focusIndex === index
+                        ? "text-[#ffff00]"
+                        : isRed
+                          ? "text-red-600"
+                          : "text-[#333333]"
+                  }`}
+                  style={isTextured ? getItemStyle(index) : undefined}
                 >
                   {isToggle && (
                     <div className="relative w-6 h-6 mr-3 shrink-0 flex items-center justify-center">
@@ -1022,7 +1245,7 @@ const SettingsView = memo(function SettingsView() {
                 imageRendering: "pixelated",
               }}
             >
-              Back
+              {t("common.back")}
             </button>
           );
         })()}
@@ -1042,17 +1265,17 @@ const SettingsView = memo(function SettingsView() {
             }}
           >
             <h2 className="text-[#FFFF55] text-2xl mc-text-shadow mb-4 border-b-2 border-[#373737] pb-2 w-full text-center uppercase">
-              Extra Launch Args
+              {t("settings.extraLaunchArgs")}
             </h2>
             <p className="text-[#AAAAAA] text-xs mb-4 text-center mc-text-shadow">
-              Space-separated arguments passed to the game executable
+              {t("settings.extraLaunchArgsDesc")}
             </p>
             <input
               autoFocus
               value={argsInput}
               onChange={(e) => setArgsInput(e.target.value)}
               placeholder="e.g. -quitondisconnect -ip 127.0.0.1"
-              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-['Mojangles'] text-center"
+              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-[var(--font-base)] text-center"
               style={{ imageRendering: "pixelated" }}
             />
             <div className="flex gap-4 mt-6 w-full justify-center">
@@ -1076,7 +1299,7 @@ const SettingsView = memo(function SettingsView() {
                     "url('/images/Button_Background.png')")
                 }
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={() => {
@@ -1100,7 +1323,7 @@ const SettingsView = memo(function SettingsView() {
                     "url('/images/Button_Background.png')")
                 }
               >
-                Save
+                {t("common.save")}
               </button>
             </div>
           </div>
@@ -1122,17 +1345,17 @@ const SettingsView = memo(function SettingsView() {
             }}
           >
             <h2 className="text-[#FFFF55] text-2xl mc-text-shadow mb-4 border-b-2 border-[#373737] pb-2 w-full text-center uppercase">
-              Launch Prefix
+              {t("settings.launchPrefix")}
             </h2>
             <p className="text-[#AAAAAA] text-xs mb-4 text-center mc-text-shadow">
-              Command that wraps the entire launch (e.g. gamemoderun)
+              {t("settings.launchPrefixDesc")}
             </p>
             <input
               autoFocus
               value={prefixInput}
               onChange={(e) => setPrefixInput(e.target.value)}
               placeholder="e.g. gamemoderun"
-              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-['Mojangles'] text-center"
+              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-[var(--font-base)] text-center"
               style={{ imageRendering: "pixelated" }}
             />
             <div className="flex gap-4 mt-6 w-full justify-center">
@@ -1156,7 +1379,7 @@ const SettingsView = memo(function SettingsView() {
                     "url('/images/Button_Background.png')")
                 }
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={() => {
@@ -1179,7 +1402,7 @@ const SettingsView = memo(function SettingsView() {
                     "url('/images/Button_Background.png')")
                 }
               >
-                Save
+                {t("common.save")}
               </button>
             </div>
           </div>
@@ -1201,10 +1424,10 @@ const SettingsView = memo(function SettingsView() {
             }}
           >
             <h2 className="text-[#FFFF55] text-2xl mc-text-shadow mb-4 border-b-2 border-[#373737] pb-2 w-full text-center uppercase">
-              Launch Env Vars
+              {t("settings.launchEnvVars")}
             </h2>
             <p className="text-[#AAAAAA] text-xs mb-4 text-center mc-text-shadow">
-              One KEY=VALUE per line
+              {t("settings.launchEnvVarsDesc")}
             </p>
             <textarea
               autoFocus
@@ -1212,7 +1435,7 @@ const SettingsView = memo(function SettingsView() {
               onChange={(e) => setEnvVarsInput(e.target.value)}
               placeholder="WINEDLLOVERRIDES=foo=n&#10;MANGOHUD=1"
               rows={6}
-              className="w-full px-3 py-2 bg-black/40 border-2 border-[#373737] text-white text-sm outline-none font-['Mojangles'] resize-none"
+              className="w-full px-3 py-2 bg-black/40 border-2 border-[#373737] text-white text-sm outline-none font-[var(--font-base)] resize-none"
               style={{ imageRendering: "pixelated" }}
             />
             <div className="flex gap-4 mt-6 w-full justify-center">
@@ -1236,7 +1459,7 @@ const SettingsView = memo(function SettingsView() {
                     "url('/images/Button_Background.png')")
                 }
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={() => {
@@ -1275,7 +1498,7 @@ const SettingsView = memo(function SettingsView() {
                     "url('/images/Button_Background.png')")
                 }
               >
-                Save
+                {t("common.save")}
               </button>
             </div>
           </div>

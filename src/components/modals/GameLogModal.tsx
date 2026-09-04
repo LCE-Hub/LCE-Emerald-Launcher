@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { TauriService } from "../../services/TauriService";
 const MAX_DISPLAY_LINES = 5000;
@@ -62,6 +63,7 @@ export default function GameLogModal({
   onClose: () => void;
   playBackSound: () => void;
 }) {
+  const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [feedback, setFeedback] = useState("");
   const lines = useMemo(() => (log ?? "").split("\n"), [log]);
@@ -92,16 +94,16 @@ export default function GameLogModal({
     if (!log) return;
     try {
       const path = await TauriService.saveFileDialog(
-        "Save Game Log",
+        t("modals.gameLog.saveDialog"),
         "game-log.txt",
         ["txt", "log"],
       );
       if (!path) return;
       await TauriService.writeBinaryFile(path, new TextEncoder().encode(log));
-      setFeedback("Saved!");
+      setFeedback(t("modals.gameLog.saved"));
     } catch (e) {
       console.error(e);
-      setFeedback("Failed to save.");
+      setFeedback(t("modals.gameLog.failedToSave"));
     }
   };
 
@@ -109,10 +111,10 @@ export default function GameLogModal({
     if (!log) return;
     try {
       await navigator.clipboard.writeText(log);
-      setFeedback("Copied to clipboard!");
+      setFeedback(t("modals.gameLog.copied"));
     } catch (e) {
       console.error(e);
-      setFeedback("Failed to copy.");
+      setFeedback(t("modals.gameLog.failedToCopy"));
     }
   };
 
@@ -133,15 +135,18 @@ export default function GameLogModal({
         exit={{ y: 20, opacity: 0 }}
         transition={{ duration: 0.15 }}
         onClick={(e) => e.stopPropagation()}
-        className="flex flex-col w-[640px] max-w-[92vw] max-h-[85vh] p-5 font-['Mojangles'] mc-options-bg"
+        className="flex flex-col w-[640px] max-w-[92vw] max-h-[85vh] p-5 font-[var(--font-base)] mc-options-bg"
       >
         <h3 className="text-2xl font-bold text-[#333333] mb-3 text-left w-full px-2 mc-text-shadow">
-          Game Crash Log
+          {t("modals.gameLog.title")}
         </h3>
 
         {truncated && (
           <p className="text-[#666666] text-sm mb-3 text-left w-full px-2">
-            Showing last {MAX_DISPLAY_LINES} lines of {lines.length}.
+            {t("modals.gameLog.showingLast", {
+              shown: MAX_DISPLAY_LINES,
+              total: lines.length,
+            })}
           </p>
         )}
 
@@ -161,10 +166,10 @@ export default function GameLogModal({
 
         <div className="flex gap-3 w-full px-2 mb-2">
           <LogActionButton onClick={handleSave} className="flex-1">
-            Save As File
+            {t("modals.gameLog.saveAsFile")}
           </LogActionButton>
           <LogActionButton onClick={handleCopy} className="flex-1">
-            Copy
+            {t("modals.gameLog.copy")}
           </LogActionButton>
           <LogActionButton
             onClick={() => {
@@ -173,7 +178,7 @@ export default function GameLogModal({
             }}
             className="flex-1"
           >
-            Close
+            {t("modals.gameLog.close")}
           </LogActionButton>
         </div>
         {feedback && (

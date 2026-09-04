@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { memo } from "react";
+import { useTranslation } from "react-i18next";
 import { ScreenshotImage } from "../common/ScreenshotImage";
 import type { Edition } from "../../types/edition";
 
@@ -10,6 +11,7 @@ interface DownloadOverlayProps {
 }
 
 export const DownloadOverlay = memo(function DownloadOverlay({ downloadProgress, downloadingIds, editions }: DownloadOverlayProps) {
+  const { t } = useTranslation();
   if (downloadingIds.length === 0) return null;
 
   return (
@@ -23,14 +25,18 @@ export const DownloadOverlay = memo(function DownloadOverlay({ downloadProgress,
     >
       <div className="px-3 pt-2.5 pb-2 border-b border-white/10">
         <span className="text-[13px] text-[#FFFF55] mc-text-shadow uppercase tracking-widest">
-          Downloads
+          {t("download.title")}
         </span>
       </div>
       <div className="flex flex-col gap-1.5 px-3 py-2 max-h-[260px] overflow-y-auto custom-scrollbar">
         {downloadingIds.map((id) => {
           const pct = downloadProgress[id] ?? 0;
           const edition = editions.find((e) => e.instanceId === id || e.id === id);
-          const name = edition?.name || "Game Files";
+          const name =
+            edition?.name ||
+            (id.startsWith("runner_")
+              ? id.replace(/^runner_/, "")
+              : t("download.gameFiles"));
           return (
             <div key={id} className="flex items-center gap-2.5">
               {edition?.logo ? (

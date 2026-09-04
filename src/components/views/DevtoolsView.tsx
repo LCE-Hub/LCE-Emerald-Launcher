@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useUI, useAudio, useConfig } from "../../context/LauncherContext";
 
@@ -21,12 +22,35 @@ const DEV_TOOLS: DevTool[] = [
 ];
 
 export default function DevtoolsView() {
+  const { t } = useTranslation();
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { animationsEnabled } = useConfig();
   const [focusIndex, setFocusIndex] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const BACK_BUTTON_INDEX = DEV_TOOLS.length;
+  const toolName = (id: string): string => {
+    switch (id) {
+      case "guides":
+        return t("devtools.tools.guides");
+      case "pck":
+        return t("devtools.tools.pck");
+      case "arc":
+        return t("devtools.tools.arc");
+      case "loc":
+        return t("devtools.tools.loc");
+      case "grf":
+        return t("devtools.tools.grf");
+      case "col":
+        return t("devtools.tools.col");
+      case "options":
+        return t("devtools.tools.options");
+      case "model":
+        return t("devtools.tools.model");
+      default:
+        return id;
+    }
+  };
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" || e.key === "Backspace") {
@@ -48,6 +72,7 @@ export default function DevtoolsView() {
           setFocusIndex(0);
         }
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (focusIndex === BACK_BUTTON_INDEX) {
           playBackSound();
           setActiveView("main");
@@ -81,7 +106,7 @@ export default function DevtoolsView() {
       className="flex flex-col items-center w-full max-w-3xl h-full outline-none"
     >
       <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 border-b-2 border-[#373737] pb-2 w-[60%] max-w-75 text-center tracking-widest uppercase opacity-80 font-bold">
-        Developer Tools
+        {t("home.developerTools")}
       </h2>
 
       <div
@@ -109,7 +134,7 @@ export default function DevtoolsView() {
               <div className="w-20 h-20 bg-black/40 border-2 border-[#373737] flex items-center justify-center relative shadow-inner">
                 <img
                   src={`/images/tools/${tool.id}.png`}
-                  alt={tool.name}
+                  alt={toolName(tool.id)}
                   className="w-12 h-12 object-contain opacity-50 grayscale"
                   style={{ imageRendering: "pixelated" }}
                   onError={(e) => {
@@ -119,7 +144,7 @@ export default function DevtoolsView() {
                     if (parent && !parent.querySelector(".tool-fallback")) {
                       const fallback = document.createElement("span");
                       fallback.className = "tool-fallback text-2xl text-white/30 mc-text-shadow uppercase font-bold";
-                      fallback.textContent = tool.name.charAt(0);
+                      fallback.textContent = toolName(tool.id).charAt(0);
                       parent.appendChild(fallback);
                     }
                   }}
@@ -127,7 +152,7 @@ export default function DevtoolsView() {
                 {tool.comingSoon && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/60">
                     <span className="text-[10px] text-[#FFFF55] mc-text-shadow uppercase tracking-tighter text-center px-1">
-                      Coming Soon
+                      {t("devtools.comingSoon")}
                     </span>
                   </div>
                 )}
@@ -136,7 +161,7 @@ export default function DevtoolsView() {
                 className={`text-center text-lg mc-text-shadow transition-colors ${focusIndex === i ? "text-[#FFFF55]" : "text-white"
                   }`}
               >
-                {tool.name}
+                {toolName(tool.id)}
               </span>
             </div>
           ))}
@@ -161,7 +186,7 @@ export default function DevtoolsView() {
           imageRendering: "pixelated",
         }}
       >
-        Back
+        {t("common.back")}
       </button>
     </motion.div>
   );

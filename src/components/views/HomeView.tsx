@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, memo } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
   useUI,
@@ -11,8 +12,9 @@ import { usePlatform } from "../../hooks/usePlatform";
 import type { Edition } from "../../types/edition";
 
 const HomeView = memo(function HomeView() {
+  const { t } = useTranslation();
   const { setActiveView, focusSection, onNavigateToSkin } = useUI();
-  const { profile, legacyMode } = useConfig();
+  const { profile, legacyMode, animationsEnabled } = useConfig();
   const { playPressSound } = useAudio();
   const {
     handleLaunch,
@@ -39,14 +41,14 @@ const HomeView = memo(function HomeView() {
   const buttonsVal = useMemo(() => {
     const mainBtn = {
       label: !hasAnyInstall
-        ? "Install a version"
+        ? t("home.installVersion")
         : isGameRunning
-          ? "Stop Game"
+          ? t("home.stopGame")
           : isDownloading
-            ? "Installation in progress..."
+            ? t("home.installing")
             : isInstalled
-              ? "Play Game"
-              : `Download ${selectedVersionName}`,
+              ? t("home.playGame")
+              : t("home.downloadVersion", { name: selectedVersionName }),
       action: !hasAnyInstall
         ? () => setActiveView("versions")
         : isGameRunning
@@ -71,28 +73,28 @@ const HomeView = memo(function HomeView() {
 
     const menuBtns = [
       {
-        label: "Help & Options",
+        label: t("home.helpAndOptions"),
         action: () => setActiveView("settings"),
         isDanger: false,
         disabled: false,
         id: "settings",
       },
       {
-        label: "Versions",
+        label: t("home.versions"),
         action: () => setActiveView("versions"),
         isDanger: false,
         disabled: false,
         id: "versions",
       },
       {
-        label: "Workshop",
+        label: t("home.workshop"),
         action: () => setActiveView("workshop"),
         isDanger: false,
         disabled: false,
         id: "workshop",
       },
       {
-        label: "Developer Tools",
+        label: t("home.developerTools"),
         action: () => setActiveView("devtools"),
         isDanger: false,
         disabled: false,
@@ -102,6 +104,7 @@ const HomeView = memo(function HomeView() {
 
     return [mainBtn, ...pluginBtns, ...menuBtns];
   }, [
+    t,
     isDownloading,
     hasAnyInstall,
     isInstalled,
@@ -132,8 +135,10 @@ const HomeView = memo(function HomeView() {
           prev === null ? buttonsVal.length - 1 : prev > 0 ? prev - 1 : prev,
         );
       if (e.key === "ArrowLeft") onNavigateToSkin();
-      if (e.key === "Enter" && menuFocus !== null)
+      if (e.key === "Enter" && menuFocus !== null) {
+        e.preventDefault();
         buttonsVal[menuFocus].action();
+      }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
@@ -142,14 +147,14 @@ const HomeView = memo(function HomeView() {
   return (
     <motion.div
       tabIndex={-1}
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: animationsEnabled ? 0 : 1, y: animationsEnabled ? 10 : 0 }}
       animate={{ opacity: isFocusedSection ? 1 : 0.5, y: 0 }}
-      exit={{ opacity: 0, y: 10 }}
-      transition={{ duration: useConfig().animationsEnabled ? 0.3 : 0 }}
+      exit={{ opacity: animationsEnabled ? 0 : 1, y: animationsEnabled ? 10 : 0 }}
+      transition={{ duration: animationsEnabled ? 0.3 : 0 }}
       className="relative w-full max-w-[540px] flex flex-col space-y-3 outline-none"
     >
       {buttonsVal.map((btn, i) => (
-        <div key={i} className="relative w-full group">
+        <div key={i} className="relative w-full group flex justify-center">
           <button
             onMouseEnter={() =>
               isFocusedSection && !btn.disabled && setMenuFocus(i)
@@ -162,7 +167,7 @@ const HomeView = memo(function HomeView() {
               }
             }}
             disabled={btn.disabled}
-            className={`w-full h-12 flex items-center justify-between px-6 text-2xl mc-text-shadow transition-colors outline-none border-none ${btn.disabled ? "text-gray-400 cursor-not-allowed" : menuFocus === i ? (btn.isDanger ? "text-red-400" : "text-[#FFFF55]") : btn.isDanger ? "text-red-500" : "text-white"}`}
+            className={`w-[90%] h-11 flex items-center justify-between px-6 text-xl mc-text-shadow transition-colors outline-none border-none ${btn.disabled ? "text-gray-400 cursor-not-allowed" : menuFocus === i ? (btn.isDanger ? "text-red-400" : "text-[#FFFF55]") : btn.isDanger ? "text-red-500" : "text-white"}`}
             style={{
               backgroundImage: btn.disabled
                 ? "url('/images/Button_Background.png')"

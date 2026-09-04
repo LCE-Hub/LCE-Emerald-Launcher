@@ -34,6 +34,7 @@ export class LceOnlineService {
   private _session: SessionData | null = null;
   private baseUrl: string = SOCIAL_BASE_URL;
   private _listeners: Array<() => void> = [];
+  private _isHosting: boolean = false;
   constructor() {
     this.loadSession();
   }
@@ -55,6 +56,15 @@ export class LceOnlineService {
 
   get account(): LceOnlineAccount | null {
     return this._session?.account || null;
+  }
+
+  get isHosting(): boolean {
+    return this._isHosting;
+  }
+
+  set isHosting(value: boolean) {
+    this._isHosting = value;
+    this._notify();
   }
 
   get displayUsername(): string {
@@ -220,49 +230,49 @@ export class LceOnlineService {
   }
 
   async sendFriendRequest(target: string): Promise<void> {
-    const res = await this.request<string>("POST", "/sendrequest", target);
+    const res = await this.request<string>("GET", `/sendrequest?target=${encodeURIComponent(target)}`);
     if (typeof res === "string" && res !== "Successfully Sent Friend Request") {
       throw new Error(res);
     }
   }
 
   async acceptFriendRequest(from: string): Promise<void> {
-    const res = await this.request<string>("POST", "/acceptrequest", from);
+    const res = await this.request<string>("GET", `/acceptrequest?from=${encodeURIComponent(from)}`);
     if (typeof res === "string" && res !== "1") {
       throw new Error(res);
     }
   }
 
   async declineFriendRequest(from: string): Promise<void> {
-    const res = await this.request<string>("POST", "/declinerequest", from);
+    const res = await this.request<string>("GET", `/declinerequest?from=${encodeURIComponent(from)}`);
     if (typeof res === "string" && res !== "1") {
       throw new Error(res);
     }
   }
 
   async removeFriend(from: string): Promise<void> {
-    const res = await this.request<string>("POST", "/removefriend", from);
+    const res = await this.request<string>("GET", `/removefriend?from=${encodeURIComponent(from)}`);
     if (typeof res === "string") {
       throw new Error(res);
     }
   }
 
   async sendInvite(target: string): Promise<void> {
-    const res = await this.request<string>("POST", "/invite", target);
+    const res = await this.request<string>("GET", `/invite?target=${encodeURIComponent(target)}`);
     if (typeof res === "string" && res !== "Successfully Sent Invite") {
       throw new Error(res);
     }
   }
 
   async acceptInvite(from: string): Promise<string> {
-    const res = await this.request<string>("POST", "/acceptinvite", from);
+    const res = await this.request<string>("GET", `/acceptinvite?from=${encodeURIComponent(from)}`);
     if (typeof res !== "string") throw new Error("Failed to accept invite");
     return res;
   }
 
   async declineInvite(from: string): Promise<void> {
     try {
-      await this.request("POST", "/declineinvite", from);
+      await this.request("GET", `/declineinvite?from=${encodeURIComponent(from)}`);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "";
       if (msg !== "Successfully Declined Invite") throw e;

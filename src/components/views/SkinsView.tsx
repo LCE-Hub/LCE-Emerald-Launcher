@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, memo } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 import { TauriService } from "../../services/TauriService";
@@ -70,7 +71,7 @@ const DEFAULT_SKINS: SavedSkin[] = [
     url: "/Skins/PrismaChunk0.png",
     isSlim: false,
   },
-  { id: "amy", name: "Amy", url: "/Skins/amy.png", isSlim: true }, //neo: she's the best btw
+  { id: "amy", name: "Amy", url: "/Skins/amy.png", isSlim: true }, //neo: :c
   { id: "avalilac", name: "AvaLilac", url: "/Skins/ava.png", isSlim: true },
   { id: "huckle", name: "Huckle", url: "/Skins/huckle.png", isSlim: true },
   {
@@ -124,6 +125,7 @@ const HeadPreview = memo(function HeadPreview({ src }: { src: string }) {
 });
 
 const SkinsView = memo(function SkinsView() {
+  const { t } = useTranslation();
   const { setActiveView, setIsUiHidden } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { isAndroid } = usePlatform();
@@ -250,7 +252,7 @@ const SkinsView = memo(function SkinsView() {
           ? e.message
           : typeof e === "string"
             ? e
-            : "Failed to fetch",
+            : t("skins.failedToFetch"),
       );
     } finally {
       setIsImporting(false);
@@ -364,6 +366,7 @@ const SkinsView = memo(function SkinsView() {
           setFocusIndex(next < SKINS_START_INDEX ? 0 : next);
         }
       } else if (e.key === "Enter" && focusIndex !== null) {
+        e.preventDefault();
         if (focusIndex === 0) {
           if (viewMode === "skin") handleImportClick();
           else capeFileInputRef.current?.click();
@@ -528,14 +531,14 @@ const SkinsView = memo(function SkinsView() {
     <motion.div
       ref={containerRef}
       tabIndex={-1}
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       transition={{ duration: useConfig().animationsEnabled ? 0.3 : 0 }}
       className="flex flex-col items-center w-full max-w-3xl h-full outline-none"
     >
       <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 border-b-2 border-[#373737] pb-2 w-[60%] max-w-75 text-center tracking-widest uppercase opacity-80 font-bold">
-        {viewMode === "skin" ? "Skin Library" : "Cape Library"}
+        {viewMode === "skin" ? t("skins.skinLibrary") : t("skins.capeLibrary")}
       </h2>
 
       <div className="w-full max-w-160 flex-1 min-h-0 mb-4 p-5 flex flex-col relative overflow-hidden">
@@ -558,7 +561,7 @@ const SkinsView = memo(function SkinsView() {
               imageRendering: "pixelated",
             }}
           >
-            {viewMode === "skin" ? "Import Skin" : "Import Cape"}
+            {viewMode === "skin" ? t("skins.importSkin") : t("skins.importCape")}
           </button>
 
           <button
@@ -593,7 +596,7 @@ const SkinsView = memo(function SkinsView() {
               imageRendering: "pixelated",
             }}
           >
-            {viewMode === "skin" ? "Delete Skin" : "Delete Cape"}
+            {viewMode === "skin" ? t("skins.deleteSkin") : t("skins.deleteCape")}
           </button>
 
           {viewMode === "skin" && (
@@ -604,9 +607,9 @@ const SkinsView = memo(function SkinsView() {
                 playPressSound();
                 setActiveView("skin-editor");
               }}
-              className={`w-40 h-10 flex items-center 
-                justify-center transition-colors text-2xl 
-                mc-text-shadow outline-none border-none hover:text-[#FFFF55] 
+              className={`w-40 h-10 flex items-center
+                justify-center transition-colors text-2xl
+                mc-text-shadow outline-none border-none hover:text-[#FFFF55]
                 ${focusIndex === 2 ? "text-[#FFFF55]" : "text-white"}`}
               style={{
                 backgroundImage:
@@ -617,7 +620,7 @@ const SkinsView = memo(function SkinsView() {
                 imageRendering: "pixelated",
               }}
             >
-              Edit Skin
+              {t("skins.editSkin")}
             </button>
           )}
 
@@ -642,7 +645,11 @@ const SkinsView = memo(function SkinsView() {
             >
               <img
                 src="/images/Update_Icon.png"
-                alt={viewMode === "skin" ? "Switch to Cape" : "Switch to Skin"}
+                alt={
+                  viewMode === "skin"
+                    ? t("skins.switchToCape")
+                    : t("skins.switchToSkin")
+                }
                 className="w-8 h-8 object-contain pointer-events-none drop-shadow-md"
                 style={{ imageRendering: "pixelated" }}
                 loading="lazy"
@@ -686,12 +693,12 @@ const SkinsView = memo(function SkinsView() {
                   <div className="h-4 flex items-center justify-center gap-1">
                     {isActive && (
                       <span className="text-[#FFFF55] text-xs mc-text-shadow uppercase tracking-widest">
-                        Active
+                        {t("skins.active")}
                       </span>
                     )}
                     {skin.isSlim && (
                       <span className="bg-purple-500/50 border border-purple-500/80 text-white px-1 text-[10px] uppercase rounded">
-                        Slim
+                        {t("skins.slim")}
                       </span>
                     )}
                   </div>
@@ -742,7 +749,7 @@ const SkinsView = memo(function SkinsView() {
                 <span
                   className={`text-center outline-none border-none text-base mc-text-shadow w-full truncate transition-colors ${isActiveCapeDefault || focusIndex === SKINS_START_INDEX ? "text-[#FFFF55]" : "text-white"}`}
                 >
-                  No Cape
+                  {t("skins.noCape")}
                 </span>
               </div>
               {savedCapes.map((cape, i) => {
@@ -828,7 +835,7 @@ const SkinsView = memo(function SkinsView() {
             imageRendering: "pixelated",
           }}
         >
-          Back
+          {t("common.back")}
         </button>
       )}
 
@@ -844,7 +851,7 @@ const SkinsView = memo(function SkinsView() {
             }}
           >
             <h2 className="text-2xl text-white mc-text-shadow mb-6 tracking-widest uppercase font-bold text-center">
-              Import Skin
+              {t("skins.importSkin")}
             </h2>
 
             {!importMode ? (
@@ -865,7 +872,7 @@ const SkinsView = memo(function SkinsView() {
                     imageRendering: "pixelated",
                   }}
                 >
-                  From File
+                  {t("skins.fromFile")}
                 </button>
                 <button
                   onMouseEnter={() => setModalFocusIndex(1)}
@@ -884,14 +891,14 @@ const SkinsView = memo(function SkinsView() {
                     imageRendering: "pixelated",
                   }}
                 >
-                  From Username
+                  {t("skins.fromUsername")}
                 </button>
               </div>
             ) : importMode === "username" ? (
               <div className="flex flex-col gap-4 w-full px-4 mb-2">
                 <input
                   type="text"
-                  placeholder="Minecraft Username"
+                  placeholder={t("skins.minecraftUsername")}
                   value={importUsername}
                   onChange={(e) => setImportUsername(e.target.value)}
                   onFocus={() => setModalFocusIndex(0)}
@@ -921,14 +928,16 @@ const SkinsView = memo(function SkinsView() {
                   }}
                 >
                   {isImporting
-                    ? "Fetching..."
-                    : `Fetch ${viewMode === "skin" ? "Skin" : "Cape"}`}
+                    ? t("skins.fetching")
+                    : t("skins.fetch", {
+                        type: viewMode === "skin" ? "Skin" : "Cape",
+                      })}
                 </button>
               </div>
             ) : importMode === "model" ? (
               <div className="flex flex-col gap-4 w-full px-4 mb-2">
                 <span className="text-white/80 text-sm text-center mb-2 mc-text-shadow">
-                  Choose the player model type for this skin:
+                  {t("skins.chooseModelType")}:
                 </span>
                 <button
                   onMouseEnter={() => setModalFocusIndex(0)}
@@ -946,7 +955,7 @@ const SkinsView = memo(function SkinsView() {
                     imageRendering: "pixelated",
                   }}
                 >
-                  Normal (Wide Arms)
+                  {t("skins.normalWideArms")}
                 </button>
                 <button
                   onMouseEnter={() => setModalFocusIndex(1)}
@@ -964,7 +973,7 @@ const SkinsView = memo(function SkinsView() {
                     imageRendering: "pixelated",
                   }}
                 >
-                  Slim (Thin Arms)
+                  {t("skins.slimThinArms")}
                 </button>
               </div>
             ) : null}
@@ -989,7 +998,7 @@ const SkinsView = memo(function SkinsView() {
                 imageRendering: "pixelated",
               }}
             >
-              Cancel
+              {t("common.cancel")}
             </button>
           </div>
         </div>

@@ -233,4 +233,7 @@ export const SPLASHES = [
   "I LOVE YURI!!!!!!!                 oh and yaoi ig",
   "RIP PrismaChunk0's Dog 2010-2026",
   "Guess who's back, back again!",
+  "Minecraft: Playstation®4 Edition!",
+  "Also try LegacyOrbis!",
+  "bytebukkit was here!",
 ];

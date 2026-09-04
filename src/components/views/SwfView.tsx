@@ -1,8 +1,10 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { useConfig, useAudio, useUI } from "../../context/LauncherContext";
 import { SwfImage, SwfService, SwfTag } from "../../services/SwfService";
 export default function SwfView() {
+  const { t } = useTranslation();
   const { animationsEnabled } = useConfig();
   const { playBackSound, playPressSound } = useAudio();
   const { setActiveView } = useUI();
@@ -79,10 +81,10 @@ export default function SwfView() {
       if (extracted.length > 0) {
         setSelectedImageId(extracted[0].id);
       }
-      showNotification(`Loaded ${file.name}`);
+      showNotification(t("swfEditor.loaded", { name: file.name }));
     } catch (e: unknown) {
       console.error(e);
-      showNotification("Failed to process SWF", "error");
+      showNotification(t("swfEditor.failedToProcess"), "error");
       setImages([]);
       setSwfData(null);
     }
@@ -128,7 +130,7 @@ export default function SwfView() {
     a.download = `${img.name || `image_${img.id}`}.${ext}`;
     a.click();
     URL.revokeObjectURL(url);
-    showNotification(`Exported: ${img.name || img.id}`);
+    showNotification(t("swfEditor.exported", { name: img.name || img.id }));
   };
 
   const handleReplace = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -154,7 +156,7 @@ export default function SwfView() {
       return next;
     });
 
-    showNotification("Image Replaced", "success");
+    showNotification(t("swfEditor.imageReplaced"), "success");
     e.target.value = "";
   };
 
@@ -169,7 +171,7 @@ export default function SwfView() {
     a.download = fileName || "output.swf";
     a.click();
     URL.revokeObjectURL(url);
-    showNotification("SWF Saved Successfully");
+    showNotification(t("swfEditor.savedSuccessfully"));
   };
 
   return (
@@ -182,7 +184,7 @@ export default function SwfView() {
     >
       <div className="w-full flex justify-between items-center mb-4 px-8">
         <h2 className="text-2xl text-white mc-text-shadow border-b-2 border-[#373737] pb-1 tracking-widest uppercase font-bold">
-          SWF Editor
+          {t("swfEditor.title")}
         </h2>
         <div className="flex gap-4">
           <button
@@ -190,7 +192,7 @@ export default function SwfView() {
             className="px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none"
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
-            Open SWF
+            {t("swfEditor.openSwf")}
           </button>
           <button
             onClick={handleSaveSwf}
@@ -198,7 +200,7 @@ export default function SwfView() {
             className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none ${!swfData ? "opacity-50 grayscale" : ""}`}
             style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
           >
-            Save SWF
+            {t("swfEditor.saveSwf")}
           </button>
         </div>
       </div>
@@ -210,7 +212,7 @@ export default function SwfView() {
         <div className="flex-1 w-full flex flex-col items-center justify-center p-12"
           style={{ backgroundImage: "url('/images/frame_background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}>
           <img src="/images/tools/arc.png" className="w-32 h-32 mb-8 opacity-20 grayscale" style={{ imageRendering: "pixelated" }} />
-          <h3 className="text-2xl text-white/40 mc-text-shadow italic">Open an SWF file to begin editing</h3>
+          <h3 className="text-2xl text-white/40 mc-text-shadow italic">{t("swfEditor.openToBegin")}</h3>
         </div>
       ) : (
         <div className="flex-1 w-full flex gap-4 overflow-hidden">
@@ -218,7 +220,7 @@ export default function SwfView() {
             <div className="mb-4">
               <input
                 type="text"
-                placeholder="Search assets..."
+                placeholder={t("swfEditor.searchAssets")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
@@ -248,7 +250,7 @@ export default function SwfView() {
             <AnimatePresence mode="wait">
               {!selectedImage ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-white/20 italic gap-4">
-                  <span>Select an image to view details</span>
+                  <span>{t("swfEditor.selectImageViewDetails")}</span>
                 </div>
               ) : (
                 <motion.div
@@ -263,9 +265,9 @@ export default function SwfView() {
                         {selectedImage.name || `Bitmap ${selectedImage.id}`}
                       </h3>
                       <div className="flex gap-4 text-xs uppercase tracking-widest text-white/40">
-                        <span>Character ID: <span className="text-white/80">{selectedImage.id}</span></span>
-                        <span>Type: <span className="text-white/80">{selectedImage.type}</span></span>
-                        {selectedImage.width && <span>Size: <span className="text-white/80">{selectedImage.width}x{selectedImage.height}</span></span>}
+                        <span>{t("swfEditor.characterId")} <span className="text-white/80">{selectedImage.id}</span></span>
+                        <span>{t("swfEditor.type")} <span className="text-white/80">{selectedImage.type}</span></span>
+                        {selectedImage.width && <span>{t("swfEditor.size")} <span className="text-white/80">{selectedImage.width}x{selectedImage.height}</span></span>}
                       </div>
                     </div>
                   </div>
@@ -279,7 +281,7 @@ export default function SwfView() {
                         alt={`Bitmap ${selectedImage.id}`}
                       />
                     ) : (
-                      <div className="text-white/20 italic">Loading Preview...</div>
+                      <div className="text-white/20 italic">{t("swfEditor.loadingPreview")}</div>
                     )}
                   </div>
 
@@ -289,14 +291,14 @@ export default function SwfView() {
                       className="flex-1 py-3 text-white mc-text-shadow text-lg transition-all hover:text-[#FFFF55]"
                       style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
                     >
-                      Export Bitmap
+                      {t("swfEditor.exportBitmap")}
                     </button>
                     <button
                       onClick={() => replaceInputRef.current?.click()}
                       className="flex-1 py-3 text-white mc-text-shadow text-lg transition-all hover:text-[#FFFF55]"
                       style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
                     >
-                      Replace Bitmap
+                      {t("swfEditor.replaceBitmap")}
                     </button>
                   </div>
                 </motion.div>
@@ -311,7 +313,7 @@ export default function SwfView() {
         className="w-72 h-14 shrink-0 flex items-center justify-center transition-colors text-2xl mc-text-shadow mt-6 outline-none border-none hover:text-[#FFFF55] text-white"
         style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
       >
-        Back
+        {t("swfEditor.back")}
       </button>
 
       <AnimatePresence>

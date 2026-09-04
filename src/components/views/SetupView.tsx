@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { TauriService, Runner } from "../../services/TauriService";
 import { usePlatform } from "../../hooks/usePlatform";
 import { useConfig, useAudio } from "../../context/LauncherContext";
@@ -7,6 +8,7 @@ interface SetupViewProps {
 }
 
 const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
+  const { t } = useTranslation();
   const { isLinux, isMac, isAndroid } = usePlatform();
   const {
     username,
@@ -125,6 +127,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
         e.preventDefault();
         setFocusIndex((prev) => (prev - 1 + count) % count);
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (currentStep === 0) {
           if (focusIndex === 0) handleNext();
           else if (focusIndex === 1) handleNext();
@@ -181,14 +184,14 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
     setIsSettingUpRuntime(true);
     setSetupProgress({
       stage: "preparing",
-      message: "Preparing macOS runtime setup...",
+      message: t("setup.macosPreparing"),
       percent: 0,
     });
     try {
       await TauriService.setupMacosRuntime();
       setSetupProgress({
         stage: "completed",
-        message: "Setup completed successfully!",
+        message: t("setup.macosCompleted"),
         percent: 100,
       });
       localStorage.setItem("lce-macos-runtime-installed", "true");
@@ -201,7 +204,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
     } catch (e) {
       setSetupProgress({
         stage: "error",
-        message: `Setup failed: ${e}`,
+        message: t("setup.macosFailed", { error: e }),
         percent: 0,
       });
       setIsSettingUpRuntime(false);
@@ -243,17 +246,17 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
           >
             {currentStep === 0 && (
               <p className="text-white text-sm tracking-widest text-center uppercase mb-4">
-                Let's configure your launcher
+                {t("setup.letsConfigure")}
               </p>
             )}
             {currentStep === 1 && (
               <p className="text-white text-xs tracking-widest text-center uppercase mb-4">
-                Compatibility Runtime
+                {t("setup.compatibilityRuntime")}
               </p>
             )}
             {currentStep === 2 && (
               <p className="text-white text-xs tracking-widest text-center uppercase mb-4">
-                Choose your preferred options and behaviors
+                {t("setup.choosePreferredOptions")}
               </p>
             )}
             <div
@@ -267,7 +270,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                 <div className="p-5 flex flex-col gap-4 mc-options-bg">
                   <label className="block relative">
                     <span className="text-black font-bold uppercase tracking-widest text-sm block mb-2">
-                      Username
+                      {t("setup.username")}
                     </span>
                     <div className="relative">
                       <input
@@ -330,7 +333,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                           backgroundColor: "#646464",
                           caretColor: "transparent",
                         }}
-                        placeholder="Enter your username"
+                        placeholder={t("setup.enterUsername")}
                         maxLength={16}
                         autoFocus
                       />
@@ -350,7 +353,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                   </label>
                   {tempUsername.trim().length === 0 && (
                     <p className="text-gray-500 text-xs text-center uppercase tracking-widest">
-                      A username is required to continue
+                      {t("setup.usernameRequired")}
                     </p>
                   )}
                 </div>
@@ -376,13 +379,13 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                         className={`font-bold text-sm uppercase tracking-widest ${runtimeAlreadyInstalled ? "text-green-700" : "text-yellow-700"}`}
                       >
                         {runtimeAlreadyInstalled
-                          ? "Runtime Detected"
-                          : "Runtime Not Detected"}
+                          ? t("setup.runtimeDetected")
+                          : t("setup.runtimeNotDetected")}
                       </p>
                       <p className="text-gray-700 text-xs mt-0.5">
                         {runtimeAlreadyInstalled
-                          ? "Game Porting Toolkit 3 and Wine installed"
-                          : "You must install the runtime before proceeding."}
+                          ? t("setup.gptInstalled")
+                          : t("setup.mustInstallRuntime")}
                       </p>
                     </div>
                   </div>
@@ -417,10 +420,10 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                     >
                       <span className="tracking-widest uppercase text-lg">
                         {isSettingUpRuntime
-                          ? "Installing..."
+                          ? t("setup.installing")
                           : runtimeAlreadyInstalled
-                            ? "Reinstall Runtime"
-                            : "Install Runtime"}
+                            ? t("setup.reinstallRuntime")
+                            : t("setup.installRuntime")}
                       </span>
                     </button>
                   </div>
@@ -432,8 +435,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                   {runners.length === 0 ? (
                     <div className="p-3 border-2 border-yellow-400/50 bg-yellow-50">
                       <p className="text-yellow-600 text-sm text-center">
-                        No compatible runners found. Please install Wine or
-                        Proton.
+                        {t("setup.noCompatibleRunners")}
                       </p>
                     </div>
                   ) : (
@@ -459,7 +461,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                     </div>
                   )}
                   <p className="text-xs text-gray-500 text-center uppercase tracking-widest mt-1">
-                    You can change this later in settings
+                    {t("setup.changeLaterInSettings")}
                   </p>
                 </div>
               )}
@@ -470,11 +472,10 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                     <span className="text-green-400 text-xl">✓</span>
                     <div>
                       <p className="text-green-600 font-bold text-sm uppercase tracking-widest">
-                        Windows Native Support
+                        {t("setup.windowsNativeSupport")}
                       </p>
                       <p className="text-gray-600 text-xs mt-0.5">
-                        Emerald Legacy runs natively on Windows without
-                        additional requirements.
+                        {t("setup.windowsNativeDesc")}
                       </p>
                     </div>
                   </div>
@@ -487,12 +488,10 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                     <span className="text-green-400 text-xl">✓</span>
                     <div>
                       <p className="text-green-600 font-bold text-sm uppercase tracking-widest">
-                        DiamondRuntime Support
+                        {t("setup.diamondRuntimeSupport")}
                       </p>
                       <p className="text-gray-600 text-xs mt-0.5">
-                        Emerald Launcher runs natively on Android without
-                        additional requirements. Powered by our own
-                        DiamondRuntime.
+                        {t("setup.diamondRuntimeDesc")}
                       </p>
                     </div>
                   </div>
@@ -514,7 +513,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                       <span
                         className={`tracking-widest uppercase text-lg ${focusIndex === 0 ? "text-[#FFFF55]" : "text-gray-800"}`}
                       >
-                        Discord RPC
+                        {t("setup.discordRpc")}
                       </span>
                       <div className="relative w-6 h-6 shrink-0">
                         <img
@@ -549,7 +548,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                     <span
                       className={`tracking-widest uppercase text-lg ${focusIndex === (isAndroid ? 0 : 1) ? "text-[#FFFF55]" : "text-gray-800"}`}
                     >
-                      Animations
+                      {t("setup.animations")}
                     </span>
                     <div className="relative w-6 h-6 shrink-0">
                       <img
@@ -574,7 +573,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                   </button>
 
                   <p className="text-xs text-gray-500 text-center uppercase tracking-widest mt-2">
-                    You can change these later in settings
+                    {t("setup.changeTheseLater")}
                   </p>
                 </div>
               )}
@@ -582,13 +581,13 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
               {currentStep === 3 && (
                 <div className="p-5 flex flex-col gap-3 mc-options-bg">
                   <p className="text-gray-700 text-xs tracking-widest text-center uppercase">
-                    Emerald Launcher is now configured and ready to use!
+                    {t("setup.setupComplete")}
                   </p>
 
                   <div className="flex flex-col gap-1 mt-1">
                     <div className="flex items-center justify-between px-4 h-10 border-b border-white/10">
                       <span className="text-gray-600 text-sm uppercase tracking-widest">
-                        Username
+                        {t("setup.username")}
                       </span>
                       <span className="text-[#FFFF55] font-bold mc-text-shadow">
                         {tempUsername}
@@ -597,15 +596,15 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                     {isMac && (
                       <div className="flex items-center justify-between px-4 h-10 border-b border-white/10">
                         <span className="text-gray-600 text-sm uppercase tracking-widest">
-                          Runtime
+                          {t("setup.runtime")}
                         </span>
-                        <span className="text-green-400 font-bold">Ready</span>
+                        <span className="text-green-400 font-bold">{t("setup.ready")}</span>
                       </div>
                     )}
                     {isLinux && selectedRunner && (
                       <div className="flex items-center justify-between px-4 h-10 border-b border-white/10">
                         <span className="text-gray-600 text-sm uppercase tracking-widest">
-                          Runner
+                          {t("setup.runner")}
                         </span>
                         <span className="text-green-400 font-bold">
                           {runners.find((r) => r.id === selectedRunner)?.name}
@@ -614,7 +613,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                     )}
                     <div className="flex items-center justify-between px-4 h-10 border-b border-white/10">
                       <span className="text-gray-600 text-sm uppercase tracking-widest">
-                        Animations
+                        {t("setup.animations")}
                       </span>
                       <div className="relative w-5 h-5">
                         <img
@@ -636,7 +635,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                     {!isAndroid && (
                       <div className="flex items-center justify-between px-4 h-10">
                         <span className="text-gray-600 text-sm uppercase tracking-widest">
-                          Discord RPC
+                          {t("setup.discordRpc")}
                         </span>
                         <div className="relative w-5 h-5">
                           <img
@@ -695,7 +694,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                   )}
                 >
                   <span className="tracking-widest uppercase text-xl">
-                    Back
+                    {t("common.back")}
                   </span>
                 </button>
               ) : (
@@ -737,7 +736,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                 )}
               >
                 <span className="tracking-widest uppercase text-xl">
-                  {currentStep === totalSteps - 1 ? "Finish" : "Next"}
+                  {currentStep === totalSteps - 1 ? t("common.finish") : t("common.next")}
                 </span>
               </button>
             </div>

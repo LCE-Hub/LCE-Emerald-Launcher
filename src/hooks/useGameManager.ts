@@ -48,6 +48,18 @@ export const BASE_EDITIONS = [
     panorama: "vanilla_tu19",
     logo: "/images/revelations.png",
   },
+  {
+    id: "legacyorbis",
+    name: "LegacyOrbis",
+    desc: "A LCE Project which aims to bring the feel and functionality from Minecraft: Playstation®4 Edition directly natively to your PC!",
+    url: "https://git.neolegacy.dev/LegacyOrbis/Client/releases/download/latest/MinecraftPS4Edition.zip", // LO-Byte: No CDN right now, direct download from the git
+    titleImage: "/images/MinecraftPS4Edition.png",
+    supportsSlimSkins: true, // LO-Byte: Slim skins are supported, might have to change a few things in the code to match neoLegacy's implementation
+    logo: "/images/LegacyOrbis.png",
+    panorama: "legacyorbis",
+    // LO-Byte: Store is built differently to what emerald expects, branch for emerald will be added soon
+    //officialDLC: "main:https://git.neolegacy.dev/LegacyOrbis/Store",
+  },
   /*{
     id: "cafeberry",
     name: "Cafeberry",
@@ -74,12 +86,12 @@ export const BASE_EDITIONS = [
     id: "360revived",
     name: "360 Revived",
     desc: "PC port of Xbox 360 Edition TU19",
-    url: "https://github.com/BlackHoleSpirit/360-Revived/releases/download/nightly/360-Revived.zip",
+    url: HIDDEN_INSTANCE_URL, //neo: was "https://github.com/BlackHoleSpirit/360-Revived/releases/download/nightly/360-Revived.zip"
     titleImage: "/images/minecraft_title_360revived.png",
     supportsSlimSkins: false,
     logo: "/images/360_revived.png",
     panorama: "360revived",
-    hideOnAndroid: true, //neo: 360revived shows a black screen on Android
+    hideOnAndroid: true, //neo: [NOT EFFECT BECAUSE OF `url`] 360revived shows a black screen on Android
   },
   {
     id: "legacy_nether_fork",
@@ -112,16 +124,6 @@ export const BASE_EDITIONS = [
     logo: "/images/lce_online.png",
     panorama: "vanilla_tu19",
     lceOnline: true,
-  },
-  {
-    id: "amythest",
-    name: "Amethyst LCE",
-    desc: "A project aimed towards backporting modern Java edition features and their feel into LCE! ",
-    logo: "/images/amythest.png",
-    panorama: "vanilla_tu24", //neo: TODO: use the Amythest's panorama
-    supportsSlimSkins: false, //neo: TODO: check properly lol
-    titleImage: "/images/amythest_title.png",
-    url: "https://github.com/ducttapesucker9000-svg/Amethyst_Source/releases/download/latest/Amethyst-Windows-Release.zip",
   },
 ];
 
@@ -462,12 +464,14 @@ export function useGameManager({
   const downloadRunner = useCallback(
     async (name: string, url: string) => {
       if (isRunnerDownloading) return;
+      const runnerKey = `runner_${name}`;
       setIsRunnerDownloading(true);
       setRunnerDownloadProgress(0);
+      setDownloadingIds((prev) => [...prev, runnerKey]);
+      setDownloadProgress((prev) => ({ ...prev, [runnerKey]: 0 }));
       setError(null);
       try {
         await TauriService.downloadRunner(name, url);
-        setRunnerDownloadProgress(null);
       } catch (e: unknown) {
         console.error(e);
         setError(
@@ -478,11 +482,28 @@ export function useGameManager({
               : "Failed to download runner",
         );
       } finally {
+        setRunnerDownloadProgress(null);
+        setDownloadingIds((prev) => prev.filter((id) => id !== runnerKey));
+        setDownloadProgress((prev) => {
+          const next = { ...prev };
+          delete next[runnerKey];
+          return next;
+        });
         setIsRunnerDownloading(false);
       }
     },
     [isRunnerDownloading],
   );
+
+  useEffect(() => {
+    if (!isRunnerDownloading) return;
+    const runnerKey = Object.keys(downloadProgress).find((key) =>
+      key.startsWith("runner_"),
+    );
+    if (runnerKey && downloadProgress[runnerKey] !== undefined) {
+      setRunnerDownloadProgress(downloadProgress[runnerKey]);
+    }
+  }, [downloadProgress, isRunnerDownloading]);
 
   const toggleInstall = useCallback(
     async (id: string) => {

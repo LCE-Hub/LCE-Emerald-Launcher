@@ -11,7 +11,8 @@
     "tauri:build": "tauri build && pnpm run post-build:macos",
     "post-build:macos": "bash src-tauri/scripts/post-build-macos.sh",
     "android:assets": "node scripts/download-android-assets.mjs",
-    "flatpak": "flatpak-builder --user --install-deps-from=flathub --repo=emerald-repo --force-clean build-flatpak flatpak/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.yml && flatpak build-bundle emerald-repo emerald.flatpak io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher"
+    "flatpak": "flatpak-builder --user --install-deps-from=flathub --repo=emerald-repo --force-clean build-flatpak flatpak/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.yml && flatpak build-bundle emerald-repo emerald.flatpak io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher",
+    "goldmapper": "node scripts/build-goldmapper.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
@@ -20,10 +21,13 @@
     "@tauri-apps/plugin-process": "~2.3.1",
     "@tauri-apps/plugin-updater": "~2.10.1",
     "framer-motion": "^12.36.0",
+    "i18next": "^26.4.0",
+    "i18next-browser-languagedetector": "^8.2.1",
     "pako": "^2.1.0",
     "qrcode": "^1.5.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-i18next": "^17.0.12",
     "react-markdown": "^10.1.0",
     "rehype-raw": "^7.0.0",
     "rehype-sanitize": "^6.0.0",

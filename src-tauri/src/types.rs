@@ -40,6 +40,12 @@ pub struct InstanceLaunchArgs {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct GoldMapperMapping {
+    pub from: String,
+    pub to: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AppConfig {
     pub username: String,
@@ -69,6 +75,9 @@ pub struct AppConfig {
     pub instance_launch_args: Option<std::collections::HashMap<String, InstanceLaunchArgs>>,
     pub android_runner: Option<String>,
     pub android_audio_backend: Option<String>,
+    pub goldmapper_enabled: Option<bool>,
+    pub goldmapper_mappings: Option<Vec<GoldMapperMapping>>,
+    pub http_proxy: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
