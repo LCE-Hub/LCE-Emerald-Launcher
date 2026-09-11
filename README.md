@@ -234,6 +234,7 @@ sudo apt install --reinstall libwebkit2gtk-4.1-0
 
 ## Acknowledgments
 
+- **neoapps** - Main and most active developer of the Emerald Launcher
 - **The Emerald Team** - Technical development and maintenance
 - **4J Studios & Mojang** - Original creators of Legacy Console Edition
 - **The LCE Community** - Research and foundations for LCE on PC
