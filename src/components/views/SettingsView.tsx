@@ -173,8 +173,8 @@ const SettingsView = memo(function SettingsView() {
         <h3 class="text-2xl text-[#333333] mb-4 text-left w-full px-4 mc-text-shadow">${t("settings.reset.title")}</h3>
         <p class="text-[#333333] mb-8 text-left w-full px-4">${t("settings.reset.confirm")}</p>
         <div class="flex flex-col gap-3 w-full px-4">
-          <button id="reset-cancel" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">${t("common.cancel")}</button>
-          <button id="reset-ok" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">${t("common.ok")}</button>
+          <button id="reset-cancel" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Layout_Button_Bmp.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/Layout_Button_Over.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">${t("common.cancel")}</button>
+          <button id="reset-ok" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Layout_Button_Bmp.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/Layout_Button_Over.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">${t("common.ok")}</button>
         </div>
       </div>
     `;
@@ -220,8 +220,8 @@ const SettingsView = memo(function SettingsView() {
           <p class="mt-3 text-[#333333]">${t("settings.reset.cannotBeUndone")}</p>
         </div>
         <div class="flex flex-col gap-3 w-full px-4">
-          <button id="reset-final-cancel" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">${t("common.cancel")}</button>
-          <button id="reset-final-ok" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">${t("common.ok")}</button>
+          <button id="reset-final-cancel" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Layout_Button_Bmp.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/Layout_Button_Over.png)'" onmouseleave="this.style.backgroundImage='url(/images/Layout_Button_Bmp.png)'">${t("common.cancel")}</button>
+          <button id="reset-final-ok" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Layout_Button_Bmp.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/Layout_Button_Over.png)'" onmouseleave="this.style.backgroundImage='url(/images/Layout_Button_Bmp.png)'">${t("common.ok")}</button>
         </div>
       </div>
     `;
@@ -1239,8 +1239,8 @@ const SettingsView = memo(function SettingsView() {
               style={{
                 backgroundImage:
                   focusIndex === backIndex
-                    ? "url('/images/button_highlighted.png')"
-                    : "url('/images/Button_Background.png')",
+                    ? "url('/images/Layout_Button_Over.png')"
+                    : "url('/images/Layout_Button_Bmp.png')",
                 backgroundSize: "100% 100%",
                 imageRendering: "pixelated",
               }}

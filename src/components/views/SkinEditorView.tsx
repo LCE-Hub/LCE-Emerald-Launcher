@@ -473,7 +473,7 @@ const SkinEditorView = memo(function SkinEditorView() {
     inset: 3,
   };
   const getBtnStyle = (active: boolean) =>
-    fillBg(active ? "/images/button_highlighted.png" : "/images/Button_Background.png");
+    fillBg(active ? "/images/Layout_Button_Over.png" : "/images/Layout_Button_Bmp.png");
   const sliderBg = fillBg("/images/Button_Background2.png");
   const btnClass = (id: string) =>
     `text-2xl mc-text-shadow ${focusBtn === id ? "text-[#FFFF55]" : "text-white"}`;
@@ -518,7 +518,7 @@ const SkinEditorView = memo(function SkinEditorView() {
       transition={{ duration: animationsEnabled ? 0.3 : 0 }}
       className="flex flex-col items-center w-full max-w-5xl h-full"
     >
-      <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 pb-2 w-[60%] 
+      <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 pb-2 w-[60%]
         text-center tracking-widest uppercase opacity-80 font-bold border-b-2 border-[#373737]">
         {t("skinEditor.title")}
       </h2>

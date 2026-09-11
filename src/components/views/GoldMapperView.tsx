@@ -428,7 +428,7 @@ const GoldMapperView = memo(function GoldMapperView() {
         onClick={handleBack}
         className="w-40 h-10 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none border-none hover:text-[#ffff00] mt-4 text-white"
         style={{
-          backgroundImage: "url('/images/Button_Background.png')",
+          backgroundImage: "url('/images/Layout_Button_Bmp.png')",
           backgroundSize: "100% 100%",
           imageRendering: "pixelated",
         }}

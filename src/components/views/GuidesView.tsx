@@ -274,8 +274,8 @@ export default function GuidesView() {
         style={{
           backgroundImage:
             focusIndex === BACK_BUTTON_INDEX
-              ? "url('/images/button_highlighted.png')"
-              : "url('/images/Button_Background.png')",
+              ? "url('/images/Layout_Button_Over.png')"
+              : "url('/images/Layout_Button_Bmp.png')",
           backgroundSize: "100% 100%",
           imageRendering: "pixelated",
         }}

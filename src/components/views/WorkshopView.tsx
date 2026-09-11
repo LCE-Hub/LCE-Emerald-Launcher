@@ -1152,17 +1152,17 @@ const WorkshopView = memo(function WorkshopView({
             }}
             className="w-72 h-10 flex items-center justify-center text-xl mc-text-shadow hover:text-[#FFFF55] text-white border-none outline-none transition-all"
             style={{
-              backgroundImage: "url('/images/Button_Background.png')",
+              backgroundImage: "url('/images/Layout_Button_Bmp.png')",
               backgroundSize: "100% 100%",
               imageRendering: "pixelated",
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLButtonElement).style.backgroundImage =
-                "url('/images/button_highlighted.png')";
+                "url('/images/Layout_Button_Over.png')";
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLButtonElement).style.backgroundImage =
-                "url('/images/Button_Background.png')";
+                "url('/images/Layout_Button_Bmp.png')";
             }}
           >
             {t("workshop.back")}

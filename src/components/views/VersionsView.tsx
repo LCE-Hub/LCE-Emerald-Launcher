@@ -613,7 +613,7 @@ const VersionsView = memo(function VersionsView() {
                                         <h3 class="text-2xl font-bold text-[#333333] mb-4 text-left w-full px-4 mc-text-shadow">${t("versions.invalidDirectory")}</h3>
                                         <p class="text-[#333333] mb-6 text-left w-full px-4">${t("versions.selectEmptyDirectory")}</p>
                                         <div class="flex flex-col gap-3 w-full px-4">
-                                          <button id="empty-dir-ok" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">${t("common.ok")}</button>
+                                          <button id="empty-dir-ok" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Layout_Button_Bmp.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/Layout_Button_Over.png)'" onmouseleave="this.style.backgroundImage='url(/images/Layout_Button_Bmp.png)'">${t("common.ok")}</button>
                                         </div>
                                       </div>
                                     `;

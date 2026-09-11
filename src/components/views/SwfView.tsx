@@ -311,7 +311,7 @@ export default function SwfView() {
       <button
         onClick={handleBack}
         className="w-72 h-14 shrink-0 flex items-center justify-center transition-colors text-2xl mc-text-shadow mt-6 outline-none border-none hover:text-[#FFFF55] text-white"
-        style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
+        style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
       >
         {t("swfEditor.back")}
       </button>
@@ -335,7 +335,7 @@ export default function SwfView() {
       <style>{`
         .pattern-checkerboard {
             background-color: #2a2a2a;
-            background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%, transparent 75%, #1a1a1a 75%, #1a1a1a), 
+            background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%, transparent 75%, #1a1a1a 75%, #1a1a1a),
                               linear-gradient(45deg, #1a1a1a 25%, transparent 25%, transparent 75%, #1a1a1a 75%, #1a1a1a);
             background-size: 16px 16px;
             background-position: 0 0, 8px 8px;

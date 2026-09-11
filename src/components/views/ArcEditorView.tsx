@@ -58,7 +58,7 @@ export const ArcEditorView: React.FC = () => {
       parsed.name = path.split(/[\/\\]/).pop() || "archive.arc";
       setArc(parsed);
       setOpenedPath(path);
-      
+
       const locEntry = parsed.entries.find(entry => entry.filename.toLowerCase() === "languages.loc");
       if (locEntry) {
         try {
@@ -92,7 +92,7 @@ export const ArcEditorView: React.FC = () => {
       if (!targetPath) {
         targetPath = await TauriService.saveFileDialog(t("arcEditor.saveArcDialog"), arc.name || "archive.arc", ["arc"]);
       }
-      
+
       if (targetPath) {
         await TauriService.writeBinaryFile(targetPath, data);
         setOpenedPath(targetPath);
@@ -302,7 +302,7 @@ export const ArcEditorView: React.FC = () => {
       if (!baseFolder) return;
       playPressSound();
       showNotification(t("arcEditor.exportingAll"));
-      
+
       for (const entry of arc.entries) {
         const fileName = entry.filename.replace(/\//g, "_");
         await TauriService.writeBinaryFile(`${baseFolder}/${fileName}`, entry.data);
@@ -331,7 +331,7 @@ export const ArcEditorView: React.FC = () => {
           <button
             onClick={handleFileLoad}
             className="px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none"
-            style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+            style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%" }}
           >
             {t("arcEditor.openArc")}
           </button>
@@ -339,7 +339,7 @@ export const ArcEditorView: React.FC = () => {
             onClick={handleExportAll}
             disabled={!arc || arc.entries.length === 0}
             className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none ${(!arc || arc.entries.length === 0) ? "opacity-50 grayscale" : ""}`}
-            style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+            style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%" }}
           >
             {t("arcEditor.exportAll")}
           </button>
@@ -347,7 +347,7 @@ export const ArcEditorView: React.FC = () => {
             onClick={handleSaveArc}
             disabled={!arc}
             className={`px-6 py-2 text-white mc-text-shadow transition-all hover:text-[#FFFF55] text-lg outline-none ${!arc ? "opacity-50 grayscale" : ""}`}
-            style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+            style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%" }}
           >
             {t("arcEditor.saveArc")}
           </button>
@@ -397,7 +397,7 @@ export const ArcEditorView: React.FC = () => {
                     <button
                       onClick={() => setIsAddModalOpen(true)}
                       className="px-6 py-2 text-white mc-text-shadow text-sm"
-                      style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+                      style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%" }}
                     >
                       {t("arcEditor.addEntry")}
                     </button>
@@ -428,21 +428,21 @@ export const ArcEditorView: React.FC = () => {
                         <button
                           onClick={() => handleExtractEntry(selectedEntry)}
                           className="w-full py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#FFFF55]"
-                          style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+                          style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%" }}
                         >
                           {t("arcEditor.exportFile")}
                         </button>
                         <button
                           onClick={() => setIsReplaceModalOpen(true)}
                           className="w-full py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#FFFF55]"
-                          style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+                          style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%" }}
                         >
                           {t("arcEditor.replaceData")}
                         </button>
                         <button
                           onClick={() => setIsRenameModalOpen(true)}
                           className="w-full py-2 text-white mc-text-shadow text-sm transition-all hover:text-[#FFFF55]"
-                          style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+                          style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%" }}
                         >
                           {t("arcEditor.renamePath")}
                         </button>
@@ -489,7 +489,7 @@ export const ArcEditorView: React.FC = () => {
                         showNotification(t("arcEditor.createdNewLocaleStructure"));
                       }}
                       className="px-6 py-2 text-white mc-text-shadow text-lg"
-                      style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+                      style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%" }}
                     >
                       {t("arcEditor.createLoc")}
                     </button>
@@ -516,14 +516,14 @@ export const ArcEditorView: React.FC = () => {
                       <button
                         onClick={() => setIsLocEditModalOpen({ langIdx: selectedLocLangIdx, strIdx: -1, isNew: true })}
                         className="px-6 py-2 text-white mc-text-shadow text-sm"
-                        style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+                        style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%" }}
                       >
                         {t("arcEditor.addString")}
                       </button>
                       <button
                         onClick={handleSaveLocToArc}
                         className="px-6 py-2 text-[#FFFF55] mc-text-shadow text-sm"
-                        style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+                        style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%" }}
                       >
                         {t("arcEditor.writeToArc")}
                       </button>
@@ -573,7 +573,7 @@ export const ArcEditorView: React.FC = () => {
         <button
           onClick={() => { playBackSound(); setActiveView("devtools"); }}
           className="w-72 h-full shrink-0 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] text-white"
-          style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
+          style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
         >
           {t("arcEditor.back")}
         </button>
@@ -738,4 +738,3 @@ function LocEditModal({ data, lang, onClose, onConfirm }: { data: { langIdx: num
     </div>
   );
 }
-

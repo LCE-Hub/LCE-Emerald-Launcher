@@ -143,7 +143,7 @@ export default function ColEditorView() {
           <button
             onClick={() => fileInputRef.current?.click()}
             className="px-6 py-2 text-white mc-text-shadow text-lg"
-            style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+            style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%" }}
           >
             {t("colEditor.openCol")}
           </button>
@@ -151,7 +151,7 @@ export default function ColEditorView() {
             onClick={handleSaveCol}
             disabled={!col}
             className={`px-6 py-2 text-white mc-text-shadow text-lg ${!col ? "opacity-50 grayscale" : ""}`}
-            style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+            style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%" }}
           >
             {t("colEditor.saveCol")}
           </button>
@@ -193,7 +193,7 @@ export default function ColEditorView() {
               <button
                 onClick={activeTab === "colors" ? handleAddColor : handleAddWorldColor}
                 className="px-6 py-2 text-white mc-text-shadow text-sm"
-                style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+                style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%" }}
               >
                 {activeTab === "colors" ? t("colEditor.addColor") : t("colEditor.addWorldColor")}
               </button>
@@ -371,7 +371,7 @@ export default function ColEditorView() {
         <button
           onClick={() => { playBackSound(); setActiveView("devtools"); }}
           className="w-72 h-full shrink-0 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] text-white"
-          style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
+          style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
         >
           {t("colEditor.back")}
         </button>

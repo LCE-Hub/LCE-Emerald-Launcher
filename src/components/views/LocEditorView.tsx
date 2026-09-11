@@ -206,7 +206,7 @@ export default function LocEditorView() {
         <button
           onClick={() => { playBackSound(); setActiveView("devtools"); }}
           className="w-72 h-full shrink-0 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] text-white"
-          style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
+          style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
         >
           {t("locEditor.back")}
         </button>

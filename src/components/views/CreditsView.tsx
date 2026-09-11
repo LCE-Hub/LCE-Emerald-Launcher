@@ -346,8 +346,8 @@ const CreditsView = memo(function CreditsView() {
           className="fixed bottom-8 left-8 z-50 h-10 flex items-center justify-center gap-2 px-4 text-xl mc-text-shadow outline-none border-none"
           style={{
             backgroundImage: isHovered
-              ? "url('/images/button_highlighted.png')"
-              : "url('/images/Button_Background.png')",
+              ? "url('/images/Layout_Button_Over.png')"
+              : "url('/images/Layout_Button_Bmp.png')",
             backgroundSize: "100% 100%",
             imageRendering: "pixelated",
             color: isHovered ? "#FFFF55" : "white",
