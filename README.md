@@ -220,15 +220,15 @@ sudo apt install --reinstall libwebkit2gtk-4.1-0
 
 ### Game Not Launching
 
-1. Verify game files are properly installed via the launcher
+1. Verify game files are properly installed via the launcher (also try clicking Repair which will reinstall it but keeps your data)
 2. Check that Wine/Proton is installed (Linux only)
 3. Check that Wine/GPTK3 are installed (macOS only)
 4. Ensure your GPU drivers are up to date
 
 ### Controller Not Detected
 
-- Connect controller before launching the launcher
-- PlayStation controllers are not supported in-game but work in launcher. Use Steam Input.
+- Connect controller before launching the launcher or game.
+- PlayStation controllers are not supported in-game but work in launcher. **Enable GoldMapper from Help & Options -> Controls**, or use Steam Input.
 
 ---
 
@@ -242,6 +242,8 @@ sudo apt install --reinstall libwebkit2gtk-4.1-0
 - **DTention** - Original creator of [LCE-Save-Converter](https://github.com/dtentiion/LCE-Save-Converter)
 - **dydymiku** - French translation
 - **Hvrket** - Russian translation
+- **HuntedRaven (Robin)** - Homebrew, Nix and Gentoo packaging
+- **AntiApple4life** - AUR packaging
 
 ---
 
