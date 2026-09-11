@@ -612,7 +612,7 @@ export default function App() {
                       stiffness: 300,
                       damping: 25,
                     }}
-                    className="w-full drop-shadow-[0_8px_6px_rgba(0,0,0,0.8)] pointer-events-none"
+                    className="w-full pointer-events-none"
                     style={{ imageRendering: "pixelated" }}
                   />
                 )}
