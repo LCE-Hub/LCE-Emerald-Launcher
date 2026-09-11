@@ -57,8 +57,6 @@ const SettingsView = memo(function SettingsView() {
   const { currentTrack, skipTrack, tracks, playPressSound, playBackSound } =
     useAudio();
   const {
-    isGameRunning,
-    stopGame,
     isRunnerDownloading,
     runnerDownloadProgress,
     downloadRunner,
@@ -751,16 +749,6 @@ const SettingsView = memo(function SettingsView() {
       });
     }
 
-    if (isGameRunning) {
-      items.push({
-        id: "stop",
-        label: t("settings.stopGameButton"),
-        type: "button",
-        onClick: stopGame,
-        color: "red",
-      });
-    }
-
     items.push({
       id: "back",
       label: currentSubMenu === "main" ? t("common.done") : t("common.back"),
@@ -803,7 +791,6 @@ const SettingsView = memo(function SettingsView() {
     runnerDownloadProgress,
     isMac,
     perfBoost,
-    isGameRunning,
     handleTrackToggle,
     handleVfxToggle,
     handleRpcToggle,
@@ -814,7 +801,6 @@ const SettingsView = memo(function SettingsView() {
     handleMangohudToggle,
     handleSkipIntroToggle,
     handleResetSetup,
-    stopGame,
     downloadRunner,
     playPressSound,
     playBackSound,
