@@ -95,8 +95,7 @@ const VersionsView = memo(function VersionsView() {
   const { isAndroid } = usePlatform();
   const visibleEditions = editions.filter(
     (e) =>
-      e.url !== HIDDEN_INSTANCE_URL ||
-      installedVersions.includes(e.instanceId),
+      e.url !== HIDDEN_INSTANCE_URL || installedVersions.includes(e.instanceId),
   );
   const [focusIndex, setFocusIndex] = useState<number>(0);
   const [focusBtn, setFocusBtn] = useState<number>(0);
@@ -326,7 +325,9 @@ const VersionsView = memo(function VersionsView() {
   };
 
   const handleImportWorld = (instanceId: string) => {
-    const edition = visibleEditions.find((e: Edition) => e.instanceId === instanceId);
+    const edition = visibleEditions.find(
+      (e: Edition) => e.instanceId === instanceId,
+    );
     setImportWorldTarget({ id: instanceId, name: edition?.name ?? instanceId });
     setIsImportWorldModalOpen(true);
   };
@@ -583,7 +584,7 @@ const VersionsView = memo(function VersionsView() {
                             className="w-full text-left px-3 py-1.5 text-xs text-[#ffff55] hover:text-white hover:bg-[#ffff55]/20 flex items-center gap-2 group transition-colors mc-text-shadow font-bold border-b border-white/5 mb-1"
                           >
                             <img
-                              src="/images/Download_Icon.png"
+                              src="/images/Update_Icon.png"
                               alt=""
                               className="w-3 h-3 object-contain"
                               style={{ imageRendering: "pixelated" }}
@@ -591,7 +592,8 @@ const VersionsView = memo(function VersionsView() {
                             {t("versions.updateAvailable")}
                           </button>
                         )}
-                        {!isAndroid && !isInstalled && (                          <button
+                        {!isAndroid && !isInstalled && (
+                          <button
                             onClick={async (e) => {
                               e.stopPropagation();
                               playPressSound();
@@ -673,7 +675,8 @@ const VersionsView = memo(function VersionsView() {
                             </svg>
                             {t("versions.downloadDlc")}
                           </button>
-                        ) : null}                        {argsSchemas[edition.instanceId] && (
+                        ) : null}{" "}
+                        {argsSchemas[edition.instanceId] && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -728,6 +731,23 @@ const VersionsView = memo(function VersionsView() {
                             </button>
                           )}
                         <div className="h-[1px] bg-white/5 my-0.5 mx-1" />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playPressSound();
+                            toggleInstall(edition.instanceId);
+                            setOpenMenuId(null);
+                          }}
+                          className="w-full text-left px-3 py-1.5 text-xs text-[#dddddd] hover:bg-[#ffff55]/20 flex items-center gap-2 group transition-colors mc-text-shadow font-bold border-b border-white/5 mb-1"
+                        >
+                          <img
+                            src="/images/tools/pck.png" //neo: i have no other image to use lol
+                            alt=""
+                            className="w-3 h-3 object-contain"
+                            style={{ imageRendering: "pixelated" }}
+                          />
+                          {t("versions.repair")}
+                        </button>
                         {!isAndroid && (
                           <button
                             onClick={(e) => {
@@ -748,7 +768,8 @@ const VersionsView = memo(function VersionsView() {
                             />
                             {t("versions.openFolder")}
                           </button>
-                        )}                        {!isAndroid && (
+                        )}{" "}
+                        {!isAndroid && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -783,7 +804,8 @@ const VersionsView = memo(function VersionsView() {
                             />
                             {t("versions.addToSteam")}
                           </button>
-                        )}                        {!isAndroid && (
+                        )}{" "}
+                        {!isAndroid && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -808,7 +830,8 @@ const VersionsView = memo(function VersionsView() {
                             </svg>
                             {t("versions.importWorld")}
                           </button>
-                        )}                        {!isAndroid && (
+                        )}{" "}
+                        {!isAndroid && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -837,7 +860,8 @@ const VersionsView = memo(function VersionsView() {
                             </svg>
                             {t("versions.backup")}
                           </button>
-                        )}                        {!isAndroid && (
+                        )}{" "}
+                        {!isAndroid && (
                           <button
                             onClick={async (e) => {
                               e.stopPropagation();
@@ -865,7 +889,8 @@ const VersionsView = memo(function VersionsView() {
                             </svg>
                             {t("versions.restore")}
                           </button>
-                        )}                        {!isAndroid && (
+                        )}{" "}
+                        {!isAndroid && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -889,7 +914,8 @@ const VersionsView = memo(function VersionsView() {
                             </svg>
                             {t("versions.customize")}
                           </button>
-                        )}                        <button
+                        )}{" "}
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             playPressSound();
@@ -912,7 +938,8 @@ const VersionsView = memo(function VersionsView() {
                             <circle cx="12" cy="7" r="4"></circle>
                           </svg>
                           {t("versions.setUid")}
-                        </button>                        {isCustom ? (
+                        </button>{" "}
+                        {isCustom ? (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -936,7 +963,8 @@ const VersionsView = memo(function VersionsView() {
                             </svg>
                             {t("versions.editCustom")}
                           </button>
-                        ) : null}                        <div className="h-[2px] bg-[#555] my-0.5 mx-1" />
+                        ) : null}{" "}
+                        <div className="h-[2px] bg-[#555] my-0.5 mx-1" />
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -956,7 +984,9 @@ const VersionsView = memo(function VersionsView() {
                             className="w-3.5 h-3.5 object-contain"
                             style={{ imageRendering: "pixelated" }}
                           />
-                          {isCustom ? t("versions.removeCustom") : t("versions.uninstall")}
+                          {isCustom
+                            ? t("versions.removeCustom")
+                            : t("versions.uninstall")}
                         </button>
                       </div>
                     )}
@@ -1053,7 +1083,8 @@ const VersionsView = memo(function VersionsView() {
             }}
           >
             {t("common.done")}
-          </button>        </div>
+          </button>{" "}
+        </div>
       )}
 
       <CustomTUModal

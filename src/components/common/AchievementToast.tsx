@@ -114,23 +114,15 @@ export function AchievementToast({
           }
           className={`fixed top-6 right-6 z-[9999] ${onClick ? "cursor-pointer" : ""}`}
         >
-          <div
-            className="flex items-center gap-4 p-4 min-w-[300px] max-w-[450px]"
-            style={{
-              backgroundImage: "url('/images/notification.png')",
-              backgroundSize: "100% 100%",
-              backgroundRepeat: "no-repeat",
-              imageRendering: "pixelated",
-            }}
-          >
-            <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-[#3F3F3F] border-2 border-[#1A1A1A]">
+          <div className="flex items-center gap-3 p-3 min-w-[260px] max-w-[380px] mc-options-bg">
+            <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-[#3F3F3F] border-2 border-[#1A1A1A]">
               {getIcon()}
             </div>
             <div className="flex flex-col">
-              <span className="text-[#FFFF55] text-lg font-bold mc-text-shadow leading-tight">
+              <span className="text-[#333333] text-[20px] leading-tight font-normal">
                 {displayTitle}
               </span>
-              <span className="text-white text-base mc-text-shadow leading-tight break-words">
+              <span className="text-[#333333] text-[13px] leading-tight break-words font-normal">
                 {message}
               </span>
             </div>
