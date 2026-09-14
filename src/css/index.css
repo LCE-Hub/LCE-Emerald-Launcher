@@ -72,8 +72,48 @@
     image-rendering: pixelated;
 }
 
-.mc-options-fg { /*neo: tysm https://leanrada.com/9-slicer/ */
-    border-image: url("/images/empty.png") 30 30 30 30 fill / 30px 30px 30px 30px;
+.mc-options-fg {
+    /*neo: tysm https://leanrada.com/9-slicer/ */
+    border-image: url("/images/empty.png") 30 30 30 30 fill / 30px 30px 30px
+        30px;
+    border-width: 12px;
+    border-style: solid;
+    border-color: transparent;
+    image-rendering: pixelated;
+}
+
+.mc-button-ninesliced {
+    /*neo: tysm https://leanrada.com/9-slicer/ */
+    border-image: url("/images/Button_Background.png") 13 13 13 13 fill / 13px
+        13px 13px 13px;
+    border-width: 12px;
+    border-style: solid;
+    border-color: transparent;
+    image-rendering: pixelated;
+}
+
+.mc-button-ninesliced-selected {
+    /*neo: tysm https://leanrada.com/9-slicer/ */
+    border-image: url("/images/button_highlighted.png") 13 13 13 13 fill / 13px
+        13px 13px 13px;
+    border-width: 12px;
+    border-style: solid;
+    border-color: transparent;
+    image-rendering: pixelated;
+}
+
+.mc-versionrecess {
+    /*neo: tysm https://leanrada.com/9-slicer/ */
+    border-image: url("/images/versionrecess.png") 12 30 30 12 fill / 12px 30px 30px 12px;
+    border-width: 12px;
+    border-style: solid;
+    border-color: transparent;
+    image-rendering: pixelated;
+}
+
+.mc-help {
+    /*neo: tysm https://leanrada.com/9-slicer/ */
+    border-image: url("/images/helpbg.png") 5 15 17 6 fill / 5px 15px 17px 6px;
     border-width: 12px;
     border-style: solid;
     border-color: transparent;

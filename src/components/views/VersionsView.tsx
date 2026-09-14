@@ -1,4 +1,11 @@
-import { useState, useEffect, useRef, memo } from "react";
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useCallback,
+  memo,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { TauriService, PlaytimeResponse } from "../../services/TauriService";
@@ -54,6 +61,9 @@ const DeleteConfirmButton = memo(function DeleteConfirmButton({
   );
 });
 
+const ROW_ESTIMATE = 52;
+const ROW_GAP = 4;
+
 function formatPlaytime(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
@@ -66,7 +76,6 @@ const VersionsView = memo(function VersionsView() {
   const { t } = useTranslation();
   const { setActiveView } = useUI();
   const {
-    profile: selectedProfile,
     setProfile: setSelectedProfile,
     animationsEnabled,
     instanceLaunchArgs,
@@ -83,7 +92,6 @@ const VersionsView = memo(function VersionsView() {
     addCustomEdition: onAddEdition,
     updateCustomEdition: onUpdateEdition,
     downloadingIds,
-    downloadProgress,
     updatesAvailable,
     addToSteam,
     cycleBranch,
@@ -138,7 +146,106 @@ const VersionsView = memo(function VersionsView() {
   const [argsSchemas, setArgsSchemas] = useState<Record<string, boolean>>({});
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuDir, setMenuDir] = useState<"down" | "up">("down");
   const ITEM_COUNT = visibleEditions.length + 3;
+  const [visibleRange, setVisibleRange] = useState<{
+    start: number;
+    end: number;
+  }>({
+    start: 0,
+    end: visibleEditions.length ? visibleEditions.length - 1 : 0,
+  });
+  const itemHeightsRef = useRef<number[]>([]);
+  const observersRef = useRef<Map<number, ResizeObserver>>(new Map());
+  const visibleEditionsRef = useRef(visibleEditions);
+  visibleEditionsRef.current = visibleEditions;
+  const focusIndexRef = useRef(focusIndex);
+  const openMenuIdRef = useRef(openMenuId);
+
+  const updateVisibleRange = useCallback(() => {
+    const container = listRef.current;
+    const editions = visibleEditionsRef.current;
+    if (!container) return;
+    const scrollTop = container.scrollTop;
+    const viewportHeight = container.clientHeight;
+    const heights = itemHeightsRef.current;
+    const n = editions.length;
+    let acc = 0;
+    let start = n;
+    let end = -1;
+    for (let i = 0; i < n; i++) {
+      const itemTop = acc;
+      const itemBottom = acc + (heights[i] ?? ROW_ESTIMATE);
+      if (
+        itemTop >= scrollTop &&
+        itemBottom <= scrollTop + viewportHeight
+      ) {
+        if (start === n) start = i;
+        end = i;
+      }
+      acc += (heights[i] ?? ROW_ESTIMATE) + ROW_GAP;
+    }
+    if (start === n) start = 0;
+    if (end < 0) end = n - 1;
+    const fi = focusIndexRef.current;
+    if (fi >= 0 && fi < n) {
+      start = Math.min(start, fi);
+      end = Math.max(end, fi);
+    }
+    const menuId = openMenuIdRef.current;
+    if (menuId) {
+      const mi = editions.findIndex((e) => e.id === menuId);
+      if (mi >= 0) {
+        start = Math.min(start, mi);
+        end = Math.max(end, mi);
+      }
+    }
+    setVisibleRange((prev) =>
+      prev.start === start && prev.end === end ? prev : { start, end },
+    );
+  }, []);
+
+  const setRowRef = (index: number) => (el: HTMLDivElement | null) => {
+    if (el) {
+      let ro = observersRef.current.get(index);
+      if (!ro) {
+        ro = new ResizeObserver(() => {
+          itemHeightsRef.current[index] = el.offsetHeight;
+          updateVisibleRange();
+        });
+        observersRef.current.set(index, ro);
+      }
+      ro.observe(el);
+    } else {
+      const ro = observersRef.current.get(index);
+      if (ro) {
+        ro.disconnect();
+        observersRef.current.delete(index);
+      }
+    }
+  };
+
+  useEffect(() => {
+    focusIndexRef.current = focusIndex;
+  }, [focusIndex]);
+
+  useEffect(() => {
+    openMenuIdRef.current = openMenuId;
+  }, [openMenuId]);
+
+  useEffect(() => {
+    const container = listRef.current;
+    if (!container) return;
+    const ro = new ResizeObserver(() => updateVisibleRange());
+    ro.observe(container);
+    updateVisibleRange();
+    return () => {
+      ro.disconnect();
+      observersRef.current.forEach((obs) => obs.disconnect());
+      observersRef.current.clear();
+    };
+  }, [updateVisibleRange]);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (document.activeElement?.tagName === "INPUT") return;
@@ -263,6 +370,23 @@ const VersionsView = memo(function VersionsView() {
     }
   }, [focusIndex]);
 
+  useLayoutEffect(() => {
+    if (!openMenuId) return;
+    const container = listRef.current;
+    const menu = menuRef.current;
+    if (!container || !menu) return;
+    const row = menu.closest("[data-index]") as HTMLElement | null;
+    if (!row) return;
+    const containerRect = container.getBoundingClientRect();
+    const rowRect = row.getBoundingClientRect();
+    const menuHeight = menu.offsetHeight;
+    const spaceBelow = containerRect.bottom - rowRect.bottom;
+    const spaceAbove = rowRect.top - containerRect.top;
+    setMenuDir(
+      spaceBelow < menuHeight && spaceAbove > spaceBelow ? "up" : "down",
+    );
+  }, [openMenuId]);
+
   useEffect(() => {
     const fetchPlaytimes = async () => {
       const map: Record<string, PlaytimeResponse> = {};
@@ -341,51 +465,49 @@ const VersionsView = memo(function VersionsView() {
       transition={{ duration: animationsEnabled ? 0.25 : 0 }}
       className="flex flex-col items-center w-full max-w-5xl outline-none"
     >
-      <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 pb-2 w-[40%] max-w-[200px] text-center tracking-widest uppercase font-bold">
-        {t("versions.title")}
-      </h2>
-
       <div className="w-full min-w-[480px] p-6 mb-4 mc-options-bg">
-        <div
-          ref={listRef}
-          className="w-full max-h-[45vh] overflow-y-auto py-2 custom-scrollbar"
-        >
-          <div className="flex flex-col gap-1">
+<div
+            ref={listRef}
+            onScroll={updateVisibleRange}
+            className="w-full max-h-[48vh] overflow-y-auto snap-y snap-mandatory mc-versionrecess hidden-scrollbar"
+          >
+          <div className="flex flex-col gap-1 hidden-scrollbar">
             {visibleEditions.map((edition: Edition, i: number) => {
+              if (i < visibleRange.start || i > visibleRange.end) {
+                return (
+                  <div
+                    key={edition.id}
+                    data-index={i}
+                    style={{
+                      height: itemHeightsRef.current[i] ?? ROW_ESTIMATE,
+                    }}
+                    className="w-[calc(100%-20px)] shrink-0 snap-start"
+                  />
+                );
+              }
               const isInstalled = installedVersions.includes(
                 edition.instanceId,
               );
-              const hasAnyInstall = installedVersions.length > 0;
-              const isSelected =
-                hasAnyInstall && selectedProfile === edition.instanceId;
               const isFocused = focusIndex === i;
               const isCustom = edition.id.startsWith("custom_");
               const isDownloading = downloadingIds.includes(edition.instanceId);
               const isComingSoon = edition.comingSoon;
-
               return (
                 <div
                   key={edition.id}
                   data-index={i}
-                  className={`w-[calc(100%-16px)] mx-2 flex items-center gap-3 p-2 rounded-sm ${
-                    isSelected && !isComingSoon ? "bg-[#404040]/50" : ""
-                  } ${isFocused && !isComingSoon ? "ring-2 ring-white" : ""} ${
-                    isComingSoon ? "opacity-50 cursor-not-allowed" : ""
-                  } relative ${openMenuId === edition.id ? "z-50" : "z-0"}`}
+                  ref={setRowRef(i)}
+                  className={`w-[calc(100%-20px)] snap-start flex items-center gap-3 ${!isFocused ? "mc-button-ninesliced" : "mc-button-ninesliced-selected"} ${isComingSoon ? "opacity-50 cursor-not-allowed" : ""} relative ${openMenuId === edition.id ? "z-50" : "z-0"}`}
                   onMouseEnter={() => !isComingSoon && setFocusIndex(i)}
                 >
-                  <div className="w-6 flex items-center justify-center flex-shrink-0">
-                    {isDownloading ? (
-                      <span className="text-xs text-gray-400 font-bold">
-                        {Math.floor(downloadProgress[edition.instanceId] || 0)}%
-                      </span>
-                    ) : edition.logo ? (
+                  <div className="w-12 h-12 flex items-center justify-center shrink-0 bg-[url(/images/empty.png)] bg-cover bg-center bg-no-repeat">
+                    {edition.logo ? (
                       edition.logo.startsWith("http") ||
                       edition.logo.startsWith("/images") ? (
                         <img
                           src={edition.logo}
                           alt=""
-                          className={`w-6 h-6 object-contain ${isComingSoon ? "opacity-40 grayscale" : ""}`}
+                          className={`w-10 h-10 object-contain ${isComingSoon ? "opacity-40 grayscale" : ""}`}
                           style={{ imageRendering: "pixelated" }}
                         />
                       ) : (
@@ -405,17 +527,11 @@ const VersionsView = memo(function VersionsView() {
                     onClick={() =>
                       !isComingSoon && handleEditionClick(edition, i)
                     }
-                    className={`flex-1 text-left min-w-0 outline-none rounded cursor-pointer ${
-                      focusIndex === i && focusBtn === 0 && !isComingSoon
-                        ? "ring-2 ring-white"
-                        : ""
-                    } ${isComingSoon ? "cursor-not-allowed" : ""}`}
+                    className={`flex-1 text-left min-w-0 outline-none rounded cursor-pointer ${isComingSoon ? "cursor-not-allowed" : ""}`}
                   >
                     <div className="flex items-center gap-2">
                       <span
-                        className={`text-xl tracking-wide truncate ${
-                          isSelected ? "text-white" : "text-black"
-                        }`}
+                        className={"text-xl tracking-wide truncate text-white"}
                         style={{ textShadow: "none" }}
                       >
                         {edition.name}
@@ -472,13 +588,6 @@ const VersionsView = memo(function VersionsView() {
                         </span>
                       )}
                     </div>
-                    <p
-                      className={`text-base font-medium leading-tight ${
-                        isSelected ? "text-[#DDDDDD]" : "text-[#666666]"
-                      }`}
-                    >
-                      {edition.desc}
-                    </p>
                   </div>
 
                   <div className="flex items-center gap-2 flex-shrink-0 relative">
@@ -568,7 +677,8 @@ const VersionsView = memo(function VersionsView() {
 
                     {openMenuId === edition.id && (
                       <div
-                        className="absolute right-0 top-11 w-48 bg-[#1a1a1a] border-2 border-[#555] z-[100] shadow-2xl p-0.5 animate-in fade-in zoom-in duration-75"
+                        ref={menuRef}
+                        className={`absolute right-0 ${menuDir === "up" ? "bottom-full mb-2" : "top-11"} w-48 bg-[#1a1a1a] border-2 border-[#555] z-[100] shadow-2xl p-0.5 animate-in fade-in zoom-in duration-75`}
                         style={{
                           imageRendering: "pixelated",
                         }}
