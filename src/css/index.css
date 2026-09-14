@@ -72,6 +72,14 @@
     image-rendering: pixelated;
 }
 
+.mc-options-fg { /*neo: tysm https://leanrada.com/9-slicer/ */
+    border-image: url("/images/empty.png") 30 30 30 30 fill / 30px 30px 30px 30px;
+    border-width: 12px;
+    border-style: solid;
+    border-color: transparent;
+    image-rendering: pixelated;
+}
+
 .mc-lce-tab {
     background: linear-gradient(180deg, #c0c0c0 0%, #a0a0a0 100%);
     border: 2px solid #808080;

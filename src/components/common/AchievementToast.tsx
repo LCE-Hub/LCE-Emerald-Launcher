@@ -109,7 +109,7 @@ export function AchievementToast({
           }
           className={onClick ? "cursor-pointer" : ""}
         >
-          <div className="flex gap-3 p-1 min-w-[380px] max-w-[380px] min-h-[100px] mc-options-bg">
+          <div className="flex gap-3 p-1 min-w-[380px] max-w-[380px] min-h-[80px] mc-options-bg">
             <div className="h-[54px] w-[54px] flex-shrink-0 flex items-center justify-center bg-[url(/images/empty.png)] bg-cover bg-center bg-no-repeat self-center">
               {getIcon()}
             </div>
