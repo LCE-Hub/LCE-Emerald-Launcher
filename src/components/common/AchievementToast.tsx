@@ -50,19 +50,15 @@ export function AchievementToast({
   const getIcon = () => {
     if (variant === "update") {
       return (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="32"
-          height="32"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#FFFF55"
-          strokeWidth="3"
-          strokeLinecap="square"
-          className="drop-shadow-md"
-        >
-          <path d="M12 5v14M5 12l7 7 7-7" />
-        </svg>
+        <img
+          src="/images/Update_Icon.png"
+          alt="Update"
+          className="w-8 h-8 object-contain"
+          style={{
+            imageRendering: "pixelated",
+            filter: "drop-shadow(0 0 2px rgba(255, 255, 0, 0.8)) sepia(100%) saturate(500%) hue-rotate(5deg) brightness(1.2)"
+          }}
+        />
       );
     }
     if (variant === "steam") {
@@ -112,13 +108,13 @@ export function AchievementToast({
                 }
               : undefined
           }
-          className={`fixed top-6 right-6 z-[9999] ${onClick ? "cursor-pointer" : ""}`}
+          className={onClick ? "cursor-pointer" : ""}
         >
-          <div className="flex items-center gap-3 p-3 min-w-[260px] max-w-[380px] mc-options-bg">
-            <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-[#3F3F3F] border-2 border-[#1A1A1A]">
+          <div className="flex gap-3 p-1 min-w-[380px] max-w-[380px] min-h-[100px] mc-options-bg">
+            <div className="h-[54px] w-[54px] flex-shrink-0 flex items-center justify-center bg-[url(/images/empty.png)] bg-cover bg-center bg-no-repeat self-center">
               {getIcon()}
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col mt-[6px]">
               <span className="text-[#333333] text-[20px] leading-tight font-normal">
                 {displayTitle}
               </span>

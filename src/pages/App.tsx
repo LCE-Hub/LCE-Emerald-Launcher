@@ -419,10 +419,6 @@ export default function App() {
           editions={game.editions}
         />
 
-        <AchievementToast
-          message={game.gameLog ? null : game.error}
-          onClose={clearError}
-        />
         <GameLogModal
           isOpen={!!game.gameLog}
           log={game.gameLog}
@@ -430,45 +426,74 @@ export default function App() {
           playBackSound={audio.playBackSound}
         />
 
-        <AchievementToast
-          message={updateMessage}
-          onClose={clearUpdateMessage}
-          onClick={() =>
-            TauriService.openUrl(
-              updateUrl ||
-                "https://github.com/LCE-Hub/LCE-Emerald-Launcher/releases/latest",
-            )
-          }
-          title={t("download.updateAvailable")}
-          variant="update"
-        />
-
-        <AchievementToast
-          message={game.gameUpdateMessage}
-          onClose={clearGameUpdate}
-          onClick={() => {
-            clearGameUpdate();
-            setActiveView("versions");
-          }}
-          title={t("download.gameUpdateAvailable")}
-          variant="update"
-        />
-
-        <AchievementToast
-          message={game.steamSuccessMessage}
-          onClose={clearSteamSuccess}
-          title={t("download.steamIntegration")}
-          variant="steam"
-        />
-
-        {pluginToast && (
+        <div className="fixed top-14 right-8 z-[9999] flex flex-col items-end gap-2">
           <AchievementToast
-            message={pluginToast.message}
-            onClose={() => setPluginToast(null)}
-            title={pluginToast.options?.title}
-            variant={pluginToast.options?.variant}
+            message={game.gameLog ? null : game.error}
+            onClose={clearError}
           />
-        )}
+
+          <AchievementToast
+            message={updateMessage}
+            onClose={clearUpdateMessage}
+            onClick={() =>
+              TauriService.openUrl(
+                updateUrl ||
+                  "https://github.com/LCE-Hub/LCE-Emerald-Launcher/releases/latest",
+              )
+            }
+            title={t("download.updateAvailable")}
+            variant="update"
+          />
+
+          <AchievementToast
+            message={game.gameUpdateMessage}
+            onClose={clearGameUpdate}
+            onClick={() => {
+              clearGameUpdate();
+              setActiveView("versions");
+            }}
+            title={t("download.gameUpdateAvailable")}
+            variant="update"
+          />
+
+          <AchievementToast
+            message={game.steamSuccessMessage}
+            onClose={clearSteamSuccess}
+            title={t("download.steamIntegration")}
+            variant="steam"
+          />
+
+          {pluginToast && (
+            <AchievementToast
+              message={pluginToast.message}
+              onClose={() => setPluginToast(null)}
+              title={pluginToast.options?.title}
+              variant={pluginToast.options?.variant}
+            />
+          )}
+
+          <AchievementToast
+            message={friendRequestMessage}
+            onClose={clearFriendRequestMessage}
+            onClick={() => {
+              clearFriendRequestMessage();
+              setActiveView("lceonline");
+            }}
+            title={t("download.friendRequest")}
+            variant="update"
+          />
+
+          <AchievementToast
+            message={InviteMessage}
+            onClose={clearInviteMessage}
+            onClick={() => {
+              clearInviteMessage();
+              setActiveView("lceonline");
+            }}
+            title={t("download.gameInvite")}
+            variant="update"
+          />
+        </div>
 
         <motion.div
           initial={{ opacity: 0 }}
@@ -758,28 +783,6 @@ export default function App() {
               </div>
           </motion.footer>
         </motion.div>
-
-        <AchievementToast
-          message={friendRequestMessage}
-          onClose={clearFriendRequestMessage}
-          onClick={() => {
-            clearFriendRequestMessage();
-            setActiveView("lceonline");
-          }}
-          title={t("download.friendRequest")}
-          variant="update"
-        />
-
-        <AchievementToast
-          message={InviteMessage}
-          onClose={clearInviteMessage}
-          onClick={() => {
-            clearInviteMessage();
-            setActiveView("lceonline");
-          }}
-          title={t("download.gameInvite")}
-          variant="update"
-        />
       </div>
     </MotionConfig>
   );
