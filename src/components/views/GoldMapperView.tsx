@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import { useTranslation } from "react-i18next";
-import { motion } from "framer-motion";
 import {
   TauriService,
   type GoldMapperMapping,
@@ -19,7 +18,6 @@ const KEY_FALLBACK = [
 ];
 
 const MOUSE_IDS = ["MOUSE_LEFT", "MOUSE_MIDDLE", "MOUSE_RIGHT"];
-
 const CONTROLLER_FALLBACK = [
   "PAD_A",
   "PAD_B",
@@ -61,8 +59,7 @@ const stoneButtonStyle = (highlighted: boolean) => ({
 const GoldMapperView = memo(function GoldMapperView() {
   const { t } = useTranslation();
   const { setActiveView } = useUI();
-  const { animationsEnabled, goldmapperEnabled, setGoldmapperEnabled } =
-    useConfig();
+  const { goldmapperEnabled, setGoldmapperEnabled } = useConfig();
   const { playPressSound, playBackSound } = useAudio();
   const [keyboardIds, setKeyboardIds] = useState<string[]>(KEY_FALLBACK);
   const [controllerIds, setControllerIds] =
@@ -206,7 +203,11 @@ const GoldMapperView = memo(function GoldMapperView() {
         label: displayName(id),
       });
     }
-    list.push({ kind: "header", key: "mouse_header", label: t("goldMapper.mouse") });
+    list.push({
+      kind: "header",
+      key: "mouse_header",
+      label: t("goldMapper.mouse"),
+    });
     for (const id of MOUSE_IDS) {
       list.push({
         kind: "bind",
@@ -215,7 +216,11 @@ const GoldMapperView = memo(function GoldMapperView() {
         label: mouseLabel(id),
       });
     }
-    list.push({ kind: "header", key: "keyboard_header", label: t("goldMapper.keyboard") });
+    list.push({
+      kind: "header",
+      key: "keyboard_header",
+      label: t("goldMapper.keyboard"),
+    });
     for (const id of keyboardIds) {
       list.push({
         kind: "bind",
@@ -409,13 +414,7 @@ const GoldMapperView = memo(function GoldMapperView() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: animationsEnabled ? 0.3 : 0 }}
-      className="flex flex-col items-center w-full max-w-5xl"
-    >
+    <div className="flex flex-col items-center w-full max-w-5xl">
       <div
         ref={containerRef}
         className="w-[720px] max-w-[92vw] h-[560px] max-h-[62vh] p-4 flex flex-col gap-2 overflow-y-auto settings-scrollbar mc-options-bg"
@@ -565,7 +564,7 @@ const GoldMapperView = memo(function GoldMapperView() {
           </div>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 });
 

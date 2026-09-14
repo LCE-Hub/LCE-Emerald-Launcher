@@ -56,11 +56,8 @@ const SettingsView = memo(function SettingsView() {
   } = useConfig();
   const { currentTrack, skipTrack, tracks, playPressSound, playBackSound } =
     useAudio();
-  const {
-    isRunnerDownloading,
-    runnerDownloadProgress,
-    downloadRunner,
-  } = useGame();
+  const { isRunnerDownloading, runnerDownloadProgress, downloadRunner } =
+    useGame();
   const { isLinux, isMac, isAndroid, arch } = usePlatform();
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const [currentSubMenu, setCurrentSubMenu] = useState<
@@ -314,16 +311,6 @@ const SettingsView = memo(function SettingsView() {
         },
       });
       items.push({
-        id: "video_menu",
-        label: t("settings.video"),
-        type: "button",
-        onClick: () => {
-          playPressSound();
-          setCurrentSubMenu("video");
-          setFocusIndex(0);
-        },
-      });
-      items.push({
         id: "launcher_menu",
         label: t("settings.launcher"),
         type: "button",
@@ -417,19 +404,7 @@ const SettingsView = memo(function SettingsView() {
         type: "button",
         onClick: handleTrackToggle,
       });
-    } else if (currentSubMenu === "video") {
-      items.push({
-        id: "vfx",
-        label: `${t("settings.clickEffects")}: ${vfxEnabled ? t("common.on") : t("common.off")}`,
-        type: "button",
-        onClick: handleVfxToggle,
-      });
-      items.push({
-        id: "animations",
-        label: `${t("settings.animations")}: ${animationsEnabled ? t("common.on") : t("common.off")}`,
-        type: "button",
-        onClick: handleAnimationsToggle,
-      });
+    } else if (currentSubMenu === "game") {
       if (isMac) {
         items.push({
           id: "perf",
@@ -438,7 +413,6 @@ const SettingsView = memo(function SettingsView() {
           onClick: handlePerfToggle,
         });
       }
-    } else if (currentSubMenu === "game") {
       const envVarsCount = launchEnvVars
         ? Object.keys(launchEnvVars).length
         : 0;
@@ -559,6 +533,12 @@ const SettingsView = memo(function SettingsView() {
           label: `${t("settings.animations")}: ${animationsEnabled ? t("common.on") : t("common.off")}`,
           type: "button",
           onClick: handleAnimationsToggle,
+        });
+        items.push({
+          id: "vfx",
+          label: `${t("settings.clickEffects")}: ${vfxEnabled ? t("common.on") : t("common.off")}`,
+          type: "button",
+          onClick: handleVfxToggle,
         });
         items.push({
           id: "skip_intro",
@@ -925,9 +905,11 @@ const SettingsView = memo(function SettingsView() {
     <motion.div
       ref={containerRef}
       tabIndex={-1}
-      initial={{ opacity: animationsEnabled ? 0 : 1, scale: animationsEnabled ? 0.95 : 1 }}
+      initial={{
+        opacity: animationsEnabled ? 0 : 1,
+        scale: animationsEnabled ? 0.95 : 1,
+      }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: animationsEnabled ? 0 : 1, scale: animationsEnabled ? 0.95 : 1 }}
       transition={{ duration: animationsEnabled ? 0.3 : 0 }}
       className="flex flex-col items-center w-full max-w-5xl outline-none"
     >

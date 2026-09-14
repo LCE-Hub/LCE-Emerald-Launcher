@@ -57,7 +57,7 @@ LCE Emerald Launcher is the easiest way to play Minecraft Legacy Console Edition
 
 | Feature | Description |
 |---------|-------------|
-| **Automated Setup** | One-click installation for neoLegacy, Revelations, 360 Revived, Hellish Ends and others |
+| **Automated Setup** | One-click installation for neoLegacy, Revelations, Hellish Ends, Moon Edition and others |
 | **Cross-Platform** | Native support for Windows, macOS (Intel & Apple Silicon), and Linux (Steam Deck is also supported!) |
 | **Lightweight** | Very light RAM usage thanks to Rust backend and Tauri framework |
 | **Easy Configuration** | Built-in settings for username, game parameters, and profiles |
@@ -68,7 +68,7 @@ LCE Emerald Launcher is the easiest way to play Minecraft Legacy Console Edition
 | **Workshop** | Community content like DLCs, Textures, Skins and more |
 | **Free Multiplayer** | Powered by LCEOnline, Emerald provides a free multiplayer service so you can play with anyone without port forwarding! |
 | **Developer Tools** | Create and edit 4J's propriatery file formats with ease! |
-| **World conversion** | Import `.ms` files, Java worlds or even an Xbox 360/PS3 world! |
+| **World conversion** | Import `.ms` files, Java worlds or even an Xbox 360/PS3 world! (Beta) |
 | **Playtime counting** | Count your playtime and see your most active days! |
 
 ---

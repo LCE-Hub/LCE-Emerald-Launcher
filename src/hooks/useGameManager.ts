@@ -60,7 +60,7 @@ export const BASE_EDITIONS = [
     // LO-Byte: Store is built differently to what emerald expects, branch for emerald will be added soon
     //officialDLC: "main:https://git.neolegacy.dev/LegacyOrbis/Store",
   },
-  /*{
+  {
     id: "cafeberry",
     name: "Cafeberry",
     desc: "Project aiming to faithfully backport TUs, add cross-play and more!",
@@ -70,7 +70,7 @@ export const BASE_EDITIONS = [
     logo: "", //neo: TODO: add Cafeberry logo
     panorama: "vanilla_tu24",
     lceOnline: false, //neo: for now.
-  },*/
+  },
   {
     id: "lostlegacy",
     name: "Project Lost Legacy",
