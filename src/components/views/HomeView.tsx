@@ -188,8 +188,6 @@ const HomeView = memo(function HomeView() {
                     className="absolute right-4 w-6 h-6 object-contain"
                     style={{
                       imageRendering: "pixelated",
-                      filter:
-                        "drop-shadow(0 0 2px rgba(255, 255, 0, 0.8)) sepia(100%) saturate(500%) hue-rotate(5deg) brightness(1.2)",
                     }}
                   />
                 )}
