@@ -63,15 +63,6 @@ const DeleteConfirmButton = memo(function DeleteConfirmButton({
 
 const ROW_ESTIMATE = 52;
 const ROW_GAP = 4;
-
-function formatPlaytime(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (h > 0) return `${h}h ${m}m`;
-  if (m > 0) return `${m}m`;
-  return seconds > 0 ? `${seconds}s` : "";
-}
-
 const VersionsView = memo(function VersionsView() {
   const { t } = useTranslation();
   const { setActiveView } = useUI();
@@ -123,11 +114,11 @@ const VersionsView = memo(function VersionsView() {
   } | null>(null);
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
   const [customizeTarget, setCustomizeTarget] = useState<Edition | null>(null);
-  const [playtimeMap, setPlaytimeMap] = useState<
+  const [_playtimeMap, setPlaytimeMap] = useState<
     Record<string, PlaytimeResponse>
   >({});
   const [initialPath, setInitialPath] = useState<string>("");
-  const [hoveredBtn, setHoveredBtn] = useState<{
+  const [_hoveredBtn, setHoveredBtn] = useState<{
     row: number;
     btn: string;
   } | null>(null);
@@ -144,8 +135,13 @@ const VersionsView = memo(function VersionsView() {
     name: string;
   } | null>(null);
   const [argsSchemas, setArgsSchemas] = useState<Record<string, boolean>>({});
+  const [thumb, setThumb] = useState({ height: 0, top: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const thumbRef = useRef<HTMLDivElement>(null);
+  const dragOffsetRef = useRef(0);
+  const draggingRef = useRef(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [menuDir, setMenuDir] = useState<"down" | "up">("down");
   const ITEM_COUNT = visibleEditions.length + 3;
@@ -162,6 +158,63 @@ const VersionsView = memo(function VersionsView() {
   visibleEditionsRef.current = visibleEditions;
   const focusIndexRef = useRef(focusIndex);
   const openMenuIdRef = useRef(openMenuId);
+  const updateThumb = useCallback(() => {
+    const container = listRef.current;
+    const track = trackRef.current;
+    if (!container || !track) return;
+    const scrollHeight = container.scrollHeight;
+    const clientHeight = container.clientHeight;
+    const scrollable = scrollHeight - clientHeight;
+    if (scrollable <= 0) {
+      setThumb((prev) =>
+        prev.height === 0 && prev.top === 0 ? prev : { height: 0, top: 0 },
+      );
+      return;
+    }
+    const trackHeight = track.clientHeight;
+    const HANDLE = 40;
+    const STEP = HANDLE + 4;
+    const maxTop = trackHeight - HANDLE;
+    const maxIndex = Math.max(1, Math.floor(maxTop / STEP));
+    const index = Math.min(
+      maxIndex,
+      Math.round((container.scrollTop / scrollable) * maxIndex),
+    );
+    const top = index * STEP;
+    setThumb((prev) =>
+      prev.top === top && prev.height === HANDLE
+        ? prev
+        : { height: HANDLE, top },
+    );
+  }, []);
+
+  const handleThumbPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    draggingRef.current = true;
+    dragOffsetRef.current =
+      e.clientY - e.currentTarget.getBoundingClientRect().top;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handleThumbPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!draggingRef.current) return;
+    const container = listRef.current;
+    const track = trackRef.current;
+    if (!container || !track) return;
+    const trackRect = track.getBoundingClientRect();
+    const trackTop = trackRect.top + track.clientTop;
+    const y = e.clientY - trackTop - dragOffsetRef.current;
+    const trackHeight = track.clientHeight;
+    const maxTop = Math.max(0, trackHeight - thumb.height);
+    const scrollable = container.scrollHeight - container.clientHeight;
+    if (scrollable <= 0) return;
+    const clampedY = Math.min(Math.max(y, 0), maxTop);
+    container.scrollTop = (clampedY / maxTop) * scrollable;
+  };
+
+  const handleThumbPointerUp = () => {
+    draggingRef.current = false;
+  };
 
   const updateVisibleRange = useCallback(() => {
     const container = listRef.current;
@@ -176,11 +229,8 @@ const VersionsView = memo(function VersionsView() {
     let end = -1;
     for (let i = 0; i < n; i++) {
       const itemTop = acc;
-      const itemBottom = acc + (heights[i] ?? ROW_ESTIMATE);
-      if (
-        itemTop >= scrollTop &&
-        itemBottom <= scrollTop + viewportHeight
-      ) {
+      const itemNeo = acc + (heights[i] ?? ROW_ESTIMATE); //neo: me fr fr :3
+      if (itemTop >= scrollTop && itemNeo <= scrollTop + viewportHeight) {
         if (start === n) start = i;
         end = i;
       }
@@ -204,7 +254,8 @@ const VersionsView = memo(function VersionsView() {
     setVisibleRange((prev) =>
       prev.start === start && prev.end === end ? prev : { start, end },
     );
-  }, []);
+    updateThumb();
+  }, [updateThumb]);
 
   const setRowRef = (index: number) => (el: HTMLDivElement | null) => {
     if (el) {
@@ -428,11 +479,8 @@ const VersionsView = memo(function VersionsView() {
   }, [installedVersions]);
 
   const handleEditionClick = (edition: Edition, index: number) => {
-    const isInstalled = installedVersions.includes(edition.instanceId);
-    if (isInstalled) {
-      playPressSound();
-      setSelectedProfile(edition.instanceId);
-    }
+    playPressSound();
+    setSelectedProfile(edition.instanceId);
     setFocusIndex(index);
   };
 
@@ -465,12 +513,12 @@ const VersionsView = memo(function VersionsView() {
       transition={{ duration: animationsEnabled ? 0.25 : 0 }}
       className="flex flex-col items-center w-full max-w-5xl outline-none"
     >
-      <div className="w-full min-w-[480px] p-6 mb-4 mc-options-bg">
-<div
-            ref={listRef}
-            onScroll={updateVisibleRange}
-            className="w-full max-h-[48vh] overflow-y-auto snap-y snap-mandatory mc-versionrecess hidden-scrollbar"
-          >
+      <div className="w-full min-w-120 p-1 mb-3 mc-options-bg relative flex items-stretch">
+        <div
+          ref={listRef}
+          onScroll={updateVisibleRange}
+          className="flex-1 min-w-0 h-85 max-h-85 overflow-y-auto snap-y snap-mandatory mc-versionrecess hidden-scrollbar"
+        >
           <div className="flex flex-col gap-1 hidden-scrollbar">
             {visibleEditions.map((edition: Edition, i: number) => {
               if (i < visibleRange.start || i > visibleRange.end) {
@@ -499,6 +547,10 @@ const VersionsView = memo(function VersionsView() {
                   ref={setRowRef(i)}
                   className={`w-[calc(100%-20px)] snap-start flex items-center gap-3 ${!isFocused ? "mc-button-ninesliced" : "mc-button-ninesliced-selected"} ${isComingSoon ? "opacity-50 cursor-not-allowed" : ""} relative ${openMenuId === edition.id ? "z-50" : "z-0"}`}
                   onMouseEnter={() => !isComingSoon && setFocusIndex(i)}
+                  onMouseLeave={() => setFocusIndex(-1)} //neo: you see this, smartcmd?
+                  onClick={() =>
+                    !isComingSoon && handleEditionClick(edition, i)
+                  }
                 >
                   <div className="w-12 h-12 flex items-center justify-center shrink-0 bg-[url(/images/empty.png)] bg-cover bg-center bg-no-repeat">
                     {edition.logo ? (
@@ -524,55 +576,15 @@ const VersionsView = memo(function VersionsView() {
                   </div>
 
                   <div
-                    onClick={() =>
-                      !isComingSoon && handleEditionClick(edition, i)
-                    }
                     className={`flex-1 text-left min-w-0 outline-none rounded cursor-pointer ${isComingSoon ? "cursor-not-allowed" : ""}`}
                   >
                     <div className="flex items-center gap-2">
                       <span
-                        className={"text-xl tracking-wide truncate text-white"}
+                        className={`text-xl tracking-wide truncate ${!isFocused ? "text-white" : "text-[#ffff00]"}`}
                         style={{ textShadow: "none" }}
                       >
                         {edition.name}
                       </span>
-                      {isInstalled && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playPressSound();
-                            setPlaytimeTarget({
-                              id: edition.instanceId,
-                              name: edition.name,
-                            });
-                            setIsPlaytimeModalOpen(true);
-                          }}
-                          className="flex items-center gap-1.5 px-2 py-1 bg-black/60 border border-[#555] hover:border-[#FFFF55] group transition-colors flex-shrink-0"
-                          title={t("versions.viewPlaytime")}
-                        >
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#AAAAAA"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="group-hover:stroke-[#FFFF55] transition-colors"
-                          >
-                            <circle cx="12" cy="12" r="10" />
-                            <polyline points="12 6 12 12 16 14" />
-                          </svg>
-                          <span className="text-xs text-[#AAAAAA] group-hover:text-[#FFFF55] leading-none transition-colors">
-                            {playtimeMap[edition.instanceId]
-                              ? formatPlaytime(
-                                  playtimeMap[edition.instanceId].totalSeconds,
-                                )
-                              : ""}
-                          </span>
-                        </button>
-                      )}
                       {edition.category &&
                         edition.category.map((cat: string) => (
                           <span
@@ -605,17 +617,10 @@ const VersionsView = memo(function VersionsView() {
                           setHoveredBtn({ row: i, btn: "main" })
                         }
                         onMouseLeave={() => setHoveredBtn(null)}
-                        className={`w-9 h-9 flex items-center justify-center ${
-                          isDownloading ? "opacity-50" : ""
-                        }`}
+                        className={
+                          "w-10 h-10 flex items-center justify-center bg-[url(/images/empty.png)] bg-cover bg-no-repeat bg-center"
+                        }
                         style={{
-                          backgroundImage:
-                            (hoveredBtn?.row === i &&
-                              hoveredBtn?.btn === "main") ||
-                            (focusIndex === i && focusBtn === 0)
-                              ? "url('/images/Button_Square_Highlighted.png')"
-                              : "url('/images/Button_Square.png')",
-                          backgroundSize: "100% 100%",
                           imageRendering: "pixelated",
                         }}
                       >
@@ -626,7 +631,7 @@ const VersionsView = memo(function VersionsView() {
                               : "/images/Download_Icon.png"
                           }
                           alt=""
-                          className="w-5 h-5 object-contain"
+                          className="w-8 h-8 object-contain"
                           style={{
                             imageRendering: "pixelated",
                             filter: isDownloading
@@ -648,31 +653,20 @@ const VersionsView = memo(function VersionsView() {
                         setHoveredBtn({ row: i, btn: "menu" })
                       }
                       onMouseLeave={() => setHoveredBtn(null)}
-                      className="w-9 h-9 flex flex-col items-center justify-center gap-1 transition-colors relative"
+                      className="w-10 h-10 flex flex-col items-center justify-center gap-1 transition-colors relative bg-[url(/images/empty.png)] bg-cover bg-no-repeat bg-center"
                       style={{
-                        backgroundImage:
-                          (hoveredBtn?.row === i &&
-                            hoveredBtn?.btn === "menu") ||
-                          (focusIndex === i &&
-                            (focusBtn === 0 || focusBtn === 1))
-                            ? "url('/images/Button_Square_Highlighted.png')"
-                            : "url('/images/Button_Square.png')",
-                        backgroundSize: "100% 100%",
                         imageRendering: "pixelated",
-                        filter: updatesAvailable?.[edition.instanceId]
-                          ? "drop-shadow(0 0 4px rgba(255,255,0,0.8))"
-                          : "none",
                       }}
                     >
-                      <div
-                        className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`}
-                      />
-                      <div
-                        className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`}
-                      />
-                      <div
-                        className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`}
-                      />
+                      <div className={"w-8 h-8"}>
+                        <img
+                          src={
+                            updatesAvailable?.[edition.instanceId]
+                              ? "/images/Update_Icon.png"
+                              : "/images/gear.png"
+                          }
+                        />
+                      </div>
                     </button>
 
                     {openMenuId === edition.id && (
@@ -1104,73 +1098,87 @@ const VersionsView = memo(function VersionsView() {
                 </div>
               );
             })}
-
-            <div className="w-full flex items-center justify-center gap-4 p-2 mt-1">
-              <button
-                onClick={() => {
-                  playPressSound();
-                  setInitialPath("");
-                  setIsImportModalOpen(true);
-                }}
-                onMouseEnter={() => setFocusIndex(visibleEditions.length)}
-                onMouseLeave={() => setHoveredBtn(null)}
-                className="w-8 h-8 flex items-center justify-center text-[#3a3a3a]"
-                style={{
-                  backgroundImage:
-                    (hoveredBtn?.row === visibleEditions.length &&
-                      hoveredBtn?.btn === "add") ||
-                    focusIndex === visibleEditions.length
-                      ? "url('/images/Button_Square_Highlighted.png')"
-                      : "url('/images/Button_Square.png')",
-                  backgroundSize: "100% 100%",
-                  imageRendering: "pixelated",
-                }}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="square"
-                >
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-              </button>
-
-              {!isAndroid && (
-                <button
-                  onClick={() => {
-                    playPressSound();
-                    handleImportFolder();
-                  }}
-                  onMouseEnter={() => setFocusIndex(visibleEditions.length + 1)}
-                  onMouseLeave={() => setHoveredBtn(null)}
-                  title={t("modals.customTu.importTitle")}
-                  className="w-8 h-8 flex items-center justify-center text-[#3a3a3a]"
-                  style={{
-                    backgroundImage:
-                      (hoveredBtn?.row === visibleEditions.length &&
-                        hoveredBtn?.btn === "folder_import") ||
-                      focusIndex === visibleEditions.length + 1
-                        ? "url('/images/Button_Square_Highlighted.png')"
-                        : "url('/images/Button_Square.png')",
-                    backgroundSize: "100% 100%",
-                    imageRendering: "pixelated",
-                  }}
-                >
-                  <img
-                    src="/images/Folder_Icon.png"
-                    alt={t("modals.customTu.importTitle")}
-                    className="w-5 h-5 object-contain"
-                    style={{ imageRendering: "pixelated" }}
-                  />
-                </button>
-              )}
-            </div>
           </div>
         </div>
+
+        <div
+          ref={trackRef}
+          className="w-13 h-85 max-h-85 shrink-0 relative select-none mc-versionrecess"
+        >
+          {thumb.height > 0 && (
+            <div
+              ref={thumbRef}
+              onPointerDown={handleThumbPointerDown}
+              onPointerMove={handleThumbPointerMove}
+              onPointerUp={handleThumbPointerUp}
+              onPointerCancel={handleThumbPointerUp}
+              className="absolute left-1/2 -translate-x-[30px] w-10 h-10 mc-options-bg cursor-pointer"
+              style={{ top: thumb.top - 12 }}
+            >
+              {
+                //neo: oh my goodness this took me a lot to figure out, anyway its just a transparent <hr> so the div isnt empty so that the border-image renders
+              }
+              <hr style={{ color: "transparent" }} />
+            </div>
+          )}
+        </div>
+
+        {!isAndroid && (
+          <div className="absolute left-3 bottom-6 z-10 flex items-center gap-1 pb-1 pr-1 w-fit mc-help">
+            <button
+              onClick={() => {
+                playPressSound();
+                setInitialPath("");
+                setIsImportModalOpen(true);
+              }}
+              onMouseEnter={() => setFocusIndex(visibleEditions.length)}
+              onMouseLeave={() => setHoveredBtn(null)}
+              className="w-8 h-8 flex items-center justify-center text-[#333333] mc-optionbutton"
+              style={{
+                imageRendering: "pixelated",
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="square"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
+
+            <button
+              onClick={() => {
+                playPressSound();
+                handleImportFolder();
+              }}
+              onMouseEnter={() => setFocusIndex(visibleEditions.length + 1)}
+              onMouseLeave={() => setHoveredBtn(null)}
+              title={t("modals.customTu.importTitle")}
+              className="w-8 h-8 flex items-center justify-center text-[#333333] mc-optionbutton"
+              style={{
+                imageRendering: "pixelated",
+              }}
+            >
+              <img
+                src="/images/Folder_Icon.png"
+                alt={t("modals.customTu.importTitle")}
+                className="w-5 h-5 object-contain invert"
+                style={{ imageRendering: "pixelated" }}
+              />
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="mc-help text-xl text-[#FFFFFF] max-h-24 min-h-24 overflow-hidden px-4 w-280">
+        {visibleEditions[focusIndex]?.desc ??
+          visibleEditions.find((e) => e.id == useConfig().profile)?.desc ??
+          ""}
       </div>
 
       {!isAndroid && (
@@ -1182,7 +1190,7 @@ const VersionsView = memo(function VersionsView() {
               playBackSound();
               setActiveView("main");
             }}
-            className="w-48 h-10 flex items-center justify-center text-xl mc-text-shadow outline-none border-none text-white"
+            className="w-48 h-10 flex items-center justify-center text-xl mc-text-shadow text-white"
             style={{
               backgroundImage:
                 focusIndex === visibleEditions.length + 2

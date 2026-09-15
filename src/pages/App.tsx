@@ -309,6 +309,7 @@ export default function App() {
     "model-editor",
     "swf-editor",
     "goldmapper",
+    "versions", //neo: didnt expect that but oh well
   ]);
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
@@ -775,12 +776,14 @@ export default function App() {
             className="shrink-0 p-4 flex justify-between items-end text-[10px] text-[#A0A0A0] mc-text-shadow bg-gradient-to-t from-black/80 to-transparent uppercase tracking-widest opacity-60 font-[var(--font-base)]"
             style={{ fontWeight: "normal" }}
           >
-              <div className="flex-1 text-left whitespace-nowrap">
-                {t("app.version", { version: `${pkg.version} (${__BUILD_DATE__})` })}
-              </div>
-              <div className="flex-1 text-right whitespace-nowrap">
-                {connected && t("app.controllerConnected")}
-              </div>
+            <div className="flex-1 text-left whitespace-nowrap">
+              {t("app.version", {
+                version: `${pkg.version} (${__BUILD_DATE__})`,
+              })}
+            </div>
+            <div className="flex-1 text-right whitespace-nowrap">
+              {connected && t("app.controllerConnected")}
+            </div>
           </motion.footer>
         </motion.div>
       </div>
