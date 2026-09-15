@@ -1,4 +1,5 @@
 import { useEffect, useMemo, memo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useUI, useAudio } from "../../context/LauncherContext";
 import { usePlatform } from "../../hooks/usePlatform";
@@ -30,6 +31,7 @@ interface CreditCategory {
 }
 
 const CreditsView = memo(function CreditsView() {
+  const { t } = useTranslation();
   const { setActiveView } = useUI();
   const { playPressSound } = useAudio();
   const { isAndroid } = usePlatform();
@@ -50,7 +52,7 @@ const CreditsView = memo(function CreditsView() {
         "raymanroy",
         "fin",
         "liugu",
-        "Zrox2013 (Zameras2013)",
+        "Zrox2013 (Zamers2013)",
         "kierwa",
         "cartox",
         "necmi",
@@ -254,6 +256,19 @@ const CreditsView = memo(function CreditsView() {
       category: "SPECIAL THANKS",
       icon: "",
       subcategories: [
+        {
+          name: "Emerald Translations",
+          icon: "",
+          roles: [
+            {
+              role: "",
+              members: [
+                { name: "dydymiku (French)", url: "#" },
+                { name: "DimsMaybe/Hvrket (Russian)", url: "#" },
+              ],
+            },
+          ],
+        },
         ...(isAndroid
           ? [
               {
@@ -295,7 +310,10 @@ const CreditsView = memo(function CreditsView() {
           roles: [
             {
               role: "",
-              members: [{ name: "faisal508508", url: "#" }],
+              members: [
+                { name: "faisal508508", url: "#" },
+                { name: "HingedxHooligan", url: "#" },
+              ],
             },
           ],
         },
@@ -328,14 +346,14 @@ const CreditsView = memo(function CreditsView() {
           className="fixed bottom-8 left-8 z-50 h-10 flex items-center justify-center gap-2 px-4 text-xl mc-text-shadow outline-none border-none"
           style={{
             backgroundImage: isHovered
-              ? "url('/images/button_highlighted.png')"
-              : "url('/images/Button_Background.png')",
+              ? "url('/images/Layout_Button_Over.png')"
+              : "url('/images/Layout_Button_Bmp.png')",
             backgroundSize: "100% 100%",
             imageRendering: "pixelated",
             color: isHovered ? "#FFFF55" : "white",
           }}
         >
-          Back to Menu
+          {t("credits.backToMenu")}
         </button>
       )}
 

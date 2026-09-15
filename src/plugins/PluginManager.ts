@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { buildPluginAPI } from "./PluginAPI";
 import { PluginSandbox } from "./PluginSandbox";
+import { SPLASHES } from "../data/splashes";
 import type {
   PluginManifest,
   LoadedPlugin,
@@ -39,12 +40,14 @@ export class PluginManager {
   private hooks: Map<HookEvent, Map<string, HookCallback>> = new Map();
   private views: Map<string, PluginViewRegistration> = new Map();
   private actions: Map<ActionSlot, Map<string, { action: ActionDef; pluginId: string }>> = new Map();
+  private splashes: Map<string, Set<string>> = new Map();
   private stateSubs: Map<string, StateChangeCallback> = new Map();
   private pluginEvents: Map<string, Map<string, Set<PluginEventHandler>>> = new Map();
   private onViewsChanged: ViewChangeCallback | null = null;
   private onNavigate: NavigateCallback | null = null;
   private onToast: ToastCallback | null = null;
   private onSound: SoundCallback | null = null;
+  private onSplashesChanged: ((splashes: string[]) => void) | null = null;
   private onEnabledChanged: (() => void) | null = null;
   private configSnapshot: Record<string, unknown> = {};
   private gameStateSnapshot: Record<string, unknown> = {};
@@ -71,6 +74,7 @@ export class PluginManager {
     this.enabledMap.set(id, enabled);
     localStorage.setItem(`plugin:enabled:${id}`, String(enabled));
     this.notifyViewsChanged();
+    this.notifySplashesChanged();
     this.onEnabledChanged?.();
   }
 
@@ -95,6 +99,10 @@ export class PluginManager {
 
   setSoundCallback(cb: SoundCallback): void {
     this.onSound = cb;
+  }
+
+  setSplashesChangedCallback(cb: (splashes: string[]) => void): void {
+    this.onSplashesChanged = cb;
   }
 
   updateSnapshots(
@@ -139,9 +147,11 @@ export class PluginManager {
     this.hooks.clear();
     this.views.clear();
     this.actions.clear();
+    this.splashes.clear();
     this.plugins.clear();
     this.enabledMap.clear();
     this.pluginEvents.clear();
+    this.notifySplashesChanged();
     await this.init();
   }
 
@@ -369,7 +379,33 @@ export class PluginManager {
     this.onSound?.(name);
   }
 
+  registerSplash(pluginId: string, splash: string): UnsubscribeFn {
+    if (!this.splashes.has(pluginId)) {
+      this.splashes.set(pluginId, new Set());
+    }
+    this.splashes.get(pluginId)!.add(splash);
+    this.notifySplashesChanged();
+    return () => {
+      this.splashes.get(pluginId)?.delete(splash);
+      this.notifySplashesChanged();
+    };
+  }
+
+  getSplashes(): string[] {
+    const pluginSplashes: string[] = [];
+    this.splashes.forEach((set, pid) => {
+      if (this.isPluginEnabled(pid)) {
+        pluginSplashes.push(...set);
+      }
+    });
+    return [...SPLASHES, ...pluginSplashes];
+  }
+
   private notifyViewsChanged(): void {
     this.onViewsChanged?.(this.getViews());
+  }
+
+  private notifySplashesChanged(): void {
+    this.onSplashesChanged?.(this.getSplashes());
   }
 }

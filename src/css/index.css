@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
 @layer base {
+    :root {
+        --font-base: "Mojangles", monospace;
+    }
     *,
     ::before,
     ::after {
@@ -63,6 +66,62 @@
 
 .mc-options-bg {
     border-image: url("/images/options_background.png") 4 fill;
+    border-width: 12px;
+    border-style: solid;
+    border-color: transparent;
+    image-rendering: pixelated;
+}
+
+.mc-options-fg {
+    /*neo: tysm https://leanrada.com/9-slicer/ */
+    border-image: url("/images/empty.png") 30 30 30 30 fill / 30px 30px 30px
+        30px;
+    border-width: 12px;
+    border-style: solid;
+    border-color: transparent;
+    image-rendering: pixelated;
+}
+
+.mc-optionbutton {
+    appearance: none;
+    background: url("/images/options_background.png") center / 100% 100%
+        no-repeat;
+    image-rendering: pixelated;
+}
+
+.mc-button-ninesliced {
+    /*neo: tysm https://leanrada.com/9-slicer/ */
+    border-image: url("/images/Button_Background.png") 13 13 13 13 fill / 13px
+        13px 13px 13px;
+    border-width: 12px;
+    border-style: solid;
+    border-color: transparent;
+    image-rendering: pixelated;
+}
+
+.mc-button-ninesliced-selected {
+    /*neo: tysm https://leanrada.com/9-slicer/ */
+    border-image: url("/images/button_highlighted.png") 13 13 13 13 fill / 13px
+        13px 13px 13px;
+    border-width: 12px;
+    border-style: solid;
+    border-color: transparent;
+    image-rendering: pixelated;
+}
+
+.mc-versionrecess {
+    /*neo: tysm https://leanrada.com/9-slicer/ */
+    border-image: url("/images/versionrecess.png") 12 30 30 12 fill / 12px 30px
+        30px 12px;
+    border-width: 12px;
+    border-style: solid;
+    border-color: transparent;
+    image-rendering: pixelated;
+}
+
+.mc-help {
+    /*neo: tysm https://leanrada.com/9-slicer/ */
+    border-image: url("/images/helpbg.png") 7 16 16 7 fill / 7px 16px 16px 7px;
     border-width: 12px;
     border-style: solid;
     border-color: transparent;
@@ -153,7 +212,7 @@
 body {
     margin: 0;
     background-color: #000;
-    font-family: "Mojangles", monospace;
+    font-family: var(--font-base, "Mojangles", monospace);
 }
 
 .mc-button {
@@ -387,4 +446,19 @@ body {
     border: none;
     border-top: 2px solid #373737;
     margin: 1.5rem 0;
+}
+
+.mc-textinput-outer {
+    border: 2px solid transparent;
+    image-rendering: pixelated;
+}
+
+.mc-textinput-outer:focus-within {
+    border: 2px solid #ffff00;
+}
+
+.mc-textinput {
+    background-color: #646464 !important;
+    border: 2px solid #323232 !important;
+    image-rendering: pixelated;
 }

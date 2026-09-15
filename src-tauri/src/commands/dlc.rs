@@ -45,14 +45,16 @@ fn get_raw_url(host: &str, owner: &str, repo: &str, branch: &str, path: &str, is
 
 #[tauri::command]
 pub async fn list_git_directory(
+    app: tauri::AppHandle,
     repo_url: String,
     branch: String,
     path: String,
 ) -> Result<Vec<GitEntry>, String> {
-    list_git_directory_inner(repo_url, branch, path).await
+    list_git_directory_inner(app, repo_url, branch, path).await
 }
 
 fn list_git_directory_inner(
+    app: tauri::AppHandle,
     repo_url: String,
     branch: String,
     path: String,
@@ -60,9 +62,8 @@ fn list_git_directory_inner(
     Box::pin(async move {
         let (owner, repo, host, is_github) = parse_git_url(&repo_url)?;
         let api_url = get_api_url(&host, &owner, &repo, &path, &branch, is_github);
-        let client = reqwest::Client::new();
+        let client = util::build_http_client_from_app(&app).map_err(|e| e.to_string())?;
         let response = client.get(&api_url)
-            .header("User-Agent", "Emerald-Launcher")
             .send()
             .await
             .map_err(|e| format!("Failed to fetch directory listing: {}", e))?;
@@ -82,7 +83,7 @@ fn list_git_directory_inner(
                 let is_dir = json.get("type").and_then(|v| v.as_str()) == Some("dir");
                 if is_dir {
                     let sub_path = json.get("path").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                    return list_git_directory_inner(repo_url, branch, sub_path).await;
+                    return list_git_directory_inner(app, repo_url, branch, sub_path).await;
                 }
                 return Ok(Vec::new());
             }
@@ -107,6 +108,7 @@ fn list_git_directory_inner(
 }
 
 async fn collect_files(
+    app: &tauri::AppHandle,
     host: &str,
     owner: &str,
     repo: &str,
@@ -116,11 +118,10 @@ async fn collect_files(
 ) -> Result<Vec<String>, String> {
     let mut files = Vec::new();
     let mut dirs_to_list = vec![root_path.to_string()];
-    let client = reqwest::Client::new();
+    let client = util::build_http_client_from_app(app).map_err(|e| e.to_string())?;
     while let Some(dir) = dirs_to_list.pop() {
         let api_url = get_api_url(host, owner, repo, &dir, branch, is_github);
         let response = client.get(&api_url)
-            .header("User-Agent", "Emerald-Launcher")
             .send()
             .await
             .map_err(|e| format!("Failed to list {}: {}", dir, e))?;
@@ -174,18 +175,17 @@ pub async fn download_dlc_files(
     let instance_dir = util::get_instance_working_dir(&app, &instance_id);
     let dlc_dest = instance_dir.join("Windows64Media").join("DLC").join(&dlc_folder);
     let (owner, repo, host, is_github) = parse_git_url(&repo_url)?;
-    let files_to_download = collect_files(&host, &owner, &repo, &branch, &dlc_folder, is_github).await?;
+    let files_to_download = collect_files(&app, &host, &owner, &repo, &branch, &dlc_folder, is_github).await?;
     if files_to_download.is_empty() {
         return Err(format!("No files found in '{}' folder", dlc_folder));
     }
 
     fs::create_dir_all(&dlc_dest).map_err(|e| e.to_string())?;
-    let client = reqwest::Client::new();
+    let client = util::build_http_client_from_app(&app).map_err(|e| e.to_string())?;
     let total = files_to_download.len();
     for (i, file_path) in files_to_download.iter().enumerate() {
         let raw_url = get_raw_url(&host, &owner, &repo, &branch, file_path, is_github);
         let response = client.get(&raw_url)
-            .header("User-Agent", "Emerald-Launcher")
             .send()
             .await
             .map_err(|e| format!("Failed to download {}: {}", file_path, e))?;

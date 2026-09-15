@@ -7,8 +7,8 @@ use crate::types::ScreenshotInfo;
 use crate::config;
 use crate::util;
 #[tauri::command]
-pub async fn fetch_skin(username: String) -> Result<(String, String), String> {
-    let client = reqwest::Client::new();
+pub async fn fetch_skin(app: AppHandle, username: String) -> Result<(String, String), String> {
+    let client = util::build_http_client_from_app(&app).map_err(|e| e.to_string())?;
     let mojang_url = format!("https://api.mojang.com/users/profiles/minecraft/{}", username);
     let mojang_res = client.get(&mojang_url).send().await.map_err(|e| format!("Failed request to mojang: {}", e))?;
     if !mojang_res.status().is_success() {
@@ -47,7 +47,8 @@ pub async fn download_logo(app: AppHandle, id: String, url: String) -> Result<St
 
     let filename = format!("{}.{}", id, file_ext);
     let dest_path = logos_dir.join(&filename);
-    let response = reqwest::get(&url).await.map_err(|e| e.to_string())?;
+    let client = util::build_http_client_from_app(&app).map_err(|e| e.to_string())?;
+    let response = client.get(&url).send().await.map_err(|e| e.to_string())?;
     if !response.status().is_success() {
         return Err(format!("Failed to download logo: {}", response.status()));
     }

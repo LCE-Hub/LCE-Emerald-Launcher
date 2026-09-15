@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
   TauriService,
@@ -75,6 +76,7 @@ export default function PlaytimeModal({
   instanceName: string;
   playBackSound: (s?: string) => void;
 }) {
+  const { t } = useTranslation();
   const [playtime, setPlaytime] = useState<PlaytimeResponse | null>(null);
   const [dailyData, setDailyData] = useState<PlaytimeDayEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -127,7 +129,7 @@ export default function PlaytimeModal({
         }}
       >
         <h2 className="text-[#FFFF55] text-2xl mc-text-shadow mb-4 border-b-2 border-[#373737] pb-2 w-full text-center uppercase">
-          Playtime
+          {t("modals.playtime.title")}
         </h2>
 
         <p className="text-white text-sm mc-text-shadow mb-4 text-center">
@@ -136,14 +138,14 @@ export default function PlaytimeModal({
 
         {loading ? (
           <div className="text-gray-400 text-sm mc-text-shadow mb-4">
-            Loading...
+            {t("modals.playtime.loading")}
           </div>
         ) : playtime ? (
           <>
             <div className="w-full flex flex-col gap-2 mb-4">
               <div className="flex justify-between items-center bg-black/30 px-4 py-2 border border-[#373737]">
                 <span className="text-[#AAAAAA] text-sm mc-text-shadow uppercase tracking-wider">
-                  Total
+                  {t("modals.playtime.total")}
                 </span>
                 <span className="text-white text-lg mc-text-shadow font-bold">
                   {formatTime(playtime.totalSeconds)}
@@ -151,7 +153,7 @@ export default function PlaytimeModal({
               </div>
               <div className="flex justify-between items-center bg-black/30 px-4 py-2 border border-[#373737]">
                 <span className="text-[#AAAAAA] text-sm mc-text-shadow uppercase tracking-wider">
-                  This Week
+                  {t("modals.playtime.thisWeek")}
                 </span>
                 <span className="text-white text-lg mc-text-shadow font-bold">
                   {formatTime(playtime.weekSeconds)}
@@ -159,7 +161,7 @@ export default function PlaytimeModal({
               </div>
               <div className="flex justify-between items-center bg-black/30 px-4 py-2 border border-[#373737]">
                 <span className="text-[#AAAAAA] text-sm mc-text-shadow uppercase tracking-wider">
-                  Today
+                  {t("modals.playtime.today")}
                 </span>
                 <span className="text-white text-lg mc-text-shadow font-bold">
                   {formatTime(playtime.daySeconds)}
@@ -171,7 +173,7 @@ export default function PlaytimeModal({
               <div className="w-full mb-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[#888] text-[10px] mc-text-shadow uppercase tracking-widest">
-                    Daily Breakdown
+                    {t("modals.playtime.dailyBreakdown")}
                   </span>
                   <div className="flex gap-1">
                     {[3, 7, 14].map((d) => (
@@ -197,7 +199,7 @@ export default function PlaytimeModal({
           </>
         ) : (
           <div className="text-red-400 text-sm mc-text-shadow mb-4">
-            Failed to load playtime data.
+            {t("modals.playtime.failedToLoad")}
           </div>
         )}
 
@@ -213,7 +215,7 @@ export default function PlaytimeModal({
             imageRendering: "pixelated",
           }}
         >
-          Close
+          {t("modals.playtime.close")}
         </button>
       </div>
     </motion.div>

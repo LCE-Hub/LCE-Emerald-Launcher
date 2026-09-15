@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { useLocalStorage } from "./useLocalStorage";
-import { TauriService, type CustomEdition } from "../services/TauriService";
+import {
+  TauriService,
+  type CustomEdition,
+  type GoldMapperMapping,
+} from "../services/TauriService";
 export function useAppConfig() {
   const [username, setUsername] = useLocalStorage("lce-username", "Steve");
   const [theme, setTheme] = useLocalStorage("lce-theme", "Modern");
@@ -31,6 +35,9 @@ export function useAppConfig() {
   >({});
   const [androidRunner, setAndroidRunner] = useLocalStorage<string | undefined>("lce-android-runner", undefined);
   const [androidAudioBackend, setAndroidAudioBackend] = useLocalStorage<"alsa" | "pulseaudio">("lce-android-audio", "pulseaudio");
+  const [goldmapperEnabled, setGoldmapperEnabled] = useLocalStorage("lce-goldmapper", true);
+  const [goldmapperMappings, setGoldmapperMappings] = useState<GoldMapperMapping[] | undefined>();
+  const [proxy, setProxy] = useState<string | undefined>();
   useEffect(() => {
     TauriService.loadConfig().then((config) => {
       if (config.username) setUsername(config.username);
@@ -57,6 +64,9 @@ export function useAppConfig() {
       if (config.instanceLaunchArgs) setInstanceLaunchArgs(config.instanceLaunchArgs);
       if (config.androidRunner) setAndroidRunner(config.androidRunner);
       if (config.androidAudioBackend) setAndroidAudioBackend(config.androidAudioBackend);
+      if (config.goldmapperEnabled !== undefined) setGoldmapperEnabled(config.goldmapperEnabled);
+      if (config.goldmapperMappings) setGoldmapperMappings(config.goldmapperMappings);
+      if (config.httpProxy !== undefined) setProxy(config.httpProxy);
       setIsLoaded(true);
     });
   }, []);
@@ -87,9 +97,12 @@ export function useAppConfig() {
         instanceLaunchArgs,
         androidRunner,
         androidAudioBackend,
+        goldmapperEnabled,
+        goldmapperMappings,
+        httpProxy: proxy,
       }).catch(console.error);
     }
-  }, [username, theme, linuxRunner, perfBoost, profile, customEditions, customPaths, customizations, animationsEnabled, vfxEnabled, rpcEnabled, startFullscreen, musicVol, sfxVol, legacyMode, mangohudEnabled, extraLaunchArgs, launchPrefix, launchEnvVars, skipIntro, isLoaded, instanceLaunchArgs, androidRunner, androidAudioBackend]);
+  }, [username, theme, linuxRunner, perfBoost, profile, customEditions, customPaths, customizations, animationsEnabled, vfxEnabled, rpcEnabled, startFullscreen, musicVol, sfxVol, legacyMode, mangohudEnabled, extraLaunchArgs, launchPrefix, launchEnvVars, skipIntro, isLoaded, instanceLaunchArgs, androidRunner, androidAudioBackend, goldmapperEnabled, goldmapperMappings, proxy]);
 
   return {
     username,
@@ -145,5 +158,11 @@ export function useAppConfig() {
     setAndroidRunner,
     androidAudioBackend,
     setAndroidAudioBackend,
+    goldmapperEnabled,
+    setGoldmapperEnabled,
+    goldmapperMappings,
+    setGoldmapperMappings,
+    proxy,
+    setProxy,
   };
 }

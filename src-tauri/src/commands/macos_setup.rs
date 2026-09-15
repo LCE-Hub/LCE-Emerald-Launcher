@@ -15,6 +15,8 @@ use serde::Deserialize;
 #[cfg(target_os = "macos")]
 use crate::platform::macos;
 #[cfg(target_os = "macos")]
+use crate::util;
+#[cfg(target_os = "macos")]
 use std::fs;
 
 #[tauri::command]
@@ -71,7 +73,7 @@ pub async fn setup_macos_runtime(window: tauri::Window, app: AppHandle) -> Resul
             None,
         );
 
-        let client = reqwest::Client::new();
+        let client = util::build_http_client_from_app(&app).map_err(|e| e.to_string())?;
         let release_text = client
             .get(format!("https://api.github.com/repos/{}/releases/latest", repo))
             .header("User-Agent", "Emerald-Legacy-Launcher")

@@ -189,6 +189,9 @@ export function buildPluginAPI(
       playSound(name: string): void {
         manager.playSound(name);
       },
+      addSplash(splash: string): UnsubscribeFn {
+        return manager.registerSplash(pluginId, splash);
+      },
       async openUrl(url: string): Promise<void> {
         if (
           perms.size > 0 &&

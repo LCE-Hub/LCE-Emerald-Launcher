@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { TauriService } from "../../services/TauriService";
 interface DlcEntry {
@@ -23,6 +24,7 @@ export default function DownloadDlcModal({
   instanceId: string;
   officialDLC: string;
 }) {
+  const { t } = useTranslation();
   const [dlcList, setDlcList] = useState<DlcEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -185,7 +187,11 @@ export default function DownloadDlcModal({
         succeeded.push(selected[i].name);
       } else {
         setError(
-          `Failed to download ${selected[i].name}: ${r.reason instanceof Error ? r.reason.message : String(r.reason)}`,
+          t("modals.downloadDlc.failedToDownload", {
+            name: selected[i].name,
+            reason:
+              r.reason instanceof Error ? r.reason.message : String(r.reason),
+          }),
         );
       }
     }
@@ -211,7 +217,7 @@ export default function DownloadDlcModal({
         }}
       >
         <h2 className="text-[#FFFF55] text-2xl mc-text-shadow mb-1 w-full text-center uppercase">
-          Download DLC
+          {t("modals.downloadDlc.title")}
         </h2>
         <p className="text-white text-sm mc-text-shadow mb-4 text-center">
           {editionName}
@@ -219,7 +225,7 @@ export default function DownloadDlcModal({
 
         {loading && (
           <div className="text-white text-sm mc-text-shadow mb-4 py-8">
-            Loading available DLCs...
+            {t("modals.downloadDlc.loading")}
           </div>
         )}
 
@@ -231,7 +237,7 @@ export default function DownloadDlcModal({
 
         {!loading && !error && dlcList.length === 0 && !downloading && (
           <div className="text-white text-sm mc-text-shadow mb-4 py-8">
-            No DLC folders found in the repository.
+            {t("modals.downloadDlc.noneFound")}
           </div>
         )}
 
@@ -239,7 +245,7 @@ export default function DownloadDlcModal({
           <>
             <div className="flex items-center justify-between w-full mb-2 gap-2">
               <span className="text-white text-[10px] mc-text-shadow uppercase tracking-widest">
-                {dlcList.length} available
+                {t("modals.downloadDlc.available", { count: dlcList.length })}
               </span>
               <div className="flex gap-1">
                 <button
@@ -247,14 +253,14 @@ export default function DownloadDlcModal({
                   disabled={downloading}
                   className="text-[9px] px-1.5 py-0.5 border border-[#555] text-white bg-black/20 hover:border-[#FFFF55] hover:text-[#FFFF55] mc-text-shadow uppercase tracking-wider transition-colors disabled:opacity-40"
                 >
-                  All
+                  {t("modals.downloadDlc.all")}
                 </button>
                 <button
                   onClick={deselectAll}
                   disabled={downloading}
                   className="text-[9px] px-1.5 py-0.5 border border-[#555] text-white bg-black/20 hover:border-[#FFFF55] hover:text-[#FFFF55] mc-text-shadow uppercase tracking-wider transition-colors disabled:opacity-40"
                 >
-                  None
+                  {t("modals.downloadDlc.none")}
                 </button>
               </div>
             </div>
@@ -327,7 +333,10 @@ export default function DownloadDlcModal({
         <div className="flex items-center justify-center gap-4 mt-4">
           {downloading && (
             <div className="text-[#FFFF55] text-sm mc-text-shadow">
-              Downloaded {downloaded.length}/{selectedCount}
+              {t("modals.downloadDlc.downloaded", {
+                downloaded: downloaded.length,
+                selected: selectedCount,
+              })}
             </div>
           )}
         </div>
@@ -343,7 +352,7 @@ export default function DownloadDlcModal({
                 imageRendering: "pixelated",
               }}
             >
-              Download ({selectedCount})
+              {t("modals.downloadDlc.download", { count: selectedCount })}
             </button>
           )}
           {downloading && downloaded.length === selectedCount && (
@@ -359,7 +368,7 @@ export default function DownloadDlcModal({
                 imageRendering: "pixelated",
               }}
             >
-              Done
+              {t("modals.downloadDlc.done")}
             </button>
           )}
           <button
@@ -375,7 +384,7 @@ export default function DownloadDlcModal({
               imageRendering: "pixelated",
             }}
           >
-            Close
+            {t("modals.downloadDlc.close")}
           </button>
         </div>
       </div>
