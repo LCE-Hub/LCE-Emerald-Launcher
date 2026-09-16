@@ -1,6 +1,11 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { motion, AnimatePresence, MotionConfig } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  MotionConfig,
+  getDefaultTransition,
+} from "framer-motion";
 import "../css/App.css";
 import HomeView from "../components/views/HomeView";
 import SettingsView from "../components/views/SettingsView";
@@ -105,6 +110,12 @@ export default function App() {
     message: string;
     options?: ToastOptions;
   } | null>(null);
+  const [windowHeight, setWindowHeight] = useState(window.innerHeight);
+  useEffect(() => {
+    const onResize = () => setWindowHeight(window.innerHeight);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   useEffect(() => {
     const pm = PluginManager.instance;
     pm.setNavigateCallback((viewId) => {
@@ -294,23 +305,27 @@ export default function App() {
   const selectedVersionName = selectedEdition?.name ?? "";
   const hasAnyInstall = game.installs.length > 0;
   const titleImage = selectedEdition?.titleImage ?? "/images/MenuTitle.png";
-  const TITLE_HIDDEN_VIEWS = new Set([
-    //neo: why an entire Set for that? yes. the answer is yes.
-    "workshop",
-    "lceonline",
-    "devtools",
-    "guides",
-    "pck-editor",
-    "arc-editor",
-    "loc-editor",
-    "grf-editor",
-    "col-editor",
-    "options-editor",
-    "model-editor",
-    "swf-editor",
-    "goldmapper",
-    "versions", //neo: didnt expect that but oh well
-  ]);
+  const titleHiddenViews = useMemo(
+    () =>
+      new Set([
+        //neo: why an entire Set for that? yes. the answer is yes.
+        "workshop",
+        "lceonline",
+        "devtools",
+        "guides",
+        "pck-editor",
+        "arc-editor",
+        "loc-editor",
+        "grf-editor",
+        "col-editor",
+        "options-editor",
+        "model-editor",
+        "swf-editor",
+        "goldmapper",
+        windowHeight >= 744 ? null : "versions",
+      ]),
+    [windowHeight],
+  );
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
     document.addEventListener("contextmenu", handleContextMenu);
@@ -629,7 +644,7 @@ export default function App() {
           <div className="shrink-0 flex justify-center py-4 relative w-full pt-4">
             <div className="relative w-full max-w-135 flex justify-center">
               {activeView !== "credits" &&
-                !TITLE_HIDDEN_VIEWS.has(activeView) && (
+                !titleHiddenViews.has(activeView) && (
                   <motion.img
                     layoutId="mainLogo"
                     src={titleImage}
@@ -643,7 +658,7 @@ export default function App() {
                   />
                 )}
               {activeView !== "credits" &&
-                !TITLE_HIDDEN_VIEWS.has(activeView) && (
+                !titleHiddenViews.has(activeView) && (
                   <motion.div
                     {...uiFade}
                     className="absolute bottom-[20%] right-[5%] w-0 h-0 flex items-center justify-center"
