@@ -27,7 +27,7 @@ export const DownloadOverlay = memo(function DownloadOverlay({
       className="absolute top-14 right-8 z-100 w-100 mc-options-bg"
       style={{ imageRendering: "pixelated" }}
     >
-      <div className="px-3 pt-2.5 pb-2">
+      <div className="px-3 pb-1">
         <span className="text-xl text-[#333333]">{t("download.title")}</span>
       </div>
       <div className="flex flex-col gap-1.5 py-2 max-h-[260px] overflow-y-auto custom-scrollbar mc-options-fg">

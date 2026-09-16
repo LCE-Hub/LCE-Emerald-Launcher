@@ -557,14 +557,14 @@ const VersionsView = memo(function VersionsView() {
                         <img
                           src={edition.logo}
                           alt=""
-                          className={`w-10 h-10 object-contain ${isComingSoon ? "opacity-40 grayscale" : ""}`}
+                          className={`${!edition.transparentLogo ? "w-12 h-12" : "w-10 h-10"} object-contain ${isComingSoon ? "opacity-40 grayscale" : ""}`}
                           style={{ imageRendering: "pixelated" }}
                         />
                       ) : (
                         <ScreenshotImage
                           path={edition.logo}
                           alt=""
-                          className={`w-6 h-6 object-contain ${isComingSoon ? "opacity-40 grayscale" : ""}`}
+                          className={`${!edition.transparentLogo ? "w-12 h-12" : "w-10 h-10"} object-contain ${isComingSoon ? "opacity-40 grayscale" : ""}`}
                           style={{ imageRendering: "pixelated" }}
                         />
                       )
@@ -578,8 +578,7 @@ const VersionsView = memo(function VersionsView() {
                   >
                     <div className="flex items-center gap-2">
                       <span
-                        className={`text-xl tracking-wide truncate ${!isFocused ? "text-white" : "text-[#ffff00]"}`}
-                        style={{ textShadow: "none" }}
+                        className={`text-xl tracking-wide truncate mc-text-shadow ${!isFocused ? "text-white" : "text-[#ffff00]"}`}
                       >
                         {edition.name}
                       </span>

@@ -16,6 +16,7 @@ export interface Edition {
   officialDLC?: string;
   lceOnline?: boolean;
   hideOnAndroid?: boolean;
+  transparentLogo?: boolean;
 }
 
 export interface CustomEditionInput {

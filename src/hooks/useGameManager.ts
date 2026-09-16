@@ -47,15 +47,16 @@ export const BASE_EDITIONS = [
     supportsSlimSkins: false,
     panorama: "vanilla_tu19",
     logo: "/images/revelations.png",
+    transparentLogo: true,
   },
   {
-    id: "legacyorbis",
-    name: "LegacyOrbis",
+    id: "projectlce",
+    name: "ProjectLCE",
     desc: "A LCE Project which aims to bring the feel and functionality from Minecraft: Playstation®4 Edition directly natively to your PC!",
-    url: "https://git.neolegacy.dev/LegacyOrbis/Client/releases/download/latest/MinecraftPS4Edition.zip", // LO-Byte: No CDN right now, direct download from the git
+    url: "https://git.neolegacy.dev/ProjectLCE/Client/releases/download/latest/MinecraftPS4Edition.zip", // LO-Byte: No CDN right now, direct download from the git
     titleImage: "/images/MinecraftPS4Edition.png",
     supportsSlimSkins: true, // LO-Byte: Slim skins are supported, might have to change a few things in the code to match neoLegacy's implementation
-    logo: "/images/LegacyOrbis.png",
+    logo: "/images/projectlce.png",
     panorama: "legacyorbis",
     // LO-Byte: Store is built differently to what emerald expects, branch for emerald will be added soon
     //officialDLC: "main:https://git.neolegacy.dev/LegacyOrbis/Store",
@@ -112,6 +113,7 @@ export const BASE_EDITIONS = [
     supportsSlimSkins: false,
     logo: "/images/moonEdition.png",
     panorama: "moonedition",
+    transparentLogo: true,
   },
   {
     //neo: disabled.
@@ -124,6 +126,7 @@ export const BASE_EDITIONS = [
     logo: "/images/lce_online.png",
     panorama: "vanilla_tu19",
     lceOnline: true,
+    transparentLogo: true,
   },
 ];
 
