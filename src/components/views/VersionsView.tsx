@@ -144,7 +144,7 @@ const VersionsView = memo(function VersionsView() {
   const draggingRef = useRef(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [menuDir, setMenuDir] = useState<"down" | "up">("down");
-  const ITEM_COUNT = visibleEditions.length + 3;
+  const ITEM_COUNT = visibleEditions.length;
   const [visibleRange, setVisibleRange] = useState<{
     start: number;
     end: number;
@@ -331,18 +331,16 @@ const VersionsView = memo(function VersionsView() {
         e.preventDefault();
         if (focusIndex < visibleEditions.length) {
           const edition = visibleEditions[focusIndex];
-          const isInstalled = installedVersions.includes(edition.id);
-          const isCustom = edition.id.startsWith("custom_");
-          const maxBtn = isInstalled ? (isCustom ? 6 : 4) : 1;
+          const isInstalled = installedVersions.includes(edition.instanceId);
+          const maxBtn = isInstalled ? 1 : 2;
           setFocusBtn((prev) => (prev <= 0 ? maxBtn : prev - 1));
         }
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
         if (focusIndex < visibleEditions.length) {
           const edition = visibleEditions[focusIndex];
-          const isInstalled = installedVersions.includes(edition.id);
-          const isCustom = edition.id.startsWith("custom_");
-          const maxBtn = isInstalled ? (isCustom ? 6 : 4) : 1;
+          const isInstalled = installedVersions.includes(edition.instanceId);
+          const maxBtn = isInstalled ? 1 : 2;
           setFocusBtn((prev) => (prev >= maxBtn ? 0 : prev + 1));
         }
       } else if (e.key === "Enter") {
@@ -352,23 +350,19 @@ const VersionsView = memo(function VersionsView() {
           const isInstalled = installedVersions.includes(edition.instanceId);
           const isDownloading = downloadingIds.includes(edition.instanceId);
           if (focusBtn === 0) {
-            if (isInstalled) {
-              playPressSound();
-              setOpenMenuId(openMenuId === edition.id ? null : edition.id);
-            } else {
-              if (!isDownloading) {
-                playPressSound();
-                toggleInstall(edition.instanceId);
-              } else {
-                handleCancelDownload(edition.instanceId);
-              }
-            }
-          } else if (focusBtn === 1 && !isInstalled) {
+            playPressSound();
+            setOpenMenuId(null);
+            setSelectedProfile(edition.instanceId);
+          } else if (focusBtn === 2 || (focusBtn === 1 && isInstalled)) {
             playPressSound();
             setOpenMenuId(openMenuId === edition.id ? null : edition.id);
-          } else if (focusBtn === 2) {
+          } else if (focusBtn === 1 && !isInstalled) {
             playPressSound();
-            cycleBranch(edition.id);
+            if (isDownloading) {
+              handleCancelDownload(edition.instanceId);
+            } else {
+              toggleInstall(edition.instanceId);
+            }
           }
         } else if (focusIndex === visibleEditions.length) {
           playPressSound();
@@ -540,6 +534,10 @@ const VersionsView = memo(function VersionsView() {
               const isCustom = edition.id.startsWith("custom_");
               const isDownloading = downloadingIds.includes(edition.instanceId);
               const isComingSoon = edition.comingSoon;
+              const isDownloadFocused =
+                !isInstalled && isFocused && focusBtn === 1;
+              const isGearFocused =
+                isFocused && focusBtn === (isInstalled ? 1 : 2);
               return (
                 <div
                   key={edition.id}
@@ -602,7 +600,7 @@ const VersionsView = memo(function VersionsView() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0 relative">
+                  <div className="flex items-center gap-2 shrink-0 relative">
                     {!isInstalled && (
                       <button
                         onClick={(e) => {
@@ -617,9 +615,12 @@ const VersionsView = memo(function VersionsView() {
                           setHoveredBtn({ row: i, btn: "main" })
                         }
                         onMouseLeave={() => setHoveredBtn(null)}
-                        className={
-                          "w-10 h-10 flex items-center justify-center bg-[url(/images/empty.png)] bg-cover bg-no-repeat bg-center"
-                        }
+                        className={`w-10 h-10 flex items-center justify-center bg-cover bg-no-repeat bg-center transition-all
+                          ${
+                            isDownloadFocused
+                              ? "bg-[url(/images/checkbox_highlighted.png)] ring-4" //neo: ring-4 does not render at all (i dunno why tbh), so transition from ring-0 to ring-4 creates a transition indicating that it was selected. this is a coincidence but im keeping it
+                              : "bg-[url(/images/checkbox.png)] ring-0"
+                          }`}
                         style={{
                           imageRendering: "pixelated",
                         }}
@@ -653,7 +654,12 @@ const VersionsView = memo(function VersionsView() {
                         setHoveredBtn({ row: i, btn: "menu" })
                       }
                       onMouseLeave={() => setHoveredBtn(null)}
-                      className="w-10 h-10 flex flex-col items-center justify-center gap-1 transition-colors relative bg-[url(/images/empty.png)] bg-cover bg-no-repeat bg-center"
+                      className={`w-10 h-10 flex flex-col items-center justify-center gap-1 relative bg-cover bg-no-repeat bg-center transition-all
+                        ${
+                          isGearFocused
+                            ? "bg-[url(/images/checkbox_highlighted.png)] ring-4" //neo: same comment as the download button above
+                            : "bg-[url(/images/checkbox.png)] ring-0"
+                        }`}
                       style={{
                         imageRendering: "pixelated",
                       }}
@@ -1098,6 +1104,10 @@ const VersionsView = memo(function VersionsView() {
                 </div>
               );
             })}
+            <div
+              className="w-[calc(100%-20px)] shrink-0"
+              style={{ height: ROW_ESTIMATE }}
+            />
           </div>
         </div>
 
