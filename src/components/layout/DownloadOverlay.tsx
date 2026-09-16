@@ -52,14 +52,14 @@ export const DownloadOverlay = memo(function DownloadOverlay({
                         <img
                           src={edition.logo}
                           alt=""
-                          className="w-6 h-6 object-contain shrink-0"
+                          className="w-6 h-6 object-contain shrink-0 bg-[url(/images/empty.png)] bg-cover bg-center bg-no-repeat"
                           style={{ imageRendering: "pixelated" }}
                         />
                       ) : (
                         <ScreenshotImage
                           path={edition.logo}
                           alt=""
-                          className="w-6 h-6 object-contain shrink-0"
+                          className="w-6 h-6 object-contain shrink-0 bg-[url(/images/empty.png)] bg-cover bg-center bg-no-repeat"
                           style={{ imageRendering: "pixelated" }}
                         />
                       )
@@ -69,19 +69,19 @@ export const DownloadOverlay = memo(function DownloadOverlay({
                         <img
                           src={edition.titleImage}
                           alt=""
-                          className="w-6 h-6 object-contain shrink-0"
+                          className="w-6 h-6 object-contain shrink-0 bg-[url(/images/empty.png)] bg-cover bg-center bg-no-repeat"
                           style={{ imageRendering: "pixelated" }}
                         />
                       ) : (
                         <ScreenshotImage
                           path={edition.titleImage}
                           alt=""
-                          className="w-6 h-6 object-contain shrink-0"
+                          className="w-6 h-6 object-contain shrink-0 bg-[url(/images/empty.png)] bg-cover bg-center bg-no-repeat"
                           style={{ imageRendering: "pixelated" }}
                         />
                       )
                     ) : (
-                      <div className="w-6 h-6 flex items-center justify-center border border-[#555] bg-black/40 shrink-0">
+                      <div className="w-6 h-6 flex items-center justify-center shrink-0 bg-[url(/images/empty.png)] bg-cover bg-center bg-no-repeat">
                         <svg
                           className="w-3 h-3 text-[#FFFF55]"
                           viewBox="0 0 24 24"
@@ -99,7 +99,7 @@ export const DownloadOverlay = memo(function DownloadOverlay({
                       {name}
                     </span>
                   </div>
-                  <span className="text-sm text-[#333333] w-7 text-right shrink-0 pr-1">
+                  <span className="text-sm text-[#333333] w-7 text-right shrink-0 pr-1.5">
                     {Math.floor(pct)}%
                   </span>
                 </div>
