@@ -9,14 +9,15 @@ pub struct LegacyBlockState {
 pub fn map_modern_block_state(compound: &NbtCompound) -> LegacyBlockState {
     map_modern_block_state_inner(compound, None)
 }
-
+/*
+//neo: unused
 pub fn map_modern_block_state_with_context(
     compound: &NbtCompound,
     unknown_blocks: Option<&mut Vec<String>>,
 ) -> LegacyBlockState {
     map_modern_block_state_inner(compound, unknown_blocks)
 }
-
+*/
 fn map_modern_block_state_inner(
     compound: &NbtCompound,
     mut unknown_blocks: Option<&mut Vec<String>>,

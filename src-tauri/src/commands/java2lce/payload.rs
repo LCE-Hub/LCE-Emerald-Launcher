@@ -28,7 +28,8 @@ fn read_be_i64(data: &[u8], off: usize) -> i64 {
         data[off + 6], data[off + 7],
     ])
 }
-
+/*
+//neo: unused
 fn write_be_i16(out: &mut Vec<u8>, v: i16) {
     out.extend_from_slice(&v.to_be_bytes());
 }
@@ -39,14 +40,15 @@ fn write_be_i32(out: &mut Vec<u8>, v: i32) {
 
 fn write_be_i64(out: &mut Vec<u8>, v: i64) {
     out.extend_from_slice(&v.to_be_bytes());
-}
+}*/
 
 fn get_compressed_tile_index(block: usize, tile: usize) -> usize {
     let mut index = ((block & 0x180) << 6) | ((block & 0x060) << 4) | ((block & 0x01F) << 2);
     index |= ((tile & 0x30) << 7) | ((tile & 0x0C) << 5) | (tile & 0x03);
     index
 }
-
+/*
+//neo: unused
 fn get_nibble_value(nibble_data: &[u8], xz: usize, y: usize) -> u8 {
     let pos = (xz << 7) | y;
     let slot = pos >> 1;
@@ -60,7 +62,7 @@ fn get_nibble_value(nibble_data: &[u8], xz: usize, y: usize) -> u8 {
     } else {
         (b >> 4) & 0x0F
     }
-}
+}*/
 
 fn set_nibble_value(nibble_data: &mut [u8], xz: usize, y: usize, value: u8) {
     let pos = (xz << 7) | y;
@@ -77,6 +79,8 @@ fn set_nibble_value(nibble_data: &mut [u8], xz: usize, y: usize, value: u8) {
     }
 }
 
+/*
+//neo: unused
 fn ensure_length(input: &[u8], expected_len: usize) -> Vec<u8> {
     if input.len() == expected_len {
         return input.to_vec();
@@ -115,7 +119,7 @@ fn extract_upper_block_section(full_blocks: &[u8]) -> Vec<u8> {
         upper[dst_start..dst_start + COMPRESSED_CHUNK_SECTION_HEIGHT].copy_from_slice(&full_blocks[src_start..src_start + COMPRESSED_CHUNK_SECTION_HEIGHT]);
     }
     upper
-}
+}*/
 
 fn extract_lower_nibble_section(full_nibbles: &[u8]) -> Vec<u8> {
     let nibble_height = COMPRESSED_CHUNK_SECTION_HEIGHT / 2;
@@ -135,7 +139,8 @@ fn extract_lower_nibble_section(full_nibbles: &[u8]) -> Vec<u8> {
     }
     lower
 }
-
+/*
+//neo: unused
 fn extract_upper_nibble_section(full_nibbles: &[u8]) -> Vec<u8> {
     let nibble_height = COMPRESSED_CHUNK_SECTION_HEIGHT / 2;
     if full_nibbles.len() < FULL_CHUNK_NIBBLES {
@@ -149,7 +154,7 @@ fn extract_upper_nibble_section(full_nibbles: &[u8]) -> Vec<u8> {
             .copy_from_slice(&full_nibbles[src_start..src_start + nibble_height]);
     }
     upper
-}
+}*/
 
 fn combine_block_sections(lower: &[u8], upper: &[u8]) -> Vec<u8> {
     if lower.len() == FULL_CHUNK_BLOCKS {
@@ -205,6 +210,8 @@ pub fn encode_legacy_nbt(level: &nbt::NbtCompound) -> Vec<u8> {
     nbt::write_nbt(&root)
 }
 
+/*
+//neo: unused
 fn write_compressed_tile_storage(out: &mut Vec<u8>, blocks: &[u8]) {
     let normalized = ensure_length(blocks, BLOCKS_PER_SECTION);
     let mut blob = vec![0u8; 1024 + BLOCKS_PER_SECTION];
@@ -321,7 +328,7 @@ pub fn encode_compressed_storage(level: &nbt::NbtCompound) -> Vec<u8> {
     let dynamic_bytes = nbt::write_nbt(&dynamic_root);
     out.extend_from_slice(&dynamic_bytes);
     out
-}
+}*/
 
 fn is_compressed_chunk_storage(data: &[u8]) -> bool {
     if data.len() < 2 + 4 + 4 + 8 {
@@ -330,7 +337,8 @@ fn is_compressed_chunk_storage(data: &[u8]) -> bool {
     let version = read_be_i16(data, 0);
     version == SAVE_FILE_VERSION_COMPRESSED_CHUNK_STORAGE || version == SAVE_FILE_VERSION_CHUNK_INHABITED_TIME
 }
-
+/*
+//neo: unused
 pub fn try_read_chunk_coordinates(
     data: &[u8],
 ) -> Option<(i32, i32, bool)> {
@@ -382,7 +390,7 @@ pub fn force_chunk_coordinates(data: &[u8], expected_x: i32, expected_z: i32) ->
 
     Vec::new()
 }
-
+*/
 fn read_compressed_tile_storage(data: &[u8], offset: &mut usize) -> Result<Vec<u8>, String> {
     let allocated_size = read_be_i32(data, *offset) as usize;
     *offset += 4;
@@ -445,7 +453,8 @@ fn read_compressed_tile_storage(data: &[u8], offset: &mut usize) -> Result<Vec<u
 
     Ok(blocks)
 }
-
+/*
+//neo: unused
 fn skip_compressed_tile_storage(data: &[u8], offset: &mut usize) -> Result<(), String> {
     let allocated_size = read_be_i32(data, *offset) as usize;
     *offset += 4;
@@ -455,6 +464,7 @@ fn skip_compressed_tile_storage(data: &[u8], offset: &mut usize) -> Result<(), S
     *offset += allocated_size;
     Ok(())
 }
+*/
 
 fn read_sparse_nibble_storage(data: &[u8], offset: &mut usize, supports_all_fifteen: bool) -> Result<Vec<u8>, String> {
     let count = read_be_i32(data, *offset) as usize;
@@ -496,7 +506,8 @@ fn read_sparse_nibble_storage(data: &[u8], offset: &mut usize, supports_all_fift
 
     Ok(nibble_data)
 }
-
+/*
+//neo: unused
 fn skip_sparse_nibble_storage(data: &[u8], offset: &mut usize) -> Result<(), String> {
     let count = read_be_i32(data, *offset) as usize;
     *offset += 4;
@@ -507,7 +518,7 @@ fn skip_sparse_nibble_storage(data: &[u8], offset: &mut usize) -> Result<(), Str
     *offset += storage_bytes;
     Ok(())
 }
-
+*/
 fn read_sized_bytes(data: &[u8], offset: &mut usize, length: usize) -> Vec<u8> {
     let end = (*offset + length).min(data.len());
     let result = data[*offset..end].to_vec();
@@ -636,7 +647,8 @@ fn decode_compressed_chunk_to_legacy_root(data: &[u8]) -> Result<nbt::NbtCompoun
     root.insert("Level", nbt::NbtValue::Compound(level));
     Ok(root)
 }
-
+/*
+//neo: unused
 pub fn try_get_compressed_chunk_nbt_offset(data: &[u8]) -> Option<usize> {
     if !is_compressed_chunk_storage(data) {
         return None;
@@ -681,3 +693,4 @@ pub fn try_get_compressed_chunk_nbt_offset(data: &[u8]) -> Option<usize> {
 
     Some(offset)
 }
+*/

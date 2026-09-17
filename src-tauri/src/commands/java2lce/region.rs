@@ -72,7 +72,8 @@ impl JavaWorldReader {
 
         result
     }
-
+    /*
+    //neo: unused
     pub fn is_anvil_world(&self) -> bool {
         let region_dir = self.get_region_dir("");
         let dir_path = Path::new(&region_dir);
@@ -89,7 +90,7 @@ impl JavaWorldReader {
         }
         false
     }
-
+*/
     fn get_or_create_reader(&mut self, region_path: &str) -> Result<&JavaRegionReader, String> {
         if !self.region_readers.contains_key(region_path) {
             let reader = JavaRegionReader::open(region_path)?;
@@ -97,7 +98,8 @@ impl JavaWorldReader {
         }
         Ok(self.region_readers.get(region_path).unwrap())
     }
-
+/*
+    //neo: unused
     pub fn has_chunk(&mut self, region_path: &str, local_x: i32, local_z: i32) -> bool {
         let reader = match self.get_or_create_reader(region_path) {
             Ok(r) => r,
@@ -106,7 +108,7 @@ impl JavaWorldReader {
         let index = (local_x & 31) + (local_z & 31) * 32;
         reader.offsets[index as usize] != 0
     }
-
+*/
     pub fn read_chunk_nbt(
         &mut self,
         region_path: &str,
@@ -721,7 +723,8 @@ pub fn decompress_zlib(data: &[u8]) -> Result<Vec<u8>, String> {
     decoder.read_to_end(&mut buf).map_err(|e| format!("zlib decompress failed: {}", e))?;
     Ok(buf)
 }
-
+/*
+//neo: unused
 pub fn decompress_rle_zlib(data: &[u8], decompressed_size: usize) -> Result<Vec<u8>, String> {
     let rle_data = decompress_zlib(data)?;
     Ok(rle_decode(&rle_data, decompressed_size))
@@ -800,3 +803,4 @@ pub fn rle_decode(data: &[u8], expected_size: usize) -> Vec<u8> {
 
     output
 }
+*/

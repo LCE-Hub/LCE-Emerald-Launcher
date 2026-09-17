@@ -59,14 +59,15 @@ impl NbtCompound {
             _ => None,
         })
     }
-
+    /*
+    //neo: unused
     pub fn compound_mut(&mut self, name: &str) -> Option<&mut NbtCompound> {
         self.get_mut(name).and_then(|v| match v {
             NbtValue::Compound(c) => Some(c),
             _ => None,
         })
     }
-
+*/
     pub fn byte(&self, name: &str) -> Option<i8> {
         self.get(name).and_then(|v| match v {
             NbtValue::Byte(b) => Some(*b),
@@ -94,7 +95,8 @@ impl NbtCompound {
             _ => None,
         })
     }
-
+    /*
+    //neo: unused
     pub fn float(&self, name: &str) -> Option<f32> {
         self.get(name).and_then(|v| match v {
             NbtValue::Float(f) => Some(*f),
@@ -108,6 +110,7 @@ impl NbtCompound {
             _ => None,
         })
     }
+*/
 
     pub fn string(&self, name: &str) -> Option<&str> {
         self.get(name).and_then(|v| match v {
@@ -143,7 +146,8 @@ impl NbtCompound {
             _ => None,
         })
     }
-
+    /*
+    //neo: unused
     pub fn list_compounds(&self, name: &str) -> Vec<&NbtCompound> {
         self.list(name)
             .unwrap_or(&[])
@@ -153,7 +157,7 @@ impl NbtCompound {
                 _ => None,
             })
             .collect()
-    }
+    }*/
 }
 
 fn tag_type_id(v: &NbtValue) -> u8 {
@@ -405,6 +409,8 @@ pub fn write_gzip_nbt(compound: &NbtCompound) -> Vec<u8> {
     encoder.finish().unwrap()
 }
 
+/*
+//neo: unused
 pub fn read_zlib_nbt(data: &[u8]) -> Result<NbtCompound, String> {
     use flate2::read::ZlibDecoder;
     let mut decoder = ZlibDecoder::new(data);
@@ -461,7 +467,7 @@ pub fn get_long_array_or(compound: &NbtCompound, name: &str, default_len: usize)
         })
         .unwrap_or_else(|| vec![0i64; default_len])
 }
-
+*/
 pub fn get_nibble(data: &[u8], index: usize) -> u8 {
     let byte_index = index >> 1;
     if byte_index >= data.len() {
@@ -487,10 +493,12 @@ pub fn set_nibble(data: &mut [u8], index: usize, value: u8) {
         data[byte_index] = (data[byte_index] & 0x0F) | (val << 4);
     }
 }
-
+/*
+//neo: unused
 pub fn clone_or_empty_list(compound: &NbtCompound, name: &str) -> Vec<NbtValue> {
     compound
         .list(name)
         .map(|l| l.to_vec())
         .unwrap_or_default()
 }
+*/
