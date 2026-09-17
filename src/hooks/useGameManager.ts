@@ -39,6 +39,17 @@ export const BASE_EDITIONS = [
     officialDLC: "main:https://git.neolegacy.dev/neoStudiosLCE/DLCs", //neo: format is {branch}:{git_url}
   },
   {
+    id: "cafeberry",
+    name: "Cafeberry",
+    desc: "Project aiming to faithfully backport TUs, add cross-play and more!",
+    url: "https://gitea.str1k3r.xyz/cafeberry/cafeberry/releases/download/latest/LCEWindows64.zip",
+    titleImage: "/images/cafeberry_title.png",
+    supportsSlimSkins: false,
+    logo: "", //neo: TODO: add Cafeberry logo
+    panorama: "vanilla_tu24",
+    lceOnline: false, //neo: for now.
+  },
+  {
     id: "revelations",
     name: "Legacy Revelations",
     desc: "QoL, performance, hardcore mode, & security features for LCE.",
@@ -50,8 +61,8 @@ export const BASE_EDITIONS = [
     transparentLogo: true,
   },
   {
-    id: "projectlce",
-    name: "ProjectLCE",
+    id: "refourj",
+    name: "ReFourJ",
     desc: "A LCE Project which aims to bring the feel and functionality from Minecraft: Playstation®4 Edition directly natively to your PC!",
     url: "https://git.neolegacy.dev/ProjectLCE/Client/releases/download/latest/MinecraftPS4Edition.zip", // LO-Byte: No CDN right now, direct download from the git
     titleImage: "/images/MinecraftPS4Edition.png",
@@ -60,17 +71,6 @@ export const BASE_EDITIONS = [
     panorama: "legacyorbis",
     // LO-Byte: Store is built differently to what emerald expects, branch for emerald will be added soon
     //officialDLC: "main:https://git.neolegacy.dev/LegacyOrbis/Store",
-  },
-  {
-    id: "cafeberry",
-    name: "Cafeberry",
-    desc: "Project aiming to faithfully backport TUs, add cross-play and more!",
-    url: "https://gitea.str1k3r.xyz/cafeberry/cafeberry/releases/download/latest/LCEWindows64.zip",
-    titleImage: "/images/cafeberry_title.png",
-    supportsSlimSkins: false,
-    logo: "", //neo: TODO: add Cafeberry logo
-    panorama: "vanilla_tu24",
-    lceOnline: false, //neo: for now.
   },
   {
     id: "lostlegacy",
