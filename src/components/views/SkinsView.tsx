@@ -9,7 +9,7 @@ import {
   useSkin,
   useConfig,
 } from "../../context/LauncherContext";
-import SkinViewer from "../common/SkinViewer";
+import SkinModel3D, { getSkinModelSnapshot } from "../common/SkinModel3D";
 import CapePreview from "../common/CapePreview";
 import { usePlatform } from "../../hooks/usePlatform";
 
@@ -71,7 +71,7 @@ const DEFAULT_SKINS: SavedSkin[] = [
     url: "/Skins/PrismaChunk0.png",
     isSlim: false,
   },
-  { id: "amy", name: "Amy", url: "/Skins/amy.png", isSlim: true }, //neo: :c
+  { id: "amy", name: "Amy", url: "/Skins/amy.png", isSlim: true },
   { id: "avalilac", name: "AvaLilac", url: "/Skins/ava.png", isSlim: true },
   { id: "huckle", name: "Huckle", url: "/Skins/huckle.png", isSlim: true },
   {
@@ -86,6 +86,18 @@ const DEFAULT_SKINS: SavedSkin[] = [
     url: "/Skins/tranq.png",
     isSlim: true,
   },
+  {
+    id: "individul",
+    name: "individul",
+    url: "/Skins/individul.png",
+    isSlim: false,
+  },
+  {
+    id: "ency",
+    name: "ency_pt",
+    url: "/Skins/ency.png",
+    isSlim: true,
+  },
 ];
 
 const DEFAULT_CAPES: SavedCape[] = [
@@ -93,57 +105,63 @@ const DEFAULT_CAPES: SavedCape[] = [
   { id: "unused2", name: "Unused Cape 2", url: "/Capes/Unused_Cape_2.png" },
 ];
 
-const HeadPreview = memo(function HeadPreview({ src }: { src: string }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
+const SkinCardModel = memo(function SkinCardModel({
+  src,
+  slim,
+}: {
+  src: string;
+  slim?: boolean;
+}) {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [snapshot, setSnapshot] = useState<string | null>(null);
   useEffect(() => {
-    const cvs = canvasRef.current;
-    if (!cvs) return;
-    const ctx = cvs.getContext("2d");
-    if (!ctx) return;
-    const img = new Image();
-    img.onload = () => {
-      ctx.clearRect(0, 0, cvs.width, cvs.height);
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(img, 8, 8, 8, 8, 0, 0, cvs.width, cvs.height);
-      if (img.height !== 32) {
-        ctx.drawImage(img, 40, 8, 8, 8, 0, 0, cvs.width, cvs.height);
-      }
+    let active = true;
+    const el = boxRef.current;
+    if (!el) return;
+    const w = Math.max(48, Math.round(el.clientWidth * 2));
+    const h = Math.max(64, Math.round(el.clientHeight * 2));
+    getSkinModelSnapshot({ src, slim, width: w, height: h })
+      .then((dataUrl) => {
+        if (active) setSnapshot(dataUrl);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
     };
-    img.src = src;
-  }, [src]);
+  }, [src, slim]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={64}
-      height={64}
-      className="absolute w-full h-full"
-      style={{ imageRendering: "pixelated" }}
-    />
+    <div ref={boxRef} className="absolute inset-0">
+      {snapshot ? (
+        <img
+          src={snapshot}
+          alt=""
+          draggable={false}
+          className="absolute inset-0 w-full h-full object-contain drop-shadow-[0_6px_4px_rgba(0,0,0,0.6)] select-none"
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-[#555] text-xs mc-text-shadow uppercase tracking-widest animate-pulse select-none">
+            ...
+          </span>
+        </div>
+      )}
+    </div>
   );
 });
 
 const SkinsView = memo(function SkinsView() {
   const { t } = useTranslation();
-  const { setActiveView, setIsUiHidden } = useUI();
+  const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { isAndroid } = usePlatform();
-  const {
-    skinUrl,
-    setSkinUrl,
-    skinIsSlim,
-    setSkinIsSlim,
-    capeUrl,
-    setCapeUrl,
-  } = useSkin();
-
+  const config = useConfig();
+  const { skinUrl, setSkinUrl, setSkinIsSlim, capeUrl, setCapeUrl } = useSkin();
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"skin" | "cape">("skin");
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const capeFileInputRef = useRef<HTMLInputElement>(null);
-
   const [storedSkins, setStoredSkins] = useLocalStorage<SavedSkin[]>(
     "lce-custom-skins",
     [],
@@ -534,102 +552,102 @@ const SkinsView = memo(function SkinsView() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: useConfig().animationsEnabled ? 0.3 : 0 }}
-      className="flex flex-col items-center w-full max-w-3xl h-full outline-none"
+      transition={{ duration: config.animationsEnabled ? 0.3 : 0 }}
+      className="flex flex-col items-center w-full max-w-5xl h-full outline-none"
     >
-      <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 border-b-2 border-[#373737] pb-2 w-[60%] max-w-75 text-center tracking-widest uppercase opacity-80 font-bold">
+      <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 border-b-2 border-[#373737] pb-2 w-[60%] max-w-75 text-center tracking-widest opacity-80 font-bold">
         {viewMode === "skin" ? t("skins.skinLibrary") : t("skins.capeLibrary")}
       </h2>
 
-      <div className="w-full max-w-160 flex-1 min-h-0 mb-4 p-5 flex flex-col relative overflow-hidden">
-        <div className="w-full flex items-center gap-4 ml-5 pb-4 mb-4 min-h-10">
-          <button
-            data-index="0"
-            onMouseEnter={() => setFocusIndex(0)}
-            onClick={() => {
-              playPressSound();
-              if (viewMode === "skin") handleImportClick();
-              else capeFileInputRef.current?.click();
-            }}
-            className={`w-40 h-10 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] ${focusIndex === 0 ? "text-[#FFFF55]" : "text-white"}`}
-            style={{
-              backgroundImage:
-                focusIndex === 0
-                  ? "url('/images/button_highlighted.png')"
-                  : "url('/images/Button_Background.png')",
-              backgroundSize: "100% 100%",
-              imageRendering: "pixelated",
-            }}
-          >
-            {viewMode === "skin"
-              ? t("skins.importSkin")
-              : t("skins.importCape")}
-          </button>
-
-          <button
-            data-index="1"
-            onMouseEnter={() => {
-              if (viewMode === "skin" && !isActiveDefault) setFocusIndex(1);
-              else if (viewMode === "cape" && !isCapeDeleteDisabled)
-                setFocusIndex(1);
-            }}
-            onClick={() => {
-              playPressSound();
-              if (viewMode === "skin") handleDeleteActive();
-              else handleDeleteActiveCape();
-            }}
-            className={`w-40 h-10 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none ${
-              (viewMode === "skin" && isActiveDefault) ||
-              (viewMode === "cape" && isCapeDeleteDisabled)
-                ? "text-gray-400 opacity-80 cursor-not-allowed"
-                : focusIndex === 1
-                  ? "text-[#FFFF55]"
-                  : "text-white"
-            }`}
-            style={{
-              backgroundImage:
-                (viewMode === "skin" && isActiveDefault) ||
-                (viewMode === "cape" && isCapeDeleteDisabled)
-                  ? "url('/images/Button_Background2.png')"
-                  : focusIndex === 1
-                    ? "url('/images/button_highlighted.png')"
-                    : "url('/images/Button_Background.png')",
-              backgroundSize: "100% 100%",
-              imageRendering: "pixelated",
-            }}
-          >
-            {viewMode === "skin"
-              ? t("skins.deleteSkin")
-              : t("skins.deleteCape")}
-          </button>
-
-          {viewMode === "skin" && (
+      <div className="w-full max-w-5xl flex-1 min-h-0 mb-4 flex gap-4">
+        <div className="flex-1 min-w-0 flex flex-col gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <button
-              data-index="2"
-              onMouseEnter={() => setFocusIndex(2)}
+              data-index="0"
+              onMouseEnter={() => setFocusIndex(0)}
               onClick={() => {
                 playPressSound();
-                setActiveView("skin-editor");
+                if (viewMode === "skin") handleImportClick();
+                else capeFileInputRef.current?.click();
               }}
-              className={`w-40 h-10 flex items-center
-                justify-center transition-colors text-2xl
-                mc-text-shadow outline-none border-none hover:text-[#FFFF55]
-                ${focusIndex === 2 ? "text-[#FFFF55]" : "text-white"}`}
+              className={`w-44 h-10 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] ${focusIndex === 0 ? "text-[#FFFF55]" : "text-white"}`}
               style={{
                 backgroundImage:
-                  focusIndex === 2
+                  focusIndex === 0
                     ? "url('/images/button_highlighted.png')"
                     : "url('/images/Button_Background.png')",
                 backgroundSize: "100% 100%",
                 imageRendering: "pixelated",
               }}
             >
-              {t("skins.editSkin")}
+              {viewMode === "skin"
+                ? t("skins.importSkin")
+                : t("skins.importCape")}
             </button>
-          )}
 
-          <div className="flex-1"></div>
-          <div className="flex justify-end z-10">
+            <button
+              data-index="1"
+              onMouseEnter={() => {
+                if (viewMode === "skin" && !isActiveDefault) setFocusIndex(1);
+                else if (viewMode === "cape" && !isCapeDeleteDisabled)
+                  setFocusIndex(1);
+              }}
+              onClick={() => {
+                playPressSound();
+                if (viewMode === "skin") handleDeleteActive();
+                else handleDeleteActiveCape();
+              }}
+              className={`w-44 h-10 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none ${
+                (viewMode === "skin" && isActiveDefault) ||
+                (viewMode === "cape" && isCapeDeleteDisabled)
+                  ? "text-gray-400 opacity-80 cursor-not-allowed"
+                  : focusIndex === 1
+                    ? "text-[#FFFF55]"
+                    : "text-white"
+              }`}
+              style={{
+                backgroundImage:
+                  (viewMode === "skin" && isActiveDefault) ||
+                  (viewMode === "cape" && isCapeDeleteDisabled)
+                    ? "url('/images/Button_Background2.png')"
+                    : focusIndex === 1
+                      ? "url('/images/button_highlighted.png')"
+                      : "url('/images/Button_Background.png')",
+                backgroundSize: "100% 100%",
+                imageRendering: "pixelated",
+              }}
+            >
+              {viewMode === "skin"
+                ? t("skins.deleteSkin")
+                : t("skins.deleteCape")}
+            </button>
+
+            {viewMode === "skin" && (
+              <button
+                data-index="2"
+                onMouseEnter={() => setFocusIndex(2)}
+                onClick={() => {
+                  playPressSound();
+                  setActiveView("skin-editor");
+                }}
+                className={`w-44 h-10 flex items-center
+                  justify-center transition-colors text-2xl
+                  mc-text-shadow outline-none border-none hover:text-[#FFFF55]
+                  ${focusIndex === 2 ? "text-[#FFFF55]" : "text-white"}`}
+                style={{
+                  backgroundImage:
+                    focusIndex === 2
+                      ? "url('/images/button_highlighted.png')"
+                      : "url('/images/Button_Background.png')",
+                  backgroundSize: "100% 100%",
+                  imageRendering: "pixelated",
+                }}
+              >
+                {t("skins.editSkin")}
+              </button>
+            )}
+
+            <div className="flex-1 min-w-4" />
             <button
               data-index={viewMode === "skin" ? 3 : 2}
               onMouseEnter={() => setFocusIndex(viewMode === "skin" ? 3 : 2)}
@@ -637,7 +655,7 @@ const SkinsView = memo(function SkinsView() {
                 playPressSound();
                 setViewMode(viewMode === "skin" ? "cape" : "skin");
               }}
-              className={`mc-sq-btn w-10 h-10 flex items-center justify-center outline-none border-none transition-all`}
+              className="mc-sq-btn w-10 h-10 flex items-center justify-center outline-none border-none transition-all"
               style={{
                 backgroundImage:
                   focusIndex === (viewMode === "skin" ? 3 : 2)
@@ -660,171 +678,148 @@ const SkinsView = memo(function SkinsView() {
                 decoding="async"
               />
             </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept=".png"
+              className="hidden"
+            />
+            <input
+              type="file"
+              ref={capeFileInputRef}
+              onChange={handleCapeFileChange}
+              accept=".png"
+              className="hidden"
+            />
           </div>
 
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept=".png"
-            className="hidden"
-          />
-          <input
-            type="file"
-            ref={capeFileInputRef}
-            onChange={handleCapeFileChange}
-            accept=".png"
-            className="hidden"
-          />
-        </div>
-
-        <div className="flex-1 overflow-y-auto pr-2 flex flex-wrap gap-x-4 gap-y-6 items-start content-start justify-center hidden-scrollbar">
-          {viewMode === "skin" ? (
-            savedSkins.map((skin, i) => {
-              const idx = SKINS_START_INDEX + i;
-              const isActive = activeSkinId
-                ? activeSkinId === skin.id
-                : skinUrl === skin.url;
-              const isFocused = focusIndex === idx;
-              return (
-                <div
-                  key={skin.id}
-                  data-index={idx}
-                  tabIndex={0}
-                  onMouseEnter={() => setFocusIndex(idx)}
-                  className="flex flex-col items-center gap-1 w-32 outline-none"
-                >
-                  <div className="h-4 flex items-center justify-center gap-1">
-                    {isActive && (
-                      <span className="text-[#FFFF55] text-xs mc-text-shadow uppercase tracking-widest">
-                        {t("skins.active")}
-                      </span>
-                    )}
-                    {skin.isSlim && (
-                      <span className="bg-purple-500/50 border border-purple-500/80 text-white px-1 text-[10px] uppercase rounded">
-                        {t("skins.slim")}
-                      </span>
-                    )}
-                  </div>
+          <div className="mc-options-bg flex-1 min-h-0 overflow-y-auto p-4 hidden-scrollbar">
+            <div className="grid grid-cols-4 gap-3">
+              {viewMode === "skin" ? (
+                savedSkins.map((skin, i) => {
+                  const idx = SKINS_START_INDEX + i;
+                  const isActive = activeSkinId
+                    ? activeSkinId === skin.id
+                    : skinUrl === skin.url;
+                  const isFocused = focusIndex === idx;
+                  const isHighlight = isActive || isFocused;
+                  return (
+                    <div
+                      key={skin.id}
+                      data-index={idx}
+                      tabIndex={0}
+                      onMouseEnter={() => setFocusIndex(idx)}
+                      className="flex flex-col items-center gap-1.5 outline-none"
+                    >
+                      <div
+                        onClick={() => handleSkinSelect(skin)}
+                        className={`relative w-full bg-black/30 border-2 overflow-hidden transition-colors outline-none cursor-pointer flex items-center justify-center ${isHighlight ? "border-[#FFFF55]" : "border-[#373737] hover:border-[#A0A0A0]"}`}
+                        style={{ aspectRatio: "3 / 4" }}
+                      >
+                        <SkinCardModel
+                          src={skin.url}
+                          slim={Boolean(skin.isSlim)}
+                        />
+                        {isHighlight && (
+                          <div className="pointer-events-none absolute" />
+                        )}
+                      </div>
+                      <div className="w-full mc-textinput-outer">
+                        <input
+                          type="text"
+                          value={skin.name}
+                          maxLength={16}
+                          onChange={(e) =>
+                            handleNameChange(skin.id, e.target.value)
+                          }
+                          className={`mc-textinput w-full h-9 px-2 text-sm text-center truncate outline-none relative z-10 font-[var(--font-base)] ${isHighlight ? "text-[#FFFF55]" : "text-white"} ${isDefaultSkin(skin.id) ? "pointer-events-none" : ""}`}
+                          onClick={(e) => e.stopPropagation()}
+                          spellCheck={false}
+                          readOnly={isDefaultSkin(skin.id)}
+                        />
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <>
                   <div
-                    onClick={() => handleSkinSelect(skin)}
-                    className={`w-16 h-16 bg-black/40 border-2 shadow-inner relative cursor-pointer overflow-hidden transition-colors outline-none ${isActive || isFocused ? "border-[#FFFF55]" : "border-[#373737] hover:border-[#A0A0A0]"}`}
-                  >
-                    <HeadPreview src={skin.url} />
-                  </div>
-                  <div className="w-full">
-                    <input
-                      type="text"
-                      value={skin.name}
-                      maxLength={16}
-                      onChange={(e) =>
-                        handleNameChange(skin.id, e.target.value)
-                      }
-                      className={`w-full h-10 px-3 text-base text-center truncate outline-none relative z-10 font-[var(--font-base)] ${isActive || isFocused ? "text-[#FFFF55]" : "text-white"} ${isDefaultSkin(skin.id) ? "pointer-events-none" : ""}`}
-                      onClick={(e) => e.stopPropagation()}
-                      spellCheck={false}
-                      readOnly={isDefaultSkin(skin.id)}
-                    />
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <>
-              <div
-                data-index={SKINS_START_INDEX}
-                tabIndex={0}
-                onMouseEnter={() => setFocusIndex(SKINS_START_INDEX)}
-                className="flex flex-col items-center gap-1 w-32 outline-none"
-              >
-                <div className="h-4 flex items-center justify-center gap-1">
-                  {isActiveCapeDefault && (
-                    <span className="text-[#FFFF55] text-xs mc-text-shadow uppercase tracking-widest">
-                      Active
-                    </span>
-                  )}
-                </div>
-                <div
-                  onClick={() => {
-                    playPressSound();
-                    setCapeUrl(null);
-                    setActiveCapeId(null);
-                  }}
-                  className={`w-16 h-16 bg-black/40 border-2 shadow-inner relative cursor-pointer overflow-hidden transition-colors outline-none flex items-center justify-center ${isActiveCapeDefault || focusIndex === SKINS_START_INDEX ? "border-[#FFFF55]" : "border-[#373737] hover:border-[#A0A0A0]"}`}
-                >
-                  <span className="text-gray-500 text-2xl">X</span>
-                </div>
-                <span
-                  className={`text-center outline-none border-none text-base mc-text-shadow w-full truncate transition-colors ${isActiveCapeDefault || focusIndex === SKINS_START_INDEX ? "text-[#FFFF55]" : "text-white"}`}
-                >
-                  {t("skins.noCape")}
-                </span>
-              </div>
-              {savedCapes.map((cape, i) => {
-                const idx = SKINS_START_INDEX + 1 + i;
-                const isActive = activeCapeId
-                  ? activeCapeId === cape.id
-                  : capeUrl === cape.url;
-                const isFocused = focusIndex === idx;
-                return (
-                  <div
-                    key={cape.id}
-                    data-index={idx}
+                    data-index={SKINS_START_INDEX}
                     tabIndex={0}
-                    onMouseEnter={() => setFocusIndex(idx)}
-                    className="flex flex-col items-center gap-1 w-32 outline-none"
+                    onMouseEnter={() => setFocusIndex(SKINS_START_INDEX)}
+                    className="flex flex-col items-center gap-1.5 outline-none"
                   >
-                    <div className="h-4 flex items-center justify-center gap-1">
-                      {isActive && (
-                        <span className="text-[#FFFF55] text-xs mc-text-shadow uppercase tracking-widest">
-                          Active
-                        </span>
+                    <div
+                      onClick={() => {
+                        playPressSound();
+                        setCapeUrl(null);
+                        setActiveCapeId(null);
+                      }}
+                      className={`relative w-full bg-black/30 border-2 overflow-hidden transition-colors outline-none cursor-pointer flex items-center justify-center ${isActiveCapeDefault || focusIndex === SKINS_START_INDEX ? "border-[#FFFF55]" : "border-[#373737] hover:border-[#A0A0A0]"}`}
+                      style={{ aspectRatio: "3 / 4" }}
+                    >
+                      <span className="text-gray-500 text-4xl select-none">
+                        X
+                      </span>
+                      {(isActiveCapeDefault ||
+                        focusIndex === SKINS_START_INDEX) && (
+                        <div className="pointer-events-none absolute" />
                       )}
                     </div>
-                    <div
-                      onClick={() => handleCapeSelect(cape)}
-                      className={`w-16 h-16 bg-black/40 border-2 shadow-inner relative cursor-pointer overflow-hidden transition-colors outline-none ${isActive || isFocused ? "border-[#FFFF55]" : "border-[#373737] hover:border-[#A0A0A0]"}`}
+                    <span
+                      className={`text-center outline-none border-none text-sm mc-text-shadow w-full truncate transition-colors ${isActiveCapeDefault || focusIndex === SKINS_START_INDEX ? "text-[#FFFF55]" : "text-white"}`}
                     >
-                      <CapePreview src={cape.url} />
-                    </div>
-                    <div className="mc-textinput-outer w-full">
-                      <input
-                        type="text"
-                        value={cape.name}
-                        maxLength={16}
-                        onChange={(e) =>
-                          handleCapeNameChange(cape.id, e.target.value)
-                        }
-                        className={`mc-textinput w-full h-10 px-3 text-base text-center truncate outline-none relative z-10 font-[var(--font-base)] ${isActive || isFocused ? "text-[#FFFF55]" : "text-white"} ${isDefaultCape(cape.id) ? "pointer-events-none" : ""}`}
-                        onClick={(e) => e.stopPropagation()}
-                        spellCheck={false}
-                        readOnly={isDefaultCape(cape.id)}
-                      />
-                    </div>
+                      {t("skins.noCape")}
+                    </span>
                   </div>
-                );
-              })}
-            </>
-          )}
+                  {savedCapes.map((cape, i) => {
+                    const idx = SKINS_START_INDEX + 1 + i;
+                    const isActive = activeCapeId
+                      ? activeCapeId === cape.id
+                      : capeUrl === cape.url;
+                    const isFocused = focusIndex === idx;
+                    const isHighlight = isActive || isFocused;
+                    return (
+                      <div
+                        key={cape.id}
+                        data-index={idx}
+                        tabIndex={0}
+                        onMouseEnter={() => setFocusIndex(idx)}
+                        className="flex flex-col items-center gap-1.5 outline-none"
+                      >
+                        <div
+                          onClick={() => handleCapeSelect(cape)}
+                          className={`relative w-full bg-black/30 border-2 overflow-hidden transition-colors outline-none cursor-pointer ${isHighlight ? "border-[#FFFF55]" : "border-[#373737] hover:border-[#A0A0A0]"}`}
+                          style={{ aspectRatio: "3 / 4" }}
+                        >
+                          <CapePreview src={cape.url} />
+                          {isHighlight && (
+                            <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_16px_rgba(255,255,85,0.4)]" />
+                          )}
+                        </div>
+                        <div className="w-full mc-textinput-outer">
+                          <input
+                            type="text"
+                            value={cape.name}
+                            maxLength={16}
+                            onChange={(e) =>
+                              handleCapeNameChange(cape.id, e.target.value)
+                            }
+                            className={`mc-textinput w-full h-9 px-2 text-sm text-center truncate outline-none relative z-10 font-[var(--font-base)] ${isHighlight ? "text-[#FFFF55]" : "text-white"} ${isDefaultCape(cape.id) ? "pointer-events-none" : ""}`}
+                            onClick={(e) => e.stopPropagation()}
+                            spellCheck={false}
+                            readOnly={isDefaultCape(cape.id)}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-
-      <div className="w-full max-w-160 shadow-2xl flex flex-col items-center">
-        <SkinViewer
-          username=""
-          setUsername={() => {}}
-          playPressSound={playPressSound}
-          skinUrl={skinUrl}
-          setSkinUrl={setSkinUrl}
-          capeUrl={capeUrl}
-          setActiveView={setActiveView}
-          setIsUiHidden={setIsUiHidden}
-          isFocusedSection={false}
-          onNavigateRight={() => {}}
-          hideControls
-          style={{ top: "45%" }}
-          slim={skinIsSlim}
-        />
       </div>
 
       {!isAndroid && (
