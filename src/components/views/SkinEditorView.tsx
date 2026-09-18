@@ -641,6 +641,7 @@ const SkinEditorView = memo(function SkinEditorView() {
             style={{ boxShadow: "inset 2px 2px 0 #000, inset -1px -1px 0 #555" }}
           >
             <span className="pl-2 text-white/50 text-sm mc-text-shadow">#</span>
+            <div className="mc-textinput-outer w-full h-8">
             <input
               type="text"
               value={hexValue}
@@ -651,8 +652,9 @@ const SkinEditorView = memo(function SkinEditorView() {
                 setHexValue(hex.toUpperCase());
                 if (hex.length === 6) setColorFromHex(`#${hex}`);
               }}
-              className="w-full h-full px-1 text-sm text-white tracking-widest uppercase mc-text-shadow bg-transparent"
+              className="mc-textinput w-full h-full px-1 text-sm text-white tracking-widest uppercase outline-none"
             />
+            </div>
           </div>
 
           <div className="relative w-full h-10 flex items-center justify-center" style={sliderBg}>

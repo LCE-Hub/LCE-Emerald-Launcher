@@ -183,13 +183,15 @@ export default function ColEditorView() {
 
           <div className="flex-1 flex flex-col p-4 overflow-hidden">
             <div className="mb-4 flex gap-4">
+              <div className="mc-textinput-outer flex-1">
               <input
                 type="text"
                 placeholder={t("colEditor.searchColors")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
+                className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)]"
               />
+              </div>
               <button
                 onClick={activeTab === "colors" ? handleAddColor : handleAddWorldColor}
                 className="px-6 py-2 text-white mc-text-shadow text-sm"
@@ -219,12 +221,14 @@ export default function ColEditorView() {
                   {activeTab === "colors" && currentColors.map((c) => (
                     <tr key={c.originalIdx} className="border-b border-[#373737]/30 group">
                       <td className="p-2">
+                        <div className="mc-textinput-outer">
                         <input
                           type="text"
                           value={c.name}
                           onChange={(e) => handleUpdateColor(c.originalIdx, "name", e.target.value)}
-                          className="w-full bg-black/40 border border-[#373737] px-2 py-1 outline-none focus:border-[#FFFF55] text-white text-sm"
+                          className="mc-textinput w-full h-10 px-3 text-white text-sm outline-none font-[var(--font-base)]"
                         />
+                        </div>
                       </td>
                       <td className="p-2">
                         <div className="flex items-center gap-3">
@@ -239,19 +243,21 @@ export default function ColEditorView() {
                             }}
                             className="w-8 h-8 p-0 cursor-pointer shrink-0 border border-[#373737] rounded-sm bg-transparent"
                           />
-                          <input
-                            type="text"
-                            value={argbToHex(c.color)}
-                            onChange={(e) => {
-                              const s = e.target.value.replace(/[^0-9A-Fa-f]/g, '');
-                              if (s.length <= 8) {
-                                const parsed = parseInt(s, 16);
-                                if (!isNaN(parsed)) handleUpdateColor(c.originalIdx, "color", parsed >>> 0);
-                              }
-                            }}
-                            className="bg-black/40 border border-[#373737] w-24 px-2 py-1 outline-none focus:border-[#FFFF55] text-white font-mono text-sm uppercase"
-                            maxLength={8}
-                          />
+                          <div className="mc-textinput-outer w-24">
+                            <input
+                              type="text"
+                              value={argbToHex(c.color)}
+                              onChange={(e) => {
+                                const s = e.target.value.replace(/[^0-9A-Fa-f]/g, '');
+                                if (s.length <= 8) {
+                                  const parsed = parseInt(s, 16);
+                                  if (!isNaN(parsed)) handleUpdateColor(c.originalIdx, "color", parsed >>> 0);
+                                }
+                              }}
+                              className="mc-textinput w-full h-10 px-3 text-white font-mono text-sm uppercase outline-none font-[var(--font-base)]"
+                              maxLength={8}
+                            />
+                            </div>
                         </div>
                       </td>
                       <td className="p-2 text-right">
@@ -265,12 +271,14 @@ export default function ColEditorView() {
                   {activeTab === "worldColors" && currentWorldColors.map((w) => (
                     <tr key={w.originalIdx} className="border-b border-[#373737]/30 group">
                       <td className="p-2">
+                        <div className="mc-textinput-outer">
                         <input
                           type="text"
                           value={w.name}
                           onChange={(e) => handleUpdateWorldColor(w.originalIdx, "name", e.target.value)}
-                          className="w-full bg-black/40 border border-[#373737] px-2 py-1 outline-none focus:border-[#FFFF55] text-white text-sm"
+                          className="mc-textinput w-full h-10 px-3 text-white text-sm outline-none font-[var(--font-base)]"
                         />
+                        </div>
                       </td>
                       <td className="p-2">
                         <div className="flex items-center gap-2">
@@ -284,6 +292,7 @@ export default function ColEditorView() {
                             }}
                             className="w-6 h-6 p-0 cursor-pointer shrink-0 border border-[#373737] rounded-sm bg-transparent"
                           />
+                          <div className="mc-textinput-outer w-20">
                           <input
                             type="text"
                             value={argbToHex(w.waterColor)}
@@ -294,9 +303,10 @@ export default function ColEditorView() {
                                 if (!isNaN(parsed)) handleUpdateWorldColor(w.originalIdx, "waterColor", parsed >>> 0);
                               }
                             }}
-                            className="bg-black/40 border border-[#373737] w-20 px-2 py-1 outline-none focus:border-[#FFFF55] text-white font-mono text-xs uppercase"
+                            className="mc-textinput w-full h-10 px-3 text-white font-mono text-xs uppercase outline-none font-[var(--font-base)]"
                             maxLength={8}
                           />
+                          </div>
                         </div>
                       </td>
                       <td className="p-2">
@@ -311,6 +321,7 @@ export default function ColEditorView() {
                             }}
                             className="w-6 h-6 p-0 cursor-pointer shrink-0 border border-[#373737] rounded-sm bg-transparent"
                           />
+                          <div className="mc-textinput-outer w-20">
                           <input
                             type="text"
                             value={argbToHex(w.underwaterColor)}
@@ -321,9 +332,10 @@ export default function ColEditorView() {
                                 if (!isNaN(parsed)) handleUpdateWorldColor(w.originalIdx, "underwaterColor", parsed >>> 0);
                               }
                             }}
-                            className="bg-black/40 border border-[#373737] w-20 px-2 py-1 outline-none focus:border-[#FFFF55] text-white font-mono text-xs uppercase"
+                            className="mc-textinput w-full h-10 px-3 text-white font-mono text-xs uppercase outline-none font-[var(--font-base)]"
                             maxLength={8}
                           />
+                          </div>
                         </div>
                       </td>
                       <td className="p-2">
@@ -338,6 +350,7 @@ export default function ColEditorView() {
                             }}
                             className="w-6 h-6 p-0 cursor-pointer shrink-0 border border-[#373737] rounded-sm bg-transparent"
                           />
+                          <div className="mc-textinput-outer w-20">
                           <input
                             type="text"
                             value={argbToHex(w.fogColor)}
@@ -348,9 +361,10 @@ export default function ColEditorView() {
                                 if (!isNaN(parsed)) handleUpdateWorldColor(w.originalIdx, "fogColor", parsed >>> 0);
                               }
                             }}
-                            className="bg-black/40 border border-[#373737] w-20 px-2 py-1 outline-none focus:border-[#FFFF55] text-white font-mono text-xs uppercase"
+                            className="mc-textinput w-full h-10 px-3 text-white font-mono text-xs uppercase outline-none font-[var(--font-base)]"
                             maxLength={8}
                           />
+                          </div>
                         </div>
                       </td>
                       <td className="p-2 text-right">

@@ -144,6 +144,7 @@ export default function CustomTUModal({
             <label className="text-gray text-sm mc-text-shadow uppercase tracking-widest">
               {t("modals.customTu.tuName")}
             </label>
+            <div className="mc-textinput-outer">
             <input
               type="text"
               autoFocus
@@ -151,39 +152,44 @@ export default function CustomTUModal({
               onChange={(e) => setName(e.target.value)}
               onFocus={() => setFocusIndex(0)}
               placeholder={t("modals.customTu.namePlaceholder")}
-              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-[var(--font-base)]"
+              className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)]"
               style={{ imageRendering: "pixelated" }}
             />
+            </div>
           </div>
 
           <div className="flex flex-col gap-1">
             <label className="text-gray text-sm mc-text-shadow uppercase tracking-widest">
               {t("modals.customTu.description")}
             </label>
+            <div className="mc-textinput-outer">
             <input
               type="text"
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
               onFocus={() => setFocusIndex(1)}
               placeholder={t("modals.customTu.descPlaceholder")}
-              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-[var(--font-base)]"
+              className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)]"
               style={{ imageRendering: "pixelated" }}
             />
+            </div>
           </div>
 
           <div className="flex flex-col gap-1">
             <label className="text-gray text-sm mc-text-shadow uppercase tracking-widest">
               {t("modals.customTu.downloadUrl")}
             </label>
+            <div className="mc-textinput-outer">
             <input
               type="text"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onFocus={() => setFocusIndex(2)}
               placeholder={t("modals.customTu.urlPlaceholder")}
-              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-[var(--font-base)]"
+              className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)]"
               style={{ imageRendering: "pixelated" }}
             />
+            </div>
           </div>
 
           {path && (
@@ -191,13 +197,15 @@ export default function CustomTUModal({
               <label className="text-gray text-sm mc-text-shadow uppercase tracking-widest">
                 {t("modals.customTu.localPath")}
               </label>
+              <div className="mc-textinput-outer">
               <input
                 type="text"
                 readOnly
                 value={path}
-                className="w-full h-10 px-3 bg-black/20 border-2 border-[#222] text-black text-xs outline-none font-[var(--font-base)] cursor-not-allowed"
+                className="mc-textinput w-full h-10 px-3 text-black text-xs outline-none font-[var(--font-base)] cursor-not-allowed"
                 style={{ imageRendering: "pixelated" }}
               />
+              </div>
             </div>
           )}
 

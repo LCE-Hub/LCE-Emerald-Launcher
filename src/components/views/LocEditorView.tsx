@@ -150,13 +150,15 @@ export default function LocEditorView() {
                   <option key={idx} value={idx}>{lang.id} {lang.isStatic ? `[${t("locEditor.static")}]` : `[${t("locEditor.keyed")}]`}</option>
                 ))}
               </select>
+              <div className="mc-textinput-outer flex-1">
               <input
                 type="text"
                 placeholder={t("locEditor.searchStrings")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
+                className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)]"
               />
+              </div>
               <button
                 onClick={() => setIsLocEditModalOpen({ langIdx: selectedLocLangIdx, strIdx: -1, isNew: true })}
                 className="px-6 py-2 text-white mc-text-shadow text-sm"
@@ -250,12 +252,14 @@ function LocEditModal({ data, lang, onClose, onConfirm }: { data: { langIdx: num
           {!lang.isStatic ? (
             <div>
               <label className="text-white/40 text-xs uppercase mb-2 block">{t("locEditor.stringKey")}</label>
+              <div className="mc-textinput-outer">
               <input
                 type="text"
                 value={key}
                 onChange={(e) => setKey(e.target.value)}
-                className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-3 outline-none focus:border-[#FFFF55] transition-colors font-mono"
+                className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)] font-mono"
               />
+              </div>
             </div>
           ) : (
             <div className="text-white/40 italic mb-2">{t("locEditor.staticEntry", { index: data.isNew ? lang.strings.length : data.strIdx })}</div>

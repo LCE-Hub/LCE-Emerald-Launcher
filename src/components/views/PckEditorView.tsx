@@ -646,13 +646,15 @@ export default function PckEditorView() {
             }}
           >
             <div className="mb-4 flex gap-4">
+              <div className="mc-textinput-outer flex-1">
               <input
                 type="text"
                 placeholder={t("pckEditor.searchAssets")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
+                className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)]"
               />
+              </div>
               <button
                 onClick={() => addAssetInputRef.current?.click()}
                 className="px-4 py-2 text-white mc-text-shadow text-sm shrink-0"
@@ -848,14 +850,16 @@ export default function PckEditorView() {
                             className="flex flex-col gap-1 group/prop"
                           >
                             <div className="flex justify-between items-center px-1">
+                              <div className="mc-textinput-outer w-2/3">
                               <input
                                 type="text"
                                 value={prop.key}
                                 onChange={(e) =>
                                   handlePropertyEdit(idx, e.target.value, true)
                                 }
-                                className="bg-transparent text-white/40 text-[10px] outline-none hover:text-white/60 focus:text-[#FFFF55] w-2/3"
+                                className="mc-textinput w-full h-8 px-2 text-white/60 text-[10px] outline-none font-[var(--font-base)]"
                               />
+                              </div>
                               <button
                                 onClick={() => handleRemoveProperty(idx)}
                                 className="text-red-500/0 group-hover/prop:text-red-500/40 hover:text-red-500 transition-colors text-[10px] uppercase"
@@ -864,14 +868,16 @@ export default function PckEditorView() {
                               </button>
                             </div>
                             <div className="relative">
+                              <div className="mc-textinput-outer">
                               <input
                                 type="text"
                                 value={prop.value}
                                 onChange={(e) =>
                                   handlePropertyEdit(idx, e.target.value)
                                 }
-                                className="w-full bg-black/40 p-2 text-white border border-[#373737] text-sm focus:border-[#FFFF55] outline-none transition-colors"
+                                className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)] text-sm"
                               />
+                              </div>
                             </div>
 
                             {prop.key === "ANIM" && (
@@ -1175,13 +1181,15 @@ function RenameAssetModal({
             <label className="text-white/40 text-[10px] uppercase tracking-widest mb-1 block">
               {t("pckEditor.newAssetPath")}
             </label>
+            <div className="mc-textinput-outer">
             <input
               type="text"
               value={path}
               onChange={(e) => setPath(e.target.value)}
-              className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-3 outline-none focus:border-[#FFFF55] transition-colors"
+              className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)]"
               autoFocus
             />
+            </div>
           </div>
           <div className="flex justify-end gap-4 mt-4">
             <button

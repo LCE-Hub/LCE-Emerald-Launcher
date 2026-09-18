@@ -354,7 +354,7 @@ const GoldMapperView = memo(function GoldMapperView() {
               ? handleToggleEnabled
               : () => openBind(row.id)
         }
-        className={`w-full h-10 flex items-center pl-6 pr-4 outline-none border-none shrink-0 transition-colors ${
+        className={`w-full h-10 flex items-center ${!isEnable ? "pl-6" : "pl-2"} pr-4 outline-none border-none shrink-0 transition-colors ${
           focused
             ? "text-[#ffff00]"
             : isEnable
@@ -386,7 +386,7 @@ const GoldMapperView = memo(function GoldMapperView() {
           </div>
         )}
         <span
-          className={`tracking-widest text-lg mc-text-shadow truncate ${
+          className={`tracking-widest text-lg truncate ${
             isReset ? "" : "flex-1 text-left"
           }`}
         >
@@ -425,9 +425,9 @@ const GoldMapperView = memo(function GoldMapperView() {
       <button
         onMouseEnter={() => setFocusIndex(null)}
         onClick={handleBack}
-        className="w-40 h-10 flex items-center justify-center transition-colors text-xl mc-text-shadow outline-none border-none hover:text-[#ffff00] mt-4 text-white"
+        className="w-40 h-10 flex items-center justify-center transition-colors text-xl outline-none border-none hover:text-[#ffff00] mt-4 text-white"
         style={{
-          backgroundImage: "url('/images/Layout_Button_Bmp.png')",
+          backgroundImage: "url('/images/Button_Background.png')",
           backgroundSize: "100% 100%",
           imageRendering: "pixelated",
         }}
@@ -443,13 +443,13 @@ const GoldMapperView = memo(function GoldMapperView() {
           }}
         >
           <div className="relative w-[620px] max-w-[95vw] h-[580px] max-h-[88vh] p-5 flex flex-col font-[var(--font-base)] mc-options-bg">
-            <h2 className="text-xl text-black mc-text-shadow mb-4 text-center">
+            <h2 className="text-xl text-black mb-4 text-center">
               {t("goldMapper.assign", { name: displayName(editing) })}
             </h2>
 
             <div className="w-full flex-1 min-h-0 overflow-y-auto custom-scrollbar mb-4">
               <div className="mb-3">
-                <h3 className="text-[#333333] mc-text-shadow uppercase tracking-widest text-sm px-3 pt-2 pb-1">
+                <h3 className="text-[#333333] tracking-widest text-sm px-3 pt-2 pb-1">
                   {t("goldMapper.mouse")}
                 </h3>
                 <div className="grid grid-cols-4 gap-2 p-1 content-start">
@@ -472,7 +472,7 @@ const GoldMapperView = memo(function GoldMapperView() {
               </div>
 
               <div className="mb-3">
-                <h3 className="text-[#333333] mc-text-shadow uppercase tracking-widest text-sm px-3 pt-2 pb-1">
+                <h3 className="text-[#333333] tracking-widest text-sm px-3 pt-2 pb-1">
                   {t("goldMapper.controller")}
                 </h3>
                 <div className="grid grid-cols-4 gap-2 p-1 content-start">
@@ -500,9 +500,10 @@ const GoldMapperView = memo(function GoldMapperView() {
               </div>
 
               <div className="mb-3">
-                <h3 className="text-[#333333] mc-text-shadow uppercase tracking-widest text-sm px-3 pt-2 pb-1">
+                <h3 className="text-[#333333] tracking-widest text-sm px-3 pt-2 pb-1">
                   {t("goldMapper.keyboard")}
                 </h3>
+                <div className="mc-textinput-outer">
                 <input
                   data-modal-index={MOUSE_IDS.length + controllerIds.length}
                   value={keyInput}
@@ -520,13 +521,12 @@ const GoldMapperView = memo(function GoldMapperView() {
                     if (e.key === "Enter") submitKeyInput();
                   }}
                   placeholder={t("goldMapper.typeKeyName")}
-                  className={`w-full h-10 px-3 bg-black/40 border-2 text-white text-base outline-none text-center ${
-                    keyInputError
-                      ? "border-red-600"
-                      : "border-[#373737] focus:border-[#FFFF55]"
+                  className={`mc-textinput w-full h-10 px-3 text-white text-base outline-none text-center font-[var(--font-base)] ${
+                    keyInputError ? "" : ""
                   }`}
                   style={{ imageRendering: "pixelated" }}
                 />
+                </div>
                 {keyInputError && (
                   <p className="text-red-600 text-xs mt-1 px-3">
                     {keyInputError}
@@ -544,7 +544,7 @@ const GoldMapperView = memo(function GoldMapperView() {
                 setModalFocusIndex(MOUSE_IDS.length + controllerIds.length + 1)
               }
               onClick={closeModal}
-              className={`w-full h-12 flex items-center justify-center text-xl mc-text-shadow transition-colors outline-none border-none cursor-pointer ${
+              className={`w-full h-12 flex items-center justify-center text-xl transition-colors outline-none border-none cursor-pointer ${
                 modalFocusIndex === MOUSE_IDS.length + controllerIds.length + 1
                   ? "text-[#ffff00]"
                   : "text-white"

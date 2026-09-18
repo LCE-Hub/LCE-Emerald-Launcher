@@ -387,13 +387,15 @@ export const ArcEditorView: React.FC = () => {
               <div className="flex h-full overflow-hidden">
                 <div className="w-2/3 flex flex-col p-4 border-r-2 border-black/20">
                   <div className="mb-4 flex gap-4">
+                    <div className="mc-textinput-outer flex-1">
                     <input
                       type="text"
                       placeholder={t("arcEditor.searchEntries")}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="flex-1 bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
+                      className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)]"
                     />
+                    </div>
                     <button
                       onClick={() => setIsAddModalOpen(true)}
                       className="px-6 py-2 text-white mc-text-shadow text-sm"
@@ -506,13 +508,15 @@ export const ArcEditorView: React.FC = () => {
                           <option key={idx} value={idx}>{lang.id} {lang.isStatic ? `[${t("arcEditor.static")}]` : `[${t("arcEditor.keyed")}]`}</option>
                         ))}
                       </select>
+                      <div className="mc-textinput-outer flex-1">
                       <input
                         type="text"
                         placeholder={t("arcEditor.searchStrings")}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="flex-1 bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
+                        className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)]"
                       />
+                      </div>
                       <button
                         onClick={() => setIsLocEditModalOpen({ langIdx: selectedLocLangIdx, strIdx: -1, isNew: true })}
                         className="px-6 py-2 text-white mc-text-shadow text-sm"
@@ -665,12 +669,14 @@ function RenameModal({ initialName, initialCompressed, onClose, onConfirm }: { i
         <div className="flex flex-col gap-4">
           <div>
             <label className="text-white/40 text-xs uppercase mb-2 block">{t("arcEditor.newArchivePath")}</label>
+            <div className="mc-textinput-outer">
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-3 outline-none focus:border-[#FFFF55] transition-colors"
+              className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)]"
             />
+            </div>
           </div>
           <label className="flex items-center gap-3 cursor-pointer group">
             <input type="checkbox" checked={comp} onChange={(e) => setComp(e.target.checked)} className="w-5 h-5 accent-[#FFFF55]" />
@@ -704,12 +710,14 @@ function LocEditModal({ data, lang, onClose, onConfirm }: { data: { langIdx: num
           {!lang.isStatic ? (
             <div>
               <label className="text-white/40 text-xs uppercase mb-2 block">{t("arcEditor.stringKey")}</label>
+              <div className="mc-textinput-outer">
               <input
                 type="text"
                 value={key}
                 onChange={(e) => setKey(e.target.value)}
-                className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-3 outline-none focus:border-[#FFFF55] transition-colors font-mono"
+                className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)] font-mono"
               />
+            </div>
             </div>
           ) : (
             <div className="text-white/40 italic mb-2">{t("arcEditor.staticEntry", { index: data.isNew ? lang.strings.length : data.strIdx })}</div>

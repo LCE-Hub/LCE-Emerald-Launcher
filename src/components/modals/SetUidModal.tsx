@@ -183,6 +183,7 @@ export default function SetUidModal({
               <label className="text-gray text-xs mc-text-shadow uppercase tracking-widest text-[#AAAAAA]">
                 {t("modals.setUid.enterUid")}
               </label>
+              <div className="mc-textinput-outer w-full">
               <input
                 type="text"
                 autoFocus
@@ -190,9 +191,10 @@ export default function SetUidModal({
                 onChange={(e) => setUid(e.target.value)}
                 onFocus={() => setFocusIndex(2)}
                 placeholder="0xFF02F0C87E8AC1F2"
-                className={`w-full h-10 px-3 bg-black/40 border-2 ${focusIndex === 2 ? 'border-white' : 'border-[#373737]'} text-white text-base outline-none font-[var(--font-base)] text-center`}
+                className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)] text-center"
                 style={{ imageRendering: "pixelated", filter: focusIndex === 2 ? 'brightness(1.2)' : 'none' }}
               />
+              </div>
             </div>
           ) : (
             <div className="flex flex-col gap-1 items-center w-full relative">

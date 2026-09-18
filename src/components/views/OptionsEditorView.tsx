@@ -161,27 +161,33 @@ export default function OptionsEditorView() {
               <div className="flex flex-col gap-8 max-w-xl mx-auto">
                 <div className="flex flex-col gap-2">
                   <span className="text-white/80 uppercase tracking-widest">{t("optionsEditor.chosenSkinId")}</span>
+                  <div className="mc-textinput-outer">
                   <input
                     type="number" value={opt.chosenSkin} onChange={(e) => updateSetting("chosenSkin", parseInt(e.target.value) || 0)}
-                    className="bg-black/40 border border-[#373737] p-2 text-white outline-none focus:border-[#FFFF55] font-mono text-lg"
+                    className="mc-textinput w-full h-10 px-3 text-white text-lg outline-none font-[var(--font-base)] font-mono"
                   />
+                  </div>
                 </div>
                 <div className="flex flex-col gap-2">
                   <span className="text-white/80 uppercase tracking-widest">{t("optionsEditor.playerCapeId")}</span>
+                  <div className="mc-textinput-outer">
                   <input
                     type="number" value={opt.playerCape} onChange={(e) => updateSetting("playerCape", parseInt(e.target.value) || 0)}
-                    className="bg-black/40 border border-[#373737] p-2 text-white outline-none focus:border-[#FFFF55] font-mono text-lg"
+                    className="mc-textinput w-full h-10 px-3 text-white text-lg outline-none font-[var(--font-base)] font-mono"
                   />
+                  </div>
                 </div>
                 <div className="flex flex-col gap-2">
                   <span className="text-white/80 uppercase tracking-widest">{t("optionsEditor.favoriteSkins")}</span>
                   {opt.favoriteSkins.map((s, i) => (
                     <div key={i} className="flex items-center gap-4">
                       <span className="text-white/40 w-8">{i + 1}.</span>
+                      <div className="mc-textinput-outer flex-1">
                       <input
                         type="number" value={s} onChange={(e) => updateFavSkin(i, parseInt(e.target.value) || 0)}
-                        className="bg-black/40 flex-1 border border-[#373737] p-2 text-white outline-none focus:border-[#FFFF55] font-mono"
+                        className="mc-textinput w-full h-10 px-3 text-white outline-none font-[var(--font-base)] font-mono"
                       />
+                      </div>
                     </div>
                   ))}
                 </div>

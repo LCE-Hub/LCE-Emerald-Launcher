@@ -218,13 +218,15 @@ export default function SwfView() {
         <div className="flex-1 w-full flex gap-4 overflow-hidden">
           <div className="w-1/3 flex flex-col p-4" style={{ backgroundImage: "url('/images/frame_background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}>
             <div className="mb-4">
+              <div className="mc-textinput-outer">
               <input
                 type="text"
                 placeholder={t("swfEditor.searchAssets")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
+                className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)]"
               />
+              </div>
             </div>
             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-1">
               {filteredImages.map(img => (

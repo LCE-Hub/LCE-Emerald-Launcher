@@ -821,14 +821,16 @@ const LceOnlineView = memo(function LceOnlineView({
               <h2 className="text-[#FFFF55] text-3xl mc-text-shadow mb-6 border-b-2 border-[#373737] pb-2 w-full text-center uppercase tracking-widest">
                 {t("lceOnline.addFriend")}
               </h2>
+              <div className="mc-textinput-outer w-full mb-6">
               <input
                 ref={addFriendInputRef}
                 type="text"
-                className="bg-black/20 border-4 border-[#555] text-white p-4 w-full text-2xl font-bold outline-none focus:border-[#FFFF55] transition-colors placeholder:text-[#888] mb-6 mc-text-shadow"
+                className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)] text-2xl font-bold placeholder:text-[#888] mc-text-shadow"
                 placeholder={t("lceOnline.username")}
                 value={addFriendUsername}
                 onChange={(e) => setAddFriendUsername(e.target.value)}
               />
+              </div>
               <div className="flex gap-4 w-full">
                 <button
                   className="h-12 flex-1 flex items-center justify-center text-white mc-text-shadow text-xl font-bold uppercase tracking-widest hover:text-[#FFFF55] outline-none border-none"

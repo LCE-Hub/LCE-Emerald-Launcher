@@ -865,13 +865,15 @@ function PartEditModal({
             <label className="text-white/40 text-[10px] uppercase tracking-widest mb-1 block">
               {t("modelEditor.name")}
             </label>
+            <div className="mc-textinput-outer">
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
+              className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)]"
               autoFocus
             />
+            </div>
           </div>
           <div>
             <label className="text-white/40 text-[10px] uppercase tracking-widest mb-1 block">
@@ -883,6 +885,7 @@ function PartEditModal({
                   <span className="text-white/40 text-xs font-mono">
                     {axis}
                   </span>
+                  <div className="mc-textinput-outer flex-1">
                   <input
                     type="number"
                     step={0.5}
@@ -893,8 +896,9 @@ function PartEditModal({
                       else if (axis === "Y") setTy(v);
                       else setTz(v);
                     }}
-                    className="w-full bg-black/40 border border-[#373737] text-white px-2 py-1 outline-none focus:border-[#FFFF55] text-sm"
+                    className="mc-textinput w-full h-10 px-3 text-white text-sm outline-none font-[var(--font-base)]"
                   />
+                  </div>
                 </div>
               ))}
             </div>
@@ -985,6 +989,7 @@ function BoxEditModal({
                   <span className="text-white/40 text-xs font-mono">
                     {axis}
                   </span>
+                  <div className="mc-textinput-outer flex-1">
                   <input
                     type="number"
                     step={0.5}
@@ -995,8 +1000,9 @@ function BoxEditModal({
                       else if (axis === "Y") setPosY(v);
                       else setPosZ(v);
                     }}
-                    className="w-full bg-black/40 border border-[#373737] text-white px-2 py-1 outline-none focus:border-[#FFFF55] text-sm"
+                    className="mc-textinput w-full h-10 px-3 text-white text-sm outline-none font-[var(--font-base)]"
                   />
+                  </div>
                 </div>
               ))}
             </div>
@@ -1011,6 +1017,7 @@ function BoxEditModal({
                   <span className="text-white/40 text-xs font-mono">
                     {axis}
                   </span>
+                  <div className="mc-textinput-outer flex-1">
                   <input
                     type="number"
                     step={0.5}
@@ -1022,8 +1029,9 @@ function BoxEditModal({
                       else if (axis === "Y") setSizeY(v);
                       else setSizeZ(v);
                     }}
-                    className="w-full bg-black/40 border border-[#373737] text-white px-2 py-1 outline-none focus:border-[#FFFF55] text-sm"
+                    className="mc-textinput w-full h-10 px-3 text-white text-sm outline-none font-[var(--font-base)]"
                   />
+                  </div>
                 </div>
               ))}
             </div>
@@ -1038,6 +1046,7 @@ function BoxEditModal({
                   <span className="text-white/40 text-xs font-mono">
                     {axis}
                   </span>
+                  <div className="mc-textinput-outer flex-1">
                   <input
                     type="number"
                     min={0}
@@ -1047,8 +1056,9 @@ function BoxEditModal({
                       if (axis === "X") setUvX(v);
                       else setUvY(v);
                     }}
-                    className="w-full bg-black/40 border border-[#373737] text-white px-2 py-1 outline-none focus:border-[#FFFF55] text-sm"
+                    className="mc-textinput w-full h-10 px-3 text-white text-sm outline-none font-[var(--font-base)]"
                   />
+                  </div>
                 </div>
               ))}
             </div>
@@ -1057,13 +1067,15 @@ function BoxEditModal({
             <label className="text-white/40 text-[10px] uppercase tracking-widest">
               {t("modelEditor.inflate")}
             </label>
+            <div className="mc-textinput-outer w-20">
             <input
               type="number"
               step={0.1}
               value={inflate}
               onChange={(e) => setInflate(parseFloat(e.target.value) || 0)}
-              className="w-20 bg-black/40 border border-[#373737] text-white px-2 py-1 outline-none focus:border-[#FFFF55] text-sm"
+              className="mc-textinput w-full h-10 px-3 text-white text-sm outline-none font-[var(--font-base)]"
             />
+            </div>
           </div>
           <div className="flex items-center gap-3 justify-end">
             <label className="text-white/40 text-[10px] uppercase tracking-widest">

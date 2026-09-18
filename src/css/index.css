@@ -453,7 +453,8 @@ body {
     image-rendering: pixelated;
 }
 
-.mc-textinput-outer:focus-within {
+.mc-textinput-outer:focus-within,
+:focus > .mc-textinput-outer {
     border: 2px solid #ffff00;
 }
 

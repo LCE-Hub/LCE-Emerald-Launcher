@@ -1,11 +1,6 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  motion,
-  AnimatePresence,
-  MotionConfig,
-  getDefaultTransition,
-} from "framer-motion";
+import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import "../css/App.css";
 import HomeView from "../components/views/HomeView";
 import SettingsView from "../components/views/SettingsView";

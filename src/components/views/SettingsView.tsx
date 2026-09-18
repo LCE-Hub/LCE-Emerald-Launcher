@@ -798,6 +798,13 @@ const SettingsView = memo(function SettingsView() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        if (
+          document.activeElement instanceof HTMLInputElement &&
+          document.activeElement.type === "text"
+        ) {
+          document.activeElement.blur();
+          return;
+        }
         if (showModal) {
           playBackSound();
           setShowModal(null);
@@ -848,6 +855,11 @@ const SettingsView = memo(function SettingsView() {
         const item = settingsItems[focusIndex];
         if (item.type === "button") {
           item.onClick();
+        } else if (item.type === "textinput") {
+          const el = containerRef.current?.querySelector(
+            `[data-index="${focusIndex}"] input`,
+          ) as HTMLInputElement | null;
+          el?.focus();
         }
       }
     };
@@ -955,6 +967,7 @@ const SettingsView = memo(function SettingsView() {
                 <div
                   key={item.id}
                   data-index={index}
+                  tabIndex={0}
                   onMouseEnter={() => setFocusIndex(index)}
                   className="relative w-[480px] flex flex-col cursor-pointer transition-all outline-none shrink-0"
                 >
@@ -1116,6 +1129,7 @@ const SettingsView = memo(function SettingsView() {
                   <div
                     key={item.id}
                     data-index={index}
+                    tabIndex={0}
                     onMouseEnter={() => setFocusIndex(index)}
                     className="relative w-[600px] flex flex-col cursor-pointer transition-all outline-none shrink-0"
                   >
@@ -1238,14 +1252,16 @@ const SettingsView = memo(function SettingsView() {
             <p className="text-[#AAAAAA] text-xs mb-4 text-center mc-text-shadow">
               {t("settings.extraLaunchArgsDesc")}
             </p>
-            <input
-              autoFocus
-              value={argsInput}
-              onChange={(e) => setArgsInput(e.target.value)}
-              placeholder="e.g. -quitondisconnect -ip 127.0.0.1"
-              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-[var(--font-base)] text-center"
-              style={{ imageRendering: "pixelated" }}
-            />
+            <div className="mc-textinput-outer">
+              <input
+                autoFocus
+                value={argsInput}
+                onChange={(e) => setArgsInput(e.target.value)}
+                placeholder="e.g. -quitondisconnect -ip 127.0.0.1"
+                className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)] text-center"
+                style={{ imageRendering: "pixelated" }}
+              />
+            </div>
             <div className="flex gap-4 mt-6 w-full justify-center">
               <button
                 onClick={() => {
@@ -1318,14 +1334,16 @@ const SettingsView = memo(function SettingsView() {
             <p className="text-[#AAAAAA] text-xs mb-4 text-center mc-text-shadow">
               {t("settings.launchPrefixDesc")}
             </p>
-            <input
-              autoFocus
-              value={prefixInput}
-              onChange={(e) => setPrefixInput(e.target.value)}
-              placeholder="e.g. gamemoderun"
-              className="w-full h-10 px-3 bg-black/40 border-2 border-[#373737] text-white text-base outline-none font-[var(--font-base)] text-center"
-              style={{ imageRendering: "pixelated" }}
-            />
+            <div className="mc-textinput-outer">
+              <input
+                autoFocus
+                value={prefixInput}
+                onChange={(e) => setPrefixInput(e.target.value)}
+                placeholder="e.g. gamemoderun"
+                className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)] text-center"
+                style={{ imageRendering: "pixelated" }}
+              />
+            </div>
             <div className="flex gap-4 mt-6 w-full justify-center">
               <button
                 onClick={() => {

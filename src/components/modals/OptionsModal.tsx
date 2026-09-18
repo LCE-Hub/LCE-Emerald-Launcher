@@ -255,6 +255,7 @@ export default function OptionsModal({
       case "int":
       case "number":
         return (
+          <div className="mc-textinput-outer w-24">
           <input
             ref={(el) => {
               inputRefs.current[index] = el;
@@ -273,14 +274,16 @@ export default function OptionsModal({
               }));
             }}
             onFocus={() => setFocusIndex(index)}
-            className={`w-24 h-8 bg-black/40 border-2 border-[#373737] text-white text-sm px-2 outline-none text-center font-[var(--font-base)] focus:border-[#FFFF55] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+            className={`mc-textinput w-full h-10 px-3 text-white text-sm outline-none text-center font-[var(--font-base)] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
               disabled ? "opacity-40 cursor-not-allowed" : ""
             }`}
             style={{ imageRendering: "pixelated" }}
           />
+          </div>
         );
       case "string":
         return (
+          <div className="mc-textinput-outer w-44">
           <input
             ref={(el) => {
               inputRefs.current[index] = el;
@@ -293,11 +296,12 @@ export default function OptionsModal({
               setValues((prev) => ({ ...prev, [option.id]: e.target.value }));
             }}
             onFocus={() => setFocusIndex(index)}
-            className={`w-44 h-8 bg-black/40 border-2 border-[#373737] text-white text-sm px-2 outline-none font-[var(--font-base)] focus:border-[#FFFF55] ${
+            className={`mc-textinput w-full h-10 px-3 text-white text-sm outline-none font-[var(--font-base)] ${
               disabled ? "opacity-40 cursor-not-allowed" : ""
             }`}
             style={{ imageRendering: "pixelated" }}
           />
+          </div>
         );
       case "choice":
         return (

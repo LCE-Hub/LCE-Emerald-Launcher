@@ -561,7 +561,9 @@ const SkinsView = memo(function SkinsView() {
               imageRendering: "pixelated",
             }}
           >
-            {viewMode === "skin" ? t("skins.importSkin") : t("skins.importCape")}
+            {viewMode === "skin"
+              ? t("skins.importSkin")
+              : t("skins.importCape")}
           </button>
 
           <button
@@ -596,7 +598,9 @@ const SkinsView = memo(function SkinsView() {
               imageRendering: "pixelated",
             }}
           >
-            {viewMode === "skin" ? t("skins.deleteSkin") : t("skins.deleteCape")}
+            {viewMode === "skin"
+              ? t("skins.deleteSkin")
+              : t("skins.deleteCape")}
           </button>
 
           {viewMode === "skin" && (
@@ -708,16 +712,20 @@ const SkinsView = memo(function SkinsView() {
                   >
                     <HeadPreview src={skin.url} />
                   </div>
-                  <input
-                    type="text"
-                    value={skin.name}
-                    maxLength={16}
-                    onChange={(e) => handleNameChange(skin.id, e.target.value)}
-                    className={`bg-transparent text-center outline-none border-none text-base mc-text-shadow w-full truncate transition-colors relative z-10 ${isActive || isFocused ? "text-[#FFFF55]" : "text-white"} ${isDefaultSkin(skin.id) ? "pointer-events-none" : ""}`}
-                    onClick={(e) => e.stopPropagation()}
-                    spellCheck={false}
-                    readOnly={isDefaultSkin(skin.id)}
-                  />
+                  <div className="w-full">
+                    <input
+                      type="text"
+                      value={skin.name}
+                      maxLength={16}
+                      onChange={(e) =>
+                        handleNameChange(skin.id, e.target.value)
+                      }
+                      className={`w-full h-10 px-3 text-base text-center truncate outline-none relative z-10 font-[var(--font-base)] ${isActive || isFocused ? "text-[#FFFF55]" : "text-white"} ${isDefaultSkin(skin.id) ? "pointer-events-none" : ""}`}
+                      onClick={(e) => e.stopPropagation()}
+                      spellCheck={false}
+                      readOnly={isDefaultSkin(skin.id)}
+                    />
+                  </div>
                 </div>
               );
             })
@@ -779,18 +787,20 @@ const SkinsView = memo(function SkinsView() {
                     >
                       <CapePreview src={cape.url} />
                     </div>
-                    <input
-                      type="text"
-                      value={cape.name}
-                      maxLength={16}
-                      onChange={(e) =>
-                        handleCapeNameChange(cape.id, e.target.value)
-                      }
-                      className={`bg-transparent text-center outline-none border-none text-base mc-text-shadow w-full truncate transition-colors relative z-10 ${isActive || isFocused ? "text-[#FFFF55]" : "text-white"} ${isDefaultCape(cape.id) ? "pointer-events-none" : ""}`}
-                      onClick={(e) => e.stopPropagation()}
-                      spellCheck={false}
-                      readOnly={isDefaultCape(cape.id)}
-                    />
+                    <div className="mc-textinput-outer w-full">
+                      <input
+                        type="text"
+                        value={cape.name}
+                        maxLength={16}
+                        onChange={(e) =>
+                          handleCapeNameChange(cape.id, e.target.value)
+                        }
+                        className={`mc-textinput w-full h-10 px-3 text-base text-center truncate outline-none relative z-10 font-[var(--font-base)] ${isActive || isFocused ? "text-[#FFFF55]" : "text-white"} ${isDefaultCape(cape.id) ? "pointer-events-none" : ""}`}
+                        onClick={(e) => e.stopPropagation()}
+                        spellCheck={false}
+                        readOnly={isDefaultCape(cape.id)}
+                      />
+                    </div>
                   </div>
                 );
               })}
@@ -896,16 +906,18 @@ const SkinsView = memo(function SkinsView() {
               </div>
             ) : importMode === "username" ? (
               <div className="flex flex-col gap-4 w-full px-4 mb-2">
-                <input
-                  type="text"
-                  placeholder={t("skins.minecraftUsername")}
-                  value={importUsername}
-                  onChange={(e) => setImportUsername(e.target.value)}
-                  onFocus={() => setModalFocusIndex(0)}
-                  autoFocus
-                  spellCheck={false}
-                  className={`w-full h-12 bg-black/50 border-2 text-white px-4 text-xl outline-none transition-colors relative z-10 ${modalFocusIndex === 0 ? "border-[#FFFF55]" : "border-[#373737]"}`}
-                />
+                <div className="mc-textinput-outer w-full">
+                  <input
+                    type="text"
+                    placeholder={t("skins.minecraftUsername")}
+                    value={importUsername}
+                    onChange={(e) => setImportUsername(e.target.value)}
+                    onFocus={() => setModalFocusIndex(0)}
+                    autoFocus
+                    spellCheck={false}
+                    className="mc-textinput w-full h-10 px-3 text-white text-xl outline-none font-[var(--font-base)]"
+                  />
+                </div>
 
                 {importError && (
                   <span className="text-red-400 text-sm text-center mc-text-shadow">

@@ -273,6 +273,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                       {t("setup.username")}
                     </span>
                     <div className="relative">
+                      <div className="mc-textinput-outer">
                       <input
                         type="text"
                         ref={(el) => {
@@ -293,7 +294,7 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                             const caret =
                               document.getElementById("custom-caret");
                             if (caret) {
-                              caret.style.left = `${cursorPosition + 16}px`;
+                              caret.style.left = `${cursorPosition + 14}px`;
                             }
                           }
                         }}
@@ -321,29 +322,28 @@ const SetupView: React.FC<SetupViewProps> = ({ onComplete }) => {
                             const caret =
                               document.getElementById("custom-caret");
                             if (caret) {
-                              caret.style.left = `${cursorPosition + 16}px`;
+                              caret.style.left = `${cursorPosition + 14}px`;
                             }
                           }
                         }}
-                        className={`w-full px-4 py-2 focus:outline-none transition-colors text-white tracking-widest
-                              ${focusIndex === 0 ? "border-4 border-[#FFFF55] text-[#FFFF55]" : "border-4 border-[#323232]"}`}
+                        className="mc-textinput w-full h-10 px-3 text-white text-base tracking-widest outline-none font-[var(--font-base)]"
                         style={{
                           imageRendering: "pixelated",
                           fontFamily: "'Mojangles', monospace",
-                          backgroundColor: "#646464",
                           caretColor: "transparent",
                         }}
                         placeholder={t("setup.enterUsername")}
                         maxLength={16}
                         autoFocus
                       />
+                      </div>
                       {focusIndex === 0 && (
                         <span
                           id="custom-caret"
                           className="absolute top-1/2 -translate-y-1/2 text-white blink-caret"
                           style={{
                             fontFamily: "'Mojangles', monospace",
-                            left: "16px",
+                            left: "14px",
                           }}
                         >
                           _

@@ -433,7 +433,9 @@ const SkinViewer = memo(function SkinViewer({
     renderer.domElement.addEventListener("mousedown", onMouseDown);
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
-    renderer.domElement.addEventListener("touchstart", onTouchStart, { passive: true });
+    renderer.domElement.addEventListener("touchstart", onTouchStart, {
+      passive: true,
+    });
     window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", onTouchEnd);
     return () => {
@@ -692,20 +694,22 @@ const SkinViewer = memo(function SkinViewer({
           data-focus="0"
           tabIndex={0}
         >
-          <input
-            type="text"
-            value={username}
-            maxLength={16}
-            style={{ width: `${Math.max(username.length, 3) + 2}ch` }}
-            onChange={(e) => setUsername(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.currentTarget.blur();
-                e.stopPropagation();
-              }
-            }}
-            className="bg-transparent text-white focus:text-[#FFFF55] outline-none border-none text-center font-[var(--font-base)] mc-text-shadow tracking-widest text-xl cursor-text"
-          />
+          <div>
+            <input
+              type="text"
+              value={username}
+              maxLength={16}
+              style={{ width: `${Math.max(username.length, 3) + 2}ch` }}
+              onChange={(e) => setUsername(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.currentTarget.blur();
+                  e.stopPropagation();
+                }
+              }}
+              className="text-white focus:text-[#FFFF55] outline-none text-center font-[var(--font-base)] tracking-widest text-xl cursor-text"
+            />
+          </div>
         </div>
       )}
       {!legacyMode && (

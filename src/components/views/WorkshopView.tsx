@@ -843,46 +843,41 @@ const WorkshopView = memo(function WorkshopView({
         {showSearch ? (
           <div className="absolute inset-0 flex flex-col pt-2">
             <div className="flex items-center gap-3 px-6 pb-4">
-              <div
-                className="flex items-center flex-1 h-12 px-4 border-2 border-[#444] bg-black/40 rounded shadow-inner"
-                style={{
-                  backgroundImage: "url('/images/Button_Background2.png')",
-                  backgroundSize: "100% 100%",
-                  imageRendering: "pixelated",
-                }}
-              >
-                <input
-                  ref={searchRef}
-                  type="text"
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setFocusedIdx(null);
-                  }}
-                  placeholder={
-                    isInstalledTab
-                      ? t("workshop.filterInstalled")
-                      : isVersionTab
-                        ? t("workshop.filterVersions")
-                        : isPluginTab
-                          ? t("workshop.filterPlugins")
-                          : activeTab === "Server Plugins"
+              <div className="flex items-center flex-1 h-12 px-4 rounded">
+                <div className="mc-textinput-outer flex-1">
+                  <input
+                    ref={searchRef}
+                    type="text"
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setFocusedIdx(null);
+                    }}
+                    placeholder={
+                      isInstalledTab
+                        ? t("workshop.filterInstalled")
+                        : isVersionTab
+                          ? t("workshop.filterVersions")
+                          : isPluginTab
                             ? t("workshop.filterPlugins")
-                            : activeTab === "Server"
-                              ? t("workshop.filterServers")
-                              : t("workshop.enterKeywords")
-                  }
-                  spellCheck={false}
-                  autoFocus={isSearchTab}
-                  className="bg-transparent border-none outline-none text-white text-lg mc-text-shadow w-full placeholder-white/40 font-[var(--font-base)] tracking-widest"
-                />
+                            : activeTab === "Server Plugins"
+                              ? t("workshop.filterPlugins")
+                              : activeTab === "Server"
+                                ? t("workshop.filterServers")
+                                : t("workshop.enterKeywords")
+                    }
+                    spellCheck={false}
+                    autoFocus={isSearchTab}
+                    className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)] placeholder-white/40 tracking-widest"
+                  />
+                </div>
                 {search && (
                   <button
                     onClick={() => {
                       setSearch("");
                       searchRef.current?.focus();
                     }}
-                    className="text-white/60 hover:text-white text-lg ml-2 bg-transparent border-none outline-none cursor-pointer mc-text-shadow"
+                    className="text-white/60 hover:text-white text-lg mx-2 border-none outline-none cursor-pointer"
                   >
                     ✕
                   </button>
@@ -901,7 +896,9 @@ const WorkshopView = memo(function WorkshopView({
                         : "text-[#A0A0A0] bg-black/30 border-[#444] hover:text-white hover:border-[#888]"
                     }`}
                   >
-                    {cat === "all" ? t("common.all").toUpperCase() : cat.toUpperCase()}
+                    {cat === "all"
+                      ? t("common.all").toUpperCase()
+                      : cat.toUpperCase()}
                   </button>
                 ))}
               </div>
@@ -918,7 +915,9 @@ const WorkshopView = memo(function WorkshopView({
                         : "text-[#A0A0A0] bg-black/30 border-[#444] hover:text-white hover:border-[#888]"
                     }`}
                   >
-                    {cat === "all" ? t("common.all").toUpperCase() : cat.toUpperCase()}
+                    {cat === "all"
+                      ? t("common.all").toUpperCase()
+                      : cat.toUpperCase()}
                   </button>
                 ))}
               </div>

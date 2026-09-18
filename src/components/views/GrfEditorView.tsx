@@ -291,12 +291,14 @@ function GrfNodeView({ node, level, path, onUpdate }: { node: GrfNode, level: nu
               {node.parameters.map((p, i) => (
                 <div key={i} className="flex gap-4 border-b border-[#373737]/30 py-2 text-sm items-center">
                   <span className="text-[#AAAAAA] w-1/3 truncate">{p.name}</span>
+                  <div className="mc-textinput-outer flex-1">
                   <input
                     type="text"
                     value={p.value}
                     onChange={(e) => onUpdate(currentPath, i, e.target.value)}
-                    className="flex-1 bg-white/5 border border-white/10 px-2 py-1 text-white outline-none focus:border-[#FFFF55]/50 font-mono transition-colors"
+                    className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)] font-mono"
                   />
+                  </div>
                 </div>
               ))}
             </div>
