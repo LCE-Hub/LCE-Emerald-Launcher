@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUI, useAudio, useConfig } from "../../context/LauncherContext";
 import { ColService } from "../../services/ColService";
@@ -13,6 +14,7 @@ function hexToArgb(hex: string) {
 }
 
 export default function ColEditorView() {
+  const { t } = useTranslation();
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { animationsEnabled } = useConfig();
@@ -46,10 +48,10 @@ export default function ColEditorView() {
     try {
       const parsedCol = ColService.readCOL(buffer);
       setCol(parsedCol);
-      showNotification(`Loaded ${file.name}`);
+      showNotification(t("colEditor.loaded", { name: file.name }));
     } catch (err: unknown) {
       console.error("Failed to parse COL", err);
-      showNotification(err instanceof Error ? err.message : "Failed to parse COL", "error");
+      showNotification(err instanceof Error ? err.message : t("colEditor.failedToParse"), "error");
     }
     e.target.value = "";
   };
@@ -66,10 +68,10 @@ export default function ColEditorView() {
       a.download = "colours.col";
       a.click();
       URL.revokeObjectURL(url);
-      showNotification("COL Saved Successfully");
+      showNotification(t("colEditor.savedSuccessfully"));
     } catch (err: unknown) {
       console.error("Failed to save COL", err);
-      showNotification(err instanceof Error ? err.message : "Failed to save COL", "error");
+      showNotification(err instanceof Error ? err.message : t("colEditor.failedToSave"), "error");
     }
   };
 
@@ -94,7 +96,7 @@ export default function ColEditorView() {
       ...col,
       colors: [{ name: "NewColor", color: 0xFFFFFFFF }, ...col.colors]
     });
-    showNotification("Color Added");
+    showNotification(t("colEditor.colorAdded"));
   };
 
   const handleAddWorldColor = () => {
@@ -104,7 +106,7 @@ export default function ColEditorView() {
       ...col,
       worldColors: [{ name: "NewWorldColor", waterColor: 0xFFFFFFFF, underwaterColor: 0xFFFFFFFF, fogColor: 0xFFFFFFFF }, ...col.worldColors]
     });
-    showNotification("World Color Added");
+    showNotification(t("colEditor.worldColorAdded"));
   };
 
   const handleDeleteColor = (idx: number) => {
@@ -134,24 +136,24 @@ export default function ColEditorView() {
       <input type="file" ref={fileInputRef} onChange={handleFileLoad} className="hidden" accept=".col" />
       <div className="flex items-center justify-between mb-6 px-4">
         <div className="flex items-center gap-6">
-          <h2 className="text-3xl text-white mc-text-shadow tracking-widest uppercase font-bold">COL Editor</h2>
-          {col && <span className="text-white/40 mc-text-shadow italic">Version: <span className="text-[#FFFF55]">{col.version}</span></span>}
+          <h2 className="text-3xl text-white mc-text-shadow tracking-widest uppercase font-bold">{t("colEditor.title")}</h2>
+          {col && <span className="text-white/40 mc-text-shadow italic">{t("colEditor.version")} <span className="text-[#FFFF55]">{col.version}</span></span>}
         </div>
         <div className="flex gap-4">
           <button
             onClick={() => fileInputRef.current?.click()}
             className="px-6 py-2 text-white mc-text-shadow text-lg"
-            style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+            style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%" }}
           >
-            Open COL
+            {t("colEditor.openCol")}
           </button>
           <button
             onClick={handleSaveCol}
             disabled={!col}
             className={`px-6 py-2 text-white mc-text-shadow text-lg ${!col ? "opacity-50 grayscale" : ""}`}
-            style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+            style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%" }}
           >
-            Save COL
+            {t("colEditor.saveCol")}
           </button>
         </div>
       </div>
@@ -159,7 +161,7 @@ export default function ColEditorView() {
       {!col ? (
         <div className="flex-1 w-full flex flex-col items-center justify-center p-12"
           style={{ backgroundImage: "url('/images/frame_background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}>
-          <h3 className="text-2xl text-white/40 mc-text-shadow italic">Open a COL file to begin editing</h3>
+          <h3 className="text-2xl text-white/40 mc-text-shadow italic">{t("colEditor.openToBegin")}</h3>
         </div>
       ) : (
         <div className="flex-1 w-full flex flex-col overflow-hidden" style={{ backgroundImage: "url('/images/frame_background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}>
@@ -168,32 +170,34 @@ export default function ColEditorView() {
               onClick={() => { playPressSound(); setActiveTab("colors"); }}
               className={`flex items-center gap-3 px-6 py-2 mc-text-shadow ${activeTab === "colors" ? "text-[#FFFF55] opacity-100" : "text-white opacity-40"}`}
             >
-              <span className="text-lg">Colors ({col.colors.length})</span>
+              <span className="text-lg">{t("colEditor.colors", { count: col.colors.length })}</span>
             </button>
             <button
               onClick={() => { playPressSound(); setActiveTab("worldColors"); }}
               disabled={col.version === 0}
               className={`flex items-center gap-3 px-6 py-2 mc-text-shadow ${activeTab === "worldColors" ? "text-[#FFFF55] opacity-100" : "text-white opacity-40"} ${col.version === 0 ? "opacity-20 cursor-not-allowed" : ""}`}
             >
-              <span className="text-lg">World Colors ({col.worldColors.length})</span>
+              <span className="text-lg">{t("colEditor.worldColors", { count: col.worldColors.length })}</span>
             </button>
           </div>
 
           <div className="flex-1 flex flex-col p-4 overflow-hidden">
             <div className="mb-4 flex gap-4">
+              <div className="mc-textinput-outer flex-1">
               <input
                 type="text"
-                placeholder="Search colors..."
+                placeholder={t("colEditor.searchColors")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 bg-black/40 border-2 border-[#373737] text-white px-4 py-2 outline-none focus:border-[#FFFF55] transition-colors"
+                className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)]"
               />
+              </div>
               <button
                 onClick={activeTab === "colors" ? handleAddColor : handleAddWorldColor}
                 className="px-6 py-2 text-white mc-text-shadow text-sm"
-                style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%" }}
+                style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%" }}
               >
-                Add {activeTab === "colors" ? "Color" : "World Color"}
+                {activeTab === "colors" ? t("colEditor.addColor") : t("colEditor.addWorldColor")}
               </button>
             </div>
 
@@ -201,28 +205,30 @@ export default function ColEditorView() {
               <table className="w-full text-left border-collapse">
                 <thead className="sticky top-0 bg-[#252525] z-10 w-full mb-2">
                   <tr className="border-b-2 border-[#373737]">
-                    <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold w-1/4">Name</th>
-                    {activeTab === "colors" && <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold">Color (ARGB)</th>}
+                    <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold w-1/4">{t("colEditor.name")}</th>
+                    {activeTab === "colors" && <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold">{t("colEditor.color")}</th>}
                     {activeTab === "worldColors" && (
                       <>
-                        <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold">Water (ARGB)</th>
-                        <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold">Underwater (ARGB)</th>
-                        <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold">Fog (ARGB)</th>
+                        <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold">{t("colEditor.water")}</th>
+                        <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold">{t("colEditor.underwater")}</th>
+                        <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold">{t("colEditor.fog")}</th>
                       </>
                     )}
-                    <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold text-right w-16">Remove</th>
+                    <th className="p-3 text-white/40 uppercase text-xs tracking-widest font-bold text-right w-16">{t("colEditor.remove")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {activeTab === "colors" && currentColors.map((c) => (
                     <tr key={c.originalIdx} className="border-b border-[#373737]/30 group">
                       <td className="p-2">
+                        <div className="mc-textinput-outer">
                         <input
                           type="text"
                           value={c.name}
                           onChange={(e) => handleUpdateColor(c.originalIdx, "name", e.target.value)}
-                          className="w-full bg-black/40 border border-[#373737] px-2 py-1 outline-none focus:border-[#FFFF55] text-white text-sm"
+                          className="mc-textinput w-full h-10 px-3 text-white text-sm outline-none font-[var(--font-base)]"
                         />
+                        </div>
                       </td>
                       <td className="p-2">
                         <div className="flex items-center gap-3">
@@ -237,19 +243,21 @@ export default function ColEditorView() {
                             }}
                             className="w-8 h-8 p-0 cursor-pointer shrink-0 border border-[#373737] rounded-sm bg-transparent"
                           />
-                          <input
-                            type="text"
-                            value={argbToHex(c.color)}
-                            onChange={(e) => {
-                              const s = e.target.value.replace(/[^0-9A-Fa-f]/g, '');
-                              if (s.length <= 8) {
-                                const parsed = parseInt(s, 16);
-                                if (!isNaN(parsed)) handleUpdateColor(c.originalIdx, "color", parsed >>> 0);
-                              }
-                            }}
-                            className="bg-black/40 border border-[#373737] w-24 px-2 py-1 outline-none focus:border-[#FFFF55] text-white font-mono text-sm uppercase"
-                            maxLength={8}
-                          />
+                          <div className="mc-textinput-outer w-24">
+                            <input
+                              type="text"
+                              value={argbToHex(c.color)}
+                              onChange={(e) => {
+                                const s = e.target.value.replace(/[^0-9A-Fa-f]/g, '');
+                                if (s.length <= 8) {
+                                  const parsed = parseInt(s, 16);
+                                  if (!isNaN(parsed)) handleUpdateColor(c.originalIdx, "color", parsed >>> 0);
+                                }
+                              }}
+                              className="mc-textinput w-full h-10 px-3 text-white font-mono text-sm uppercase outline-none font-[var(--font-base)]"
+                              maxLength={8}
+                            />
+                            </div>
                         </div>
                       </td>
                       <td className="p-2 text-right">
@@ -263,12 +271,14 @@ export default function ColEditorView() {
                   {activeTab === "worldColors" && currentWorldColors.map((w) => (
                     <tr key={w.originalIdx} className="border-b border-[#373737]/30 group">
                       <td className="p-2">
+                        <div className="mc-textinput-outer">
                         <input
                           type="text"
                           value={w.name}
                           onChange={(e) => handleUpdateWorldColor(w.originalIdx, "name", e.target.value)}
-                          className="w-full bg-black/40 border border-[#373737] px-2 py-1 outline-none focus:border-[#FFFF55] text-white text-sm"
+                          className="mc-textinput w-full h-10 px-3 text-white text-sm outline-none font-[var(--font-base)]"
                         />
+                        </div>
                       </td>
                       <td className="p-2">
                         <div className="flex items-center gap-2">
@@ -282,6 +292,7 @@ export default function ColEditorView() {
                             }}
                             className="w-6 h-6 p-0 cursor-pointer shrink-0 border border-[#373737] rounded-sm bg-transparent"
                           />
+                          <div className="mc-textinput-outer w-20">
                           <input
                             type="text"
                             value={argbToHex(w.waterColor)}
@@ -292,9 +303,10 @@ export default function ColEditorView() {
                                 if (!isNaN(parsed)) handleUpdateWorldColor(w.originalIdx, "waterColor", parsed >>> 0);
                               }
                             }}
-                            className="bg-black/40 border border-[#373737] w-20 px-2 py-1 outline-none focus:border-[#FFFF55] text-white font-mono text-xs uppercase"
+                            className="mc-textinput w-full h-10 px-3 text-white font-mono text-xs uppercase outline-none font-[var(--font-base)]"
                             maxLength={8}
                           />
+                          </div>
                         </div>
                       </td>
                       <td className="p-2">
@@ -309,6 +321,7 @@ export default function ColEditorView() {
                             }}
                             className="w-6 h-6 p-0 cursor-pointer shrink-0 border border-[#373737] rounded-sm bg-transparent"
                           />
+                          <div className="mc-textinput-outer w-20">
                           <input
                             type="text"
                             value={argbToHex(w.underwaterColor)}
@@ -319,9 +332,10 @@ export default function ColEditorView() {
                                 if (!isNaN(parsed)) handleUpdateWorldColor(w.originalIdx, "underwaterColor", parsed >>> 0);
                               }
                             }}
-                            className="bg-black/40 border border-[#373737] w-20 px-2 py-1 outline-none focus:border-[#FFFF55] text-white font-mono text-xs uppercase"
+                            className="mc-textinput w-full h-10 px-3 text-white font-mono text-xs uppercase outline-none font-[var(--font-base)]"
                             maxLength={8}
                           />
+                          </div>
                         </div>
                       </td>
                       <td className="p-2">
@@ -336,6 +350,7 @@ export default function ColEditorView() {
                             }}
                             className="w-6 h-6 p-0 cursor-pointer shrink-0 border border-[#373737] rounded-sm bg-transparent"
                           />
+                          <div className="mc-textinput-outer w-20">
                           <input
                             type="text"
                             value={argbToHex(w.fogColor)}
@@ -346,9 +361,10 @@ export default function ColEditorView() {
                                 if (!isNaN(parsed)) handleUpdateWorldColor(w.originalIdx, "fogColor", parsed >>> 0);
                               }
                             }}
-                            className="bg-black/40 border border-[#373737] w-20 px-2 py-1 outline-none focus:border-[#FFFF55] text-white font-mono text-xs uppercase"
+                            className="mc-textinput w-full h-10 px-3 text-white font-mono text-xs uppercase outline-none font-[var(--font-base)]"
                             maxLength={8}
                           />
+                          </div>
                         </div>
                       </td>
                       <td className="p-2 text-right">
@@ -369,9 +385,9 @@ export default function ColEditorView() {
         <button
           onClick={() => { playBackSound(); setActiveView("devtools"); }}
           className="w-72 h-full shrink-0 flex items-center justify-center transition-colors text-2xl mc-text-shadow outline-none border-none hover:text-[#FFFF55] text-white"
-          style={{ backgroundImage: "url('/images/Button_Background.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
+          style={{ backgroundImage: "url('/images/Layout_Button_Bmp.png')", backgroundSize: "100% 100%", imageRendering: "pixelated" }}
         >
-          Back
+          {t("colEditor.back")}
         </button>
       </div>
 

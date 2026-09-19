@@ -40,6 +40,9 @@ pub fn load_config_raw(app: AppHandle) -> AppConfig {
         instance_launch_args: None,
         android_runner: None,
         android_audio_backend: None,
+        goldmapper_enabled: Some(true),
+        goldmapper_mappings: None,
+        http_proxy: None,
     }
 }
 

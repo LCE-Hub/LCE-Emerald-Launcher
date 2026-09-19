@@ -6,6 +6,7 @@ const DEFAULT = {
   isMac: false,
   isWindows: false,
   isAndroid: false,
+  arch: "x86_64",
 };
 export function usePlatform() {
   const [platform, setPlatform] = useState(DEFAULT);
@@ -15,6 +16,7 @@ export function usePlatform() {
       isMac: boolean;
       isWindows: boolean;
       isAndroid: boolean;
+      arch: string;
     }>("get_platform")
       .then(setPlatform)
       .catch(() => setPlatform(DEFAULT));

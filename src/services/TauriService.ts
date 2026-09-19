@@ -23,6 +23,11 @@ export interface CustomEdition {
   logo?: string;
 }
 
+export interface GoldMapperMapping {
+  from: string;
+  to: string;
+}
+
 export interface AppConfig {
   username: string;
   linuxRunner?: string;
@@ -54,6 +59,9 @@ export interface AppConfig {
   >;
   androidRunner?: string;
   androidAudioBackend?: "alsa" | "pulseaudio";
+  goldmapperEnabled?: boolean;
+  goldmapperMappings?: GoldMapperMapping[];
+  httpProxy?: string;
 }
 
 export interface ThemePalette {
@@ -493,5 +501,23 @@ export class TauriService {
 
   static async setAudioBackend(backend: string): Promise<void> {
     return invoke("set_audio_backend", { backend });
+  }
+
+  static async goldMapperGetDefaults(): Promise<GoldMapperMapping[]> {
+    return invoke("goldmapper_get_defaults");
+  }
+
+  static async goldMapperLoadConfig(): Promise<GoldMapperMapping[]> {
+    return invoke("goldmapper_load_config");
+  }
+
+  static async goldMapperSaveConfig(
+    mappings: GoldMapperMapping[],
+  ): Promise<void> {
+    return invoke("goldmapper_save_config", { mappings });
+  }
+
+  static async goldMapperResetConfig(): Promise<GoldMapperMapping[]> {
+    return invoke("goldmapper_reset_config");
   }
 }

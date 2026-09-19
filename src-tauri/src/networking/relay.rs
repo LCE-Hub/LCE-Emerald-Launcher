@@ -32,7 +32,7 @@ async fn run_host_relay(
         .map_err(|e| format!("Proxy connect failed: {}", e))?;
 
     write_line(&mut host_conn, &format!("HOST {} 0", auth_token)).await?;
-    let game_stream = tokio::time::timeout(
+    let mut game_stream = tokio::time::timeout(
         std::time::Duration::from_secs(30),
         async {
             loop {
@@ -59,41 +59,15 @@ async fn run_host_relay(
         .await
         .map_err(|e| format!("Proxy connect failed: {}", e))?;
     write_line(&mut accept_conn, &format!("ACCEPT {} 0 {}", auth_token, joiner_id)).await?;
-    let (mut g_read, mut g_write) = game_stream.into_split();
-    let (mut a_read, mut a_write) = accept_conn.into_split();
-    let c1 = cancel.clone();
-    let c2 = cancel.clone();
-    let t1 = tokio::spawn(async move {
-        let mut buf = [0u8; 65536];
-        loop {
-            tokio::select! {
-                r = g_read.read(&mut buf) => {
-                    match r {
-                        Ok(0) | Err(_) => break,
-                        Ok(n) => { if a_write.write_all(&buf[..n]).await.is_err() { break; } }
-                    }
-                }
-                _ = c1.cancelled() => break,
+    tokio::select! {
+        res = tokio::io::copy_bidirectional(&mut game_stream, &mut accept_conn) => {
+            if let Err(e) = res {
+                eprintln!("Host Relay error: {}", e);
             }
-        }
-    });
+        },
+        _ = cancel.cancelled() => {},
+    }
 
-    let t2 = tokio::spawn(async move {
-        let mut buf = [0u8; 65536];
-        loop {
-            tokio::select! {
-                r = a_read.read(&mut buf) => {
-                    match r {
-                        Ok(0) | Err(_) => break,
-                        Ok(n) => { if g_write.write_all(&buf[..n]).await.is_err() { break; } }
-                    }
-                }
-                _ = c2.cancelled() => break,
-            }
-        }
-    });
-
-    let _ = tokio::join!(t1, t2);
     Ok(())
 }
 
@@ -118,46 +92,20 @@ async fn run_relay_proxy(
         *port = Some(local_port);
     }
 
-    let (local_stream, _) = tokio::select! {
+    let (mut local_stream, _) = tokio::select! {
         r = listener.accept() => r.map_err(|e| format!("Accept failed: {}", e))?,
         _ = cancel.cancelled() => return Err("Cancelled".into()),
     };
 
-    let (mut l_read, mut l_write) = local_stream.into_split();
-    let (mut s_read, mut s_write) = stream.into_split();
-    let c1 = cancel.clone();
-    let c2 = cancel.clone();
-    let t1 = tokio::spawn(async move {
-        let mut buf = [0u8; 65536];
-        loop {
-            tokio::select! {
-                r = l_read.read(&mut buf) => {
-                    match r {
-                        Ok(0) | Err(_) => break,
-                        Ok(n) => { if s_write.write_all(&buf[..n]).await.is_err() { break; } }
-                    }
-                }
-                _ = c1.cancelled() => break,
+    tokio::select! {
+        res = tokio::io::copy_bidirectional(&mut local_stream, &mut stream) => {
+            if let Err(e) = res {
+                eprintln!("Relay Proxy error: {}", e);
             }
-        }
-    });
+        },
+        _ = cancel.cancelled() => {},
+    }
 
-    let t2 = tokio::spawn(async move {
-        let mut buf = [0u8; 65536];
-        loop {
-            tokio::select! {
-                r = s_read.read(&mut buf) => {
-                    match r {
-                        Ok(0) | Err(_) => break,
-                        Ok(n) => { if l_write.write_all(&buf[..n]).await.is_err() { break; } }
-                    }
-                }
-                _ = c2.cancelled() => break,
-            }
-        }
-    });
-
-    let _ = tokio::join!(t1, t2);
     Ok(local_port)
 }
 

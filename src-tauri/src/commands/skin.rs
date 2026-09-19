@@ -7,8 +7,8 @@ use crate::types::ScreenshotInfo;
 use crate::config;
 use crate::util;
 #[tauri::command]
-pub async fn fetch_skin(username: String) -> Result<(String, String), String> {
-    let client = reqwest::Client::new();
+pub async fn fetch_skin(app: AppHandle, username: String) -> Result<(String, String), String> {
+    let client = util::build_http_client_from_app(&app).map_err(|e| e.to_string())?;
     let mojang_url = format!("https://api.mojang.com/users/profiles/minecraft/{}", username);
     let mojang_res = client.get(&mojang_url).send().await.map_err(|e| format!("Failed request to mojang: {}", e))?;
     if !mojang_res.status().is_success() {
@@ -25,12 +25,23 @@ pub async fn fetch_skin(username: String) -> Result<(String, String), String> {
     }
     let mc_api_text = mc_api_res.text().await.map_err(|e| format!("Failed to read mc api text: {}", e))?;
     let mc_api_data: serde_json::Value = serde_json::from_str(&mc_api_text).map_err(|e| format!("Invalid MC API JSON: {}", e))?;
-    let image_b64 = mc_api_data.get("skin")
+    if let Some(b64) = mc_api_data.get("skin")
         .and_then(|s| s.get("image"))
         .and_then(|v| v.as_str())
+    {
+        return Ok((b64.to_string(), name_exact));
+    }
+    let skin_url = mc_api_data.get("skin")
+        .and_then(|s| s.get("url"))
+        .and_then(|v| v.as_str())
         .ok_or_else(|| "No skin found".to_string())?;
-
-    Ok((image_b64.to_string(), name_exact))
+    let skin_resp = client.get(skin_url).send().await.map_err(|e| format!("Failed to fetch skin image: {}", e))?;
+    if !skin_resp.status().is_success() {
+        return Err(format!("Failed to download skin image: {}", skin_resp.status()));
+    }
+    let skin_bytes = skin_resp.bytes().await.map_err(|e| format!("Failed to read skin image bytes: {}", e))?;
+    let image_b64 = base64::engine::general_purpose::STANDARD.encode(&skin_bytes);
+    Ok((image_b64, name_exact))
 }
 
 #[tauri::command]
@@ -47,7 +58,8 @@ pub async fn download_logo(app: AppHandle, id: String, url: String) -> Result<St
 
     let filename = format!("{}.{}", id, file_ext);
     let dest_path = logos_dir.join(&filename);
-    let response = reqwest::get(&url).await.map_err(|e| e.to_string())?;
+    let client = util::build_http_client_from_app(&app).map_err(|e| e.to_string())?;
+    let response = client.get(&url).send().await.map_err(|e| e.to_string())?;
     if !response.status().is_success() {
         return Err(format!("Failed to download logo: {}", response.status()));
     }
