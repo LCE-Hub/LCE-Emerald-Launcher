@@ -98,10 +98,14 @@ jobs:
         run: pnpm install
 
       - name: build Tauri app
-        run: pnpm run tauri:build -- ${{ matrix.args }}
+        run: pnpm tauri build ${{ matrix.args }}
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+
+      - name: run macOS postbuild
+        run: pnpm post-build:macos
+        if: matrix.platform == 'macos-latest'
 
       - name: Create PKG with post-install script (macOS only)
         if: matrix.platform == 'macos-latest'
