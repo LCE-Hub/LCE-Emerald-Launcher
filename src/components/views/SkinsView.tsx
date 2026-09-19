@@ -9,10 +9,9 @@ import {
   useSkin,
   useConfig,
 } from "../../context/LauncherContext";
-import SkinModel3D, { getSkinModelSnapshot } from "../common/SkinModel3D";
+import { getSkinModelSnapshot } from "../common/SkinModel3D";
 import CapePreview from "../common/CapePreview";
 import { usePlatform } from "../../hooks/usePlatform";
-
 interface SavedSkin {
   id: string;
   name: string;
