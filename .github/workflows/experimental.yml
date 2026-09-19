@@ -47,10 +47,10 @@ jobs:
             args: "--target x86_64-apple-darwin"
             artifact-name: macos-x86_64
           - platform: "ubuntu-24.04"
-            args: ""
+            args: "--bundles deb,rpm"
             artifact-name: linux
           - platform: "ubuntu-24.04-arm"
-            args: "--target aarch64-unknown-linux-gnu"
+            args: "--target aarch64-unknown-linux-gnu --bundles deb,rpm"
             artifact-name: linux-arm64
           - platform: "windows-latest"
             args: ""
