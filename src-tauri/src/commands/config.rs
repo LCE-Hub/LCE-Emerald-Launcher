@@ -5,6 +5,11 @@ use crate::types::{AppConfig, ThemePalette};
 use crate::util;
 #[tauri::command]
 pub fn save_config(app: AppHandle, config_val: AppConfig) {
+    let mut config_val = config_val;
+    if config_val.goldmapper_mappings.is_none() {
+        let existing = config::load_config_raw(app.clone());
+        config_val.goldmapper_mappings = existing.goldmapper_mappings;
+    }
     config::save_config_raw(&app, &config_val);
 }
 

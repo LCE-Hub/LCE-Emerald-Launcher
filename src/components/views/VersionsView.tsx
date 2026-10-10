@@ -1,4 +1,12 @@
-import { useState, useEffect, useRef, memo } from "react";
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useCallback,
+  memo,
+} from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { TauriService, PlaytimeResponse } from "../../services/TauriService";
 import CustomTUModal from "../modals/CustomTUModal";
@@ -53,18 +61,12 @@ const DeleteConfirmButton = memo(function DeleteConfirmButton({
   );
 });
 
-function formatPlaytime(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (h > 0) return `${h}h ${m}m`;
-  if (m > 0) return `${m}m`;
-  return seconds > 0 ? `${seconds}s` : "";
-}
-
+const ROW_ESTIMATE = 52;
+const ROW_GAP = 4;
 const VersionsView = memo(function VersionsView() {
+  const { t } = useTranslation();
   const { setActiveView } = useUI();
   const {
-    profile: selectedProfile,
     setProfile: setSelectedProfile,
     animationsEnabled,
     instanceLaunchArgs,
@@ -81,7 +83,6 @@ const VersionsView = memo(function VersionsView() {
     addCustomEdition: onAddEdition,
     updateCustomEdition: onUpdateEdition,
     downloadingIds,
-    downloadProgress,
     updatesAvailable,
     addToSteam,
     cycleBranch,
@@ -93,8 +94,7 @@ const VersionsView = memo(function VersionsView() {
   const { isAndroid } = usePlatform();
   const visibleEditions = editions.filter(
     (e) =>
-      e.url !== HIDDEN_INSTANCE_URL ||
-      installedVersions.includes(e.instanceId),
+      e.url !== HIDDEN_INSTANCE_URL || installedVersions.includes(e.instanceId),
   );
   const [focusIndex, setFocusIndex] = useState<number>(0);
   const [focusBtn, setFocusBtn] = useState<number>(0);
@@ -114,11 +114,11 @@ const VersionsView = memo(function VersionsView() {
   } | null>(null);
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
   const [customizeTarget, setCustomizeTarget] = useState<Edition | null>(null);
-  const [playtimeMap, setPlaytimeMap] = useState<
+  const [_playtimeMap, setPlaytimeMap] = useState<
     Record<string, PlaytimeResponse>
   >({});
   const [initialPath, setInitialPath] = useState<string>("");
-  const [hoveredBtn, setHoveredBtn] = useState<{
+  const [_hoveredBtn, setHoveredBtn] = useState<{
     row: number;
     btn: string;
   } | null>(null);
@@ -135,9 +135,168 @@ const VersionsView = memo(function VersionsView() {
     name: string;
   } | null>(null);
   const [argsSchemas, setArgsSchemas] = useState<Record<string, boolean>>({});
+  const [thumb, setThumb] = useState({ height: 0, top: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const ITEM_COUNT = visibleEditions.length + 3;
+  const trackRef = useRef<HTMLDivElement>(null);
+  const thumbRef = useRef<HTMLDivElement>(null);
+  const dragOffsetRef = useRef(0);
+  const draggingRef = useRef(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuDir, setMenuDir] = useState<"down" | "up">("down");
+  const ITEM_COUNT = visibleEditions.length;
+  const [visibleRange, setVisibleRange] = useState<{
+    start: number;
+    end: number;
+  }>({
+    start: 0,
+    end: visibleEditions.length ? visibleEditions.length - 1 : 0,
+  });
+  const itemHeightsRef = useRef<number[]>([]);
+  const observersRef = useRef<Map<number, ResizeObserver>>(new Map());
+  const visibleEditionsRef = useRef(visibleEditions);
+  visibleEditionsRef.current = visibleEditions;
+  const focusIndexRef = useRef(focusIndex);
+  const openMenuIdRef = useRef(openMenuId);
+  const updateThumb = useCallback(() => {
+    const container = listRef.current;
+    const track = trackRef.current;
+    if (!container || !track) return;
+    const scrollHeight = container.scrollHeight;
+    const clientHeight = container.clientHeight;
+    const scrollable = scrollHeight - clientHeight;
+    if (scrollable <= 0) {
+      setThumb((prev) =>
+        prev.height === 0 && prev.top === 0 ? prev : { height: 0, top: 0 },
+      );
+      return;
+    }
+    const trackHeight = track.clientHeight;
+    const HANDLE = 40;
+    const STEP = HANDLE + 4;
+    const maxTop = trackHeight - HANDLE;
+    const maxIndex = Math.max(1, Math.floor(maxTop / STEP));
+    const index = Math.min(
+      maxIndex,
+      Math.round((container.scrollTop / scrollable) * maxIndex),
+    );
+    const top = index * STEP;
+    setThumb((prev) =>
+      prev.top === top && prev.height === HANDLE
+        ? prev
+        : { height: HANDLE, top },
+    );
+  }, []);
+
+  const handleThumbPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    draggingRef.current = true;
+    dragOffsetRef.current =
+      e.clientY - e.currentTarget.getBoundingClientRect().top;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handleThumbPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!draggingRef.current) return;
+    const container = listRef.current;
+    const track = trackRef.current;
+    if (!container || !track) return;
+    const trackRect = track.getBoundingClientRect();
+    const trackTop = trackRect.top + track.clientTop;
+    const y = e.clientY - trackTop - dragOffsetRef.current;
+    const trackHeight = track.clientHeight;
+    const maxTop = Math.max(0, trackHeight - thumb.height);
+    const scrollable = container.scrollHeight - container.clientHeight;
+    if (scrollable <= 0) return;
+    const clampedY = Math.min(Math.max(y, 0), maxTop);
+    container.scrollTop = (clampedY / maxTop) * scrollable;
+  };
+
+  const handleThumbPointerUp = () => {
+    draggingRef.current = false;
+  };
+
+  const updateVisibleRange = useCallback(() => {
+    const container = listRef.current;
+    const editions = visibleEditionsRef.current;
+    if (!container) return;
+    const scrollTop = container.scrollTop;
+    const viewportHeight = container.clientHeight;
+    const heights = itemHeightsRef.current;
+    const n = editions.length;
+    let acc = 0;
+    let start = n;
+    let end = -1;
+    for (let i = 0; i < n; i++) {
+      const itemTop = acc;
+      const itemNeo = acc + (heights[i] ?? ROW_ESTIMATE); //neo: me fr fr :3
+      if (itemTop >= scrollTop && itemNeo <= scrollTop + viewportHeight) {
+        if (start === n) start = i;
+        end = i;
+      }
+      acc += (heights[i] ?? ROW_ESTIMATE) + ROW_GAP;
+    }
+    if (start === n) start = 0;
+    if (end < 0) end = n - 1;
+    const fi = focusIndexRef.current;
+    if (fi >= 0 && fi < n) {
+      start = Math.min(start, fi);
+      end = Math.max(end, fi);
+    }
+    const menuId = openMenuIdRef.current;
+    if (menuId) {
+      const mi = editions.findIndex((e) => e.id === menuId);
+      if (mi >= 0) {
+        start = Math.min(start, mi);
+        end = Math.max(end, mi);
+      }
+    }
+    setVisibleRange((prev) =>
+      prev.start === start && prev.end === end ? prev : { start, end },
+    );
+    updateThumb();
+  }, [updateThumb]);
+
+  const setRowRef = (index: number) => (el: HTMLDivElement | null) => {
+    if (el) {
+      let ro = observersRef.current.get(index);
+      if (!ro) {
+        ro = new ResizeObserver(() => {
+          itemHeightsRef.current[index] = el.offsetHeight;
+          updateVisibleRange();
+        });
+        observersRef.current.set(index, ro);
+      }
+      ro.observe(el);
+    } else {
+      const ro = observersRef.current.get(index);
+      if (ro) {
+        ro.disconnect();
+        observersRef.current.delete(index);
+      }
+    }
+  };
+
+  useEffect(() => {
+    focusIndexRef.current = focusIndex;
+  }, [focusIndex]);
+
+  useEffect(() => {
+    openMenuIdRef.current = openMenuId;
+  }, [openMenuId]);
+
+  useEffect(() => {
+    const container = listRef.current;
+    if (!container) return;
+    const ro = new ResizeObserver(() => updateVisibleRange());
+    ro.observe(container);
+    updateVisibleRange();
+    return () => {
+      ro.disconnect();
+      observersRef.current.forEach((obs) => obs.disconnect());
+      observersRef.current.clear();
+    };
+  }, [updateVisibleRange]);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (document.activeElement?.tagName === "INPUT") return;
@@ -172,18 +331,16 @@ const VersionsView = memo(function VersionsView() {
         e.preventDefault();
         if (focusIndex < visibleEditions.length) {
           const edition = visibleEditions[focusIndex];
-          const isInstalled = installedVersions.includes(edition.id);
-          const isCustom = edition.id.startsWith("custom_");
-          const maxBtn = isInstalled ? (isCustom ? 6 : 4) : 1;
+          const isInstalled = installedVersions.includes(edition.instanceId);
+          const maxBtn = isInstalled ? 1 : 2;
           setFocusBtn((prev) => (prev <= 0 ? maxBtn : prev - 1));
         }
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
         if (focusIndex < visibleEditions.length) {
           const edition = visibleEditions[focusIndex];
-          const isInstalled = installedVersions.includes(edition.id);
-          const isCustom = edition.id.startsWith("custom_");
-          const maxBtn = isInstalled ? (isCustom ? 6 : 4) : 1;
+          const isInstalled = installedVersions.includes(edition.instanceId);
+          const maxBtn = isInstalled ? 1 : 2;
           setFocusBtn((prev) => (prev >= maxBtn ? 0 : prev + 1));
         }
       } else if (e.key === "Enter") {
@@ -193,23 +350,19 @@ const VersionsView = memo(function VersionsView() {
           const isInstalled = installedVersions.includes(edition.instanceId);
           const isDownloading = downloadingIds.includes(edition.instanceId);
           if (focusBtn === 0) {
-            if (isInstalled) {
-              playPressSound();
-              setOpenMenuId(openMenuId === edition.id ? null : edition.id);
-            } else {
-              if (!isDownloading) {
-                playPressSound();
-                toggleInstall(edition.instanceId);
-              } else {
-                handleCancelDownload(edition.instanceId);
-              }
-            }
-          } else if (focusBtn === 1 && !isInstalled) {
+            playPressSound();
+            setOpenMenuId(null);
+            setSelectedProfile(edition.instanceId);
+          } else if (focusBtn === 2 || (focusBtn === 1 && isInstalled)) {
             playPressSound();
             setOpenMenuId(openMenuId === edition.id ? null : edition.id);
-          } else if (focusBtn === 2) {
+          } else if (focusBtn === 1 && !isInstalled) {
             playPressSound();
-            cycleBranch(edition.id);
+            if (isDownloading) {
+              handleCancelDownload(edition.instanceId);
+            } else {
+              toggleInstall(edition.instanceId);
+            }
           }
         } else if (focusIndex === visibleEditions.length) {
           playPressSound();
@@ -262,6 +415,23 @@ const VersionsView = memo(function VersionsView() {
     }
   }, [focusIndex]);
 
+  useLayoutEffect(() => {
+    if (!openMenuId) return;
+    const container = listRef.current;
+    const menu = menuRef.current;
+    if (!container || !menu) return;
+    const row = menu.closest("[data-index]") as HTMLElement | null;
+    if (!row) return;
+    const containerRect = container.getBoundingClientRect();
+    const rowRect = row.getBoundingClientRect();
+    const menuHeight = menu.offsetHeight;
+    const spaceBelow = containerRect.bottom - rowRect.bottom;
+    const spaceAbove = rowRect.top - containerRect.top;
+    setMenuDir(
+      spaceBelow < menuHeight && spaceAbove > spaceBelow ? "up" : "down",
+    );
+  }, [openMenuId]);
+
   useEffect(() => {
     const fetchPlaytimes = async () => {
       const map: Record<string, PlaytimeResponse> = {};
@@ -303,11 +473,8 @@ const VersionsView = memo(function VersionsView() {
   }, [installedVersions]);
 
   const handleEditionClick = (edition: Edition, index: number) => {
-    const isInstalled = installedVersions.includes(edition.instanceId);
-    if (isInstalled) {
-      playPressSound();
-      setSelectedProfile(edition.instanceId);
-    }
+    playPressSound();
+    setSelectedProfile(edition.instanceId);
     setFocusIndex(index);
   };
 
@@ -324,7 +491,9 @@ const VersionsView = memo(function VersionsView() {
   };
 
   const handleImportWorld = (instanceId: string) => {
-    const edition = visibleEditions.find((e: Edition) => e.instanceId === instanceId);
+    const edition = visibleEditions.find(
+      (e: Edition) => e.instanceId === instanceId,
+    );
     setImportWorldTarget({ id: instanceId, name: edition?.name ?? instanceId });
     setIsImportWorldModalOpen(true);
   };
@@ -338,58 +507,64 @@ const VersionsView = memo(function VersionsView() {
       transition={{ duration: animationsEnabled ? 0.25 : 0 }}
       className="flex flex-col items-center w-full max-w-5xl outline-none"
     >
-      <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 pb-2 w-[40%] max-w-[200px] text-center tracking-widest uppercase font-bold">
-        Versions
-      </h2>
-
-      <div className="w-full min-w-[480px] p-6 mb-4 mc-options-bg">
+      <div className="w-full min-w-120 p-1 mb-3 mc-options-bg relative flex items-stretch">
         <div
           ref={listRef}
-          className="w-full max-h-[45vh] overflow-y-auto py-2 custom-scrollbar"
+          onScroll={updateVisibleRange}
+          className="flex-1 min-w-0 h-85 max-h-85 overflow-y-auto snap-y snap-mandatory mc-versionrecess hidden-scrollbar"
         >
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 hidden-scrollbar">
             {visibleEditions.map((edition: Edition, i: number) => {
+              if (i < visibleRange.start || i > visibleRange.end) {
+                return (
+                  <div
+                    key={edition.id}
+                    data-index={i}
+                    style={{
+                      height: itemHeightsRef.current[i] ?? ROW_ESTIMATE,
+                    }}
+                    className="w-[calc(100%-20px)] shrink-0 snap-start"
+                  />
+                );
+              }
               const isInstalled = installedVersions.includes(
                 edition.instanceId,
               );
-              const hasAnyInstall = installedVersions.length > 0;
-              const isSelected =
-                hasAnyInstall && selectedProfile === edition.instanceId;
               const isFocused = focusIndex === i;
               const isCustom = edition.id.startsWith("custom_");
               const isDownloading = downloadingIds.includes(edition.instanceId);
               const isComingSoon = edition.comingSoon;
-
+              const isDownloadFocused =
+                !isInstalled && isFocused && focusBtn === 1;
+              const isGearFocused =
+                isFocused && focusBtn === (isInstalled ? 1 : 2);
               return (
                 <div
                   key={edition.id}
                   data-index={i}
-                  className={`w-[calc(100%-16px)] mx-2 flex items-center gap-3 p-2 rounded-sm ${
-                    isSelected && !isComingSoon ? "bg-[#404040]/50" : ""
-                  } ${isFocused && !isComingSoon ? "ring-2 ring-white" : ""} ${
-                    isComingSoon ? "opacity-50 cursor-not-allowed" : ""
-                  } relative ${openMenuId === edition.id ? "z-50" : "z-0"}`}
+                  ref={setRowRef(i)}
+                  className={`w-[calc(100%-20px)] snap-start flex items-center gap-3 ${!isFocused ? "mc-button-ninesliced" : "mc-button-ninesliced-selected"} ${isComingSoon ? "opacity-50 cursor-not-allowed" : ""} relative ${openMenuId === edition.id ? "z-50" : "z-0"}`}
                   onMouseEnter={() => !isComingSoon && setFocusIndex(i)}
+                  onMouseLeave={() => setFocusIndex(-1)} //neo: you see this, smartcmd?
+                  onClick={() =>
+                    !isComingSoon && handleEditionClick(edition, i)
+                  }
                 >
-                  <div className="w-6 flex items-center justify-center flex-shrink-0">
-                    {isDownloading ? (
-                      <span className="text-xs text-gray-400 font-bold">
-                        {Math.floor(downloadProgress[edition.instanceId] || 0)}%
-                      </span>
-                    ) : edition.logo ? (
+                  <div className="w-12 h-12 flex items-center justify-center shrink-0 bg-[url(/images/empty.png)] bg-cover bg-center bg-no-repeat">
+                    {edition.logo ? (
                       edition.logo.startsWith("http") ||
                       edition.logo.startsWith("/images") ? (
                         <img
                           src={edition.logo}
                           alt=""
-                          className={`w-6 h-6 object-contain ${isComingSoon ? "opacity-40 grayscale" : ""}`}
+                          className={`${!edition.transparentLogo ? "w-12 h-12" : "w-10 h-10"} object-contain ${isComingSoon ? "opacity-40 grayscale" : ""}`}
                           style={{ imageRendering: "pixelated" }}
                         />
                       ) : (
                         <ScreenshotImage
                           path={edition.logo}
                           alt=""
-                          className={`w-6 h-6 object-contain ${isComingSoon ? "opacity-40 grayscale" : ""}`}
+                          className={`${!edition.transparentLogo ? "w-12 h-12" : "w-10 h-10"} object-contain ${isComingSoon ? "opacity-40 grayscale" : ""}`}
                           style={{ imageRendering: "pixelated" }}
                         />
                       )
@@ -399,61 +574,14 @@ const VersionsView = memo(function VersionsView() {
                   </div>
 
                   <div
-                    onClick={() =>
-                      !isComingSoon && handleEditionClick(edition, i)
-                    }
-                    className={`flex-1 text-left min-w-0 outline-none rounded cursor-pointer ${
-                      focusIndex === i && focusBtn === 0 && !isComingSoon
-                        ? "ring-2 ring-white"
-                        : ""
-                    } ${isComingSoon ? "cursor-not-allowed" : ""}`}
+                    className={`flex-1 text-left min-w-0 outline-none rounded cursor-pointer ${isComingSoon ? "cursor-not-allowed" : ""}`}
                   >
                     <div className="flex items-center gap-2">
                       <span
-                        className={`text-xl tracking-wide truncate ${
-                          isSelected ? "text-white" : "text-black"
-                        }`}
-                        style={{ textShadow: "none" }}
+                        className={`text-xl tracking-wide truncate mc-text-shadow ${!isFocused ? "text-white" : "text-[#ffff00]"}`}
                       >
                         {edition.name}
                       </span>
-                      {isInstalled && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playPressSound();
-                            setPlaytimeTarget({
-                              id: edition.instanceId,
-                              name: edition.name,
-                            });
-                            setIsPlaytimeModalOpen(true);
-                          }}
-                          className="flex items-center gap-1.5 px-2 py-1 bg-black/60 border border-[#555] hover:border-[#FFFF55] group transition-colors flex-shrink-0"
-                          title="View playtime"
-                        >
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#AAAAAA"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="group-hover:stroke-[#FFFF55] transition-colors"
-                          >
-                            <circle cx="12" cy="12" r="10" />
-                            <polyline points="12 6 12 12 16 14" />
-                          </svg>
-                          <span className="text-xs text-[#AAAAAA] group-hover:text-[#FFFF55] leading-none transition-colors">
-                            {playtimeMap[edition.instanceId]
-                              ? formatPlaytime(
-                                  playtimeMap[edition.instanceId].totalSeconds,
-                                )
-                              : ""}
-                          </span>
-                        </button>
-                      )}
                       {edition.category &&
                         edition.category.map((cat: string) => (
                           <span
@@ -465,20 +593,13 @@ const VersionsView = memo(function VersionsView() {
                         ))}
                       {isCustom && !edition.category && (
                         <span className="text-[10px] px-1.5 py-0.5 bg-[#777] text-[#222] font-bold uppercase">
-                          Custom
+                          {t("versions.custom")}
                         </span>
                       )}
                     </div>
-                    <p
-                      className={`text-base font-medium leading-tight ${
-                        isSelected ? "text-[#DDDDDD]" : "text-[#666666]"
-                      }`}
-                    >
-                      {edition.desc}
-                    </p>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0 relative">
+                  <div className="flex items-center gap-2 shrink-0 relative">
                     {!isInstalled && (
                       <button
                         onClick={(e) => {
@@ -493,17 +614,13 @@ const VersionsView = memo(function VersionsView() {
                           setHoveredBtn({ row: i, btn: "main" })
                         }
                         onMouseLeave={() => setHoveredBtn(null)}
-                        className={`w-9 h-9 flex items-center justify-center ${
-                          isDownloading ? "opacity-50" : ""
-                        }`}
+                        className={`w-10 h-10 flex items-center justify-center bg-cover bg-no-repeat bg-center transition-all
+                          ${
+                            isDownloadFocused
+                              ? "bg-[url(/images/checkbox_highlighted.png)] ring-4" //neo: ring-4 does not render at all (i dunno why tbh), so transition from ring-0 to ring-4 creates a transition indicating that it was selected. this is a coincidence but im keeping it
+                              : "bg-[url(/images/checkbox.png)] ring-0"
+                          }`}
                         style={{
-                          backgroundImage:
-                            (hoveredBtn?.row === i &&
-                              hoveredBtn?.btn === "main") ||
-                            (focusIndex === i && focusBtn === 0)
-                              ? "url('/images/Button_Square_Highlighted.png')"
-                              : "url('/images/Button_Square.png')",
-                          backgroundSize: "100% 100%",
                           imageRendering: "pixelated",
                         }}
                       >
@@ -514,7 +631,7 @@ const VersionsView = memo(function VersionsView() {
                               : "/images/Download_Icon.png"
                           }
                           alt=""
-                          className="w-5 h-5 object-contain"
+                          className="w-8 h-8 object-contain"
                           style={{
                             imageRendering: "pixelated",
                             filter: isDownloading
@@ -536,36 +653,31 @@ const VersionsView = memo(function VersionsView() {
                         setHoveredBtn({ row: i, btn: "menu" })
                       }
                       onMouseLeave={() => setHoveredBtn(null)}
-                      className="w-9 h-9 flex flex-col items-center justify-center gap-1 transition-colors relative"
+                      className={`w-10 h-10 flex flex-col items-center justify-center gap-1 relative bg-cover bg-no-repeat bg-center transition-all
+                        ${
+                          isGearFocused
+                            ? "bg-[url(/images/checkbox_highlighted.png)] ring-4" //neo: same comment as the download button above
+                            : "bg-[url(/images/checkbox.png)] ring-0"
+                        }`}
                       style={{
-                        backgroundImage:
-                          (hoveredBtn?.row === i &&
-                            hoveredBtn?.btn === "menu") ||
-                          (focusIndex === i &&
-                            (focusBtn === 0 || focusBtn === 1))
-                            ? "url('/images/Button_Square_Highlighted.png')"
-                            : "url('/images/Button_Square.png')",
-                        backgroundSize: "100% 100%",
                         imageRendering: "pixelated",
-                        filter: updatesAvailable?.[edition.instanceId]
-                          ? "drop-shadow(0 0 4px rgba(255,255,0,0.8))"
-                          : "none",
                       }}
                     >
-                      <div
-                        className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`}
-                      />
-                      <div
-                        className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`}
-                      />
-                      <div
-                        className={`w-1.5 h-1.5 ${updatesAvailable?.[edition.instanceId] ? "bg-[#ffff55]" : "bg-white"}`}
-                      />
+                      <div className={"w-8 h-8"}>
+                        <img
+                          src={
+                            updatesAvailable?.[edition.instanceId]
+                              ? "/images/Update_Icon.png"
+                              : "/images/gear.png"
+                          }
+                        />
+                      </div>
                     </button>
 
                     {openMenuId === edition.id && (
                       <div
-                        className="absolute right-0 top-11 w-48 bg-[#1a1a1a] border-2 border-[#555] z-[100] shadow-2xl p-0.5 animate-in fade-in zoom-in duration-75"
+                        ref={menuRef}
+                        className={`absolute right-0 ${menuDir === "up" ? "bottom-full mb-2" : "top-11"} w-48 bg-[#1a1a1a] border-2 border-[#555] z-[100] shadow-2xl p-0.5 animate-in fade-in zoom-in duration-75`}
                         style={{
                           imageRendering: "pixelated",
                         }}
@@ -581,12 +693,12 @@ const VersionsView = memo(function VersionsView() {
                             className="w-full text-left px-3 py-1.5 text-xs text-[#ffff55] hover:text-white hover:bg-[#ffff55]/20 flex items-center gap-2 group transition-colors mc-text-shadow font-bold border-b border-white/5 mb-1"
                           >
                             <img
-                              src="/images/Download_Icon.png"
+                              src="/images/Update_Icon.png"
                               alt=""
                               className="w-3 h-3 object-contain"
                               style={{ imageRendering: "pixelated" }}
                             />
-                            Update Available!
+                            {t("versions.updateAvailable")}
                           </button>
                         )}
                         {!isAndroid && !isInstalled && (
@@ -607,10 +719,10 @@ const VersionsView = memo(function VersionsView() {
                                       "fixed inset-0 bg-black/80 flex items-center justify-center z-50";
                                     dialog.innerHTML = `
                                       <div class="w-[420px] p-4 flex flex-col items-center mc-options-bg">
-                                        <h3 class="text-2xl font-bold text-[#333333] mb-4 text-left w-full px-4 mc-text-shadow">Invalid Directory</h3>
-                                        <p class="text-[#333333] mb-6 text-left w-full px-4">Please select an empty directory for installation.</p>
+                                        <h3 class="text-2xl font-bold text-[#333333] mb-4 text-left w-full px-4 mc-text-shadow">${t("versions.invalidDirectory")}</h3>
+                                        <p class="text-[#333333] mb-6 text-left w-full px-4">${t("versions.selectEmptyDirectory")}</p>
                                         <div class="flex flex-col gap-3 w-full px-4">
-                                          <button id="empty-dir-ok" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Button_Background.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/button_highlighted.png)'" onmouseleave="this.style.backgroundImage='url(/images/Button_Background.png)'">OK</button>
+                                          <button id="empty-dir-ok" class="w-full h-10 flex items-center justify-center text-lg mc-text-shadow text-white hover:text-[#ffff00]" style="background-image: url('/images/Layout_Button_Bmp.png'); background-size: 100% 100%; image-rendering: pixelated; border: none; cursor: pointer;" onmouseenter="this.style.backgroundImage='url(/images/Layout_Button_Over.png)'" onmouseleave="this.style.backgroundImage='url(/images/Layout_Button_Bmp.png)'">${t("common.ok")}</button>
                                         </div>
                                       </div>
                                     `;
@@ -643,7 +755,7 @@ const VersionsView = memo(function VersionsView() {
                               className="w-3.5 h-3.5 object-contain"
                               style={{ imageRendering: "pixelated" }}
                             />
-                            Download to custom path
+                            {t("versions.downloadToCustomPath")}
                           </button>
                         )}
                         {edition.officialDLC && isInstalled ? (
@@ -670,9 +782,9 @@ const VersionsView = memo(function VersionsView() {
                               <polyline points="17 8 12 3 7 8" />
                               <line x1="12" y1="3" x2="12" y2="15" />
                             </svg>
-                            Download DLC
+                            {t("versions.downloadDlc")}
                           </button>
-                        ) : null}
+                        ) : null}{" "}
                         {argsSchemas[edition.instanceId] && (
                           <button
                             onClick={(e) => {
@@ -706,7 +818,7 @@ const VersionsView = memo(function VersionsView() {
                               <line x1="9" y1="8" x2="15" y2="8" />
                               <line x1="17" y1="16" x2="23" y2="16" />
                             </svg>
-                            Options
+                            {t("versions.options")}
                           </button>
                         )}
                         {Array.isArray(edition.branches) &&
@@ -720,14 +832,31 @@ const VersionsView = memo(function VersionsView() {
                               className="w-full text-left px-3 py-1.5 text-[10px] text-white mc-text-shadow flex items-center justify-between group"
                             >
                               <span className="text-[#AAAAAA] font-bold">
-                                Channel
+                                {t("versions.channel")}
                               </span>
                               <span className="text-[#ffff55] font-bold">
-                                {edition.selectedBranch ?? "Latest"}
+                                {edition.selectedBranch ?? t("versions.latest")}
                               </span>
                             </button>
                           )}
                         <div className="h-[1px] bg-white/5 my-0.5 mx-1" />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playPressSound();
+                            toggleInstall(edition.instanceId);
+                            setOpenMenuId(null);
+                          }}
+                          className="w-full text-left px-3 py-1.5 text-xs text-[#dddddd] hover:bg-[#ffff55]/20 flex items-center gap-2 group transition-colors mc-text-shadow font-bold border-b border-white/5 mb-1"
+                        >
+                          <img
+                            src="/images/tools/pck.png" //neo: i have no other image to use lol
+                            alt=""
+                            className="w-3 h-3 object-contain"
+                            style={{ imageRendering: "pixelated" }}
+                          />
+                          {t("versions.repair")}
+                        </button>
                         {!isAndroid && (
                           <button
                             onClick={(e) => {
@@ -746,9 +875,9 @@ const VersionsView = memo(function VersionsView() {
                               className="w-3.5 h-3.5 object-contain"
                               style={{ imageRendering: "pixelated" }}
                             />
-                            Open Folder
+                            {t("versions.openFolder")}
                           </button>
-                        )}
+                        )}{" "}
                         {!isAndroid && (
                           <button
                             onClick={(e) => {
@@ -782,9 +911,9 @@ const VersionsView = memo(function VersionsView() {
                               className="w-3.5 h-3.5 object-contain invert brightness-0"
                               style={{ imageRendering: "pixelated" }}
                             />
-                            Add to Steam
+                            {t("versions.addToSteam")}
                           </button>
-                        )}
+                        )}{" "}
                         {!isAndroid && (
                           <button
                             onClick={(e) => {
@@ -808,9 +937,9 @@ const VersionsView = memo(function VersionsView() {
                               <polyline points="7 10 12 15 17 10" />
                               <line x1="12" y1="15" x2="12" y2="3" />
                             </svg>
-                            Import World
+                            {t("versions.importWorld")}
                           </button>
-                        )}
+                        )}{" "}
                         {!isAndroid && (
                           <button
                             onClick={(e) => {
@@ -838,9 +967,9 @@ const VersionsView = memo(function VersionsView() {
                               <polyline points="17 21 17 13 7 13 7 21" />
                               <polyline points="7 3 7 8 15 8" />
                             </svg>
-                            Backup
+                            {t("versions.backup")}
                           </button>
-                        )}
+                        )}{" "}
                         {!isAndroid && (
                           <button
                             onClick={async (e) => {
@@ -867,9 +996,9 @@ const VersionsView = memo(function VersionsView() {
                               <path d="M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9z" />
                               <polyline points="12 7 12 12 15 15" />
                             </svg>
-                            Restore
+                            {t("versions.restore")}
                           </button>
-                        )}
+                        )}{" "}
                         {!isAndroid && (
                           <button
                             onClick={(e) => {
@@ -892,9 +1021,9 @@ const VersionsView = memo(function VersionsView() {
                             >
                               <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                             </svg>
-                            Customize
+                            {t("versions.customize")}
                           </button>
-                        )}
+                        )}{" "}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -917,8 +1046,8 @@ const VersionsView = memo(function VersionsView() {
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                           </svg>
-                          Set UID
-                        </button>
+                          {t("versions.setUid")}
+                        </button>{" "}
                         {isCustom ? (
                           <button
                             onClick={(e) => {
@@ -941,9 +1070,9 @@ const VersionsView = memo(function VersionsView() {
                             >
                               <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                             </svg>
-                            Edit Custom
+                            {t("versions.editCustom")}
                           </button>
-                        ) : null}
+                        ) : null}{" "}
                         <div className="h-[2px] bg-[#555] my-0.5 mx-1" />
                         <button
                           onClick={(e) => {
@@ -964,7 +1093,9 @@ const VersionsView = memo(function VersionsView() {
                             className="w-3.5 h-3.5 object-contain"
                             style={{ imageRendering: "pixelated" }}
                           />
-                          {isCustom ? "Remove Custom" : "Uninstall"}
+                          {isCustom
+                            ? t("versions.removeCustom")
+                            : t("versions.uninstall")}
                         </button>
                       </div>
                     )}
@@ -972,73 +1103,91 @@ const VersionsView = memo(function VersionsView() {
                 </div>
               );
             })}
-
-            <div className="w-full flex items-center justify-center gap-4 p-2 mt-1">
-              <button
-                onClick={() => {
-                  playPressSound();
-                  setInitialPath("");
-                  setIsImportModalOpen(true);
-                }}
-                onMouseEnter={() => setFocusIndex(visibleEditions.length)}
-                onMouseLeave={() => setHoveredBtn(null)}
-                className="w-8 h-8 flex items-center justify-center text-[#3a3a3a]"
-                style={{
-                  backgroundImage:
-                    (hoveredBtn?.row === visibleEditions.length &&
-                      hoveredBtn?.btn === "add") ||
-                    focusIndex === visibleEditions.length
-                      ? "url('/images/Button_Square_Highlighted.png')"
-                      : "url('/images/Button_Square.png')",
-                  backgroundSize: "100% 100%",
-                  imageRendering: "pixelated",
-                }}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="square"
-                >
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-              </button>
-
-              {!isAndroid && (
-                <button
-                  onClick={() => {
-                    playPressSound();
-                    handleImportFolder();
-                  }}
-                  onMouseEnter={() => setFocusIndex(visibleEditions.length + 1)}
-                  onMouseLeave={() => setHoveredBtn(null)}
-                  title="Import Custom TU"
-                  className="w-8 h-8 flex items-center justify-center text-[#3a3a3a]"
-                  style={{
-                    backgroundImage:
-                      (hoveredBtn?.row === visibleEditions.length &&
-                        hoveredBtn?.btn === "folder_import") ||
-                      focusIndex === visibleEditions.length + 1
-                        ? "url('/images/Button_Square_Highlighted.png')"
-                        : "url('/images/Button_Square.png')",
-                    backgroundSize: "100% 100%",
-                    imageRendering: "pixelated",
-                  }}
-                >
-                  <img
-                    src="/images/Folder_Icon.png"
-                    alt="Import Custom TU"
-                    className="w-5 h-5 object-contain"
-                    style={{ imageRendering: "pixelated" }}
-                  />
-                </button>
-              )}
-            </div>
+            <div
+              className="w-[calc(100%-20px)] shrink-0"
+              style={{ height: ROW_ESTIMATE }}
+            />
           </div>
         </div>
+
+        <div
+          ref={trackRef}
+          className="w-13 h-85 max-h-85 shrink-0 relative select-none mc-versionrecess"
+        >
+          {thumb.height > 0 && (
+            <div
+              ref={thumbRef}
+              onPointerDown={handleThumbPointerDown}
+              onPointerMove={handleThumbPointerMove}
+              onPointerUp={handleThumbPointerUp}
+              onPointerCancel={handleThumbPointerUp}
+              className="absolute left-1/2 -translate-x-[30px] w-10 h-10 mc-options-bg cursor-pointer"
+              style={{ top: thumb.top - 12 }}
+            >
+              {
+                //neo: oh my goodness this took me a lot to figure out, anyway its just a transparent <hr> so the div isnt empty so that the border-image renders
+              }
+              <hr style={{ color: "transparent" }} />
+            </div>
+          )}
+        </div>
+
+        {!isAndroid && (
+          <div className="absolute left-3 bottom-6 z-10 flex items-center gap-1 pb-1 pr-1 w-fit mc-help">
+            <button
+              onClick={() => {
+                playPressSound();
+                setInitialPath("");
+                setIsImportModalOpen(true);
+              }}
+              onMouseEnter={() => setFocusIndex(visibleEditions.length)}
+              onMouseLeave={() => setHoveredBtn(null)}
+              className="w-8 h-8 flex items-center justify-center text-[#333333] mc-optionbutton"
+              style={{
+                imageRendering: "pixelated",
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="square"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
+
+            <button
+              onClick={() => {
+                playPressSound();
+                handleImportFolder();
+              }}
+              onMouseEnter={() => setFocusIndex(visibleEditions.length + 1)}
+              onMouseLeave={() => setHoveredBtn(null)}
+              title={t("modals.customTu.importTitle")}
+              className="w-8 h-8 flex items-center justify-center text-[#333333] mc-optionbutton"
+              style={{
+                imageRendering: "pixelated",
+              }}
+            >
+              <img
+                src="/images/Folder_Icon.png"
+                alt={t("modals.customTu.importTitle")}
+                className="w-5 h-5 object-contain invert"
+                style={{ imageRendering: "pixelated" }}
+              />
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="mc-help text-xl text-[#FFFFFF] max-h-24 min-h-24 overflow-hidden px-4 w-280">
+        {visibleEditions[focusIndex]?.desc ??
+          visibleEditions.find((e) => e.id == useConfig().profile)?.desc ??
+          ""}
       </div>
 
       {!isAndroid && (
@@ -1050,7 +1199,7 @@ const VersionsView = memo(function VersionsView() {
               playBackSound();
               setActiveView("main");
             }}
-            className="w-48 h-10 flex items-center justify-center text-xl mc-text-shadow outline-none border-none text-white"
+            className="w-48 h-10 flex items-center justify-center text-xl mc-text-shadow text-white"
             style={{
               backgroundImage:
                 focusIndex === visibleEditions.length + 2
@@ -1060,8 +1209,8 @@ const VersionsView = memo(function VersionsView() {
               imageRendering: "pixelated",
             }}
           >
-            Done
-          </button>
+            {t("common.done")}
+          </button>{" "}
         </div>
       )}
 
@@ -1200,22 +1349,21 @@ const VersionsView = memo(function VersionsView() {
             }}
           >
             <h3 className="text-xl text-white mc-text-shadow mb-4 text-center">
-              Delete {deleteConfirmEdition.name}?
+              {t("versions.deleteTitle", { name: deleteConfirmEdition.name })}
             </h3>
             <p className="text-sm text-white mb-6 text-center leading-relaxed">
-              Warning: All your saves and worlds for this version will be
-              permanently deleted!
+              {t("versions.deleteWarning")}
             </p>
             <div className="flex justify-center gap-4">
               <DeleteConfirmButton
-                label="Cancel"
+                label={t("common.cancel")}
                 onClick={() => {
                   playBackSound();
                   setDeleteConfirmEdition(null);
                 }}
               />
               <DeleteConfirmButton
-                label="Delete"
+                label={t("common.delete")}
                 isDanger
                 onClick={() => {
                   playPressSound();

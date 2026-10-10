@@ -9,6 +9,7 @@ use tauri_plugin_opener::OpenerExt;
 use tokio::io::AsyncRead;
 use tokio::io::AsyncReadExt;
 use tokio::sync::Mutex;
+use crate::commands::goldmapper;
 use crate::commands::runners;
 use crate::config;
 use crate::types::AppConfig;
@@ -139,8 +140,14 @@ async fn launch_game_desktop(
                     all_args.push(a.to_string());
                 }
                 all_args.extend(args.clone());
-                all_args.push(game_exe.to_string_lossy().to_string());
-                all_args.extend(extra_args.clone());
+                let goldmapper_args =
+                    goldmapper::build_launch_args(&app, &config_val, &game_exe, &extra_args)?;
+                if let Some(gm_args) = goldmapper_args {
+                    all_args.extend(gm_args);
+                } else {
+                    all_args.push(game_exe.to_string_lossy().to_string());
+                    all_args.extend(extra_args.clone());
+                }
                 let (final_prog, final_args) = apply_launch_prefix(prog, all_args, &config_val);
                 let mut cmd = tokio::process::Command::new(&final_prog);
                 for a in &final_args {
@@ -228,7 +235,13 @@ async fn launch_game_desktop(
                 ])
             };
 
-            mac_args.extend(extra_args.clone());
+            let goldmapper_args =
+                goldmapper::build_launch_args(&app, &config_val, &game_exe, &extra_args)?;
+            if let Some(gm_args) = goldmapper_args {
+                mac_args.extend(gm_args);
+            } else {
+                mac_args.extend(extra_args.clone());
+            }
 
             let (final_prog, final_args) = apply_launch_prefix(&mac_prog, mac_args, &config_val);
             let mut cmd = tokio::process::Command::new(&final_prog);
@@ -289,13 +302,22 @@ async fn launch_game_desktop(
             not(target_os = "android")
         ))]
         {
-            let exe_str = game_exe.to_string_lossy().to_string();
-            let all_args: Vec<String> = extra_args.clone();
-            let (final_prog, final_args) = apply_launch_prefix(&exe_str, all_args, &config_val);
+            let goldmapper_args =
+                goldmapper::build_launch_args(&app, &config_val, &game_exe, &extra_args)?;
+            let (prog_str, all_args): (String, Vec<String>) = match goldmapper_args {
+                Some(gm_args) => (
+                    gm_args[0].clone(),
+                    gm_args[1..].to_vec(),
+                ),
+                None => (game_exe.to_string_lossy().to_string(), extra_args.clone()),
+            };
+            let (final_prog, final_args) = apply_launch_prefix(&prog_str, all_args, &config_val);
             let mut cmd = tokio::process::Command::new(&final_prog);
             for a in &final_args {
                 cmd.arg(a);
             }
+            #[cfg(target_os = "windows")]
+            cmd.creation_flags(0x08000000);
             #[cfg(unix)]
             cmd.process_group(0);
             apply_launch_env_vars(&mut cmd, &config_val);

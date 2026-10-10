@@ -7,6 +7,7 @@ import React, {
   useContext,
   useMemo,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -182,6 +183,7 @@ const WorkshopView = memo(function WorkshopView({
   workshopTarget,
   onClearWorkshopTarget,
 }: WorkshopViewProps) {
+  const { t } = useTranslation();
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { isAndroid } = usePlatform();
@@ -271,7 +273,7 @@ const WorkshopView = memo(function WorkshopView({
         setLoading(false);
       })
       .catch((e) => {
-        setError(e.message ?? "Failed to load registry");
+        setError(e.message ?? t("workshop.failedToLoadRegistry"));
         setLoading(false);
       });
     refreshInstalledPlugins();
@@ -686,6 +688,7 @@ const WorkshopView = memo(function WorkshopView({
         setFocusedIdx((p) => Math.max((p ?? 1) - (isPluginTab ? 1 : COLS), 0));
         playPressSound();
       } else if (e.key === "Enter" && focusedIdx !== null) {
+        e.preventDefault();
         const pkg = filteredItems[focusedIdx];
         if (pkg) openModal(pkg);
       }
@@ -702,6 +705,35 @@ const WorkshopView = memo(function WorkshopView({
     selectedPkg,
     openModal,
   ]);
+
+  const tabLabel = (tab: TabType): string => {
+    switch (tab) {
+      case "Skin":
+        return t("workshop.tabs.skin");
+      case "Texture":
+        return t("workshop.tabs.texture");
+      case "World":
+        return t("workshop.tabs.world");
+      case "Mod":
+        return t("workshop.tabs.mod");
+      case "DLC":
+        return t("workshop.tabs.dlc");
+      case "Plugins":
+        return t("workshop.tabs.plugins");
+      case "Versions":
+        return t("workshop.tabs.versions");
+      case "Installed":
+        return t("workshop.tabs.installed");
+      case "Search":
+        return t("workshop.tabs.search");
+      case "Server":
+        return t("workshop.tabs.server");
+      case "Server Plugins":
+        return t("workshop.tabs.serverPlugins");
+      default:
+        return tab;
+    }
+  };
 
   const isSearchTab = activeTab === "Search";
   const isInstalledTab = activeTab === "Installed";
@@ -722,7 +754,7 @@ const WorkshopView = memo(function WorkshopView({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: config.animationsEnabled ? 0.3 : 0 }}
-      className="flex flex-col items-center w-full h-full max-h-full relative font-['Mojangles'] text-white select-none outline-none focus:outline-none"
+      className="flex flex-col items-center w-full h-full max-h-full relative font-[var(--font-base)] text-white select-none outline-none focus:outline-none"
     >
       <div className="flex items-center justify-center gap-0 mb-4 w-full px-4">
         <div
@@ -742,7 +774,7 @@ const WorkshopView = memo(function WorkshopView({
                       : "text-[#aaa] hover:text-white hover:bg-white/5"
                   }`}
                 >
-                  {tab.toUpperCase()}
+                  {tabLabel(tab).toUpperCase()}
                 </button>
               </React.Fragment>
             );
@@ -799,7 +831,7 @@ const WorkshopView = memo(function WorkshopView({
                       : "text-[#aaa] hover:text-white hover:bg-white/5"
                   }`}
                 >
-                  {tab.toUpperCase()}
+                  {tabLabel(tab).toUpperCase()}
                 </button>
               </React.Fragment>
             );
@@ -811,46 +843,41 @@ const WorkshopView = memo(function WorkshopView({
         {showSearch ? (
           <div className="absolute inset-0 flex flex-col pt-2">
             <div className="flex items-center gap-3 px-6 pb-4">
-              <div
-                className="flex items-center flex-1 h-12 px-4 border-2 border-[#444] bg-black/40 rounded shadow-inner"
-                style={{
-                  backgroundImage: "url('/images/Button_Background2.png')",
-                  backgroundSize: "100% 100%",
-                  imageRendering: "pixelated",
-                }}
-              >
-                <input
-                  ref={searchRef}
-                  type="text"
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setFocusedIdx(null);
-                  }}
-                  placeholder={
-                    isInstalledTab
-                      ? "FILTER INSTALLED..."
-                      : isVersionTab
-                        ? "FILTER VERSIONS..."
-                        : isPluginTab
-                          ? "FILTER PLUGINS..."
-                          : activeTab === "Server Plugins"
-                            ? "FILTER PLUGINS..."
-                            : activeTab === "Server"
-                              ? "FILTER SERVERS..."
-                              : "ENTER KEYWORDS..."
-                  }
-                  spellCheck={false}
-                  autoFocus={isSearchTab}
-                  className="bg-transparent border-none outline-none text-white text-lg mc-text-shadow w-full placeholder-white/40 font-['Mojangles'] tracking-widest"
-                />
+              <div className="flex items-center flex-1 h-12 px-4 rounded">
+                <div className="mc-textinput-outer flex-1">
+                  <input
+                    ref={searchRef}
+                    type="text"
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setFocusedIdx(null);
+                    }}
+                    placeholder={
+                      isInstalledTab
+                        ? t("workshop.filterInstalled")
+                        : isVersionTab
+                          ? t("workshop.filterVersions")
+                          : isPluginTab
+                            ? t("workshop.filterPlugins")
+                            : activeTab === "Server Plugins"
+                              ? t("workshop.filterPlugins")
+                              : activeTab === "Server"
+                                ? t("workshop.filterServers")
+                                : t("workshop.enterKeywords")
+                    }
+                    spellCheck={false}
+                    autoFocus={isSearchTab}
+                    className="mc-textinput w-full h-10 px-3 text-white text-base outline-none font-[var(--font-base)] placeholder-white/40 tracking-widest"
+                  />
+                </div>
                 {search && (
                   <button
                     onClick={() => {
                       setSearch("");
                       searchRef.current?.focus();
                     }}
-                    className="text-white/60 hover:text-white text-lg ml-2 bg-transparent border-none outline-none cursor-pointer mc-text-shadow"
+                    className="text-white/60 hover:text-white text-lg mx-2 border-none outline-none cursor-pointer"
                   >
                     ✕
                   </button>
@@ -869,7 +896,9 @@ const WorkshopView = memo(function WorkshopView({
                         : "text-[#A0A0A0] bg-black/30 border-[#444] hover:text-white hover:border-[#888]"
                     }`}
                   >
-                    {cat === "all" ? "ALL" : cat.toUpperCase()}
+                    {cat === "all"
+                      ? t("common.all").toUpperCase()
+                      : cat.toUpperCase()}
                   </button>
                 ))}
               </div>
@@ -886,7 +915,9 @@ const WorkshopView = memo(function WorkshopView({
                         : "text-[#A0A0A0] bg-black/30 border-[#444] hover:text-white hover:border-[#888]"
                     }`}
                   >
-                    {cat === "all" ? "ALL" : cat.toUpperCase()}
+                    {cat === "all"
+                      ? t("common.all").toUpperCase()
+                      : cat.toUpperCase()}
                   </button>
                 ))}
               </div>
@@ -928,9 +959,11 @@ const WorkshopView = memo(function WorkshopView({
                       imageRendering: "pixelated",
                     }}
                   >
-                    Update All (
-                    {filteredItems.filter((p) => hasUpdate(p)).length})
+                    {t("workshop.updateAll", {
+                      count: filteredItems.filter((p) => hasUpdate(p)).length,
+                    })}
                   </button>
+
                   <button
                     onClick={async () => {
                       if (filteredItems.length === 0) return;
@@ -961,34 +994,36 @@ const WorkshopView = memo(function WorkshopView({
                       imageRendering: "pixelated",
                     }}
                   >
-                    Reinstall All ({filteredItems.length})
+                    {t("workshop.reinstallAll", {
+                      count: filteredItems.length,
+                    })}
                   </button>
                 </div>
               )}
               {isSearchTab && !search.trim() ? (
                 <div className="flex flex-col items-center justify-center h-[200px] opacity-40">
                   <span className="text-xl mc-text-shadow tracking-widest uppercase">
-                    Start typing to search...
+                    {t("workshop.startTypingToSearch")}
                   </span>
                 </div>
               ) : loading ? (
                 <div className="flex items-center justify-center h-full">
                   <span className="text-3xl text-[#FFFF55] mc-text-shadow tracking-widest animate-pulse uppercase">
-                    Searching Archives...
+                    {t("workshop.searchingArchives")}
                   </span>
                 </div>
               ) : filteredItems.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <span className="text-2xl text-[#E0E0E0] mc-text-shadow uppercase tracking-widest opacity-60">
                     {isInstalledTab
-                      ? "Nothing Installed"
+                      ? t("workshop.nothingInstalled")
                       : activeTab === "Plugins"
-                        ? "No plugins available"
+                        ? t("workshop.noPluginsAvailable")
                         : activeTab === "Server Plugins"
-                          ? "No plugins available"
+                          ? t("workshop.noPluginsAvailable")
                           : activeTab === "Server"
-                            ? "No servers available"
-                            : "No results"}
+                            ? t("workshop.noServersAvailable")
+                            : t("common.noResults")}
                   </span>
                 </div>
               ) : isPluginTab ? (
@@ -1045,7 +1080,7 @@ const WorkshopView = memo(function WorkshopView({
         ) : loading ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="text-3xl text-[#FFFF55] mc-text-shadow tracking-widest animate-pulse uppercase">
-              Searching Archives...
+              {t("workshop.searchingArchives")}
             </span>
           </div>
         ) : error ? (
@@ -1062,7 +1097,7 @@ const WorkshopView = memo(function WorkshopView({
             {filteredItems.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <span className="text-2xl text-[#E0E0E0] mc-text-shadow uppercase tracking-widest opacity-40">
-                  Empty category
+                  {t("workshop.emptyCategory")}
                 </span>
               </div>
             ) : isPluginTab ? (
@@ -1116,20 +1151,20 @@ const WorkshopView = memo(function WorkshopView({
             }}
             className="w-72 h-10 flex items-center justify-center text-xl mc-text-shadow hover:text-[#FFFF55] text-white border-none outline-none transition-all"
             style={{
-              backgroundImage: "url('/images/Button_Background.png')",
+              backgroundImage: "url('/images/Layout_Button_Bmp.png')",
               backgroundSize: "100% 100%",
               imageRendering: "pixelated",
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLButtonElement).style.backgroundImage =
-                "url('/images/button_highlighted.png')";
+                "url('/images/Layout_Button_Over.png')";
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLButtonElement).style.backgroundImage =
-                "url('/images/Button_Background.png')";
+                "url('/images/Layout_Button_Bmp.png')";
             }}
           >
-            Back
+            {t("workshop.back")}
           </button>
         </div>
       )}
@@ -1194,6 +1229,7 @@ function PackageCard({
   isVersionTab?: boolean;
   isPluginTab?: boolean;
 }) {
+  const { t } = useTranslation();
   const thumbnailUrl = pkg.thumbnail.startsWith("http")
     ? pkg.thumbnail
     : isVersionTab
@@ -1221,7 +1257,7 @@ function PackageCard({
         >
           {!thumbnailUrl || imgError ? (
             <span className="text-[#555] text-sm mc-text-shadow uppercase tracking-widest">
-              No Image
+              {t("workshop.noImage")}
             </span>
           ) : (
             <img
@@ -1245,14 +1281,14 @@ function PackageCard({
           {hasUpdate && (
             <div className="absolute top-1 left-1">
               <span className="text-[8px] bg-[#FF8800]/90 border border-[#FF6600] px-1.5 py-0.5 text-white mc-text-shadow uppercase tracking-tighter">
-                Update
+                {t("workshop.update")}
               </span>
             </div>
           )}
           {installed && !hasUpdate && (
             <div className="absolute top-1 left-1">
               <span className="text-[8px] bg-[#55FF55] border border-[#55FF55]/60 px-1.5 py-0.5 text-[#003300] mc-text-shadow uppercase tracking-tighter shadow-sm font-bold">
-                {isVersionTab ? "Added" : "Installed"}
+                {isVersionTab ? t("workshop.added") : t("workshop.installed")}
               </span>
             </div>
           )}
@@ -1315,6 +1351,7 @@ function PackageModal({
   isSaved?: boolean;
   onToggleSave?: (pkg: RegistryPackage) => void;
 }) {
+  const { t } = useTranslation();
   const { addCustomEdition } = useGame();
   const thumbnailUrl = pkg.thumbnail.startsWith("http")
     ? pkg.thumbnail
@@ -1365,6 +1402,7 @@ function PackageModal({
           return focusOptions[(idx + 1) % focusOptions.length];
         });
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (modalFocus === "close") onClose();
         else if (modalFocus === "install") handleAction();
         else if (modalFocus === "uninstall") setShowUninstall(true);
@@ -1389,7 +1427,7 @@ function PackageModal({
       playPressSound();
       try {
         const path = await TauriService.saveFileDialog(
-          "Save Server Plugin",
+          t("workshop.saveServerPlugin"),
           `${pkg.name}.dll`,
           ["*.dll", "*"],
         );
@@ -1435,25 +1473,25 @@ function PackageModal({
 
   const installLabel = isGameServerTab
     ? isSaved
-      ? "ADDED"
-      : "ADD"
+      ? t("workshop.added")
+      : t("workshop.add")
     : isServerTab
-      ? "DOWNLOAD"
+      ? t("workshop.download")
       : isVersionTab
         ? hasInstalled
-          ? "ADDED"
-          : "ADD"
+          ? t("workshop.added")
+          : t("workshop.add")
         : isPluginTab
           ? hasInstalled
             ? needsUpdate
-              ? "UPDATE"
-              : "REINSTALL"
-            : "INSTALL"
+              ? t("workshop.update")
+              : t("workshop.reinstall")
+            : t("workshop.install")
           : !hasInstalled
-            ? "INSTALL"
+            ? t("workshop.install")
             : needsUpdate
-              ? "UPDATE"
-              : "REINSTALL";
+              ? t("workshop.update")
+              : t("workshop.reinstall");
   return (
     <>
       <div
@@ -1462,7 +1500,7 @@ function PackageModal({
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className="flex flex-col w-[640px] max-h-[85vh] overflow-hidden font-['Mojangles'] mc-options-bg"
+          className="flex flex-col w-[640px] max-h-[85vh] overflow-hidden font-[var(--font-base)] mc-options-bg"
         >
           {isPluginTab ? (
             <div className="w-full h-[100px] flex-shrink-0 bg-black/60 flex items-center px-6 border-b border-[#444]">
@@ -1471,7 +1509,7 @@ function PackageModal({
                   {pkg.name}
                 </span>
                 <span className="text-base text-[#FFFF55] mc-text-shadow uppercase tracking-widest opacity-90">
-                  By {pkg.author}
+                  {t("workshop.byAuthor", { author: pkg.author })}
                 </span>
               </div>
             </div>
@@ -1480,7 +1518,7 @@ function PackageModal({
               {!thumbnailUrl || imgError ? (
                 <div className="absolute inset-0 flex items-center justify-center opacity-20">
                   <span className="text-4xl mc-text-shadow uppercase tracking-widest">
-                    No Image
+                    {t("workshop.noImage")}
                   </span>
                 </div>
               ) : (
@@ -1498,27 +1536,27 @@ function PackageModal({
                   {pkg.name}
                 </span>
                 <span className="text-base text-[#FFFF55] mc-text-shadow uppercase tracking-widest opacity-90">
-                  By {pkg.author}
+                  {t("workshop.byAuthor", { author: pkg.author })}
                 </span>
               </div>
               {needsUpdate && (
                 <div className="absolute top-3 right-3 bg-[#FF8800] border border-[#FF6600] px-2 py-1">
                   <span className="text-[10px] text-white mc-text-shadow uppercase tracking-widest">
-                    Update Available
+                    {t("workshop.updateAvailable")}
                   </span>
                 </div>
               )}
               {hasInstalled && !needsUpdate && (
                 <div className="absolute top-3 right-3 bg-[#003300] border border-[#55FF55]/60 px-2 py-1">
                   <span className="text-[10px] text-[#55FF55] mc-text-shadow uppercase tracking-widest">
-                    Installed
+                    {t("workshop.installed")}
                   </span>
                 </div>
               )}
               {isGameServerTab && isSaved && (
                 <div className="absolute top-3 right-3 bg-[#003300] border border-[#55FF55]/60 px-2 py-1">
                   <span className="text-[10px] text-[#55FF55] mc-text-shadow uppercase tracking-widest">
-                    Saved
+                    {t("workshop.saved")}
                   </span>
                 </div>
               )}
@@ -1536,7 +1574,7 @@ function PackageModal({
                 pkg.extended_description.trim() !== "" && (
                   <div className="space-y-2 p-4 border border-[#444] bg-black/40">
                     <span className="text-[10px] text-[#AAAAAA] mc-text-shadow uppercase tracking-[0.2em] font-bold">
-                      Details
+                      {t("workshop.details")}
                     </span>
                     <div className="text-sm text-white mc-text-shadow leading-relaxed workshop-markdown">
                       <ReactMarkdown
@@ -1556,14 +1594,14 @@ function PackageModal({
             <div className="grid grid-cols-2 gap-8 pt-4 border-t border-[#444]">
               <div className="flex flex-col gap-1.5">
                 <span className="text-[10px] text-[#888] mc-text-shadow uppercase tracking-[0.2em] font-bold">
-                  Metadata
+                  {t("workshop.metadata")}
                 </span>
                 <div className="flex flex-col gap-1">
                   {isGameServerTab ? (
                     <>
                       <div className="flex justify-between text-xs">
                         <span className="text-[#888] mc-text-shadow">
-                          Address:
+                          {t("workshop.address")}
                         </span>
                         <span className="text-[#55FF55] mc-text-shadow">
                           {pkg.server_address || "N/A"}
@@ -1571,7 +1609,7 @@ function PackageModal({
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-[#888] mc-text-shadow">
-                          Type:
+                          {t("workshop.type")}
                         </span>
                         <span className="text-white mc-text-shadow">
                           {pkg.server_type || "N/A"}
@@ -1579,7 +1617,7 @@ function PackageModal({
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-[#888] mc-text-shadow">
-                          Version:
+                          {t("workshop.version")}
                         </span>
                         <span className="text-white mc-text-shadow">
                           {pkg.version}
@@ -1587,7 +1625,7 @@ function PackageModal({
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-[#888] mc-text-shadow">
-                          Owner:
+                          {t("workshop.owner")}
                         </span>
                         <span className="text-white mc-text-shadow">
                           {pkg.author}
@@ -1596,7 +1634,7 @@ function PackageModal({
                       {pkg.server_discord && (
                         <div className="flex justify-between text-xs">
                           <span className="text-[#888] mc-text-shadow">
-                            Discord Server:
+                            {t("workshop.discordServer")}
                           </span>
                           <a
                             href={pkg.server_discord}
@@ -1615,7 +1653,7 @@ function PackageModal({
                     <>
                       <div className="flex justify-between text-xs">
                         <span className="text-[#888] mc-text-shadow">
-                          Downloads:
+                          {t("workshop.downloads")}
                         </span>
                         <span className="text-white mc-text-shadow">
                           {pkg.download_count?.toLocaleString() ?? 0}
@@ -1623,7 +1661,7 @@ function PackageModal({
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-[#888] mc-text-shadow">
-                          Likes:
+                          {t("workshop.likes")}
                         </span>
                         <span className="text-white mc-text-shadow">
                           {pkg.likes?.toLocaleString() ?? 0}
@@ -1631,7 +1669,7 @@ function PackageModal({
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-[#888] mc-text-shadow">
-                          Server Type:
+                          {t("workshop.serverType")}
                         </span>
                         <span className="text-[#55FF55] mc-text-shadow">
                           {pkg.game_version || "N/A"}
@@ -1639,7 +1677,7 @@ function PackageModal({
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-[#888] mc-text-shadow">
-                          File:
+                          {t("workshop.file")}
                         </span>
                         <span className="text-white mc-text-shadow truncate ml-2">
                           {pkg.name || "N/A"}
@@ -1648,7 +1686,7 @@ function PackageModal({
                       {pkg.file_size && (
                         <div className="flex justify-between text-xs">
                           <span className="text-[#888] mc-text-shadow">
-                            File Size:
+                            {t("workshop.fileSize")}
                           </span>
                           <span className="text-white mc-text-shadow">
                             {(pkg.file_size / 1024).toFixed(1)} KB
@@ -1658,7 +1696,7 @@ function PackageModal({
                       {pkg.github_url && (
                         <div className="flex justify-between text-xs">
                           <span className="text-[#888] mc-text-shadow">
-                            GitHub:
+                            {t("workshop.github")}
                           </span>
                           <a
                             href={pkg.github_url}
@@ -1677,7 +1715,7 @@ function PackageModal({
                     <>
                       <div className="flex justify-between text-xs">
                         <span className="text-[#888] mc-text-shadow">
-                          Version:
+                          {t("workshop.version")}
                         </span>
                         <span className="text-white mc-text-shadow">
                           v{pkg.version}
@@ -1685,7 +1723,7 @@ function PackageModal({
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-[#888] mc-text-shadow">
-                          Package ID:
+                          {t("workshop.packageId")}
                         </span>
                         <span className="text-[#55FF55] mc-text-shadow truncate ml-2">
                           {pkg.id}
@@ -1696,13 +1734,13 @@ function PackageModal({
                   {hasInstalled && (
                     <div className="flex justify-between text-xs">
                       <span className="text-[#888] mc-text-shadow">
-                        Installed:
+                        {t("workshop.installed")}
                       </span>
                       <span
                         className={`mc-text-shadow truncate ml-2 ${needsUpdate ? "text-[#FF8800]" : "text-[#55FF55]"}`}
                       >
                         v{installedEntries[0]?.version}
-                        {needsUpdate ? " (outdated)" : ""}
+                        {needsUpdate ? t("workshop.outdated") : ""}
                       </span>
                     </div>
                   )}
@@ -1710,7 +1748,7 @@ function PackageModal({
               </div>
               <div className="flex flex-col gap-1.5">
                 <span className="text-[10px] text-[#666] mc-text-shadow uppercase tracking-[0.2em] font-bold">
-                  Categories
+                  {t("workshop.categories")}
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {pkg.category.map((c) => (
@@ -1727,7 +1765,7 @@ function PackageModal({
             {pkg.dependencies && pkg.dependencies.length > 0 && (
               <div className="flex flex-col gap-1.5 pt-4 border-t border-[#333]">
                 <span className="text-[10px] text-[#FFAA33] mc-text-shadow uppercase tracking-[0.2em] font-bold">
-                  Required Dependencies
+                  {t("workshop.requiredDependencies")}
                 </span>
                 <div className="flex flex-wrap gap-1.5 mt-1">
                   {pkg.dependencies.map((depId) => {
@@ -1745,7 +1783,7 @@ function PackageModal({
                         }`}
                       >
                         {dep?.name || depId}
-                        {isDepInstalled ? " (installed)" : ""}
+                        {isDepInstalled ? t("workshop.installedSuffix") : ""}
                       </span>
                     );
                   })}
@@ -1755,7 +1793,7 @@ function PackageModal({
             {pkg.required_versions && pkg.required_versions.length > 0 && (
               <div className="flex flex-col gap-1.5 pt-4 border-t border-[#333]">
                 <span className="text-[10px] text-[#55AAFF] mc-text-shadow uppercase tracking-[0.2em] font-bold">
-                  Required Editions
+                  {t("workshop.requiredEditions")}
                 </span>
                 <div className="flex flex-wrap gap-1.5 mt-1">
                   {pkg.required_versions.map((verId) => {
@@ -1782,7 +1820,7 @@ function PackageModal({
             {pkg.zips && Object.keys(pkg.zips).length > 0 && (
               <div className="flex flex-col gap-3 pt-4 border-t border-[#333]">
                 <span className="text-[10px] text-[#666] mc-text-shadow uppercase tracking-[0.2em] font-bold">
-                  Files
+                  {t("workshop.files")}
                 </span>
                 <div className="space-y-1.5">
                   {groupZips(pkg.zips).map((group) => {
@@ -1797,7 +1835,9 @@ function PackageModal({
                             {group.main}
                             {isSplit && (
                               <span className="ml-2 text-[8px] text-[#FFFF55] bg-black/60 border border-[#555] px-1.5 py-0.5 uppercase tracking-widest">
-                                Split archive · {group.parts.length} parts
+                                {t("workshop.splitArchive", {
+                                  count: group.parts.length,
+                                })}
                               </span>
                             )}
                           </span>
@@ -1849,7 +1889,7 @@ function PackageModal({
                     imageRendering: "pixelated",
                   }}
                 >
-                  REMOVE
+                  {t("workshop.remove")}
                 </button>
               )}
               <button
@@ -1865,7 +1905,7 @@ function PackageModal({
                   imageRendering: "pixelated",
                 }}
               >
-                BACK
+                {t("workshop.back")}
               </button>
             </div>
           </div>
@@ -1887,7 +1927,7 @@ function PackageModal({
               exit={{ y: 20, opacity: 0 }}
               transition={{ duration: 0.15 }}
               onClick={(e) => e.stopPropagation()}
-              className="flex flex-col w-[520px] font-['Mojangles'] text-white border-2 border-[#555] rounded-sm overflow-hidden"
+              className="flex flex-col w-[520px] font-[var(--font-base)] text-white border-2 border-[#555] rounded-sm overflow-hidden"
               style={{
                 backgroundImage: "url('/images/frame_background.png')",
                 backgroundSize: "100% 100%",
@@ -1896,10 +1936,10 @@ function PackageModal({
             >
               <div className="p-6 border-b border-[#555] bg-black/60">
                 <span className="text-2xl mc-text-shadow block font-bold tracking-wide text-[#FFAA33]">
-                  Dependencies Required
+                  {t("workshop.dependenciesRequired")}
                 </span>
                 <span className="text-sm text-[#A0A0A0] mc-text-shadow uppercase tracking-widest opacity-80 mt-1">
-                  This package requires the following to be installed first
+                  {t("workshop.dependenciesRequiredDesc")}
                 </span>
               </div>
               <div className="p-4 flex flex-col gap-2 max-h-[300px] overflow-y-auto">
@@ -1920,7 +1960,7 @@ function PackageModal({
                   );
                 })}
                 <span className="text-xs text-[#888] mc-text-shadow mt-3 text-center">
-                  These will be installed automatically before the main package.
+                  {t("workshop.dependenciesAutoInstall")}
                 </span>
               </div>
               <div className="flex items-center gap-4 p-4 border-t border-[#555] bg-black/40">
@@ -1933,7 +1973,7 @@ function PackageModal({
                     imageRendering: "pixelated",
                   }}
                 >
-                  CANCEL
+                  {t("common.cancel").toUpperCase()}
                 </button>
                 <button
                   onClick={() => {
@@ -1947,7 +1987,7 @@ function PackageModal({
                     imageRendering: "pixelated",
                   }}
                 >
-                  INSTALL
+                  {t("workshop.install").toUpperCase()}
                 </button>
               </div>
             </motion.div>
@@ -2003,6 +2043,7 @@ function InstallModal({
   playPressSound: () => void;
   isPluginTab?: boolean;
 }) {
+  const { t } = useTranslation();
   const game = useContext(GameContext);
   const matchingEditions =
     pkg.required_versions && pkg.required_versions.length > 0
@@ -2131,8 +2172,10 @@ function InstallModal({
       e.stopPropagation();
       if (status === "installing") return;
       if (status === "success") {
-        if (e.key === "Escape" || e.key === "Backspace" || e.key === "Enter")
+        if (e.key === "Escape" || e.key === "Backspace" || e.key === "Enter") {
+          e.preventDefault();
           onClose();
+        }
         return;
       }
 
@@ -2147,6 +2190,7 @@ function InstallModal({
         playPressSound();
         setFocusedIdx((p) => Math.min(p + 1, editionOptions.length - 1));
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (editionOptions.length > 0) {
           installTo(editionOptions[focusedIdx].instanceId);
         }
@@ -2225,7 +2269,7 @@ function InstallModal({
         exit={{ y: 20, opacity: 0 }}
         transition={{ duration: 0.15 }}
         onClick={(e) => e.stopPropagation()}
-        className="flex flex-col w-[520px] font-['Mojangles'] text-white border-2 border-[#555] rounded-sm overflow-hidden"
+        className="flex flex-col w-[520px] font-[var(--font-base)] text-white border-2 border-[#555] rounded-sm overflow-hidden"
         style={{
           backgroundImage: "url('/images/frame_background.png')",
           backgroundSize: "100% 100%",
@@ -2234,12 +2278,14 @@ function InstallModal({
       >
         <div className="p-6 border-b border-[#555] bg-black/60">
           <span className="text-2xl mc-text-shadow block font-bold tracking-wide">
-            {isPluginTab ? "INSTALL PLUGIN" : "INSTALL CONTENT"}
+            {isPluginTab
+              ? t("workshop.installPluginTitle")
+              : t("workshop.installContentTitle")}
           </span>
           <span className="text-sm text-[#A0A0A0] mc-text-shadow uppercase tracking-widest opacity-80 mt-1">
             {isPluginTab
-              ? `Installing "${pkg.name}"`
-              : `Target Edition for "${pkg.name}"`}
+              ? t("workshop.installingPackage", { name: pkg.name })
+              : t("workshop.targetEdition", { name: pkg.name })}
           </span>
         </div>
 
@@ -2248,25 +2294,23 @@ function InstallModal({
             <div className="py-8 flex flex-col items-center justify-center gap-3">
               <span className="text-2xl text-[#FFFF55] mc-text-shadow animate-pulse">
                 {dependencies.length > 0
-                  ? "Installing dependencies..."
-                  : isPluginTab
-                    ? "Installing..."
-                    : "Installing..."}
+                  ? t("workshop.installingDependencies")
+                  : t("workshop.installing")}
               </span>
               <span className="text-xs text-[#A0A0A0] mc-text-shadow">
                 {isPluginTab
-                  ? "Downloading plugin files"
+                  ? t("workshop.downloadingPluginFiles")
                   : dependencies.length > 0
-                    ? "Downloading and extracting required dependencies"
-                    : "Downloading and extracting assets"}
+                    ? t("workshop.downloadingDependencies")
+                    : t("workshop.downloadingAssets")}
               </span>
               <div className="w-full flex flex-col gap-1 px-2 mt-1">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[11px] text-[#FFFF55] mc-text-shadow truncate">
                     {progressLabel ||
                       (isPluginTab
-                        ? "Downloading plugin files"
-                        : "Downloading assets")}
+                        ? t("workshop.downloadingPluginFiles")
+                        : t("workshop.downloadingAssets"))}
                   </span>
                   <span className="text-[11px] text-[#FFFF55] mc-text-shadow shrink-0">
                     {Math.floor(isPluginTab ? progress : overallProgress)}%
@@ -2299,7 +2343,7 @@ function InstallModal({
               {isPluginTab && pkg.permissions && pkg.permissions.length > 0 && (
                 <div className="flex flex-col gap-1.5 mt-2 w-full px-4">
                   <span className="text-[10px] text-[#888] mc-text-shadow uppercase tracking-[0.2em] font-bold text-center">
-                    Requested Permissions
+                    {t("workshop.requestedPermissions")}
                   </span>
                   <div className="flex flex-wrap gap-1.5 justify-center">
                     {pkg.permissions.map((perm) => (
@@ -2318,17 +2362,17 @@ function InstallModal({
           {status === "success" && (
             <div className="py-8 flex flex-col items-center justify-center gap-3">
               <span className="text-2xl text-[#55FF55] mc-text-shadow">
-                Installed Successfully!
+                {t("workshop.installedSuccessfully")}
               </span>
               <span className="text-xs text-[#A0A0A0] mc-text-shadow">
-                Press any key or click to continue
+                {t("workshop.pressAnyKeyToContinue")}
               </span>
             </div>
           )}
           {status === "error" && (
             <div className="py-6 flex flex-col items-center justify-center gap-3">
               <span className="text-xl text-[#FF5555] mc-text-shadow">
-                Installation Failed
+                {t("workshop.installationFailed")}
               </span>
               <span className="text-xs text-[#A0A0A0] mc-text-shadow text-center">
                 {errorMsg}
@@ -2345,7 +2389,7 @@ function InstallModal({
                   imageRendering: "pixelated",
                 }}
               >
-                Retry
+                {t("workshop.retry")}
               </button>
             </div>
           )}
@@ -2355,7 +2399,7 @@ function InstallModal({
             (editionOptions.length === 0 ? (
               <div className="py-6 flex items-center justify-center">
                 <span className="text-[#FF5555] mc-text-shadow">
-                  No installed editions found
+                  {t("workshop.noInstalledEditions")}
                 </span>
               </div>
             ) : (
@@ -2395,6 +2439,7 @@ function UninstallModal({
   isVersionTab?: boolean;
   isPluginTab?: boolean;
 }) {
+  const { t } = useTranslation();
   const { deleteCustomEdition } = useGame();
   const game = useContext(GameContext);
   const [focusedIdx, setFocusedIdx] = useState(0);
@@ -2439,8 +2484,10 @@ function UninstallModal({
       e.stopPropagation();
       if (status === "removing") return;
       if (status === "success") {
-        if (e.key === "Escape" || e.key === "Backspace" || e.key === "Enter")
+        if (e.key === "Escape" || e.key === "Backspace" || e.key === "Enter") {
+          e.preventDefault();
           onClose();
+        }
         return;
       }
 
@@ -2455,6 +2502,7 @@ function UninstallModal({
         playPressSound();
         setFocusedIdx((p) => Math.min(p + 1, installedEntries.length - 1));
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (installedEntries.length > 0) {
           uninstallFrom(installedEntries[focusedIdx].instanceId);
         }
@@ -2502,7 +2550,7 @@ function UninstallModal({
         exit={{ y: 20, opacity: 0 }}
         transition={{ duration: 0.15 }}
         onClick={(e) => e.stopPropagation()}
-        className="flex flex-col w-[520px] font-['Mojangles'] text-white border-2 border-[#555] rounded-sm overflow-hidden"
+        className="flex flex-col w-[520px] font-[var(--font-base)] text-white border-2 border-[#555] rounded-sm overflow-hidden"
         style={{
           backgroundImage: "url('/images/frame_background.png')",
           backgroundSize: "100% 100%",
@@ -2511,12 +2559,14 @@ function UninstallModal({
       >
         <div className="p-6 border-b border-[#555] bg-black/60">
           <span className="text-2xl mc-text-shadow block font-bold tracking-wide text-[#FF5555]">
-            {isPluginTab ? "REMOVE PLUGIN" : "REMOVE CONTENT"}
+            {isPluginTab
+              ? t("workshop.removePluginTitle")
+              : t("workshop.removeContentTitle")}
           </span>
           <span className="text-sm text-[#A0A0A0] mc-text-shadow uppercase tracking-widest opacity-80 mt-1">
             {isPluginTab
-              ? `Remove "${pkg.name}"`
-              : `Select edition to remove "${pkg.name}"`}
+              ? t("workshop.removePackage", { name: pkg.name })
+              : t("workshop.selectEditionToRemove", { name: pkg.name })}
           </span>
         </div>
 
@@ -2524,27 +2574,27 @@ function UninstallModal({
           {status === "removing" && (
             <div className="py-8 flex flex-col items-center justify-center gap-3">
               <span className="text-2xl text-[#FF5555] mc-text-shadow animate-pulse">
-                Removing...
+                {t("workshop.removing")}
               </span>
               <span className="text-xs text-[#A0A0A0] mc-text-shadow">
-                Deleting installed files
+                {t("workshop.deletingFiles")}
               </span>
             </div>
           )}
           {status === "success" && (
             <div className="py-8 flex flex-col items-center justify-center gap-3">
               <span className="text-2xl text-[#55FF55] mc-text-shadow">
-                Removed Successfully!
+                {t("workshop.removedSuccessfully")}
               </span>
               <span className="text-xs text-[#A0A0A0] mc-text-shadow">
-                Press any key or click to continue
+                {t("workshop.pressAnyKeyToContinue")}
               </span>
             </div>
           )}
           {status === "error" && (
             <div className="py-6 flex flex-col items-center justify-center gap-3">
               <span className="text-xl text-[#FF5555] mc-text-shadow">
-                Removal Failed
+                {t("workshop.removalFailed")}
               </span>
               <span className="text-xs text-[#A0A0A0] mc-text-shadow text-center">
                 {errorMsg}
@@ -2561,7 +2611,7 @@ function UninstallModal({
                   imageRendering: "pixelated",
                 }}
               >
-                Retry
+                {t("workshop.retry")}
               </button>
             </div>
           )}

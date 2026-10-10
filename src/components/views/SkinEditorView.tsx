@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useUI, useAudio, useConfig, useSkin } from "../../context/LauncherContext";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
@@ -110,6 +111,7 @@ function fillRegion(data: Uint8ClampedArray, w: number, h: number, x: number, y:
 }
 
 const SkinEditorView = memo(function SkinEditorView() {
+  const { t } = useTranslation();
   const { setActiveView } = useUI();
   const { playPressSound, playBackSound } = useAudio();
   const { animationsEnabled, username } = useConfig();
@@ -392,7 +394,7 @@ const SkinEditorView = memo(function SkinEditorView() {
     if (existing) {
       setStoredSkins(storedSkins.map((s) => (s.id === existing.id ? { ...s, url: dataUrl, isSlim: slim } : s)));
     } else {
-      setStoredSkins([...storedSkins, { id: Date.now().toString(), name: "Custom Skin", url: dataUrl, isSlim: slim }]);
+      setStoredSkins([...storedSkins, { id: Date.now().toString(), name: t("skinEditor.customSkin"), url: dataUrl, isSlim: slim }]);
     }
     setSkinUrl(dataUrl);
     setSkinIsSlim(slim);
@@ -406,7 +408,7 @@ const SkinEditorView = memo(function SkinEditorView() {
     try {
       const safeName = (username || "skin").replace(/[^a-zA-Z0-9_-]/g, "") || "skin";
       const fileName = `${safeName}.png`;
-      const path = await TauriService.saveFileDialog("Export Skin", fileName, []);
+      const path = await TauriService.saveFileDialog(t("skinEditor.exportSkin"), fileName, []);
       if (!path) return;
       const outPath = path.toLowerCase().endsWith(".png") ? path : `${path}.png`;
       const res = await fetch(cvs.toDataURL("image/png"));
@@ -444,10 +446,10 @@ const SkinEditorView = memo(function SkinEditorView() {
   }, [playBackSound, setActiveView, handleUndo, showPicker]);
 
   const tools: { id: Tool; label: string }[] = [
-    { id: "pencil", label: "Pencil" },
-    { id: "eraser", label: "Eraser" },
-    { id: "eyedropper", label: "Pick" },
-    { id: "fill", label: "Fill" },
+    { id: "pencil", label: t("skinEditor.pencil") },
+    { id: "eraser", label: t("skinEditor.eraser") },
+    { id: "eyedropper", label: t("skinEditor.pick") },
+    { id: "fill", label: t("skinEditor.fill") },
   ];
 
   const gridScale = 8;
@@ -471,7 +473,7 @@ const SkinEditorView = memo(function SkinEditorView() {
     inset: 3,
   };
   const getBtnStyle = (active: boolean) =>
-    fillBg(active ? "/images/button_highlighted.png" : "/images/Button_Background.png");
+    fillBg(active ? "/images/Layout_Button_Over.png" : "/images/Layout_Button_Bmp.png");
   const sliderBg = fillBg("/images/Button_Background2.png");
   const btnClass = (id: string) =>
     `text-2xl mc-text-shadow ${focusBtn === id ? "text-[#FFFF55]" : "text-white"}`;
@@ -516,9 +518,9 @@ const SkinEditorView = memo(function SkinEditorView() {
       transition={{ duration: animationsEnabled ? 0.3 : 0 }}
       className="flex flex-col items-center w-full max-w-5xl h-full"
     >
-      <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 pb-2 w-[60%] 
+      <h2 className="text-2xl text-white mc-text-shadow mt-2 mb-4 pb-2 w-[60%]
         text-center tracking-widest uppercase opacity-80 font-bold border-b-2 border-[#373737]">
-        Skin Editor
+        {t("skinEditor.title")}
       </h2>
 
       <div className="flex flex-1 min-h-0 w-full gap-4 px-4 overflow-hidden">
@@ -533,7 +535,7 @@ const SkinEditorView = memo(function SkinEditorView() {
           <div className="relative" ref={pickerRef}>
             <button
               type="button"
-              title="Color"
+              title={t("skinEditor.color")}
               onClick={() => {
                 playPressSound();
                 setShowPicker((open) => !open);
@@ -639,6 +641,7 @@ const SkinEditorView = memo(function SkinEditorView() {
             style={{ boxShadow: "inset 2px 2px 0 #000, inset -1px -1px 0 #555" }}
           >
             <span className="pl-2 text-white/50 text-sm mc-text-shadow">#</span>
+            <div className="mc-textinput-outer w-full h-8">
             <input
               type="text"
               value={hexValue}
@@ -649,13 +652,14 @@ const SkinEditorView = memo(function SkinEditorView() {
                 setHexValue(hex.toUpperCase());
                 if (hex.length === 6) setColorFromHex(`#${hex}`);
               }}
-              className="w-full h-full px-1 text-sm text-white tracking-widest uppercase mc-text-shadow bg-transparent"
+              className="mc-textinput w-full h-full px-1 text-sm text-white tracking-widest uppercase outline-none"
             />
+            </div>
           </div>
 
           <div className="relative w-full h-10 flex items-center justify-center" style={sliderBg}>
             <span className="absolute z-10 text-sm text-white mc-text-shadow tracking-widest pointer-events-none">
-              Alpha {Math.round(alpha * 100)}%
+              {t("skinEditor.alpha")} {Math.round(alpha * 100)}%
             </span>
             <input
               type="range"
@@ -668,9 +672,9 @@ const SkinEditorView = memo(function SkinEditorView() {
               className="mc-slider-custom w-[calc(100%+8px)] h-full z-20"
             />
           </div>
-          {renderToolBtn("slim", slim ? "Alex" : "Steve", slim, () => { playPressSound(); setSlim((v) => !v); })}
-          {renderToolBtn("grid", "Grid", showGrid, () => { playPressSound(); setShowGrid((v) => !v); })}
-          {renderToolBtn("undo", "Undo", false, () => { playPressSound(); handleUndo(); })}
+          {renderToolBtn("slim", slim ? t("skinEditor.alex") : t("skinEditor.steve"), slim, () => { playPressSound(); setSlim((v) => !v); })}
+          {renderToolBtn("grid", t("skinEditor.grid"), showGrid, () => { playPressSound(); setShowGrid((v) => !v); })}
+          {renderToolBtn("undo", t("skinEditor.undo"), false, () => { playPressSound(); handleUndo(); })}
         </div>
 
         <div className="flex flex-1 items-center justify-center min-w-0 min-h-0 mt-[-200px]">
@@ -698,9 +702,9 @@ const SkinEditorView = memo(function SkinEditorView() {
 
       <div className="flex gap-4 mt-3 mb-2">
         {[
-          { id: "save", label: "Save", onClick: handleSave },
-          { id: "export", label: "Export", onClick: handleExport },
-          { id: "back", label: "Back", onClick: () => { playBackSound(); setActiveView("skins"); } },
+          { id: "save", label: t("skinEditor.save"), onClick: handleSave },
+          { id: "export", label: t("skinEditor.export"), onClick: handleExport },
+          { id: "back", label: t("skinEditor.back"), onClick: () => { playBackSound(); setActiveView("skins"); } },
         ].map((b) => (
           <button
             key={b.id}

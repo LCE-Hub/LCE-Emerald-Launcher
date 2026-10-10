@@ -1,8 +1,10 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import "../css/App.css";
 import HomeView from "../components/views/HomeView";
 import SettingsView from "../components/views/SettingsView";
+import GoldMapperView from "../components/views/GoldMapperView";
 import VersionsView from "../components/views/VersionsView";
 import DevtoolsView from "../components/views/DevtoolsView";
 import GuidesView from "../components/views/GuidesView";
@@ -50,6 +52,7 @@ import { getCurrent, onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 export default function App() {
+  const { t } = useTranslation();
   const ui = useUI();
   const {
     showIntro,
@@ -102,6 +105,12 @@ export default function App() {
     message: string;
     options?: ToastOptions;
   } | null>(null);
+  const [windowHeight, setWindowHeight] = useState(window.innerHeight);
+  useEffect(() => {
+    const onResize = () => setWindowHeight(window.innerHeight);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   useEffect(() => {
     const pm = PluginManager.instance;
     pm.setNavigateCallback((viewId) => {
@@ -291,21 +300,27 @@ export default function App() {
   const selectedVersionName = selectedEdition?.name ?? "";
   const hasAnyInstall = game.installs.length > 0;
   const titleImage = selectedEdition?.titleImage ?? "/images/MenuTitle.png";
-  const TITLE_HIDDEN_VIEWS = new Set([
-    //neo: why an entire Set for that? yes. the answer is yes.
-    "workshop",
-    "lceonline",
-    "devtools",
-    "guides",
-    "pck-editor",
-    "arc-editor",
-    "loc-editor",
-    "grf-editor",
-    "col-editor",
-    "options-editor",
-    "model-editor",
-    "swf-editor",
-  ]);
+  const titleHiddenViews = useMemo(
+    () =>
+      new Set([
+        //neo: why an entire Set for that? yes. the answer is yes.
+        "workshop",
+        "lceonline",
+        "devtools",
+        "guides",
+        "pck-editor",
+        "arc-editor",
+        "loc-editor",
+        "grf-editor",
+        "col-editor",
+        "options-editor",
+        "model-editor",
+        "swf-editor",
+        "goldmapper",
+        windowHeight >= 744 ? null : "versions",
+      ]),
+    [windowHeight],
+  );
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
     document.addEventListener("contextmenu", handleContextMenu);
@@ -340,7 +355,7 @@ export default function App() {
   if (showSetup) {
     return (
       <div
-        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-['Mojangles'] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
+        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-[var(--font-base)] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
       >
         {showHeader && (
           <AppHeader playPressSound={audio.playPressSound} uiFade={uiFade} />
@@ -372,7 +387,7 @@ export default function App() {
   if (showIntro && !config.skipIntro) {
     return (
       <div
-        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-['Mojangles'] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
+        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-[var(--font-base)] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
       >
         <CinematicIntro
           onComplete={() => {
@@ -387,7 +402,7 @@ export default function App() {
   return (
     <MotionConfig transition={config.animationsEnabled ? {} : { duration: 0 }}>
       <div
-        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-['Mojangles'] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
+        className={`w-screen h-screen overflow-hidden select-none flex flex-col relative bg-black text-white font-[var(--font-base)] outline-none focus:outline-none ${!config.animationsEnabled ? "no-animations" : ""}`}
       >
         <div className="absolute inset-0">
           <AnimatePresence>
@@ -415,10 +430,6 @@ export default function App() {
           editions={game.editions}
         />
 
-        <AchievementToast
-          message={game.gameLog ? null : game.error}
-          onClose={clearError}
-        />
         <GameLogModal
           isOpen={!!game.gameLog}
           log={game.gameLog}
@@ -426,45 +437,74 @@ export default function App() {
           playBackSound={audio.playBackSound}
         />
 
-        <AchievementToast
-          message={updateMessage}
-          onClose={clearUpdateMessage}
-          onClick={() =>
-            TauriService.openUrl(
-              updateUrl ||
-                "https://github.com/LCE-Hub/LCE-Emerald-Launcher/releases/latest",
-            )
-          }
-          title="Update Available!"
-          variant="update"
-        />
-
-        <AchievementToast
-          message={game.gameUpdateMessage}
-          onClose={clearGameUpdate}
-          onClick={() => {
-            clearGameUpdate();
-            setActiveView("versions");
-          }}
-          title="Game Update Available!"
-          variant="update"
-        />
-
-        <AchievementToast
-          message={game.steamSuccessMessage}
-          onClose={clearSteamSuccess}
-          title="Steam Integration"
-          variant="steam"
-        />
-
-        {pluginToast && (
+        <div className="fixed top-14 right-8 z-[9999] flex flex-col items-end gap-2">
           <AchievementToast
-            message={pluginToast.message}
-            onClose={() => setPluginToast(null)}
-            title={pluginToast.options?.title}
-            variant={pluginToast.options?.variant}
+            message={game.gameLog ? null : game.error}
+            onClose={clearError}
           />
-        )}
+
+          <AchievementToast
+            message={updateMessage}
+            onClose={clearUpdateMessage}
+            onClick={() =>
+              TauriService.openUrl(
+                updateUrl ||
+                  "https://github.com/LCE-Hub/LCE-Emerald-Launcher/releases/latest",
+              )
+            }
+            title={t("download.updateAvailable")}
+            variant="update"
+          />
+
+          <AchievementToast
+            message={game.gameUpdateMessage}
+            onClose={clearGameUpdate}
+            onClick={() => {
+              clearGameUpdate();
+              setActiveView("versions");
+            }}
+            title={t("download.gameUpdateAvailable")}
+            variant="update"
+          />
+
+          <AchievementToast
+            message={game.steamSuccessMessage}
+            onClose={clearSteamSuccess}
+            title={t("download.steamIntegration")}
+            variant="steam"
+          />
+
+          {pluginToast && (
+            <AchievementToast
+              message={pluginToast.message}
+              onClose={() => setPluginToast(null)}
+              title={pluginToast.options?.title}
+              variant={pluginToast.options?.variant}
+            />
+          )}
+
+          <AchievementToast
+            message={friendRequestMessage}
+            onClose={clearFriendRequestMessage}
+            onClick={() => {
+              clearFriendRequestMessage();
+              setActiveView("lceonline");
+            }}
+            title={t("download.friendRequest")}
+            variant="update"
+          />
+
+          <AchievementToast
+            message={InviteMessage}
+            onClose={clearInviteMessage}
+            onClick={() => {
+              clearInviteMessage();
+              setActiveView("lceonline");
+            }}
+            title={t("download.gameInvite")}
+            variant="update"
+          />
+        </div>
 
         <motion.div
           initial={{ opacity: 0 }}
@@ -501,7 +541,7 @@ export default function App() {
                   setActiveView("main");
                 }}
                 className="outline-none border-none flex items-center justify-center w-10 h-10 cursor-pointer"
-                aria-label="Back"
+                aria-label={t("common.back")}
                 style={{
                   backgroundImage: "url('/images/Button_Square.png')",
                   backgroundSize: "100% 100%",
@@ -542,7 +582,7 @@ export default function App() {
               className="absolute bottom-6 right-8 z-50 flex items-center gap-3"
             >
               <span className="text-[#E0E0E0] text-[10px] mc-text-shadow tracking-widest uppercase opacity-70 mt-1">
-                {displayIsDay ? "Day" : "Night"}
+                {displayIsDay ? t("app.day") : t("app.night")}
               </span>
               <button
                 onClick={() => {
@@ -557,7 +597,7 @@ export default function App() {
                       ? "/images/Day_Toggle.png"
                       : "/images/Night_Toggle.png"
                   }
-                  alt="Toggle Time"
+                  alt={t("app.toggleTime")}
                   className="w-12 h-12 cursor-pointer block object-contain"
                   style={{ imageRendering: "pixelated" }}
                 />
@@ -590,7 +630,7 @@ export default function App() {
                   }}
                 />
                 <span className="text-[#FFFF55] text-sm mc-text-shadow">
-                  SWF Editor
+                  {t("app.swfEditor")}
                 </span>
               </button>
             </motion.div>
@@ -599,7 +639,7 @@ export default function App() {
           <div className="shrink-0 flex justify-center py-4 relative w-full pt-4">
             <div className="relative w-full max-w-135 flex justify-center">
               {activeView !== "credits" &&
-                !TITLE_HIDDEN_VIEWS.has(activeView) && (
+                !titleHiddenViews.has(activeView) && (
                   <motion.img
                     layoutId="mainLogo"
                     src={titleImage}
@@ -608,12 +648,12 @@ export default function App() {
                       stiffness: 300,
                       damping: 25,
                     }}
-                    className="w-full drop-shadow-[0_8px_6px_rgba(0,0,0,0.8)] pointer-events-none"
+                    className="w-full pointer-events-none"
                     style={{ imageRendering: "pixelated" }}
                   />
                 )}
               {activeView !== "credits" &&
-                !TITLE_HIDDEN_VIEWS.has(activeView) && (
+                !titleHiddenViews.has(activeView) && (
                   <motion.div
                     {...uiFade}
                     className="absolute bottom-[20%] right-[5%] w-0 h-0 flex items-center justify-center"
@@ -624,7 +664,7 @@ export default function App() {
                       style={{ textShadow: "2px 2px 0px #3F3F00" }}
                     >
                       {audio.splashIndex === -1
-                        ? `Welcome ${config.username}!`
+                        ? t("app.welcome", { name: config.username })
                         : audio.splashes[audio.splashIndex]}
                     </div>
                   </motion.div>
@@ -634,7 +674,7 @@ export default function App() {
                 titleImage === "/images/MenuTitle.png" && (
                   <motion.div
                     {...uiFade}
-                    className="absolute -bottom-6 text-[#A0A0A0] text-sm mc-text-shadow tracking-widest uppercase opacity-80 font-['Mojangles']"
+                    className="absolute -bottom-6 text-[#A0A0A0] text-sm mc-text-shadow tracking-widest uppercase opacity-80 font-[var(--font-base)]"
                   >
                     {selectedVersionName}
                   </motion.div>
@@ -670,6 +710,9 @@ export default function App() {
                   {activeView === "main" && <HomeView key="main-view" />}
                   {activeView === "settings" && (
                     <SettingsView key="settings-view" />
+                  )}
+                  {activeView === "goldmapper" && (
+                    <GoldMapperView key="goldmapper-view" />
                   )}
                   {activeView === "versions" && (
                     <VersionsView key="versions-view" />
@@ -740,39 +783,19 @@ export default function App() {
 
           <motion.footer
             {...uiFade}
-            className="shrink-0 p-4 flex justify-between items-end text-[10px] text-[#A0A0A0] mc-text-shadow bg-gradient-to-t from-black/80 to-transparent uppercase tracking-widest opacity-60 font-['Mojangles']"
+            className="shrink-0 p-4 flex justify-between items-end text-[10px] text-[#A0A0A0] mc-text-shadow bg-gradient-to-t from-black/80 to-transparent uppercase tracking-widest opacity-60 font-[var(--font-base)]"
             style={{ fontWeight: "normal" }}
           >
             <div className="flex-1 text-left whitespace-nowrap">
-              Version: {pkg.version} ({__BUILD_DATE__})
+              {t("app.version", {
+                version: `${pkg.version} (${__BUILD_DATE__})`,
+              })}
             </div>
             <div className="flex-1 text-right whitespace-nowrap">
-              {connected && "CONTROLLER CONNECTED"}
+              {connected && t("app.controllerConnected")}
             </div>
           </motion.footer>
         </motion.div>
-
-        <AchievementToast
-          message={friendRequestMessage}
-          onClose={clearFriendRequestMessage}
-          onClick={() => {
-            clearFriendRequestMessage();
-            setActiveView("lceonline");
-          }}
-          title="Friend Request"
-          variant="update"
-        />
-
-        <AchievementToast
-          message={InviteMessage}
-          onClose={clearInviteMessage}
-          onClick={() => {
-            clearInviteMessage();
-            setActiveView("lceonline");
-          }}
-          title="Game Invite"
-          variant="update"
-        />
       </div>
     </MotionConfig>
   );

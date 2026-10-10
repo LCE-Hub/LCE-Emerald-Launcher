@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use super::block_mapping::{self, LegacyBlockState};
+use super::block_mapping::{self};
 use super::nbt;
 use super::payload;
 const CHUNK_BLOCKS: usize = 32768;
@@ -19,10 +19,10 @@ pub enum JavaChunkFormat {
 #[derive(Debug, Clone, Copy)]
 pub struct JavaChunkFormatInfo {
     pub format: JavaChunkFormat,
-    pub has_level_wrapper: bool,
-    pub data_version: i32,
-    pub min_section_y: Option<i32>,
-    pub max_section_y: Option<i32>,
+    pub _has_level_wrapper: bool,
+    pub _data_version: i32,
+    pub _min_section_y: Option<i32>,
+    pub _max_section_y: Option<i32>,
     pub has_modern_entity_tags: bool,
 }
 
@@ -110,10 +110,10 @@ pub fn inspect_chunk(root_tag: &nbt::NbtCompound) -> JavaChunkFormatInfo {
 
     JavaChunkFormatInfo {
         format,
-        has_level_wrapper,
-        data_version,
-        min_section_y,
-        max_section_y,
+        _has_level_wrapper: has_level_wrapper,
+        _data_version: data_version,
+        _min_section_y: min_section_y,
+        _max_section_y: max_section_y,
         has_modern_entity_tags,
     }
 }
@@ -406,7 +406,8 @@ pub fn convert_chunk(
         build_legacy_chunk_level(root_tag, new_chunk_x, new_chunk_z, preserve_dynamic, global_section_shift);
     payload::encode_legacy_nbt(&level)
 }
-
+/*
+//neo: unused
 pub fn convert_chunk_for_save(
     root_tag: &nbt::NbtCompound,
     new_chunk_x: i32,
@@ -416,7 +417,7 @@ pub fn convert_chunk_for_save(
 ) -> Vec<u8> {
     let level = build_legacy_chunk_level(root_tag, new_chunk_x, new_chunk_z, preserve_dynamic, global_section_shift);
     payload::encode_compressed_storage(&level)
-}
+}*/
 
 fn build_legacy_chunk_level(
     root_tag: &nbt::NbtCompound,
@@ -430,7 +431,7 @@ fn build_legacy_chunk_level(
         .compound("Level")
         .unwrap_or(root_tag);
     let is_modern = format_info.uses_modern_content_schema();
-    let (mut blocks, mut data, mut sky_light, mut block_light) =
+    let (mut blocks, mut data, mut sky_light, block_light) =
         if format_info.is_section_based() {
             flatten_anvil_sections(source_level, &format_info, global_section_shift)
         } else {

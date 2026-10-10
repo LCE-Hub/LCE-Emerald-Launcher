@@ -1,12 +1,14 @@
 use crate::types::HttpResponse;
+use crate::util;
 #[tauri::command]
 pub async fn http_proxy_request(
+    app: tauri::AppHandle,
     method: String,
     url: String,
     body: Option<String>,
     headers: std::collections::HashMap<String, String>,
 ) -> Result<HttpResponse, String> {
-    let client = reqwest::Client::new();
+    let client = util::build_http_client_from_app(&app)?;
     let mut req = match method.to_uppercase().as_str() {
         "GET" => client.get(&url),
         "POST" => client.post(&url),

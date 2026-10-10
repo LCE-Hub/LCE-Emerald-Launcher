@@ -44,6 +44,33 @@ pub fn copy_dir_all(src: impl AsRef<std::path::Path>, dst: impl AsRef<std::path:
     Ok(())
 }
 
+pub fn build_http_client(proxy: Option<&str>) -> Result<reqwest::Client, String> {
+    let mut builder = reqwest::Client::builder();
+    builder = builder.user_agent("Emerald-Launcher");
+    builder = builder
+        .connect_timeout(std::time::Duration::from_secs(15))
+        .timeout(std::time::Duration::from_secs(500));
+    if let Some(p) = proxy {
+        let trimmed = p.trim();
+        if !trimmed.is_empty() {
+            let has_scheme = trimmed.contains("://");
+            let full = if has_scheme {
+                trimmed.to_string()
+            } else {
+                format!("http://{}", trimmed)
+            };
+            let proxy = reqwest::Proxy::all(&full).map_err(|e| format!("Invalid proxy: {e}"))?;
+            builder = builder.proxy(proxy);
+        }
+    }
+    builder.build().map_err(|e| e.to_string())
+}
+
+pub fn build_http_client_from_app(app: &AppHandle) -> Result<reqwest::Client, String> {
+    let config = config::load_config_raw(app.clone());
+    build_http_client(config.http_proxy.as_deref())
+}
+
 #[cfg(unix)]
 pub fn unix_path_to_wine_z_path(unix_path: &PathBuf) -> String {
     let p = unix_path.to_string_lossy();

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { SPLASHES } from "../data/splashes";
+import { PluginManager } from "../plugins/PluginManager";
 
 const TRACKS = [
   "music/Moog City 2.opus",
@@ -29,10 +29,16 @@ export function useAudioController({
   isGameRunning,
   isWindowVisible,
 }: AudioControllerProps) {
+  const [splashes, setSplashes] = useState<string[]>(() => PluginManager.instance.getSplashes());
   const [currentTrack, setCurrentTrack] = useState(0);
   const [splashIndex, setSplashIndex] = useState(
-    () => Math.floor(Math.random() * SPLASHES.length),
+    () => Math.floor(Math.random() * PluginManager.instance.getSplashes().length),
   );
+  
+  useEffect(() => {
+    PluginManager.instance.setSplashesChangedCallback((s) => setSplashes(s));
+    setSplashes(PluginManager.instance.getSplashes());
+  }, []);
   const audioContextRef = useRef<AudioContext | null>(null);
   const musicSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const musicGainRef = useRef<GainNode | null>(null);
@@ -235,11 +241,12 @@ export function useAudioController({
   const cycleSplash = useCallback(() => {
     playSplashSound();
     let newIndex;
+    if (splashes.length === 0) return;
     do {
-      newIndex = Math.floor(Math.random() * SPLASHES.length);
-    } while (newIndex === splashIndex && SPLASHES.length > 1);
+      newIndex = Math.floor(Math.random() * splashes.length);
+    } while (newIndex === splashIndex && splashes.length > 1);
     setSplashIndex(newIndex);
-  }, [playSplashSound, splashIndex]);
+  }, [playSplashSound, splashIndex, splashes]);
   const skipTrack = useCallback(() => {
     isManualSkipRef.current = true;
     setCurrentTrack((prev) => (prev + 1) % TRACKS.length);
@@ -346,7 +353,7 @@ export function useAudioController({
     playBackSound,
     playSfx,
     tracks: TRACKS,
-    splashes: SPLASHES,
+    splashes: splashes,
     startMusic,
   };
 }

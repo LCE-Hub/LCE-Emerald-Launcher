@@ -36,7 +36,7 @@ const SkinViewer = memo(function SkinViewer({
   const mountRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [focusIndex, setFocusIndex] = useState(0);
-  const { legacyMode } = useConfig();
+  const { legacyMode, animationsEnabled } = useConfig();
   const overlaysRef = useRef<THREE.Mesh[]>([]);
   const capeRef = useRef<THREE.Group | null>(null);
   const capeOrigRef = useRef<{ y: number; rx: number; meshY: number } | null>(
@@ -433,7 +433,9 @@ const SkinViewer = memo(function SkinViewer({
     renderer.domElement.addEventListener("mousedown", onMouseDown);
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
-    renderer.domElement.addEventListener("touchstart", onTouchStart, { passive: true });
+    renderer.domElement.addEventListener("touchstart", onTouchStart, {
+      passive: true,
+    });
     window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", onTouchEnd);
     return () => {
@@ -523,6 +525,7 @@ const SkinViewer = memo(function SkinViewer({
       } else if (e.key === "ArrowUp") {
         setFocusIndex((prev) => (prev > 0 ? prev - 1 : prev));
       } else if (e.key === "Enter") {
+        e.preventDefault();
         if (focusIndex === 0) {
           (
             containerRef.current?.querySelector("input") as HTMLElement
@@ -678,10 +681,10 @@ const SkinViewer = memo(function SkinViewer({
   return (
     <motion.div
       ref={containerRef}
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: useConfig().animationsEnabled ? 0.3 : 0 }}
+      initial={{ opacity: animationsEnabled ? 0 : 1 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: animationsEnabled ? 0 : 1 }}
+      transition={{ duration: animationsEnabled ? 0.3 : 0 }}
       className={`absolute ${legacyMode ? "left-[calc(50vw-340px)]" : "left-16"} ${legacyMode ? "top-1/2" : "top-[40%]"} -translate-y-1/2 flex flex-col items-center gap-1 outline-none z-10`}
       style={style}
     >
@@ -691,20 +694,22 @@ const SkinViewer = memo(function SkinViewer({
           data-focus="0"
           tabIndex={0}
         >
-          <input
-            type="text"
-            value={username}
-            maxLength={16}
-            style={{ width: `${Math.max(username.length, 3) + 2}ch` }}
-            onChange={(e) => setUsername(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.currentTarget.blur();
-                e.stopPropagation();
-              }
-            }}
-            className="bg-transparent text-white focus:text-[#FFFF55] outline-none border-none text-center font-['Mojangles'] mc-text-shadow tracking-widest text-xl cursor-text"
-          />
+          <div>
+            <input
+              type="text"
+              value={username}
+              maxLength={16}
+              style={{ width: `${Math.max(username.length, 3) + 2}ch` }}
+              onChange={(e) => setUsername(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.currentTarget.blur();
+                  e.stopPropagation();
+                }
+              }}
+              className="text-white focus:text-[#FFFF55] outline-none text-center font-[var(--font-base)] tracking-widest text-xl cursor-text"
+            />
+          </div>
         </div>
       )}
       {!legacyMode && (

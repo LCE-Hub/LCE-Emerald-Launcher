@@ -28,7 +28,8 @@ async fn stream_download(
         lock.insert(instance_id.to_string(), token);
     }
 
-    let response = reqwest::Client::new().get(url).header(reqwest::header::USER_AGENT, "Emerald-Launcher").send().await.map_err(|e| e.to_string())?;
+    let client = util::build_http_client_from_app(app).map_err(|e| e.to_string())?;
+    let response = client.get(url).send().await.map_err(|e| e.to_string())?;
     if !response.status().is_success() {
         { state.tokens.lock().await.remove(instance_id); }
         return Err(format!("Download failed: {}", response.status()));
@@ -300,9 +301,9 @@ pub async fn check_game_update(
         return Ok(true);
     }
 
-    let response = reqwest::Client::new()
+    let client = util::build_http_client_from_app(&app).map_err(|e| e.to_string())?;
+    let response = client
         .head(&url)
-        .header(reqwest::header::USER_AGENT, "Emerald-Launcher")
         .send()
         .await
         .map_err(|e| e.to_string())?;

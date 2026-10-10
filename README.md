@@ -57,7 +57,7 @@ LCE Emerald Launcher is the easiest way to play Minecraft Legacy Console Edition
 
 | Feature | Description |
 |---------|-------------|
-| **Automated Setup** | One-click installation for neoLegacy, Revelations, 360 Revived, Hellish Ends and others |
+| **Automated Setup** | One-click installation for neoLegacy, Revelations, Hellish Ends, Moon Edition and others |
 | **Cross-Platform** | Native support for Windows, macOS (Intel & Apple Silicon), and Linux (Steam Deck is also supported!) |
 | **Lightweight** | Very light RAM usage thanks to Rust backend and Tauri framework |
 | **Easy Configuration** | Built-in settings for username, game parameters, and profiles |
@@ -68,7 +68,7 @@ LCE Emerald Launcher is the easiest way to play Minecraft Legacy Console Edition
 | **Workshop** | Community content like DLCs, Textures, Skins and more |
 | **Free Multiplayer** | Powered by LCEOnline, Emerald provides a free multiplayer service so you can play with anyone without port forwarding! |
 | **Developer Tools** | Create and edit 4J's propriatery file formats with ease! |
-| **World conversion** | Import `.ms` files, Java worlds or even an Xbox 360/PS3 world! |
+| **World conversion** | Import `.ms` files, Java worlds or even an Xbox 360/PS3 world! (Beta) |
 | **Playtime counting** | Count your playtime and see your most active days! |
 
 ---
@@ -220,15 +220,15 @@ sudo apt install --reinstall libwebkit2gtk-4.1-0
 
 ### Game Not Launching
 
-1. Verify game files are properly installed via the launcher
+1. Verify game files are properly installed via the launcher (also try clicking Repair which will reinstall it but keeps your data)
 2. Check that Wine/Proton is installed (Linux only)
 3. Check that Wine/GPTK3 are installed (macOS only)
 4. Ensure your GPU drivers are up to date
 
 ### Controller Not Detected
 
-- Connect controller before launching the launcher
-- PlayStation controllers are not supported in-game but work in launcher. Use Steam Input.
+- Connect controller before launching the launcher or game.
+- PlayStation controllers are not supported in-game but work in launcher. **Enable GoldMapper from Help & Options -> Controls**, or use Steam Input.
 
 ---
 
@@ -240,6 +240,10 @@ sudo apt install --reinstall libwebkit2gtk-4.1-0
 - **The LCE Community** - Research and foundations for LCE on PC
 - **Str1k3r** - Original creator of LCEOnline
 - **DTention** - Original creator of [LCE-Save-Converter](https://github.com/dtentiion/LCE-Save-Converter)
+- **dydymiku** - French translation
+- **Hvrket** - Russian translation
+- **HuntedRaven (Robin)** - Homebrew, Nix and Gentoo packaging
+- **AntiApple4life** - AUR packaging
 
 ---
 

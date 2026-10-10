@@ -21,6 +21,7 @@ use commands::dlc;
 use commands::download;
 use commands::file_dialogs;
 use commands::game;
+use commands::goldmapper;
 use commands::macos_setup;
 use commands::platform as platform_cmd;
 use commands::plugins;
@@ -149,6 +150,10 @@ pub fn run() {
             game::switch_proton,
             game::install_latest_driver,
             game::set_audio_backend,
+            goldmapper::goldmapper_get_defaults,
+            goldmapper::goldmapper_load_config,
+            goldmapper::goldmapper_save_config,
+            goldmapper::goldmapper_reset_config,
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();

@@ -58,7 +58,7 @@
         "bundleMediaFramework": true
       }
     },
-    "resources": ["resources/DLC"],
+    "resources": ["resources/DLC", "resources/GoldMapperLib.dll", "resources/GoldMapperLauncher.exe", "resources/SDL2.dll"],
     "icon": [
       "icons/32x32.png",
       "icons/64x64.png",

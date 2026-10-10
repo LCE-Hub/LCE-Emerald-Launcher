@@ -51,7 +51,10 @@ export function useDiscordRPC({
         const firstId = downloadingIds[0];
         const pct = downloadProgress[firstId];
         const downloadingName =
-          editions.find((e) => e.id === firstId)?.name || "Game Files";
+          editions.find((e) => e.id === firstId)?.name ||
+          (firstId.startsWith("runner_")
+            ? firstId.replace(/^runner_/, "")
+            : "Game Files");
         const extra =
           downloadingIds.length > 1
             ? ` +${downloadingIds.length - 1} more`

@@ -18,7 +18,7 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-gamepad = "0.0.5"
-reqwest = { version = "0.11", default-features = false, features = ["stream", "json", "rustls-tls-webpki-roots"] }
+reqwest = { version = "0.11", default-features = false, features = ["stream", "json", "rustls-tls-webpki-roots", "socks"] }
 tokio = { version = "1", features = ["full"] }
 futures-util = "0.3"
 tokio-util = { version = "0.7.18", features = ["rt"] }

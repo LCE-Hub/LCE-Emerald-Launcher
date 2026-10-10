@@ -70,7 +70,8 @@ async fn download_and_assemble(
     let mut downloaded: Vec<PathBuf> = Vec::new();
     for part in parts {
         let url = format!("{}/{}", raw_base, part);
-        let response = reqwest::get(&url).await.map_err(|e| e.to_string())?;
+        let client = util::build_http_client_from_app(app).map_err(|e| e.to_string())?;
+        let response = client.get(&url).send().await.map_err(|e| e.to_string())?;
         if !response.status().is_success() {
             return Err(format!("Failed to download {}: HTTP {}", part, response.status()));
         }
@@ -101,58 +102,21 @@ async fn download_and_assemble(
     Ok(combined)
 }
 
-fn extract_archive(zip_tmp: &Path, dest_dir: &Path) -> Result<(Vec<String>, bool), String> {
+fn list_archive(zip_tmp: &Path) -> Result<Vec<String>, String> {
     let zip_str = zip_tmp.to_str().unwrap_or("");
     if cfg!(target_os = "linux") {
-        let mut extract_ok = false;
-        let mut files: Vec<String> = Vec::new();
         if let Ok(out) = std::process::Command::new("bsdtar")
             .args(["-tf", zip_str])
             .output()
         {
             if out.status.success() {
                 let listing = String::from_utf8_lossy(&out.stdout);
-                files = listing.lines()
-                    .map(|l| l.trim())
+                return Ok(listing.lines()
+                    .map(|l| l.trim().to_string())
                     .filter(|l| !l.is_empty() && !l.ends_with('/'))
-                    .map(|l| dest_dir.join(l).to_string_lossy().to_string())
-                    .collect();
-                let st = std::process::Command::new("bsdtar")
-                    .args(["-xf", zip_str, "-C", dest_dir.to_str().unwrap()])
-                    .status()
-                    .map_err(|e| e.to_string())?;
-                extract_ok = st.success();
+                    .collect());
             }
         }
-        if !extract_ok {
-            let unzip_list = std::process::Command::new("unzip")
-                .args(["-l", zip_str])
-                .output()
-                .map_err(|e| e.to_string())?;
-            if !unzip_list.status.success() {
-                return Err(format!("Failed to list contents of {}", zip_str));
-            }
-            let listing = String::from_utf8_lossy(&unzip_list.stdout);
-            files = listing.lines()
-                .filter_map(|l| {
-                    let mut parts = l.trim().split_whitespace();
-                    let size_str = parts.next()?;
-                    size_str.parse::<u64>().ok()?;
-                    parts.next()?;
-                    parts.next()?;
-                    Some(parts.collect::<Vec<&str>>().join(" "))
-                })
-                .filter(|l| !l.ends_with('/') && !l.contains('*'))
-                .map(|l| dest_dir.join(l).to_string_lossy().to_string())
-                .collect();
-            let st = std::process::Command::new("unzip")
-                .args(["-o", zip_str, "-d", dest_dir.to_str().unwrap()])
-                .status()
-                .map_err(|e| e.to_string())?;
-            extract_ok = st.success();
-        }
-        Ok((files, extract_ok))
-    } else if cfg!(target_os = "android") {
         let unzip_list = std::process::Command::new("unzip")
             .args(["-l", zip_str])
             .output()
@@ -161,7 +125,7 @@ fn extract_archive(zip_tmp: &Path, dest_dir: &Path) -> Result<(Vec<String>, bool
             return Err(format!("Failed to list contents of {}", zip_str));
         }
         let listing = String::from_utf8_lossy(&unzip_list.stdout);
-        let files: Vec<String> = listing.lines()
+        Ok(listing.lines()
             .filter_map(|l| {
                 let mut parts = l.trim().split_whitespace();
                 let size_str = parts.next()?;
@@ -171,29 +135,76 @@ fn extract_archive(zip_tmp: &Path, dest_dir: &Path) -> Result<(Vec<String>, bool
                 Some(parts.collect::<Vec<&str>>().join(" "))
             })
             .filter(|l| !l.ends_with('/') && !l.contains('*'))
-            .map(|l| dest_dir.join(l).to_string_lossy().to_string())
-            .collect();
-        let st = std::process::Command::new("unzip")
-            .args(["-o", zip_str, "-d", dest_dir.to_str().unwrap()])
-            .status()
-            .map_err(|e| e.to_string())?;
-        Ok((files, st.success()))
-    } else {
-        let st = std::process::Command::new("tar")
-            .args(["-xf", zip_str, "-C", dest_dir.to_str().unwrap()])
+            .collect())
+    } else if cfg!(target_os = "android") {
+        let unzip_list = std::process::Command::new("unzip")
+            .args(["-l", zip_str])
             .output()
             .map_err(|e| e.to_string())?;
+        if !unzip_list.status.success() {
+            return Err(format!("Failed to list contents of {}", zip_str));
+        }
+        let listing = String::from_utf8_lossy(&unzip_list.stdout);
+        Ok(listing.lines()
+            .filter_map(|l| {
+                let mut parts = l.trim().split_whitespace();
+                let size_str = parts.next()?;
+                size_str.parse::<u64>().ok()?;
+                parts.next()?;
+                parts.next()?;
+                Some(parts.collect::<Vec<&str>>().join(" "))
+            })
+            .filter(|l| !l.ends_with('/') && !l.contains('*'))
+            .collect())
+    } else {
         let listing = std::process::Command::new("tar")
             .args(["-tf", zip_str])
             .output()
             .map_err(|e| e.to_string())?;
         let listing_str = String::from_utf8_lossy(&listing.stdout);
-        let files: Vec<String> = listing_str.lines()
-            .map(|l| l.trim())
+        Ok(listing_str.lines()
+            .map(|l| l.trim().to_string())
             .filter(|l| !l.is_empty() && !l.ends_with('/'))
-            .map(|l| dest_dir.join(l).to_string_lossy().to_string())
-            .collect();
-        Ok((files, st.status.success()))
+            .collect())
+    }
+}
+
+fn extract_archive(zip_tmp: &Path, dest_dir: &Path) -> Result<bool, String> {
+    let zip_str = zip_tmp.to_str().unwrap_or("");
+    if cfg!(target_os = "linux") {
+        let mut extract_ok = false;
+        if let Ok(out) = std::process::Command::new("bsdtar")
+            .args(["-tf", zip_str])
+            .output()
+        {
+            if out.status.success() {
+                let st = std::process::Command::new("bsdtar")
+                    .args(["-xf", zip_str, "-C", dest_dir.to_str().unwrap()])
+                    .status()
+                    .map_err(|e| e.to_string())?;
+                extract_ok = st.success();
+            }
+        }
+        if !extract_ok {
+            let st = std::process::Command::new("unzip")
+                .args(["-o", zip_str, "-d", dest_dir.to_str().unwrap()])
+                .status()
+                .map_err(|e| e.to_string())?;
+            extract_ok = st.success();
+        }
+        Ok(extract_ok)
+    } else if cfg!(target_os = "android") {
+        let st = std::process::Command::new("unzip")
+            .args(["-o", zip_str, "-d", dest_dir.to_str().unwrap()])
+            .status()
+            .map_err(|e| e.to_string())?;
+        Ok(st.success())
+    } else {
+        let st = std::process::Command::new("tar")
+            .args(["-xf", zip_str, "-C", dest_dir.to_str().unwrap()])
+            .status()
+            .map_err(|e| e.to_string())?;
+        Ok(st.success())
     }
 }
 
@@ -241,11 +252,24 @@ pub async fn workshop_install(app: AppHandle, request: WorkshopInstallRequest) -
 
         fs::create_dir_all(&dest_dir).map_err(|e| e.to_string())?;
         let archive_tmp = download_and_assemble(&app, &tmp_dir, &parts, &raw_base, &request.package_id, &mut done_parts, total_parts).await?;
-        let (extracted_files, extract_ok) = extract_archive(&archive_tmp, &dest_dir)?;
+        let files = list_archive(&archive_tmp)?;
+        for f in &files {
+            let full = dest_dir.join(f);
+            if full.is_file() {
+                let bak = format!("{}.bak", full.to_string_lossy());
+                if !Path::new(&bak).exists() {
+                    let _ = fs::rename(&full, &bak);
+                }
+            }
+        }
+        let extract_ok = extract_archive(&archive_tmp, &dest_dir)?;
         if !extract_ok {
             let _ = fs::remove_dir_all(&tmp_dir);
             return Err(format!("Extraction failed for {}", parts[0]));
         }
+        let extracted_files: Vec<String> = files.iter()
+            .map(|f| dest_dir.join(f).to_string_lossy().to_string())
+            .collect();
 
         for f in &extracted_files {
             if !workshop_files.contains(f) {
@@ -290,6 +314,10 @@ pub async fn workshop_uninstall(app: AppHandle, instance_id: String, package_id:
             let path = PathBuf::from(file);
             if path.is_file() {
                 let _ = fs::remove_file(&path);
+            }
+            let bak = format!("{}.bak", path.to_string_lossy());
+            if Path::new(&bak).is_file() {
+                let _ = fs::rename(&bak, &path);
             }
         }
     }
