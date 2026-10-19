@@ -1,0 +1,160 @@
+<ui xmlns="emerald" version="1">
+  <style>
+    .credits-back {
+      background-image: /images/Layout_Button_Bmp.png;
+      font-size: 20px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .credits-back:hover {
+      background-image: /images/Layout_Button_Over.png;
+      color: #FFFF55;
+    }
+    .credit-logo {
+      width: 827.475px;
+      height: 80px;
+    }
+    .credit-cat {
+      font-size: 30px;
+      line-height: 36px;
+      letter-spacing: 0.75px;
+      font-weight: bold;
+      text-shadow: #000000 2px 2px;
+    }
+    .credit-cat-icon {
+      width: 40px;
+      height: 40px;
+    }
+    .credit-team { color: #50C878; }
+    .credit-lce { color: #9B59B6; }
+    .credit-thanks { color: #FFD700; }
+    .credit-sub {
+      font-size: 24px;
+      line-height: 32px;
+      letter-spacing: 1.2px;
+      color: #ffffffE6;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .credit-booster { color: #FF69B4; }
+    .credit-sub-icon {
+      width: 32px;
+      height: 32px;
+    }
+    .credit-role {
+      font-size: 18px;
+      line-height: 28px;
+      letter-spacing: 0.9px;
+      color: #ffffffB3;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .credit-member {
+      font-size: 24px;
+      line-height: 32px;
+      color: #e2cc4c;
+      text-shadow: #000000 2px 2px;
+    }
+    .credit-project {
+      font-size: 18px;
+      line-height: 28px;
+      letter-spacing: 0.9px;
+      color: #ffffff99;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .credit-subrole {
+      font-size: 16px;
+      line-height: 24px;
+      letter-spacing: 0.8px;
+      color: #ffffff80;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .credit-member-slim {
+      font-size: 20px;
+      line-height: 28px;
+      color: #e2cc4c;
+      text-shadow: #000000 2px 2px;
+    }
+    .credit-badge {
+      width: 256px;
+      padding: 12px;
+      background: #ffffff;
+    }
+    .credit-badge-image {
+      width: 232px;
+      height: 232px;
+    }
+    .credit-disclaimer {
+      font-size: 14px;
+      line-height: 20px;
+      letter-spacing: 0.35px;
+      color: #ffffff99;
+      text-shadow: #3f3f3f 1px 1px;
+      text-align: center;
+    }
+  </style>
+  <view id="credits">
+    <tooltip icon="A">Select</tooltip>
+    <tooltip icon="B">Back</tooltip>
+    <scroll width="1280px" height="720px" autoscroll="60" autoscroll-from="50" autoscroll-to="-200">
+      <column gap="32">
+        <image class="credit-logo" src="/images/emerald_launcher.png" margin-top="80" align="center"/>
+        <column foreach="{{credits}}" gap="32" as="cat">
+          <column align="center">
+            <column class="credit-category" align="center" gap="24">
+              <row align="center" gap="12">
+                <image class="credit-cat-icon" src="{{cat.icon}}" fit="contain" align="center" if="{{cat.icon}}"/>
+                <label class="credit-cat {{cat.class}}" text="{{cat.category}}" align="center"/>
+              </row>
+              <column foreach="{{cat.subcategories}}" gap="16" as="sub">
+                <column align="center" gap="12">
+                  <row align="center" gap="12">
+                    <image class="credit-sub-icon" src="{{sub.icon}}" fit="contain" align="center" if="{{sub.icon}}"/>
+                    <label class="credit-sub {{sub.class}}" text="{{sub.name}}" align="center"/>
+                  </row>
+                  <column align="center" gap="8">
+                    <column foreach="{{sub.roles}}" gap="8" as="role">
+                      <column align="center" gap="8">
+                        <label class="credit-role" text="{{role.role}}" if="{{role.role}}" align="center"/>
+                        <column foreach="{{role.members}}" gap="8" as="member">
+                          <label class="credit-member" text="{{member.name}}" onclick="open:{{member.url}}" align="center"/>
+                        </column>
+                      </column>
+                    </column>
+                    <column if="{{sub.subprojects}}" align="center" margin-top="16">
+                      <column foreach="{{sub.subprojects}}" gap="12" as="project">
+                        <column class="credit-project" align="center" gap="8">
+                          <label class="credit-project" text="{{project.name}}" align="center"/>
+                          <column foreach="{{project.roles}}" gap="8" as="srole">
+                            <column align="center" gap="8">
+                              <label class="credit-subrole" text="{{srole.role}}" if="{{srole.role}}" align="center"/>
+                              <column foreach="{{srole.members}}" gap="8" as="member">
+                                <label class="credit-member-slim" text="{{member.name}}" onclick="open:{{member.url}}" align="center"/>
+                              </column>
+                            </column>
+                          </column>
+                        </column>
+                      </column>
+                    </column>
+                  </column>
+                </column>
+              </column>
+            </column>
+          </column>
+        </column>
+        <row align="center" gap="24" margin-top="48">
+          <column class="credit-badge" align="center">
+            <image class="credit-badge-image" src="/images/LCE Team.png" fit="contain"/>
+          </column>
+          <column class="credit-badge" align="center">
+            <image class="credit-badge-image" src="/images/emerald_block.png" fit="contain"/>
+          </column>
+        </row>
+        <column align="center" margin-top="32" margin-bottom="80">
+          <label class="credit-disclaimer" width="1280px" text="MINECRAFT IS A TRADEMARK OF MOJANG SYNERGIES AB. THIS PROJECT IS NOT AFFILIATED WITH, ENDORSED BY, SPONSORED BY, OR SPECIFICALLY APPROVED BY MOJANG, MICROSOFT, OR 4J STUDIOS."/>
+        </column>
+      </column>
+    </scroll>
+    <button class="credits-back" style="position:absolute;left:40px;top:628px" height="40px" padding="16" onclick="go:home">
+      <label text="{{t:credits.backToMenu}}"/>
+    </button>
+  </view>
+</ui>

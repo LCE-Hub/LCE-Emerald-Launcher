@@ -1,0 +1,49 @@
+<ui xmlns="emerald" version="1">
+  <style>
+  .button {
+    border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+    border-width: 12px;
+    color: #e6f2e6;
+    font-size: 20px;
+  }
+  .button:hover {
+    border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+    border-width: 12px;
+    color: #ffff55;
+  }
+
+  .button-wrapper { width: 100%;}
+  .main-button {
+      width: 90%;
+      height: 44px;
+      font-size: 20px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 2px 2px;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .main-button:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .main-button.disabled {
+      opacity: 0.5;
+      color: #808080;
+    }
+    .main-button-danger { color: #ff5555; }
+    .main-button-danger:hover { color: #ff8080; }
+  </style>
+  <template name="MenuButton">
+    <button class="button" onclick="{{action}}">
+      <label class="buttonlabel" text="{{label}}"/>
+    </button>
+  </template>
+
+  <template name="HomeButton">
+    <column class="button-wrapper" align="center">
+      <button class="main-button {{extraclasses}}" onclick="{{action}}" align="center">
+        <label class="main-button-label" text="{{label}}"/>
+      </button>
+    </column>
+  </template>
+</ui>

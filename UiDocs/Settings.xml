@@ -1,0 +1,218 @@
+<ui xmlns="emerald" version="1">
+  <import href="Common/TitleImage.xml"/>
+  <import href="Common/Slider.xml"/>
+  <import href="Common/TextInput.xml"/>
+  <style>
+    .settings-root { align: center; }
+    .settings-main-btn {
+      width: 480px;
+      height: 42px;
+      font-size: 20px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 2px 2px;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .settings-main-btn:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .settings-main-label {
+      color: #ffffff;
+      font-size: 20px;
+      text-shadow: #3f3f3f 2px 2px;
+    }
+    .settings-main-label:hover { color: #ffff55; }
+    .settings-panel-bg {
+      border-image: url("/images/options_background.png") 4 fill;
+      border-width: 12px;
+    }
+    .settings-row-btn {
+      width: 600px;
+      height: 42px;
+      font-size: 20px;
+      color: #333333;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .settings-row-btn:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+
+    .settings-toggle {
+      width: 600px;
+      height: 42px;
+      font-size: 20px;
+      color: #333333;
+      border-width: 12px;
+    }
+    .settings-toggle:hover {
+      color: #ffff55;
+    }
+
+    .settings-row-btn.settings-cat {
+      font-size: 23px;
+      color: #ffffff;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .settings-row-btn.settings-cat:hover { color: #ffff55; }
+    .settings-row-btn.row-red { color: #ff5555; }
+    .settings-row-btn.row-red:hover { color: #ff8080; }
+    .settings-row-label {
+      color: #ffffff;
+      font-size: 20px;
+    }
+    .settings-row-label:hover { color: #ffff55; }
+    .settings-checkbox-base:hover {
+      background-image: /images/checkbox_highlighted.png;
+    }
+    .settings-checkmark {
+      position: absolute;
+      left: 1px;
+      top: -3px;
+      width: 26px;
+      height: 26px;
+    }
+
+    .backdrop { background: rgba(0, 0, 0, 0.8); }
+    .modal-frame {
+      border-image: url(/images/frame_background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+      font-size: 18px;
+    }
+    .modal-title { color: #ffff55; font-size: 22px; }
+    .modal-desc { color: #aaaaaa; font-size: 13px; }
+    .modal-btn {
+      width: 140px;
+      height: 40px;
+      font-size: 18px;
+      color: #ffffff;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .modal-btn:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+  </style>
+  <view id="settings">
+    <tooltip icon="A">Select</tooltip>
+    <tooltip icon="B">Back</tooltip>
+    <column class="settings-root" align="center" width="100%" height="100%" padding="40">
+    <use template="TitleImage"/>
+    <column height="40px" />
+      <column if="{{mainLayout}}" align="center" gap="8" width="100%" height="100%">
+        <column id="settings-main-list" foreach="{{items}}" as="item" gap="6" align="center" width="480px">
+          <button if="{{item.isButton}}" class="settings-main-btn {{item.rowClass}}" onclick="{{item.onclick}}" width="480px" height="42px">
+            <label class="settings-main-label" text="{{item.label}}"/>
+          </button>
+          <row if="{{item.isToggle}}" class="settings-main-btn" onclick="{{item.onclick}}" width="480px" height="42px" gap="0">
+            <label class="settings-main-label" text="{{item.label}}" flex="1" align="center"/>
+            <image src="{{item.checkSrc}}" width="24px" height="24px" align="center"/>
+          </row>
+        </column>
+      </column>
+      <column if="{{panelLayout}}" class="settings-panel-bg" align="center">
+        <scroll width="600px" max-height="520px">
+          <column id="settings-panel-rows" foreach="{{items}}" as="item" gap="4" align="center" width="600px">
+            <button if="{{item.isButton}}" class="settings-row-btn {{item.rowClass}}" onclick="{{item.onclick}}" width="600px" height="42px">
+              <label class="settings-row-label" text="{{item.label}}"/>
+            </button>
+            <row if="{{item.isToggle}}" class="settings-toggle" onclick="{{item.onclick}}" width="600px" height="42px" gap="0">
+              <row class="settings-checkbox" width="24px" height="24px">
+                <image class="settings-checkbox-base" src="/images/checkbox.png" width="24px" height="24px" align="center"/>
+                <image if="{{item.checked}}" class="settings-checkmark" src="/images/check.png"/>
+              </row>
+              <column width="4px"/>
+              <label text="{{item.label}}" flex="1" align="center"/>
+            </row>
+            <use template="Slider" if="{{item.isSlider}}" label="{{item.label}}" value="{{item.value}}" onchange="{{item.onchange}}"/>
+            <use template="TextInput" if="{{item.isText}}" label="{{item.label}}" value="{{item.value}}" onsubmit="{{item.onsubmit}}"/>
+          </column>
+        </scroll>
+      </column>
+      <column class="backdrop" if="{{argsModal}}" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" onclick="settings.modal.cancel">
+        <column class="modal-frame" style="position:absolute;left:440px;top:180px;width:400px" align="center" gap="8">
+          <label class="modal-title" text="{{t:settings.extraLaunchArgs}}"/>
+          <label class="modal-desc" text="{{extraArgsDesc}}"/>
+          <use template="TextInput" value="{{argsValue}}" width="360px"/>
+          <row align="center" gap="20">
+            <button class="modal-btn" onclick="settings.modal.cancel">
+              <label text="{{cancelLabel}}"/>
+            </button>
+            <button class="modal-btn" onclick="settings.modal.save:args">
+              <label text="{{saveLabel}}"/>
+            </button>
+          </row>
+        </column>
+      </column>
+      <column class="backdrop" if="{{prefixModal}}" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" onclick="settings.modal.cancel">
+        <column class="modal-frame" style="position:absolute;left:440px;top:180px;width:400px" align="center" gap="8">
+          <label class="modal-title" text="{{t:settings.launchPrefix}}"/>
+          <label class="modal-desc" text="{{launchPrefixDesc}}"/>
+          <use template="TextInput" value="{{prefixValue}}"/>
+          <row align="center" gap="20">
+            <button class="modal-btn" onclick="settings.modal.cancel">
+              <label text="{{cancelLabel}}"/>
+            </button>
+            <button class="modal-btn" onclick="settings.modal.save:prefix">
+              <label text="{{saveLabel}}"/>
+            </button>
+          </row>
+        </column>
+      </column>
+
+      <column class="backdrop" if="{{envModal}}" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" onclick="settings.modal.cancel">
+        <column class="modal-frame" style="position:absolute;left:440px;top:150px;width:400px" align="center" gap="8">
+          <label class="modal-title" text="{{t:settings.launchEnvVars}}"/>
+          <label class="modal-desc" text="{{launchEnvVarsDesc}}"/>
+          <use template="TextInput" value="{{envValue}}" multiline="true"/>
+          <row align="center" gap="20">
+            <button class="modal-btn" onclick="settings.modal.cancel">
+              <label text="{{cancelLabel}}"/>
+            </button>
+            <button class="modal-btn" onclick="settings.modal.save:envVars">
+              <label text="{{saveLabel}}"/>
+            </button>
+          </row>
+        </column>
+      </column>
+
+      <column class="backdrop" if="{{resetModal}}" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" onclick="settings.reset:cancel">
+        <column class="modal-frame" style="position:absolute;left:440px;top:220px;width:400px" align="center" gap="8">
+          <label class="modal-title" text="{{t:settings.reset.title}}"/>
+          <label class="modal-desc" text="{{t:settings.reset.confirm}}"/>
+          <row align="center" gap="20">
+            <button class="modal-btn" onclick="settings.reset:cancel">
+              <label text="{{cancelLabel}}"/>
+            </button>
+            <button class="modal-btn" onclick="settings.reset:ok">
+              <label text="{{okLabel}}"/>
+            </button>
+          </row>
+        </column>
+      </column>
+
+      <column class="backdrop" if="{{resetFinalModal}}" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" onclick="settings.reset:cancel">
+        <column class="modal-frame" style="position:absolute;left:440px;top:150px;width:400px" align="center" gap="8">
+          <label class="modal-title" text="{{t:settings.reset.confirmTitle}}"/>
+          <label class="modal-desc" text="{{t:settings.reset.clearAllSettings}}"/>
+          <label class="modal-desc" text="{{t:settings.reset.resetUsername}}"/>
+          <label class="modal-desc" text="{{t:settings.reset.showSetupAgain}}"/>
+          <label class="modal-desc" text="{{t:settings.reset.requireReconfiguration}}"/>
+          <label class="modal-desc" text="{{t:settings.reset.cannotBeUndone}}"/>
+          <row align="center" gap="20">
+            <button class="modal-btn" onclick="settings.reset:cancel">
+              <label text="{{cancelLabel}}"/>
+            </button>
+            <button class="modal-btn" onclick="settings.reset:final">
+              <label text="{{okLabel}}"/>
+            </button>
+          </row>
+        </column>
+      </column>
+    </column>
+  </view>
+</ui>
