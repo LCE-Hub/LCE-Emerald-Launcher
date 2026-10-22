@@ -277,6 +277,8 @@ ElementPtr ViewBuilder::build_element(const pugi::xml_node &node,
 
   StringMap attributes;
   std::vector<std::string> classes;
+  std::string inline_style;
+  std::map<std::string, std::string> style_attributes;
   for (const pugi::xml_attribute attribute : node.attributes()) {
     const std::string name = attribute.name();
     if (name == "foreach" || name == "if" || name == "as") {
@@ -292,13 +294,18 @@ ElementPtr ViewBuilder::build_element(const pugi::xml_node &node,
       classes = split_classes(value);
     } else if (name == "onclick") {
       element->set_click_handler(value);
-    } else if (!is_style_attribute(name)) {
-      attributes[name] = value;
+    } else if (name == "style") {
+      inline_style = std::move(value);
+    } else if (is_style_attribute(name)) {
+      style_attributes[name] = std::move(value);
+    } else {
+      attributes[name] = std::move(value);
     }
   }
   element->set_attributes(std::move(attributes));
   element->set_classes(std::move(classes));
-  apply_styles(*element, node);
+  apply_styles(*element, node, std::move(inline_style),
+               std::move(style_attributes));
   for (const pugi::xml_node child : node.children()) {
     ElementPtr child_element = build_node(child, context, depth + 1);
     if (child_element != nullptr) {
@@ -343,20 +350,19 @@ ElementPtr ViewBuilder::instantiate_template(const std::string &name,
   return result;
 }
 
-void ViewBuilder::apply_styles(Element &element,
-                               const pugi::xml_node &node) const {
+void ViewBuilder::apply_styles(
+    Element &element, const pugi::xml_node &node,
+    const std::string &inline_style,
+    const std::map<std::string, std::string> &style_attributes) const {
   const auto build = [&](bool hovered) {
     ComputedStyle style;
     style = document_.styles().applyTo(style, node.name(), element.id(),
                                        element.classes(), hovered);
-    for (const pugi::xml_attribute attribute : node.attributes()) {
-      const std::string name = attribute.name();
-      const std::string value = attribute.as_string();
-      if (name == "style") {
-        style = ComputedStyle::merge(style, parse_inline_style(value));
-      } else if (is_style_attribute(name)) {
-        apply_style_property(style, name, value);
-      }
+    if (!inline_style.empty()) {
+      style = ComputedStyle::merge(style, parse_inline_style(inline_style));
+    }
+    for (const auto &[name, value] : style_attributes) {
+      apply_style_property(style, name, value);
     }
     return style;
   };

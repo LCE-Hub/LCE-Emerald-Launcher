@@ -17,7 +17,8 @@
     "unknown": "Inconnu",
     "all": "Tous",
     "noResults": "Aucun résultat",
-    "set": "placer"
+    "set": "placer",
+    "close": "Fermer"
   },
   "header": {
     "title": "Lanceur Emerald Legacy"

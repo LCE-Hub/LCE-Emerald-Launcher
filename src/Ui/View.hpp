@@ -28,6 +28,8 @@ struct UiServices {
   std::function<void(const std::string &)> navigate;
   std::function<void(const std::string &)> change_language;
   std::function<void()> reset_focus;
+  std::function<void(const std::string &)> focus_element;
+  std::function<void(const std::string &)> focus_scope;
   std::function<std::string()> read_text_input;
   std::function<bool()> text_edited;
 };

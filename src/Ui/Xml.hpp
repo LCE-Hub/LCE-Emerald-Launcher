@@ -72,7 +72,9 @@ private:
                                   const pugi::xml_node &use_node,
                                   DataContext &context,
                                   std::size_t depth) const;
-  void apply_styles(Element &element, const pugi::xml_node &node) const;
+  void apply_styles(Element &element, const pugi::xml_node &node,
+                    const std::string &inline_style,
+                    const std::map<std::string, std::string> &style_attributes) const;
   const UiDocument &document_;
   ElementRegistry &registry_;
 };

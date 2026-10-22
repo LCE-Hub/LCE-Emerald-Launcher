@@ -8,6 +8,7 @@
 #include "Ui/Views/SettingsView.hpp"
 #include "Ui/Views/VersionsView.hpp"
 #include <SDL3/SDL.h>
+#include <algorithm>
 namespace emerald::ui {
 namespace {
 ControllerType controller_type_from_sdl(SDL_GamepadType type) {
@@ -31,7 +32,8 @@ ControllerType controller_type_from_sdl(SDL_GamepadType type) {
   }
 }
 
-std::string tooltip_set_for(ControllerType type) {
+std::string tooltip_set_for(
+    ControllerType type) { // neo: TODO: update controller tooltip types
   switch (type) {
   case ControllerType::Orbis:
     return "Durango";
@@ -106,8 +108,24 @@ void UiSystem::detect_controller_type() {
   set_controller_type(detected);
 }
 
-void UiSystem::refresh_tooltips() {
+void UiSystem::refresh_tooltips(const Json &data) {
   std::vector<TooltipHint> hints;
+  if (data.is_object()) {
+    const auto found = data.find("tooltips");
+    if (found != data.end() && found->is_array()) {
+      for (const Json &entry : *found) {
+        if (!entry.is_object()) {
+          continue;
+        }
+        TooltipHint hint;
+        hint.icon = entry.value("icon", "");
+        hint.label = entry.value("label", "");
+        hints.push_back(std::move(hint));
+      }
+      renderer_.set_tooltips(std::move(hints));
+      return;
+    }
+  }
   if (const ViewDefinition *definition = document_.find_view(current_view_)) {
     hints.reserve(definition->tooltips.size());
     for (const TooltipDefinition &tooltip : definition->tooltips) {
@@ -115,6 +133,21 @@ void UiSystem::refresh_tooltips() {
     }
   }
   renderer_.set_tooltips(std::move(hints));
+}
+
+void UiSystem::focus_element(const std::string &id) {
+  pending_focus_id_ = id;
+  pending_focus_ = true;
+  focus_engaged_ = true;
+  dirty_ = true;
+}
+
+void UiSystem::set_focus_scope(const std::string &id) {
+  focus_scope_id_ = id;
+  pending_focus_id_.clear();
+  pending_focus_ = true;
+  focus_engaged_ = true;
+  dirty_ = true;
 }
 
 void UiSystem::register_handlers() {
@@ -200,13 +233,13 @@ void UiSystem::play_sound_for(const std::string &handler) {
 void UiSystem::rebuild() {
   hover_chain_.clear();
   active_text_ = nullptr;
-  refresh_tooltips();
   const auto view = views_.find(current_view_);
   if (view == views_.end()) {
     return;
   }
   update_panorama();
   const Json data = view->second->data(services_);
+  refresh_tooltips(data);
   DataContext context(data, &i18n_);
   ViewBuilder builder(document_, registry_);
   tree_ = builder.build(current_view_, context);
@@ -222,7 +255,33 @@ void UiSystem::rebuild() {
                       static_cast<float>(logical_height_)});
   tree_->seed_clock(view_entered_ticks_);
   focus_order_.clear();
-  collect_focusables(tree_.get());
+  Element *scope_root = tree_.get();
+  if (!focus_scope_id_.empty()) {
+    Element *scope = tree_->find_by_id(focus_scope_id_);
+    if (scope == nullptr) {
+      focus_scope_id_.clear();
+    } else {
+      scope_root = scope;
+    }
+  }
+  collect_focusables(scope_root);
+  if (pending_focus_) {
+    pending_focus_ = false;
+    int target = 0;
+    if (!pending_focus_id_.empty()) {
+      for (std::size_t index = 0; index < focus_order_.size(); ++index) {
+        if (focus_order_[index]->id() == pending_focus_id_) {
+          target = static_cast<int>(index);
+          break;
+        }
+      }
+    }
+    pending_focus_id_.clear();
+    if (!focus_order_.empty()) {
+      focus_ = std::clamp(target, 0, static_cast<int>(focus_order_.size()) - 1);
+      focus_engaged_ = true;
+    }
+  }
   if (focus_ >= static_cast<int>(focus_order_.size())) {
     focus_ =
         focus_order_.empty() ? 0 : static_cast<int>(focus_order_.size()) - 1;
@@ -320,6 +379,19 @@ void UiSystem::activate_focus() {
   const std::string handler = target->click_handler();
   play_sound_for(handler);
   dispatch(handler);
+}
+
+bool UiSystem::handle_back() {
+  const auto view = views_.find(current_view_);
+  if (view != views_.end() && view->second->on_escape(services_)) {
+    dirty_ = true;
+    return true;
+  }
+  if (services_.audio != nullptr) {
+    services_.audio->play_back();
+  }
+  navigate_back();
+  return true;
 }
 
 TextInputElement *UiSystem::active_text_input() {
@@ -457,7 +529,8 @@ Element *UiSystem::find_clickable(Element *element, const Vec2 &point) const {
       return found;
     }
   }
-  if (element->interactive() && element->bounds().contains(point)) {
+  if (element->interactive() && element->bounds().contains(point) &&
+      !element->hidden_by_scroll()) {
     return element;
   }
   return nullptr;
@@ -604,17 +677,7 @@ void UiSystem::handle_event(const SDL_Event &event) {
           end_text_edit(false);
           break;
         }
-        {
-          const auto view = views_.find(current_view_);
-          if (view != views_.end() && view->second->on_escape(services_)) {
-            dirty_ = true;
-            break;
-          }
-          if (services_.audio != nullptr) {
-            services_.audio->play_back();
-          }
-          navigate_back();
-        }
+        handle_back();
         break;
       case SDLK_LEFT:
         if (editing) {
@@ -706,6 +769,13 @@ void UiSystem::handle_event(const SDL_Event &event) {
           break;
         }
         activate_focus();
+        break;
+      case SDL_GAMEPAD_BUTTON_EAST:
+        if (editing) {
+          end_text_edit(false);
+          break;
+        }
+        handle_back();
         break;
       default:
         break;

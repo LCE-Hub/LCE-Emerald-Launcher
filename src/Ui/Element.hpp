@@ -70,6 +70,9 @@ public:
   bool has_click_handler() const { return !click_handler_.empty(); }
   bool interactive() const { return interactive_; }
   void set_interactive(bool value) { interactive_ = value; }
+  virtual bool hides_partial_items() const { return false; }
+  virtual Rect scroll_viewport() const { return bounds_; }
+  bool hidden_by_scroll() const;
   void set_hovered(bool h) { hovered_ = h; }
   bool is_hovered() const { return hovered_; }
   void set_hover_style(ComputedStyle s) { hover_style_ = std::move(s); }

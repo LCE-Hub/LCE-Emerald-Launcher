@@ -51,28 +51,22 @@
       width: 32px;
       height: 32px;
     }
+    .gear-btn-open {
+      background-image: /images/checkbox_highlighted.png;
+    }
     .download-percent {
       font-size: 12px;
       color: #ffff55;
       text-shadow: #000000 1px 1px;
     }
-    .play-btn {
-      width: 96px;
-      height: 40px;
-      font-size: 16px;
-      color: #ffffff;
-      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+    .desc-bg {
+      border-image: url(/images/helpbg.png) 7 16 16 7 fill / 7px 16px 16px 7px;
       border-width: 12px;
     }
-    .play-btn:hover {
-      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
-      color: #ffff55;
-    }
-    .stop-btn { color: #ff5555; }
-    .game-error {
-      color: #ff5555;
-      font-size: 16px;
-      text-shadow: #000000 1px 1px;
+    .desc-label {
+      font-size: 20px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 1px 1px;
     }
     .backdrop { background: rgba(0, 0, 0, 0.8); }
     .modal-frame {
@@ -93,20 +87,57 @@
       border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
       color: #ffff55;
     }
-    .log-text {
-      width: 760px;
-      height: 360px;
-      font-size: 14px;
-      color: #e6f2e6;
+    .modal-btn-danger { color: #ff5555; }
+    .modal-btn-danger:hover { color: #ff8080; }
+    .gear-menu-shell {
+      background: #4b4b4b;
     }
-
+    .gear-menu {
+      background: #1b1b1b;
+      padding: 6px;
+      gap: 2px;
+    }
+    .gear-menu-title {
+      font-size: 16px;
+      color: #ffff55;
+      text-shadow: #000000 1px 1px;
+    }
+    .gear-menu-sep {
+      width: 100%;
+      height: 1px;
+      background: #3a3a3a;
+    }
+    .gear-menu-item {
+      width: 100%;
+      height: 32px;
+      gap: 10px;
+      color: #dddddd;
+      text-shadow: #000000 1px 1px;
+    }
+    .gear-menu-item:hover {
+      background: #3c3c3c;
+      color: #ffff55;
+    }
+    .gear-menu-item-danger { color: #ff6b6b; }
+    .gear-menu-item-danger:hover {
+      background: #4a2222;
+      color: #ff9d9d;
+    }
+    .gear-menu-icon {
+      width: 20px;
+      height: 20px;
+    }
+    .gear-menu-label {
+      font-size: 14px;
+    }
   </style>
   <template name="EditionRow">
-    <row class="edition-row {{rowClass}}" onclick="versions.select:{{id}}" align="stretch">
+    <row id="edition-{{id}}" class="edition-row {{rowClass}}" onclick="versions.select:{{id}}" align="stretch">
       <image class="edition-logo" src="{{logo}}" fit="contain" align="center" />
       <column gap="4" align="center" flex="1">
         <row gap="8" align="start">
           <label class="edition-name" text="{{name}}" />
+          <label if="{{isCustom}}" class="badge-custom" text="{{t:versions.custom}}" />
         </row>
       </column>
       <row gap="8" align="center">
@@ -117,8 +148,9 @@
         <button if="{{downloading}}" class="action-btn" onclick="versions.cancel:{{id}}">
           <image class="action-icon" src="/images/Trash_Bin_Icon.png" />
         </button>
-        <button class="action-btn" onclick="versions.settings:{{id}}">
-          <image class="action-icon" src="/images/gear.png" />
+        <button class="action-btn {{gearClass}}" onclick="versions.settings:{{id}}">
+          <image if="{{updateAvailable}}" class="action-icon" src="/images/Update_Icon.png" />
+          <image if="{{showGear}}" class="action-icon" src="/images/gear.png" />
         </button>
       </row>
     </row>
@@ -128,14 +160,65 @@
     <tooltip icon="B">Back</tooltip>
     <tooltip icon="X">Install</tooltip>
     <column width="1280px" height="720px" align="center" padding="40">
-    <use template="TitleImage"/>
-    <column height="40px"/>
+      <use template="TitleImage"/>
+      <column height="20px"/>
       <column class="options-bg" padding="4" width="1024px" height="372px" align="center">
-        <scroll class="version-recess" width="100%" height="100%" id="edition-list">
+        <scroll class="version-recess" width="100%" height="100%" id="edition-list" hide-partial="true">
           <column gap="4" width="97.9%" foreach="{{editions}}" as="edition">
-            <use template="EditionRow" id="{{edition.id}}" name="{{edition.name}}" logo="{{edition.logo}}" notInstalled="{{edition.notInstalled}}" showInstall="{{edition.showInstall}}" showPlay="{{edition.showPlay}}" showStop="{{edition.showStop}}" downloading="{{edition.downloading}}" downloadPercentText="{{edition.downloadPercentText}}" rowClass="{{edition.rowClass}}" />
+            <use template="EditionRow"
+              id="{{edition.id}}"
+              name="{{edition.name}}"
+              logo="{{edition.logo}}"
+              isCustom="{{edition.isCustom}}"
+              notInstalled="{{edition.notInstalled}}"
+              showInstall="{{edition.showInstall}}"
+              showGear="{{edition.showGear}}"
+              updateAvailable="{{edition.updateAvailable}}"
+              downloading="{{edition.downloading}}"
+              downloadPercentText="{{edition.downloadPercentText}}"
+              rowClass="{{edition.rowClass}}"
+              gearClass="{{edition.gearClass}}" />
           </column>
         </scroll>
+      </column>
+      <column height="8px"/>
+      <column class="desc-bg" width="1024px" height="60px" align="center">
+        <label class="desc-label" text="{{selectedDesc}}" />
+      </column>
+      <column class="backdrop" if="{{settingsMenu}}" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" onclick="versions.menu.close">
+        <column class="gear-menu-shell" style="position:absolute;left:841px;top:{{menuTop}}px;width:250px" padding="2px">
+          <column id="gear-menu" class="gear-menu" gap="2px">
+            <label class="gear-menu-title" text="{{menuTitle}}" />
+            <column class="gear-menu-sep" />
+            <column foreach="{{menuItems}}" as="item" gap="2px">
+              <row class="gear-menu-item {{item.itemClass}}" onclick="{{item.action}}" gap="10px">
+                <image class="gear-menu-icon" src="{{item.icon}}" fit="contain" align="center" />
+                <label class="gear-menu-label" text="{{item.label}}" align="center" />
+              </row>
+            </column>
+            <column class="gear-menu-sep" />
+            <column foreach="{{menuDangerItems}}" as="item" gap="2px">
+              <row class="gear-menu-item {{item.itemClass}}" onclick="{{item.action}}" gap="10px">
+                <image class="gear-menu-icon" src="{{item.icon}}" fit="contain" align="center" />
+                <label class="gear-menu-label" text="{{item.label}}" align="center" />
+              </row>
+            </column>
+          </column>
+        </column>
+      </column>
+      <column class="backdrop" if="{{deleteModal}}" style="position:absolute;left:0px;top:0px;width:1280px;height:720px">
+        <column id="delete-modal" class="modal-frame" style="position:absolute;left:440px;top:220px;width:400px" align="center" gap="8">
+          <label class="modal-title" text="{{deleteTitle}}" />
+          <label text="{{t:versions.deleteWarning}}" />
+          <row align="center" gap="20">
+            <button class="modal-btn" onclick="versions.delete.cancel">
+              <label text="{{t:common.cancel}}"/>
+            </button>
+            <button class="modal-btn modal-btn-danger" onclick="versions.delete.confirm">
+              <label text="{{t:common.delete}}"/>
+            </button>
+          </row>
+        </column>
       </column>
     </column>
   </view>

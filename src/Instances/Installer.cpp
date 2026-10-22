@@ -6,6 +6,7 @@
 #include <archive_entry.h>
 #include <string_view>
 #include <sys/stat.h>
+#include <vector>
 namespace emerald::instances {
 namespace {
 bool safe_path_within(const std::filesystem::path &base,
@@ -73,6 +74,29 @@ bool is_workshop_path(const std::filesystem::path &child,
     }
   }
   return false;
+}
+
+bool move_entry(const std::filesystem::path &source,
+                const std::filesystem::path &target) {
+  std::error_code error;
+  std::filesystem::rename(source, target, error);
+  if (!error) {
+    return true;
+  }
+  error.clear();
+  if (std::filesystem::is_directory(source, error)) {
+    error.clear();
+    if (!core::copy_directory(source, target)) {
+      return false;
+    }
+  } else {
+    if (!core::copy_file(source, target)) {
+      return false;
+    }
+  }
+  std::error_code remove_error;
+  std::filesystem::remove_all(source, remove_error);
+  return true;
 }
 } // namespace
 
@@ -181,23 +205,50 @@ void flatten_instance(const std::filesystem::path &instance_dir) {
   if (error) {
     return;
   }
-  std::filesystem::path only_child;
-  std::size_t count = 0;
+
+  std::filesystem::path inner_dir;
   for (const std::filesystem::directory_entry &entry : it) {
-    ++count;
-    only_child = entry.path();
+    const std::filesystem::path &child = entry.path();
+    if (!std::filesystem::is_directory(child, error)) {
+      continue;
+    }
+    error.clear();
+    if (!std::filesystem::exists(child / std::string(kExecutableMarker),
+                                 error)) {
+      continue;
+    }
+    inner_dir = child;
+    break;
   }
-  if (count != 1 || !std::filesystem::is_directory(only_child, error)) {
+  if (inner_dir.empty()) {
     return;
   }
+
   std::error_code move_error;
+  std::vector<std::filesystem::path> inner_entries;
   for (const std::filesystem::directory_entry &entry :
-       std::filesystem::directory_iterator(only_child, move_error)) {
-    const std::filesystem::path target = instance_dir / entry.path().filename();
-    std::filesystem::rename(entry.path(), target, move_error);
-    move_error.clear();
+       std::filesystem::directory_iterator(inner_dir, move_error)) {
+    inner_entries.push_back(entry.path());
   }
-  remove_all(only_child, move_error);
+  move_error.clear();
+
+  bool complete = true;
+  for (const std::filesystem::path &source : inner_entries) {
+    const std::filesystem::path target = instance_dir / source.filename();
+    if (names_match_keep(source, keep_list()) &&
+        std::filesystem::exists(target, move_error)) {
+      move_error.clear();
+      continue;
+    }
+    if (!move_entry(source, target)) {
+      complete = false;
+    }
+  }
+  if (!complete) {
+    return;
+  }
+  std::error_code remove_error;
+  std::filesystem::remove_all(inner_dir, remove_error);
 }
 
 DownloadStatus install_instance_archive(

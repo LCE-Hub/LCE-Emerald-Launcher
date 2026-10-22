@@ -17,7 +17,8 @@
     "unknown": "Unknown",
     "all": "All",
     "noResults": "No results",
-    "set": "set"
+    "set": "set",
+    "close": "Close"
   },
   "header": {
     "title": "Emerald Legacy Launcher"

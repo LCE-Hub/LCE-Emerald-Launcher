@@ -17,7 +17,8 @@
     "unknown": "Неизвестно",
     "all": "Все",
     "noResults": "Без результатов",
-    "set": "Поставить"
+    "set": "Поставить",
+    "close": "Закрыть"
   },
   "header": {
     "title": "Emerald Legacy Launcher"

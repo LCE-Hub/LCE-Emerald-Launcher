@@ -35,6 +35,12 @@ public:
       focus_ = 0;
       dirty_ = true;
     };
+    services_.focus_element = [this](const std::string &id) {
+      focus_element(id);
+    };
+    services_.focus_scope = [this](const std::string &id) {
+      set_focus_scope(id);
+    };
     services_.read_text_input = [this]() { return text_result_; };
     services_.text_edited = [this]() { return text_edited_; };
   }
@@ -43,6 +49,8 @@ public:
   void invalidate() { dirty_ = true; }
   const std::string &current_view() const { return current_view_; }
   void set_controller_type(ControllerType type);
+  void focus_element(const std::string &id);
+  void set_focus_scope(const std::string &id);
   std::vector<Element *> hover_chain_;
   void handle_event(const SDL_Event &event);
   void render();
@@ -50,7 +58,7 @@ public:
 private:
   void register_handlers();
   void rebuild();
-  void refresh_tooltips();
+  void refresh_tooltips(const Json &data);
   void detect_controller_type();
   void update_panorama();
   void dispatch(const std::string &handler);
@@ -61,6 +69,7 @@ private:
   void apply_focus();
   void move_focus(int direction);
   void activate_focus();
+  bool handle_back();
   TextInputElement *active_text_input();
   void begin_text_edit(Element *element);
   void end_text_edit(bool commit);
@@ -90,6 +99,9 @@ private:
   std::vector<Element *> focus_order_;
   int focus_ = 0;
   bool focus_engaged_ = false;
+  std::string focus_scope_id_;
+  std::string pending_focus_id_;
+  bool pending_focus_ = false;
   bool gamepad_ = true;
   ControllerType controller_type_ = ControllerType::Unknown;
   bool dirty_ = true;
