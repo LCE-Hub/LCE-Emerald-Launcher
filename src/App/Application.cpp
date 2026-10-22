@@ -233,6 +233,27 @@ void Application::render() {
     download_revision_ = downloads_.revision();
     ui_->invalidate();
   }
+  for (const std::string &id : downloads_.known_ids()) {
+    const instances::DownloadSnapshot snapshot = downloads_.snapshot(id);
+    auto found = download_states_.find(id);
+    const instances::DownloadState previous =
+        found == download_states_.end() ? instances::DownloadState::idle
+                                        : found->second;
+    if (snapshot.state != previous) {
+      if (snapshot.state == instances::DownloadState::failed &&
+          previous != instances::DownloadState::failed) {
+        ui_->push_toast("", snapshot.message.empty()
+                              ? "Failed to download " + id
+                              : snapshot.message,
+                        ui::ToastVariant::Error);
+      }
+      if (found != download_states_.end()) {
+        found->second = snapshot.state;
+      } else {
+        download_states_.emplace(id, snapshot.state);
+      }
+    }
+  }
   launch_.poll();
   {
     integrations::DiscordState drpc;

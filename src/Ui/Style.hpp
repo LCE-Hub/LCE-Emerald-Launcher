@@ -43,10 +43,16 @@ struct ComputedStyle {
   std::optional<float> widthPercent;
   std::optional<float> heightPercent;
   float padding = 0.0F;
+  std::optional<float> paddingLeft;
+  std::optional<float> paddingRight;
+  std::optional<float> paddingTop;
+  std::optional<float> paddingBottom;
   float gap = 0.0F;
   float margin = 0.0F;
   std::optional<float> marginTop;
   std::optional<float> marginBottom;
+  std::optional<float> marginLeft;
+  std::optional<float> marginRight;
   float borderWidth = 0.0F;
   float flex = 0.0F;
   std::optional<Color> background;
@@ -90,6 +96,7 @@ struct StyleSheet {
 };
 
 bool parse_color(std::string_view text, Color &out);
+std::vector<float> parse_sides(const std::string &value);
 void apply_style_property(ComputedStyle &style, std::string_view name,
                           std::string_view value);
 ComputedStyle parse_inline_style(std::string_view css);

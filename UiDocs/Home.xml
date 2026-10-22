@@ -18,6 +18,7 @@
         <column class="buttons" align="center">
           <use if="{{showPlay}}" template="HomeButton" action="versions.launch:{{profile}}" label="{{t:home.playGame}}"/>
           <use if="{{showStop}}" template="HomeButton" extraclasses="main-button-danger" action="versions.stop:{{profile}}" label="{{t:home.stopGame}}"/>
+          <use if="{{showIdle}}" template="HomeButton" extraclasses="main-button-disabled" label="{{t:home.playGame}}"/>
           <use template="HomeButton" action="go:settings" label="{{t:home.helpAndOptions}}"/>
           <use template="HomeButton" action="go:versions" label="{{t:home.versions}}"/>
           <use template="HomeButton" action="quit" label="{{t:home.workshop}}"/> <!--neo: TODO-->

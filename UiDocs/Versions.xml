@@ -54,11 +54,6 @@
     .gear-btn-open {
       background-image: /images/checkbox_highlighted.png;
     }
-    .download-percent {
-      font-size: 12px;
-      color: #ffff55;
-      text-shadow: #000000 1px 1px;
-    }
     .desc-bg {
       border-image: url(/images/helpbg.png) 7 16 16 7 fill / 7px 16px 16px 7px;
       border-width: 12px;
@@ -141,7 +136,6 @@
         </row>
       </column>
       <row gap="8" align="center">
-        <label if="{{downloading}}" class="download-percent" text="{{downloadPercentText}}%" />
         <button if="{{showInstall}}" class="action-btn" onclick="versions.install:{{id}}">
           <image class="action-icon" src="/images/Download_Icon.png" />
         </button>

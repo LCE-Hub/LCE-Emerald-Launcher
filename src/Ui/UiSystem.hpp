@@ -35,6 +35,7 @@ public:
       focus_ = 0;
       dirty_ = true;
     };
+    services_.notifications = &notifications_;
     services_.focus_element = [this](const std::string &id) {
       focus_element(id);
     };
@@ -43,11 +44,17 @@ public:
     };
     services_.read_text_input = [this]() { return text_result_; };
     services_.text_edited = [this]() { return text_edited_; };
+    services_.notify = [this](const std::string &title,
+                              const std::string &message, ToastVariant variant,
+                              const std::string &on_click) {
+      push_toast(title, message, variant, on_click);
+    };
   }
   void navigate(const std::string &view_id);
   void navigate_back();
   void invalidate() { dirty_ = true; }
-  const std::string &current_view() const { return current_view_; }
+  void push_toast(std::string title, std::string message,
+                  ToastVariant variant, std::string on_click = "");  const std::string &current_view() const { return current_view_; }
   void set_controller_type(ControllerType type);
   void focus_element(const std::string &id);
   void set_focus_scope(const std::string &id);
@@ -58,6 +65,8 @@ public:
 private:
   void register_handlers();
   void rebuild();
+  void rebuild_overlay();
+  void update_notifications();
   void refresh_tooltips(const Json &data);
   void detect_controller_type();
   void update_panorama();
@@ -93,6 +102,9 @@ private:
   std::string current_view_;
   std::vector<std::string> back_stack_;
   ElementPtr tree_;
+  ElementPtr overlay_tree_;
+  NotificationHub notifications_;
+  bool overlay_dirty_ = true;
   Element *active_text_ = nullptr;
   std::string text_result_;
   bool text_edited_ = false;

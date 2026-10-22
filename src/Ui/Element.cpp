@@ -68,7 +68,7 @@ void render_box(RenderContext &context, const Element &element) {
   const float alpha = style.opacity;
   if (style.borderImage.has_value()) {
     context.draw_nine_slice(style.borderImage->source, element.bounds(),
-                            *style.borderImage);
+                            *style.borderImage, alpha);
   } else {
     if (style.background.has_value()) {
       Color bg = *style.background;
@@ -135,15 +135,16 @@ public:
     if (count > 1) {
       contentHeight += style_.gap * static_cast<float>(count - 1);
     }
-    measured_.width = clamped_width(contentWidth + inset() * 2.0F);
-    measured_.height = clamped_height(contentHeight + inset() * 2.0F);
+    measured_.width = clamped_width(contentWidth + hspace());
+    measured_.height = clamped_height(contentHeight + vspace());
   }
   void arrange(const Rect &rect) override {
     bounds_ = rect;
-    const float innerX = rect.x + inset();
-    float cursorY = rect.y + inset();
-    const float innerWidth = std::max(0.0F, rect.width - inset() * 2.0F);
-    const float innerHeight = std::max(0.0F, rect.height - inset() * 2.0F);
+    const float borderColor = style_.borderWidth;
+    const float innerX = rect.x + pad_left() + borderColor;
+    float cursorY = rect.y + pad_top() + borderColor;
+    const float innerWidth = std::max(0.0F, rect.width - hspace());
+    const float innerHeight = std::max(0.0F, rect.height - vspace());
     const std::size_t count = visible_children(children_);
     std::size_t index = 0;
     for (ElementPtr &child : children_) {
@@ -154,13 +155,16 @@ public:
           child->style().widthPercent ? child->resolve_w(innerWidth)
           : child->style().width      ? *child->style().width
           : child->style().align == Align::Stretch ? innerWidth
-                                                   : child->measured().width;
+                                                    : child->measured().width;
       const float childHeight = child->resolve_h(innerHeight);
       float childX = innerX;
       if (child->style().align == Align::Center) {
         childX = innerX + (innerWidth - childWidth) * 0.5F;
       } else if (child->style().align == Align::End) {
         childX = innerX + innerWidth - childWidth;
+      }
+      if (child->style().marginLeft.has_value()) {
+        childX += *child->style().marginLeft;
       }
       if (child->style().marginTop.has_value()) {
         cursorY += *child->style().marginTop;
@@ -210,6 +214,12 @@ public:
       }
       if (child->style().flex <= 0.0F) {
         contentWidth += child->measured().width;
+        if (child->style().marginLeft.has_value()) {
+          contentWidth += *child->style().marginLeft;
+        }
+        if (child->style().marginRight.has_value()) {
+          contentWidth += *child->style().marginRight;
+        }
       }
       contentHeight = std::max(contentHeight, child->measured().height);
     }
@@ -217,24 +227,32 @@ public:
     if (count > 1) {
       contentWidth += style_.gap * static_cast<float>(count - 1);
     }
-    measured_.width = clamped_width(contentWidth + inset() * 2.0F);
-    measured_.height = clamped_height(contentHeight + inset() * 2.0F);
+    measured_.width = clamped_width(contentWidth + hspace());
+    measured_.height = clamped_height(contentHeight + vspace());
   }
   void arrange(const Rect &rect) override {
     bounds_ = rect;
-    const float innerY = rect.y + inset();
-    float cursorX = rect.x + inset();
-    const float innerWidth = std::max(0.0F, rect.width - inset() * 2.0F);
-    const float innerHeight = std::max(0.0F, rect.height - inset() * 2.0F);
+    const float borderColor = style_.borderWidth;
+    const float innerY = rect.y + pad_top() + borderColor;
+    float cursorX = rect.x + pad_left() + borderColor;
+    const float innerWidth = std::max(0.0F, rect.width - hspace());
+    const float innerHeight = std::max(0.0F, rect.height - vspace());
     const std::size_t count = visible_children(children_);
     float fixed = 0.0F, flexTotal = 0.0F;
     for (ElementPtr &c : children_) {
       if (!c->style().visible || c->style().absolute)
         continue;
-      if (c->style().flex > 0.0F)
+      if (c->style().flex > 0.0F) {
         flexTotal += c->style().flex;
-      else
+      } else {
         fixed += c->resolve_w(innerWidth);
+        if (c->style().marginLeft.has_value()) {
+          fixed += *c->style().marginLeft;
+        }
+        if (c->style().marginRight.has_value()) {
+          fixed += *c->style().marginRight;
+        }
+      }
     }
     if (count > 1)
       fixed += style_.gap * float(count - 1);
@@ -257,8 +275,14 @@ public:
       } else if (child->style().align == Align::End) {
         childY = innerY + innerHeight - childHeight;
       }
+      if (child->style().marginLeft.has_value()) {
+        cursorX += *child->style().marginLeft;
+      }
       child->arrange(Rect{cursorX, childY, childWidth, childHeight});
       cursorX += childWidth;
+      if (child->style().marginRight.has_value()) {
+        cursorX += *child->style().marginRight;
+      }
       if (index + 1 < count) {
         cursorX += style_.gap;
       }
@@ -503,23 +527,24 @@ public:
     if (count > 1) {
       content_height_ += style_.gap * static_cast<float>(count - 1);
     }
-    const float content_height = content_height_ + inset() * 2.0F;
+    const float content_height = content_height_ + vspace();
     const float cap =
         style_.height.value_or(style_.maxHeight.value_or(content_height));
-    measured_.width = clamped_width(contentWidth + inset() * 2.0F);
+    measured_.width = clamped_width(contentWidth + hspace());
     measured_.height = std::min(content_height, cap);
   }
 
   void arrange(const Rect &rect) override {
     bounds_ = rect;
-    const float view_height = rect.height - inset() * 2.0F;
+    const float borderColor = style_.borderWidth;
+    const float view_height = rect.height - vspace();
     const float max_scroll = std::max(0.0F, content_height_ - view_height);
     if (autoscroll_duration_ <= 0.0F) {
       scroll_offset_ = std::clamp(scroll_offset_, 0.0F, max_scroll);
     }
-    const float innerX = rect.x + inset();
-    float cursorY = rect.y + inset() - scroll_offset_;
-    const float innerWidth = std::max(0.0F, rect.width - inset() * 2.0F);
+    const float innerX = rect.x + pad_left() + borderColor;
+    float cursorY = rect.y + pad_top() + borderColor - scroll_offset_;
+    const float innerWidth = std::max(0.0F, rect.width - hspace());
     const std::size_t count = visible_children(children_);
     std::size_t index = 0;
     for (ElementPtr &child : children_) {
@@ -556,9 +581,12 @@ public:
       return;
     }
     render_box(context, *this);
-    const float in = inset();
-    const Rect view{bounds_.x + in, bounds_.y + in, bounds_.width - in * 2.0F,
-                    bounds_.height - in * 2.0F};
+    const float in_l = pad_left() + style_.borderWidth;
+    const float in_t = pad_top() + style_.borderWidth;
+    const float in_r = pad_right() + style_.borderWidth;
+    const float in_b = pad_bottom() + style_.borderWidth;
+    const Rect view{bounds_.x + in_l, bounds_.y + in_t,
+                    bounds_.width - in_l - in_r, bounds_.height - in_t - in_b};
     context.push_clip(view);
     const TextStyle childText = resolve_text_style(visual_style(), text);
     if (hide_partial_) {
@@ -577,7 +605,7 @@ public:
     if (autoscroll_duration_ > 0.0F) {
       return;
     }
-    const float view_height = bounds_.height - inset() * 2.0F;
+    const float view_height = bounds_.height - vspace();
     const float max_scroll = std::max(0.0F, content_height_ - view_height);
     scroll_offset_ =
         std::clamp(scroll_offset_ + delta_y * kScrollSpeed, 0.0F, max_scroll);
@@ -586,9 +614,12 @@ public:
 
   bool hides_partial_items() const override { return hide_partial_; }
   Rect scroll_viewport() const override {
-    const float in = inset();
-    return Rect{bounds_.x + in, bounds_.y + in, bounds_.width - in * 2.0F,
-                bounds_.height - in * 2.0F};
+    const float in_l = pad_left() + style_.borderWidth;
+    const float in_t = pad_top() + style_.borderWidth;
+    const float in_r = pad_right() + style_.borderWidth;
+    const float in_b = pad_bottom() + style_.borderWidth;
+    return Rect{bounds_.x + in_l, bounds_.y + in_t, bounds_.width - in_l - in_r,
+                bounds_.height - in_t - in_b};
   }
 
   Element *scroll_hit_test(const Vec2 &point) {
@@ -599,10 +630,10 @@ public:
     if (autoscroll_duration_ > 0.0F) {
       return false;
     }
-    const float in = inset();
-    const float view_top = bounds_.y + in;
-    const float view_bottom = bounds_.y + bounds_.height - in;
-    const float view_height = bounds_.height - in * 2.0F;
+    const float view_top = bounds_.y + pad_top() + style_.borderWidth;
+    const float view_bottom =
+        bounds_.y + bounds_.height - pad_bottom() - style_.borderWidth;
+    const float view_height = bounds_.height - vspace();
     const float max_scroll = std::max(0.0F, content_height_ - view_height);
     float delta = 0.0F;
     if (target.y < view_top - 1.0F) {
@@ -627,7 +658,7 @@ public:
     if (autoscroll_duration_ <= 0.0F) {
       return active;
     }
-    const float view_height = bounds_.height - inset() * 2.0F;
+    const float view_height = bounds_.height - vspace();
     const uint64_t duration_ms =
         static_cast<uint64_t>(autoscroll_duration_ * 1000.0F);
     const uint64_t elapsed =

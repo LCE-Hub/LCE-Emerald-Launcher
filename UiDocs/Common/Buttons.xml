@@ -26,8 +26,12 @@
       border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
       color: #ffff55;
     }
-    .main-button.disabled {
+    .main-button-disabled {
       opacity: 0.5;
+      color: #808080;
+    }
+    .main-button-disabled:hover {
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
       color: #808080;
     }
     .main-button-danger { color: #ff5555; }

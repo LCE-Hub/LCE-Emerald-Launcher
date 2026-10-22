@@ -101,6 +101,46 @@ float parse_length(std::string_view text) {
   return result.ec == std::errc{} ? value : 0.0F;
 }
 
+static void expand_sides(const std::vector<float> &sides, float &uniform,
+                         std::optional<float> &top,
+                         std::optional<float> &right,
+                         std::optional<float> &bottom,
+                         std::optional<float> &left) {
+  if (sides.empty()) {
+    return;
+  }
+  if (sides.size() > 1) {
+    top = sides[0];
+    right = sides[1];
+    bottom = sides.size() > 2 ? sides[2] : sides[0];
+    left = sides.size() > 3 ? sides[3] : sides[1];
+  } else {
+    uniform = sides[0];
+    top.reset();
+    right.reset();
+    bottom.reset();
+    left.reset();
+  }
+}
+
+std::vector<float> parse_sides(const std::string &value) {
+  std::vector<float> sides;
+  std::size_t start = 0;
+  while (start < value.size() && sides.size() < 4) {
+    while (start < value.size() && std::isspace(static_cast<unsigned char>(value[start]))) {
+      ++start;
+    }
+    if (start >= value.size()) {
+      break;
+    }
+    const std::size_t end = value.find_first_of(" \t", start);
+    const std::size_t stop = end == std::string::npos ? value.size() : end;
+    sides.push_back(parse_length(std::string_view(value).substr(start, stop - start)));
+    start = stop;
+  }
+  return sides;
+}
+
 std::optional<float> parse_percent(std::string_view text) {
   if (!text.ends_with('%'))
     return std::nullopt;
@@ -274,15 +314,33 @@ void apply_declaration(ComputedStyle &style, std::string_view name,
   } else if (name == "max-height") {
     style.maxHeight = parse_length(value);
   } else if (name == "padding") {
-    style.padding = parse_length(value);
+    expand_sides(parse_sides(std::string(value)), style.padding,
+                 style.paddingTop, style.paddingRight, style.paddingBottom,
+                 style.paddingLeft);
+  } else if (name == "padding-left") {
+    style.paddingLeft = parse_length(value);
+  } else if (name == "padding-right") {
+    style.paddingRight = parse_length(value);
+  } else if (name == "padding-top") {
+    style.paddingTop = parse_length(value);
+  } else if (name == "padding-bottom") {
+    style.paddingBottom = parse_length(value);
   } else if (name == "border-width") {
     style.borderWidth = parse_length(value);
   } else if (name == "gap") {
     style.gap = parse_length(value);
   } else if (name == "margin") {
-    style.margin = parse_length(value);
-    style.marginTop = style.margin;
-    style.marginBottom = style.margin;
+    const std::vector<float> sides = parse_sides(std::string(value));
+    expand_sides(sides, style.margin, style.marginTop, style.marginRight,
+                 style.marginBottom, style.marginLeft);
+    if (!style.marginTop.has_value()) {
+      style.marginTop = style.margin;
+      style.marginBottom = style.margin;
+    }
+  } else if (name == "margin-left") {
+    style.marginLeft = parse_length(value);
+  } else if (name == "margin-right") {
+    style.marginRight = parse_length(value);
   } else if (name == "margin-top") {
     style.marginTop = parse_length(value);
   } else if (name == "margin-bottom") {
@@ -501,6 +559,18 @@ ComputedStyle ComputedStyle::merge(const ComputedStyle &base,
   if (overlay.padding != 0.0F) {
     result.padding = overlay.padding;
   }
+  if (overlay.paddingLeft.has_value()) {
+    result.paddingLeft = overlay.paddingLeft;
+  }
+  if (overlay.paddingRight.has_value()) {
+    result.paddingRight = overlay.paddingRight;
+  }
+  if (overlay.paddingTop.has_value()) {
+    result.paddingTop = overlay.paddingTop;
+  }
+  if (overlay.paddingBottom.has_value()) {
+    result.paddingBottom = overlay.paddingBottom;
+  }
   if (overlay.borderWidth != 0.0F) {
     result.borderWidth = overlay.borderWidth;
   }
@@ -517,6 +587,12 @@ ComputedStyle ComputedStyle::merge(const ComputedStyle &base,
   }
   if (overlay.marginBottom.has_value()) {
     result.marginBottom = overlay.marginBottom;
+  }
+  if (overlay.marginLeft.has_value()) {
+    result.marginLeft = overlay.marginLeft;
+  }
+  if (overlay.marginRight.has_value()) {
+    result.marginRight = overlay.marginRight;
   }
   if (overlay.flex != 0.0F) {
     result.flex = overlay.flex;

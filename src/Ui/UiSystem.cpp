@@ -5,12 +5,31 @@
 #include "Ui/EditionResolver.hpp"
 #include "Ui/Views/CreditsView.hpp"
 #include "Ui/Views/HomeView.hpp"
+#include "Ui/Views/OverlayView.hpp"
 #include "Ui/Views/SettingsView.hpp"
 #include "Ui/Views/VersionsView.hpp"
 #include <SDL3/SDL.h>
 #include <algorithm>
+#include <cstdlib>
 namespace emerald::ui {
 namespace {
+Element *find_blocking_element(Element *element, const Vec2 &point) {
+  if (element == nullptr || !element->style().visible ||
+      !element->bounds().contains(point)) {
+    return nullptr;
+  }
+  const ComputedStyle &style = element->visual_style();
+  if (style.background.has_value() || style.borderImage.has_value() ||
+      style.backgroundImage.has_value()) {
+    return element;
+  }
+  for (const ElementPtr &child : element->children()) {
+    if (Element *found = find_blocking_element(child.get(), point)) {
+      return found;
+    }
+  }
+  return nullptr;
+}
 ControllerType controller_type_from_sdl(SDL_GamepadType type) {
   switch (type) {
   case SDL_GAMEPAD_TYPE_XBOX360:
@@ -150,6 +169,32 @@ void UiSystem::set_focus_scope(const std::string &id) {
   dirty_ = true;
 }
 
+void UiSystem::push_toast(std::string title, std::string message,
+                          ToastVariant variant, std::string on_click) {
+  Toast toast;
+  toast.title = std::move(title);
+  toast.message = std::move(message);
+  toast.on_click = std::move(on_click);
+  toast.variant = variant;
+  toast.expires_at =
+      SDL_GetTicks() + static_cast<std::uint64_t>(NotificationHub::kToastLifetimeMs);
+  notifications_.push(std::move(toast));
+  if (services_.audio != nullptr) {
+    services_.audio->play_sfx(variant == ToastVariant::Error ? "in.ogg"
+                                                             : "notification.ogg");
+  }
+  overlay_dirty_ = true;
+}
+
+void UiSystem::update_notifications() {
+  if (notifications_.expire(SDL_GetTicks())) {
+    if (services_.audio != nullptr) {
+      services_.audio->play_sfx("out.ogg");
+    }
+    overlay_dirty_ = true;
+  }
+}
+
 void UiSystem::register_handlers() {
   handlers_.bind("go", [this](std::string_view argument) {
     navigate(std::string(argument));
@@ -197,6 +242,26 @@ void UiSystem::navigate_back() {
 }
 
 void UiSystem::dispatch(const std::string &handler) {
+  if (handler.rfind("overlay.toasts.click:", 0) == 0 ||
+      handler.rfind("overlay.toasts.dismiss:", 0) == 0) {
+    const std::size_t colon = handler.find(':');
+    const std::string argument = handler.substr(colon + 1);
+    const std::uint64_t id = std::strtoull(argument.c_str(), nullptr, 10);
+    std::string action;
+    if (const Toast *toast = notifications_.find(id)) {
+      action = toast->on_click;
+    }
+    if (notifications_.dismiss(id, SDL_GetTicks())) {
+      if (services_.audio != nullptr) {
+        services_.audio->play_sfx("out.ogg");
+      }
+      overlay_dirty_ = true;
+    }
+    if (!action.empty()) {
+      dispatch(action);
+    }
+    return;
+  }
   const std::size_t colon = handler.find(':');
   if (colon != std::string::npos) {
     const std::string name = handler.substr(0, colon);
@@ -220,7 +285,8 @@ void UiSystem::play_sound_for(const std::string &handler) {
   if (services_.audio == nullptr) {
     return;
   }
-  if (handler.rfind("open:", 0) == 0) {
+  if (handler.rfind("open:", 0) == 0 ||
+      handler.rfind("overlay.toasts.", 0) == 0) {
     return;
   }
   if (handler == "settings.back" || handler == "quit") {
@@ -290,6 +356,34 @@ void UiSystem::rebuild() {
     apply_focus();
   }
   dirty_ = false;
+  rebuild_overlay();
+}
+
+void UiSystem::rebuild_overlay() {
+  overlay_dirty_ = false;
+  overlay_tree_ = nullptr;
+  const auto overlay = views_.find("overlay");
+  if (overlay == views_.end()) {
+    return;
+  }
+  const Json data = overlay->second->data(services_);
+  if (!data.value("overlayVisible", false)) {
+    return;
+  }
+  DataContext context(data, &i18n_);
+  ViewBuilder builder(document_, registry_);
+  ElementPtr tree = builder.build("overlay", context);
+  if (tree == nullptr) {
+    return;
+  }
+  ComputedStyle root_style = tree->style();
+  root_style.width = static_cast<float>(logical_width_);
+  root_style.height = static_cast<float>(logical_height_);
+  tree->set_style(root_style);
+  tree->measure(renderer_);
+  tree->arrange(Rect{0.0F, 0.0F, static_cast<float>(logical_width_),
+                     static_cast<float>(logical_height_)});
+  overlay_tree_ = std::move(tree);
 }
 
 void UiSystem::collect_focusables(Element *element) {
@@ -494,8 +588,11 @@ bool UiSystem::hover_path(Element *e, const Vec2 &p,
 }
 
 void UiSystem::render() {
+  update_notifications();
   if (dirty_) {
     rebuild();
+  } else if (overlay_dirty_) {
+    rebuild_overlay();
   }
   if (tree_ != nullptr) {
     tree_->tick(SDL_GetTicks());
@@ -515,6 +612,8 @@ void UiSystem::render() {
                                    SDL_LOGICAL_PRESENTATION_LETTERBOX);
   if (tree_ != nullptr)
     tree_->render(renderer_);
+  if (overlay_tree_ != nullptr)
+    overlay_tree_->render(renderer_);
   renderer_.end_frame();
 }
 
@@ -564,6 +663,15 @@ void UiSystem::handle_event(const SDL_Event &event) {
       if (typing != nullptr && typing->editing()) {
         release_text_edit(true);
       }
+      if (Element *target = find_clickable(overlay_tree_.get(), point)) {
+        const std::string handler = target->click_handler();
+        dispatch(handler);
+        break;
+      }
+      if (overlay_tree_ != nullptr &&
+          find_blocking_element(overlay_tree_.get(), point) != nullptr) {
+        break;
+      }
       if (Element *target = find_clickable(tree_.get(), point)) {
         if (auto *input = dynamic_cast<TextInputElement *>(target)) {
           if (!input->editing()) {
@@ -589,7 +697,14 @@ void UiSystem::handle_event(const SDL_Event &event) {
       SDL_ConvertEventToRenderCoordinates(renderer_.handle(), &converted);
       const Vec2 point{converted.motion.x, converted.motion.y};
       std::vector<Element *> path;
-      hover_path(tree_.get(), point, path);
+      if (Element *blocking = find_blocking_element(overlay_tree_.get(), point)) {
+        if (hover_path(blocking, point, path)) {
+          path.insert(path.begin(), overlay_tree_.get());
+        }
+      }
+      if (path.empty()) {
+        hover_path(tree_.get(), point, path);
+      }
       if (path != hover_chain_) {
         for (Element *e : hover_chain_) {
           e->set_hovered(false);
@@ -620,10 +735,13 @@ void UiSystem::handle_event(const SDL_Event &event) {
     SDL_ConvertEventToRenderCoordinates(renderer_.handle(), &motion);
     const Vec2 point{motion.motion.x, motion.motion.y};
     const float delta = -event.wheel.y;
-    if (tree_) {
-      if (Element *target = tree_->scroll_hit_test(point)) {
-        target->on_wheel(delta);
-      }
+    Element *target = overlay_tree_ ? overlay_tree_->scroll_hit_test(point)
+                                    : nullptr;
+    if (target == nullptr && tree_) {
+      target = tree_->scroll_hit_test(point);
+    }
+    if (target) {
+      target->on_wheel(delta);
     }
   } break;
   case SDL_EVENT_TEXT_INPUT:

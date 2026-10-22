@@ -94,21 +94,4 @@ std::vector<Edition> resolve_editions(
   }
   return editions;
 }
-
-std::string edition_download_url(const Edition &edition,
-                                 const std::string &branch) {
-  const std::string marker = "/releases/download/";
-  const std::size_t position = edition.url.find(marker);
-  if (position == std::string::npos || branch.empty()) {
-    return edition.url;
-  }
-
-  const std::size_t after = position + marker.size();
-  const std::size_t last_slash = edition.url.rfind('/');
-  if (last_slash == std::string::npos || last_slash < after) {
-    return edition.url;
-  }
-  const std::string filename = edition.url.substr(last_slash + 1);
-  return edition.url.substr(0, after) + branch + "/" + filename;
-}
 } // namespace emerald::instances

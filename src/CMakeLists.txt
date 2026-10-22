@@ -124,16 +124,18 @@ set(EMERALD_UI_SOURCES
     Ui/EditionResolver.cpp
     Ui/Binding.cpp
     Ui/I18n.cpp
+    Ui/Notifications.cpp
     Ui/Xml.cpp
     Ui/Handlers.cpp
     Ui/UiSystem.cpp
     Ui/Render/TextureCache.cpp
+    Ui/Render/SdlRenderer.cpp
     Ui/Render/SvgRaster.cpp
     Ui/Render/FontCache.cpp
     Ui/Render/Panorama.cpp
-    Ui/Render/SdlRenderer.cpp
     Ui/Views/HomeView.cpp
     Ui/Views/SettingsView.cpp
+    Ui/Views/OverlayView.cpp
     Ui/Views/VersionsView.cpp
     Ui/Views/CreditsView.cpp
 )

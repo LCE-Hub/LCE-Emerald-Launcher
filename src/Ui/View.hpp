@@ -4,6 +4,7 @@
 #include "Instances/DownloadManager.hpp"
 #include "Launch/LaunchService.hpp"
 #include "Playtime/PlaytimeStore.hpp"
+#include "Ui/Notifications.hpp"
 #include <filesystem>
 #include <functional>
 #include <string>
@@ -21,6 +22,7 @@ struct UiServices {
   instances::DownloadManager *downloads = nullptr;
   launch::LaunchService *launch = nullptr;
   audio::AudioEngine *audio = nullptr;
+  NotificationHub *notifications = nullptr;
   const I18n *i18n = nullptr;
   std::filesystem::path dlc_source;
   std::filesystem::path skin_pck;
@@ -32,6 +34,9 @@ struct UiServices {
   std::function<void(const std::string &)> focus_scope;
   std::function<std::string()> read_text_input;
   std::function<bool()> text_edited;
+  std::function<void(const std::string &title, const std::string &message,
+                     ToastVariant variant, const std::string &on_click)>
+      notify;
 };
 
 class View {

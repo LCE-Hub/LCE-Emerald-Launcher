@@ -47,7 +47,22 @@ public:
   const std::vector<ElementPtr> &children() const { return children_; }
   float resolve_w(float parentInner) const;
   float resolve_h(float parentInner) const;
-  float inset() const { return style_.padding + style_.borderWidth; }
+  float pad_left() const {
+    return style_.paddingLeft.value_or(style_.padding);
+  }
+  float pad_right() const {
+    return style_.paddingRight.value_or(style_.padding);
+  }
+  float pad_top() const { return style_.paddingTop.value_or(style_.padding); }
+  float pad_bottom() const {
+    return style_.paddingBottom.value_or(style_.padding);
+  }
+  float hspace() const {
+    return pad_left() + pad_right() + style_.borderWidth * 2.0F;
+  }
+  float vspace() const {
+    return pad_top() + pad_bottom() + style_.borderWidth * 2.0F;
+  }
   std::vector<ElementPtr> &children() { return children_; }
   const ComputedStyle &style() const { return style_; }
   void set_style(ComputedStyle style) { style_ = std::move(style); }

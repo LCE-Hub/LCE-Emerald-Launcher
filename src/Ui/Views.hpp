@@ -4,3 +4,4 @@ REGISTER("home", HomeView);
 REGISTER("settings", SettingsView);
 REGISTER("versions", VersionsView);
 REGISTER("credits", CreditsView);
+REGISTER("overlay", OverlayView);

@@ -25,7 +25,4 @@ std::vector<Edition>
 resolve_editions(const std::vector<Edition> &custom_editions,
                  const std::vector<std::pair<std::string, Edition>> &overrides);
 
-std::string edition_download_url(const Edition &edition,
-                                 const std::string &branch);
-
 } // namespace emerald::instances

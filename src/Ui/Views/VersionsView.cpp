@@ -396,7 +396,7 @@ bool VersionsView::action(std::string_view name, UiServices &services) {
 
     instances::DownloadRequest request;
     request.instance_id = argument;
-    request.url = instances::edition_download_url(*edition, "latest");
+    request.url = edition->url;
     request.instance_dir = instance_manager.working_dir(argument);
     request.archive_dir = core::app_data_dir() / "downloads";
     request.username = services.config->data().username;

@@ -186,4 +186,14 @@ std::vector<std::string> DownloadManager::active_ids() const {
   }
   return ids;
 }
+
+std::vector<std::string> DownloadManager::known_ids() const {
+  std::lock_guard<std::mutex> lock(mutex_);
+  std::vector<std::string> ids;
+  ids.reserve(jobs_.size());
+  for (const auto &[id, job] : jobs_) {
+    ids.push_back(id);
+  }
+  return ids;
+}
 } // namespace emerald::instances

@@ -28,7 +28,7 @@ public:
   void draw_image_tinted(const std::string &source, const Rect &rect,
                          Color tint, float alpha = 1.0F) override;
   void draw_nine_slice(const std::string &source, const Rect &rect,
-                       const BorderImage &border) override;
+                       const BorderImage &border, float alpha) override;
   Size image_size(const std::string &source) const override;
   void draw_text(const std::string &text, const Rect &rect,
                  const ComputedStyle &style) override;

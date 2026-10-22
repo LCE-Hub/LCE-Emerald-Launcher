@@ -48,6 +48,7 @@ public:
   DownloadSnapshot snapshot(const std::string &instance_id) const;
   bool is_active(const std::string &instance_id) const;
   std::vector<std::string> active_ids() const;
+  std::vector<std::string> known_ids() const;
   uint64_t revision() const;
   void shutdown();
 

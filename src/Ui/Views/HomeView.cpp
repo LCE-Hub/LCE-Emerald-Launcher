@@ -41,6 +41,7 @@ Json HomeView::data(const UiServices &services) const {
   }
   data["showPlay"] = installed && !(running_id == profile);
   data["showStop"] = (running_id == profile);
+  data["showIdle"] = !installed && !(running_id == profile);
   return data;
 }
 

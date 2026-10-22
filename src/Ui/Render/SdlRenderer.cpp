@@ -114,7 +114,7 @@ void SdlRenderer::draw_image_tinted(const std::string &source, const Rect &rect,
 }
 
 void SdlRenderer::draw_nine_slice(const std::string &source, const Rect &rect,
-                                  const BorderImage &b) {
+                                  const BorderImage &b, float alpha) {
   SDL_Texture *texture = textures_.load(source);
   if (texture == nullptr) {
     return;
@@ -147,6 +147,9 @@ void SdlRenderer::draw_nine_slice(const std::string &source, const Rect &rect,
   const float scw = tw - sl - sr;
   const float sch = th - st - sb;
   SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
+  const uint8_t slice_alpha =
+      static_cast<uint8_t>(std::clamp(alpha, 0.0F, 1.0F) * 255.0F);
+  SDL_SetTextureAlphaMod(texture, slice_alpha);
   auto draw = [&](SDL_FRect src, SDL_FRect dst) {
     if (dst.w <= 0.0F || dst.h <= 0.0F || src.w <= 0.0F || src.h <= 0.0F) {
       return;
