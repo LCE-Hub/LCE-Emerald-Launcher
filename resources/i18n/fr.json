@@ -18,7 +18,9 @@
     "all": "Tous",
     "noResults": "Aucun résultat",
     "set": "placer",
-    "close": "Fermer"
+    "close": "Fermer",
+    "select": "Sélectionner",
+    "install": "Installer"
   },
   "header": {
     "title": "Lanceur Emerald Legacy"
@@ -561,7 +563,6 @@
     "inflate": "Gonfle",
     "mirrorUv": "Refléter UV",
     "cancel": "Retour",
-    "save": "Sauver",
     "imported": "Importer: {{name}}",
     "loadedModels": "Chargé {{count}} modèle(s)",
     "failedToParse": "Echec de l'analyse",

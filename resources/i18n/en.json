@@ -18,7 +18,9 @@
     "all": "All",
     "noResults": "No results",
     "set": "set",
-    "close": "Close"
+    "close": "Close",
+    "select": "Select",
+    "install": "Install"
   },
   "header": {
     "title": "Emerald Legacy Launcher"
@@ -561,7 +563,6 @@
     "inflate": "Inflate",
     "mirrorUv": "Mirror UV",
     "cancel": "Cancel",
-    "save": "Save",
     "imported": "Imported: {{name}}",
     "loadedModels": "Loaded {{count}} model(s)",
     "failedToParse": "Failed to parse",

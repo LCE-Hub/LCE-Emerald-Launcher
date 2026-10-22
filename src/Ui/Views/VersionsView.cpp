@@ -277,7 +277,9 @@ Json VersionsView::data(const UiServices &services) const {
     Json tooltips = Json::array(); // neo: thats how you do it manually :3
     Json select = Json::object();
     select["icon"] = "A";
-    select["label"] = "Select";
+    select["label"] = services.i18n != nullptr
+                          ? services.i18n->translate("common.select")
+                          : std::string("Select");
     Json close = Json::object();
     close["icon"] = "B";
     close["label"] = services.i18n != nullptr

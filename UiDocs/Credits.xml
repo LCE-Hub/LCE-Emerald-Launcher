@@ -92,8 +92,8 @@
     }
   </style>
   <view id="credits">
-    <tooltip icon="A">Select</tooltip>
-    <tooltip icon="B">Back</tooltip>
+    <tooltip icon="A">{{t:common.select}}</tooltip>
+    <tooltip icon="B">{{t:common.back}}</tooltip>
     <scroll width="1280px" height="720px" autoscroll="60" autoscroll-from="50" autoscroll-to="-200">
       <column gap="32">
         <image class="credit-logo" src="/images/emerald_launcher.png" margin-top="80" align="center"/>

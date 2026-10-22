@@ -150,9 +150,9 @@
     </row>
   </template>
   <view id="versions">
-    <tooltip icon="A">Select</tooltip>
-    <tooltip icon="B">Back</tooltip>
-    <tooltip icon="X">Install</tooltip>
+    <tooltip icon="A">{{t:common.select}}</tooltip>
+    <tooltip icon="B">{{t:common.back}}</tooltip>
+    <tooltip icon="X">{{t:common.install}}</tooltip>
     <column width="1280px" height="720px" align="center" padding="40">
       <use template="TitleImage"/>
       <column height="20px"/>

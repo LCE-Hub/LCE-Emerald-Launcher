@@ -10,7 +10,7 @@
     .spacer { height: 18px; }
   </style>
   <view id="home">
-    <tooltip icon="A">Select</tooltip>
+    <tooltip icon="A">{{t:common.select}}</tooltip>
     <column width="1280px" height="720px" align="center" justify="center" padding="40">
       <use template="TitleImage"/>
       <column height="50px"/>

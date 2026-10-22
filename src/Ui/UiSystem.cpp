@@ -129,6 +129,16 @@ void UiSystem::detect_controller_type() {
 
 void UiSystem::refresh_tooltips(const Json &data) {
   std::vector<TooltipHint> hints;
+  const auto label_for = [this](const std::string &label) {
+    std::string inner = label;
+    if (inner.size() >= 4 && inner.starts_with("{{") && inner.ends_with("}}")) {
+      inner = inner.substr(2, inner.size() - 4);
+    }
+    if (inner.starts_with("t:")) {
+      return i18n_.translate(inner.substr(2));
+    }
+    return inner;
+  };
   if (data.is_object()) {
     const auto found = data.find("tooltips");
     if (found != data.end() && found->is_array()) {
@@ -138,7 +148,7 @@ void UiSystem::refresh_tooltips(const Json &data) {
         }
         TooltipHint hint;
         hint.icon = entry.value("icon", "");
-        hint.label = entry.value("label", "");
+        hint.label = label_for(entry.value("label", ""));
         hints.push_back(std::move(hint));
       }
       renderer_.set_tooltips(std::move(hints));
@@ -148,7 +158,7 @@ void UiSystem::refresh_tooltips(const Json &data) {
   if (const ViewDefinition *definition = document_.find_view(current_view_)) {
     hints.reserve(definition->tooltips.size());
     for (const TooltipDefinition &tooltip : definition->tooltips) {
-      hints.push_back(TooltipHint{tooltip.icon, tooltip.label});
+      hints.push_back(TooltipHint{tooltip.icon, label_for(tooltip.label)});
     }
   }
   renderer_.set_tooltips(std::move(hints));

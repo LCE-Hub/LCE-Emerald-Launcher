@@ -98,8 +98,8 @@
     }
   </style>
   <view id="settings">
-    <tooltip icon="A">Select</tooltip>
-    <tooltip icon="B">Back</tooltip>
+    <tooltip icon="A">{{t:common.select}}</tooltip>
+    <tooltip icon="B">{{t:common.back}}</tooltip>
     <column class="settings-root" align="center" width="100%" height="100%" padding="40">
     <use template="TitleImage"/>
     <column height="40px" />

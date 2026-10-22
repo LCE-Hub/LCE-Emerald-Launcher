@@ -18,7 +18,9 @@
     "all": "Все",
     "noResults": "Без результатов",
     "set": "Поставить",
-    "close": "Закрыть"
+    "close": "Закрыть",
+    "select": "Выбрать",
+    "install": "Установить"
   },
   "header": {
     "title": "Emerald Legacy Launcher"
@@ -561,7 +563,6 @@
     "inflate": "Растяжение (Inflate)",
     "mirrorUv": "Отразить UV",
     "cancel": "Отмена",
-    "save": "Сохранить",
     "imported": "Импортировано: {{name}}",
     "loadedModels": "Загружено моделей: {{count}}",
     "failedToParse": "Не удалось прочитать",
