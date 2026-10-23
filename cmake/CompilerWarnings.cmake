@@ -12,10 +12,10 @@ function(emerald_apply_warnings target)
         -Wextra
         -Wpedantic
         -Wshadow
-        -Wconversion
-        -Wsign-conversion
+        -Wno-conversion
+        -Wno-sign-conversion
         -Wnon-virtual-dtor
-        -Wold-style-cast
+        -Wno-old-style-cast
         -Wcast-align
         -Wunused
         -Woverloaded-virtual

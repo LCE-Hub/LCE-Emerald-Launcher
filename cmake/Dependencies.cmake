@@ -77,6 +77,7 @@ function(emerald_find_stb)
         EXCLUDE_FROM_ALL
     )
     FetchContent_MakeAvailable(stb)
+    set(stb_SOURCE_DIR "${stb_SOURCE_DIR}" PARENT_SCOPE) #neo: make stb_SOURCE_DIR visible outside this function scope
     message(STATUS "stb fetched from source")
 endfunction()
 function(emerald_find_miniaudio)

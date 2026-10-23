@@ -1,0 +1,2 @@
+all:
+	flatpak-builder --user --install-deps-from=flathub --repo=emerald-repo --force-clean build-flatpak io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.yml && flatpak build-bundle emerald-repo emerald.flatpak io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher

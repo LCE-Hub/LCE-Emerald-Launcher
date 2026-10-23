@@ -17,6 +17,7 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(cmake/Dependencies.cmake)
 include(cmake/CompilerWarnings.cmake)
+include(GNUInstallDirs)
 set(EMERALD_RESOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")
 set(EMERALD_PUBLIC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/public")
 set(EMERALD_UI_DOCS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/UiDocs")
@@ -25,3 +26,4 @@ target_compile_definitions(emerald_core PUBLIC
     EMERALD_VERSION_TEXT="v${CMAKE_PROJECT_VERSION}")
 target_compile_definitions(emerald_core PUBLIC
     EMERALD_VERSION="${CMAKE_PROJECT_VERSION}")
+install(TARGETS emerald RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
