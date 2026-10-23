@@ -1,0 +1,37 @@
+<ui xmlns="emerald" version="1">
+  <import href="Common/Buttons.xml"/>
+  <import href="Common/TitleImage.xml"/>
+  <style>
+    .home-container { width: 540px; gap: 12px; }
+    .buttons {width: 100%; gap: 12px; }
+    .divider { width: 192px; height: 3px; background: #a0a0a0; opacity: 0.6; align: center; }
+    .social-row { gap: 32px; align: center; }
+    .social-icon { width: 64px; height: 64px; }
+    .spacer { height: 18px; }
+  </style>
+  <view id="home">
+    <tooltip icon="A">{{t:common.select}}</tooltip>
+    <column width="1280px" height="720px" align="center" justify="center" padding="40">
+      <use template="TitleImage"/>
+      <column height="50px"/>
+      <column class="home-container" align="center">
+        <column class="buttons" align="center">
+          <use if="{{showPlay}}" template="HomeButton" action="versions.launch:{{profile}}" label="{{t:home.playGame}}"/>
+          <use if="{{showStop}}" template="HomeButton" extraclasses="main-button-danger" action="versions.stop:{{profile}}" label="{{t:home.stopGame}}"/>
+          <use if="{{showIdle}}" template="HomeButton" extraclasses="main-button-disabled" label="{{t:home.playGame}}"/>
+          <use template="HomeButton" action="go:settings" label="{{t:home.helpAndOptions}}"/>
+          <use template="HomeButton" action="go:versions" label="{{t:home.versions}}"/>
+          <use template="HomeButton" action="quit" label="{{t:home.workshop}}"/> <!--neo: TODO-->
+          <use template="HomeButton" action="quit" label="{{t:home.developerTools}}"/> <!--neo: TODO-->
+        </column>
+        <column class="spacer"/>
+        <column class="divider"/>
+        <column class="spacer"/>
+        <row class="social-row">
+          <image class="social-icon" src="/images/discord.png"/>
+          <image class="social-icon" src="/images/github.png"/>
+        </row>
+      </column>
+    </column>
+  </view>
+</ui>

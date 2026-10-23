@@ -1,19 +1,20 @@
 # Building Emerald Launcher
 ## Requirements
 
-- Node.js (and NPM)
-- Rust
-- WebKit2GTK-4.1 (GNU/Linux only)
-- WebKit (macOS only, preinstalled)
-- Microsoft Edge WebView2 Runtime (Windows only)
-- PNPM (optional, but recommended)
+- A C++ Compiler (clang++ or g++) that is compatible with C++20
+- CMake 3.24+
+- libcurl
+- libarchive
+- SQLite3 (only on GNU/Linux and macOS)
+- GNU Make (only for Flatpak)
+- LevelDB (only on Windows) <!--neo: TODO: implement leveldb -->
 - Windows, GNU/Linux or a macOS system.
 
 ## Building
 
 ```sh
-pnpm install  # or npm
-pnpm tauri build  # or npm
+cmake -S . -B build
+cmake --build build --parallel
 ```
 
 ## macOS ARM Fix
@@ -31,18 +32,14 @@ codesign --force --deep --sign - "/path/to/Emerald\ Legacy\ Launcher.app"
 ## Flatpak
 
 ```sh
-pnpm flatpak  # or npm
+make -C flatpak
 ```
-
-## Gentoo
-
-A Portage overlay lives in [`gentoo/`](gentoo/). See the GNU/Linux installation section in [README.md](README.md).
 
 ## Android
 
 Building Emerald on Android is pretty easy,
 
 ```sh
-pnpm android:assets  #neo: fetches the rootfs and proton11
-pnpm tauri android build -t aarch64
+make -C android_extras assets  #neo: fetches the rootfs and proton11
+make -C android_extras build
 ```
