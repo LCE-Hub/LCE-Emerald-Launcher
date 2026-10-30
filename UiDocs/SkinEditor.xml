@@ -1,0 +1,160 @@
+<ui xmlns="emerald" version="1">
+  <import href="Common/Buttons.xml"/>
+  <style>
+    .editor-title {
+      font-size: 22px;
+      color: #ffff55;
+      text-shadow: #3f3f3f 2px 2px;
+    }
+    .editor-tool {
+      width: 176px;
+      height: 40px;
+      font-size: 18px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 2px 2px;
+      border-image: url(/images/Layout_Button_Bmp.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .editor-tool:hover {
+      border-image: url(/images/Layout_Button_Over.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .editor-tool-active {
+      border-image: url(/images/Layout_Button_Over.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .color-slot {
+      width: 176px;
+      height: 40px;
+    }
+    .dye-cell {
+      width: 20px;
+      height: 20px;
+      padding: 2px;
+    }
+    .hex-input {
+      width: 176px;
+      font-size: 16px;
+    }
+    .editor-slider {
+      width: 176px;
+      height: 40px;
+      font-size: 14px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 1px 1px;
+      border-image: url(/images/Button_Background2.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .picker-slider {
+      width: 200px;
+      height: 40px;
+      font-size: 14px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 1px 1px;
+      border-image: url(/images/Button_Background2.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .editor-picker {
+      border-image: url(/images/frame_background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+      padding: 6px;
+      gap: 6px;
+    }
+    .editor-action {
+      width: 176px;
+      height: 48px;
+      font-size: 20px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 2px 2px;
+      border-image: url(/images/Layout_Button_Bmp.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .editor-action:hover {
+      border-image: url(/images/Layout_Button_Over.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .editor-canvas-frame {
+      border-image: url(/images/frame_background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+      align: center;
+      justify: center;
+    }
+  </style>
+  <template name="DyeSwatch">
+    <button class="dye-cell" onclick="skineditor.dye:{{hex}}" style="background:{{bg}}">
+      <column width="16px" height="16px" style="background:{{swatch}}"/>
+    </button>
+  </template>
+  <view id="skineditor">
+    <tooltip icon="B">{{t:common.back}}</tooltip>
+    <column width="1280px" height="720px" align="center" padding="40" gap="12">
+      <label class="editor-title" text="{{t:skinEditor.title}}"/>
+      <row gap="24" align="start">
+        <column width="176px" gap="6">
+          <button class="editor-tool {{toolPencilClass}}" onclick="skineditor.tool:pencil">
+            <label text="{{t:skinEditor.pencil}}"/>
+          </button>
+          <button class="editor-tool {{toolEraserClass}}" onclick="skineditor.tool:eraser">
+            <label text="{{t:skinEditor.eraser}}"/>
+          </button>
+          <button class="editor-tool {{toolPickClass}}" onclick="skineditor.tool:pick">
+            <label text="{{t:skinEditor.pick}}"/>
+          </button>
+          <button class="editor-tool {{toolFillClass}}" onclick="skineditor.tool:fill">
+            <label text="{{t:skinEditor.fill}}"/>
+          </button>
+          <button class="color-slot" onclick="skineditor.picker" style="{{colorStyle}};opacity:{{colorAlpha}}"/>
+          <column gap="2">
+            <column foreach="{{dyeRows}}" as="row" gap="2">
+              <row gap="2">
+                <use template="DyeSwatch" hex="{{row.c0.hex}}" bg="{{row.c0.bg}}" swatch="{{row.c0.swatch}}"/>
+                <use template="DyeSwatch" hex="{{row.c1.hex}}" bg="{{row.c1.bg}}" swatch="{{row.c1.swatch}}"/>
+                <use template="DyeSwatch" hex="{{row.c2.hex}}" bg="{{row.c2.bg}}" swatch="{{row.c2.swatch}}"/>
+                <use template="DyeSwatch" hex="{{row.c3.hex}}" bg="{{row.c3.bg}}" swatch="{{row.c3.swatch}}"/>
+                <use template="DyeSwatch" hex="{{row.c4.hex}}" bg="{{row.c4.bg}}" swatch="{{row.c4.swatch}}"/>
+                <use template="DyeSwatch" hex="{{row.c5.hex}}" bg="{{row.c5.bg}}" swatch="{{row.c5.swatch}}"/>
+                <use template="DyeSwatch" hex="{{row.c6.hex}}" bg="{{row.c6.bg}}" swatch="{{row.c6.swatch}}"/>
+                <use template="DyeSwatch" hex="{{row.c7.hex}}" bg="{{row.c7.bg}}" swatch="{{row.c7.swatch}}"/>
+              </row>
+            </column>
+          </column>
+          <textinput class="hex-input" value="{{hexValue}}" onsubmit="skineditor.hex"/>
+          <slider class="editor-slider" value="{{alphaValue}}" label="{{alphaLabel}}" onchange="skineditor.alpha"/>
+          <button class="editor-tool {{slimClass}}" onclick="skineditor.slim">
+            <label text="{{slimLabel}}"/>
+          </button>
+          <button class="editor-tool {{gridClass}}" onclick="skineditor.grid">
+            <label text="{{gridLabel}}"/>
+          </button>
+          <button class="editor-tool" onclick="skineditor.undo">
+            <label text="{{undoLabel}}"/>
+          </button>
+        </column>
+        <column class="editor-canvas-frame" width="472px" height="472px">
+          <skinedit scale="7"/>
+        </column>
+        <column width="240px" height="472px" align="center" justify="center">
+          <skinpreview kind="editor" slim="{{slim}}" width="240px" height="400px" zoom="true"/>
+        </column>
+      </row>
+      <row gap="16" align="center">
+        <button class="editor-action" onclick="skineditor.save">
+          <label text="{{t:skinEditor.save}}"/>
+        </button>
+        <button class="editor-action" onclick="skineditor.export">
+          <label text="{{t:skinEditor.export}}"/>
+        </button>
+        <button class="editor-action" onclick="skineditor.back">
+          <label text="{{t:skinEditor.back}}"/>
+        </button>
+      </row>
+      <column if="{{pickerOpen}}" class="editor-picker" style="position:absolute;left:228px;top:264px;width:212px" gap="6">
+        <skinpicksv width="200px" height="200px"/>
+        <skinpickhue width="200px" height="24px"/>
+        <slider class="picker-slider" value="{{rValue}}" label="{{rLabel}}" onchange="skineditor.r"/>
+        <slider class="picker-slider" value="{{gValue}}" label="{{gLabel}}" onchange="skineditor.g"/>
+        <slider class="picker-slider" value="{{bValue}}" label="{{bLabel}}" onchange="skineditor.b"/>
+      </column>
+    </column>
+  </view>
+</ui>

@@ -14,6 +14,7 @@ public:
   TextureCache &operator=(const TextureCache &) = delete;
   SDL_Texture *load(const std::string &source, bool grayscale = false) const;
   void clear();
+  const std::filesystem::path &asset_root() const { return asset_root_; }
 
 private:
   std::filesystem::path resolve(const std::string &source) const;

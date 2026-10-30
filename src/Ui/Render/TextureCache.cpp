@@ -3,11 +3,13 @@
 #define STBI_NO_HDR
 #include "Ui/Render/TextureCache.hpp"
 #include "Core/Log.hpp"
+#include "Skins/SkinAssets.hpp"
 #include "Ui/Render/SvgRaster.hpp"
 #include <SDL3/SDL.h>
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
+#include <optional>
 #include <stb_image.h>
 #include <vector>
 namespace emerald::ui {
@@ -34,6 +36,39 @@ std::vector<unsigned char> read_bytes(const std::filesystem::path &path) {
   }
   std::fclose(file);
   return data;
+}
+
+std::optional<std::vector<unsigned char>>
+decode_data_bytes(const std::string &source) {
+  const std::optional<std::string> payload = skins::data_url_base64(source);
+  if (!payload.has_value()) {
+    return std::nullopt;
+  }
+  const std::optional<std::vector<std::uint8_t>> decoded =
+      skins::base64_decode(*payload);
+  if (!decoded.has_value() || decoded->empty()) {
+    return std::nullopt;
+  }
+  return std::vector<unsigned char>(decoded->begin(), decoded->end());
+}
+
+SDL_Texture *make_nearest_texture(SDL_Renderer *renderer,
+                                  const unsigned char *pixels, int width,
+                                  int height) {
+  SDL_Surface *surface = SDL_CreateSurfaceFrom(
+      width, height, SDL_PIXELFORMAT_RGBA32,
+      const_cast<unsigned char *>(pixels),
+      width * 4);
+  SDL_Texture *texture = nullptr;
+  if (surface != nullptr) {
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_DestroySurface(surface);
+  }
+  if (texture != nullptr) {
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+  }
+  return texture;
 }
 
 } // namespace
@@ -64,12 +99,24 @@ SDL_Texture *TextureCache::load(const std::string &source, bool grayscale) const
     return cached->second;
   }
 
-  const std::filesystem::path path = resolve(source);
-  const std::vector<unsigned char> bytes = read_bytes(path);
-  if (bytes.empty()) {
-    core::warn(std::string{"texture: not found "} + path.string());
-    textures_[source] = nullptr;
-    return nullptr;
+  std::vector<unsigned char> bytes;
+  std::filesystem::path path;
+  if (source.rfind("data:", 0) == 0) {
+    std::optional<std::vector<unsigned char>> decoded = decode_data_bytes(source);
+    if (!decoded.has_value()) {
+      core::warn(std::string{"texture: data url decode failed "});
+      textures_[key] = nullptr;
+      return nullptr;
+    }
+    bytes = std::move(*decoded);
+  } else {
+    path = resolve(source);
+    bytes = read_bytes(path);
+    if (bytes.empty()) {
+      core::warn(std::string{"texture: not found "} + path.string());
+      textures_[key] = nullptr;
+      return nullptr;
+    }
   }
 
   if (is_svg(path)) {
@@ -79,21 +126,16 @@ SDL_Texture *TextureCache::load(const std::string &source, bool grayscale) const
     const std::string svg_text(bytes.begin(), bytes.end());
     SDL_Texture *texture = nullptr;
     if (rasterize_svg(svg_text, rgba, svg_width, svg_height)) {
-      SDL_Surface *surface =
-          SDL_CreateSurfaceFrom(svg_width, svg_height, SDL_PIXELFORMAT_RGBA32,
-                                rgba.data(), svg_width * 4);
-      if (surface != nullptr) {
-        texture = SDL_CreateTextureFromSurface(renderer_, surface);
-        SDL_DestroySurface(surface);
+      texture = make_nearest_texture(renderer_, rgba.data(), svg_width,
+                                     svg_height);
+      if (texture != nullptr) {
+        SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_LINEAR);
+        SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
       }
     } else {
       core::warn(std::string{"texture: svg decode failed "} + path.string());
     }
-    if (texture != nullptr) {
-      SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
-      SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-    }
-    textures_[source] = texture;
+    textures_[key] = texture;
     return texture;
   }
 
@@ -103,25 +145,18 @@ SDL_Texture *TextureCache::load(const std::string &source, bool grayscale) const
   unsigned char *pixels =
       stbi_load_from_memory(bytes.data(), static_cast<int>(bytes.size()),
                             &width, &height, &channels, 4);
+  SDL_Texture *texture = nullptr;
   if (pixels == nullptr) {
     core::warn(std::string{"texture: decode failed "} + path.string());
-    textures_[source] = nullptr;
+  } else {
+    texture = make_nearest_texture(renderer_, pixels, width, height);
+    stbi_image_free(pixels);
+  }
+  if (texture == nullptr) {
+    textures_[key] = nullptr;
     return nullptr;
   }
-
-  SDL_Surface *surface = SDL_CreateSurfaceFrom(
-      width, height, SDL_PIXELFORMAT_RGBA32, pixels, width * 4);
-  SDL_Texture *texture = nullptr;
-  if (surface != nullptr) {
-    texture = SDL_CreateTextureFromSurface(renderer_, surface);
-    SDL_DestroySurface(surface);
-  }
-  stbi_image_free(pixels);
-  if (texture != nullptr) {
-    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
-    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-  }
-  textures_[source] = texture;
+  textures_[key] = texture;
   return texture;
 }
 

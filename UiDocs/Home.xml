@@ -8,6 +8,22 @@
     .social-row { gap: 32px; align: center; }
     .social-icon { width: 64px; height: 64px; }
     .spacer { height: 18px; }
+    .skin-dock { gap: 12px; }
+    .home-username { width: 65px; font-size: 20px; }
+    .sq-btn {
+      width: 44px;
+      height: 44px;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+      align: center;
+      justify: center;
+      padding: 6px;
+    }
+    .sq-btn:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .sq-btn-icon { width: 32px; height: 32px; }
   </style>
   <view id="home">
     <tooltip icon="A">{{t:common.select}}</tooltip>
@@ -30,6 +46,17 @@
         <row class="social-row">
           <image class="social-icon" src="/images/discord.png"/>
           <image class="social-icon" src="/images/github.png"/>
+        </row>
+      </column>
+      <column class="skin-dock" style="position:absolute;left:64px;top:120px;width:220px">
+        <textinput class="home-username" style="width:{{usernameWidth}}" value="{{username}}" onsubmit="home.username" center="true" align="center"/>
+        <column width="220px" height="380px">
+          <skinpreview kind="viewer" src="{{skinSource}}" slim="{{skinSlim}}" cape="{{capeSource}}" ears="{{ears}}" flip="{{flip}}" style="position:absolute;left:-20px;top:-59px;width:260px;height:450px"/>
+        </column>
+        <row gap="16" align="center">
+          <button class="sq-btn" onclick="go:skins">
+            <image class="sq-btn-icon" src="/images/Change_Skin_Icon.png" fit="contain"/>
+          </button>
         </row>
       </column>
     </column>

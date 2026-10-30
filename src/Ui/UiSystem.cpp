@@ -1,13 +1,10 @@
 #include "Ui/UiSystem.hpp"
 #include "Audio/AudioEngine.hpp"
 #include "Core/Log.hpp"
+#include "Skins/SkinElements.hpp"
+#include "Views.hpp" //neo: yes, its included twice, on each include it does a different thing.
 #include "Ui/Binding.hpp"
 #include "Ui/EditionResolver.hpp"
-#include "Ui/Views/CreditsView.hpp"
-#include "Ui/Views/HomeView.hpp"
-#include "Ui/Views/OverlayView.hpp"
-#include "Ui/Views/SettingsView.hpp"
-#include "Ui/Views/VersionsView.hpp"
 #include <SDL3/SDL.h>
 #include <algorithm>
 #include <cstdlib>
@@ -81,7 +78,9 @@ UiSystem::UiSystem(SDL_Renderer *renderer, std::filesystem::path ui_docs_root,
 UiSystem::~UiSystem() = default;
 bool UiSystem::initialize() {
   register_builtin_elements();
+#define _NONIMPORT //neo: triggers the second inclusion logic.. somehow i cant define this inside the body of the first ifdef in Views.hpp???
 #include "Views.hpp"
+#undef _NONIMPORT
   if (!document_.load_directory(ui_docs_root_)) {
     for (const std::string &error : document_.errors()) {
       core::error(std::string{"ui: "} + error);
@@ -299,7 +298,7 @@ void UiSystem::play_sound_for(const std::string &handler) {
       handler.rfind("overlay.toasts.", 0) == 0) {
     return;
   }
-  if (handler == "settings.back" || handler == "quit") {
+  if (handler == "settings.back" || handler == "skineditor.back" || handler == "quit") {
     services_.audio->play_back();
     return;
   }
@@ -609,11 +608,7 @@ void UiSystem::render() {
     tree_->arrange(tree_->bounds());
   }
   renderer_.begin_frame();
-  panorama_.render(renderer_,
-                   Rect{0.0F, 0.0F, static_cast<float>(logical_width_),
-                        static_cast<float>(logical_height_)});
   SDL_Renderer *r = renderer_.handle();
-  renderer_.begin_frame();
   SDL_SetRenderLogicalPresentation(r, 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
   int w = 0, h = 0;
   SDL_GetRenderOutputSize(r, &w, &h);
@@ -669,6 +664,7 @@ void UiSystem::handle_event(const SDL_Event &event) {
       SDL_Event converted = event;
       SDL_ConvertEventToRenderCoordinates(renderer_.handle(), &converted);
       const Vec2 point{converted.button.x, converted.button.y};
+      note_logical_mouse(point.x, point.y);
       TextInputElement *typing = active_text_input();
       if (typing != nullptr && typing->editing()) {
         release_text_edit(true);
@@ -706,6 +702,7 @@ void UiSystem::handle_event(const SDL_Event &event) {
       SDL_Event converted = event;
       SDL_ConvertEventToRenderCoordinates(renderer_.handle(), &converted);
       const Vec2 point{converted.motion.x, converted.motion.y};
+      note_logical_mouse(point.x, point.y);
       std::vector<Element *> path;
       if (Element *blocking = find_blocking_element(overlay_tree_.get(), point)) {
         if (hover_path(blocking, point, path)) {

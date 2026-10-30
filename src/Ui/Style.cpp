@@ -295,6 +295,9 @@ void apply_declaration(ComputedStyle &style, std::string_view name,
                        std::string_view value) {
   name = trim(name);
   value = trim(value);
+  if (value.empty()) {
+    return;
+  }
   if (name == "width") {
     if (const auto pct = parse_percent(value)) {
       style.widthPercent = pct;

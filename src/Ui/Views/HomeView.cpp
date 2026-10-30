@@ -3,6 +3,8 @@
 #include "Instances/InstanceManager.hpp"
 #include "Launch/Servers.hpp"
 #include "Ui/EditionResolver.hpp"
+#include <algorithm>
+#include <cctype>
 namespace emerald::ui {
 Json HomeView::data(const UiServices &services) const {
   bool installed = false;
@@ -10,6 +12,7 @@ Json HomeView::data(const UiServices &services) const {
   Json data = Json::object();
   data["titleImage"] = "/images/MenuTitle.png";
   data["username"] = "";
+  data["usernameWidth"] = "65px";
   data["profile"] = "legacy_evolved";
   data["language"] = "en";
   if (services.config != nullptr) {
@@ -42,6 +45,35 @@ Json HomeView::data(const UiServices &services) const {
   data["showPlay"] = installed && !(running_id == profile);
   data["showStop"] = (running_id == profile);
   data["showIdle"] = !installed && !(running_id == profile);
+  if (services.config != nullptr) {
+    const config::AppConfig &config = services.config->data();
+    std::string skin_url;
+    if (config.skin_base64.has_value() && !config.skin_base64->empty()) {
+      skin_url = "data:image/png;base64," + *config.skin_base64;
+    } else {
+      skin_url = config.skin_source.value_or("/images/Default.png");
+    }
+    data["skinSource"] = skin_url;
+    data["skinSlim"] = config.skin_slim.value_or(false);
+    std::string cape_url;
+    if (config.cape_base64.has_value() && !config.cape_base64->empty()) {
+      cape_url = "data:image/png;base64," + *config.cape_base64;
+    } else {
+      cape_url = config.cape_source.value_or("");
+    }
+    data["capeSource"] = cape_url;
+    std::string lowered;
+    lowered.reserve(config.username.size());
+    for (const char character : config.username) {
+      lowered.push_back(
+          static_cast<char>(std::tolower(static_cast<unsigned char>(character))));
+    }
+    data["ears"] = lowered == "deadmau5";
+    data["flip"] = lowered == "dinnerbone" || lowered == "grumm";
+    data["usernameWidth"] =
+        std::to_string((std::max(config.username.size(), std::size_t{3}) + 2) *
+                       13) + "px";
+  }
   return data;
 }
 
@@ -79,6 +111,18 @@ bool HomeView::action(std::string_view name, UiServices &services) {
     }
     return true;
   }
+  if (verb == "home.username") {
+    const std::string entered = services.read_text_input();
+    if (!entered.empty()) {
+      services.config->data().username = entered.substr(0, 16);
+      services.config->save();
+    }
+    return true;
+  }
   return false;
+}
+
+bool HomeView::on_escape(UiServices &) {
+  return true;
 }
 } // namespace emerald::ui

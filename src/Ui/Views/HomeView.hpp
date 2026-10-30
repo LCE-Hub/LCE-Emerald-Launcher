@@ -6,6 +6,7 @@ public:
   std::string_view id() const override { return "home"; }
   Json data(const UiServices &services) const override;
   bool action(std::string_view name, UiServices &services) override;
+  bool on_escape(UiServices &services) override;
 
 private:
   std::string status_;

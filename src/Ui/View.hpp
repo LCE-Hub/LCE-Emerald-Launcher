@@ -26,6 +26,7 @@ struct UiServices {
   const I18n *i18n = nullptr;
   std::filesystem::path dlc_source;
   std::filesystem::path skin_pck;
+  std::filesystem::path public_root;
   std::function<void()> quit;
   std::function<void(const std::string &)> navigate;
   std::function<void(const std::string &)> change_language;

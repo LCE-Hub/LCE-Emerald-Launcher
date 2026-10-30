@@ -138,6 +138,16 @@ set(EMERALD_UI_SOURCES
     Ui/Views/OverlayView.cpp
     Ui/Views/VersionsView.cpp
     Ui/Views/CreditsView.cpp
+    Ui/Views/SkinsView.cpp
+    Ui/Views/SkinEditorView.cpp
+    Skins/SkinLibrary.cpp
+    Skins/SkinAssets.cpp
+    Skins/SkinPck.cpp
+    Skins/SkinFetch.cpp
+    Skins/SkinSync.cpp
+    Skins/SkinModel3D.cpp
+    Skins/SkinUiState.cpp
+    Skins/SkinElements.cpp
 )
 
 add_library(emerald_ui STATIC ${EMERALD_UI_SOURCES})

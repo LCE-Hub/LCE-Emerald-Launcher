@@ -1,6 +1,8 @@
 #include "Ui/Element.hpp"
+#include "Skins/SkinElements.hpp"
 #include "Ui/RenderContext.hpp"
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <utility>
 namespace emerald::ui {
@@ -607,9 +609,52 @@ public:
     }
     const float view_height = bounds_.height - vspace();
     const float max_scroll = std::max(0.0F, content_height_ - view_height);
-    scroll_offset_ =
-        std::clamp(scroll_offset_ + delta_y * kScrollSpeed, 0.0F, max_scroll);
+    const float step = item_step();
+    const float speed = step > 1.0F ? step : kScrollSpeed;
+    raw_offset_ = std::clamp(raw_offset_ + delta_y * speed, 0.0F, max_scroll);
+    scroll_offset_ = step > 1.0F ? std::nearbyint(raw_offset_ / step) * step : raw_offset_;
+    scroll_offset_ = std::clamp(scroll_offset_, 0.0F, max_scroll);
     arrange(bounds_);
+  }
+
+  float item_step() const {
+    const Element *parent = this;
+    const Element *node = nullptr;
+    for (const ElementPtr &child : children_) {
+      if (child->style().visible && !child->style().absolute) {
+        node = child.get();
+        break;
+      }
+    }
+    while (node != nullptr) {
+      std::size_t visible_siblings = 0;
+      const Element *first_sibling = nullptr;
+      for (const ElementPtr &sibling : parent->children()) {
+        if (sibling->style().visible && !sibling->style().absolute) {
+          ++visible_siblings;
+          if (first_sibling == nullptr) {
+            first_sibling = sibling.get();
+          }
+        }
+      }
+      if (visible_siblings > 1) {
+        float height = first_sibling->bounds().height;
+        if (height <= 0.0F) {
+          height = first_sibling->measured().height;
+        }
+        return height > 0.0F ? height + parent->style().gap : 0.0F;
+      }
+      const Element *next = nullptr;
+      for (const ElementPtr &child : node->children()) {
+        if (child->style().visible && !child->style().absolute) {
+          next = child.get();
+          break;
+        }
+      }
+      parent = node;
+      node = next;
+    }
+    return 0.0F;
   }
 
   bool hides_partial_items() const override { return hide_partial_; }
@@ -643,6 +688,7 @@ public:
     }
     if (delta != 0.0F) {
       scroll_offset_ = std::clamp(scroll_offset_ + delta, 0.0F, max_scroll);
+      raw_offset_ = scroll_offset_;
       arrange(bounds_);
     }
     return true;
@@ -678,6 +724,7 @@ public:
 private:
   static constexpr float kScrollSpeed = 24.0F;
   float scroll_offset_ = 0.0F;
+  float raw_offset_ = 0.0F;
   float content_height_ = 0.0F;
   float autoscroll_duration_ = 0.0F;
   float autoscroll_from_ = 50.0F;
@@ -791,9 +838,12 @@ void TextInputElement::render(RenderContext &context,
     const std::size_t nl = remaining.find('\n');
     const std::string_view line =
         nl == std::string_view::npos ? remaining : remaining.substr(0, nl);
-    context.draw_text(
-        std::string(line),
-        Rect{box.x + 8.0F, line_y, box.width - 16.0F, line_height}, text_style);
+    Rect line_rect{box.x + 8.0F, line_y, box.width - 16.0F, line_height};
+    if (attribute("center") == "true" && !line.empty()) {
+      const Size line_size = context.text_size(std::string(line), text_style);
+      line_rect.x += std::max(0.0F, (line_rect.width - line_size.width) * 0.5F);
+    }
+    context.draw_text(std::string(line), line_rect, text_style);
     if (nl == std::string_view::npos) {
       break;
     }
@@ -1019,6 +1069,7 @@ void register_builtin_elements() { // neo: i know i could've done it better but
       "textinput", [] { return std::make_unique<TextInputElement>(); });
   registry.register_element("slider",
                             [] { return std::make_unique<SliderElement>(); });
+  register_skin_elements();
 }
 
 } // namespace emerald::ui

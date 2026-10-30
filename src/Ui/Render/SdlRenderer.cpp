@@ -96,6 +96,18 @@ void SdlRenderer::draw_image(const std::string &source, const Rect &rect,
   SDL_SetTextureAlphaMod(texture, 255);
 }
 
+void SdlRenderer::draw_texture(SDL_Texture *texture, const Rect &rect,
+                               float alpha) {
+  if (texture == nullptr) {
+    return;
+  }
+  SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
+  set_texture_alpha(texture, alpha);
+  SDL_FRect target{rect.x, rect.y, rect.width, rect.height};
+  SDL_RenderTexture(renderer_, texture, nullptr, &target);
+  SDL_SetTextureAlphaMod(texture, 255);
+}
+
 void SdlRenderer::draw_image_tinted(const std::string &source, const Rect &rect,
                                     Color tint, float alpha) {
   SDL_Texture *texture = textures_.load(source);

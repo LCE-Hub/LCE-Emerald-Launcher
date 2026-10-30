@@ -9,6 +9,7 @@
 #include "Ui/UiSystem.hpp"
 #include <SDL3/SDL_events.h>
 #include <cstdint>
+#include <filesystem>
 #include <map>
 #include <memory>
 #include <string>
@@ -50,6 +51,7 @@ private:
   uint64_t download_revision_ = 0;
   uint64_t launch_revision_ = 0;
   uint64_t macos_revision_ = 0;
+  std::filesystem::path public_root_;
   std::map<std::string, instances::DownloadState> download_states_;
 };
 } // namespace emerald::app

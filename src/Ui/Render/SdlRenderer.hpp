@@ -29,6 +29,8 @@ public:
                          Color tint, float alpha = 1.0F) override;
   void draw_nine_slice(const std::string &source, const Rect &rect,
                        const BorderImage &border, float alpha) override;
+  void draw_texture(SDL_Texture *texture, const Rect &rect,
+                    float alpha = 1.0F) override;
   Size image_size(const std::string &source) const override;
   void draw_text(const std::string &text, const Rect &rect,
                  const ComputedStyle &style) override;
@@ -40,6 +42,9 @@ public:
   void end_frame();
   TextureCache &textures() { return textures_; }
   FontCache &fonts() { return fonts_; }
+  const std::filesystem::path &public_root() const {
+    return textures_.asset_root();
+  }
   void set_input_device(bool gamepad) { gamepad_input_ = gamepad; }
   void set_tooltips(std::vector<TooltipHint> tooltips) {
     tooltips_ = std::move(tooltips);

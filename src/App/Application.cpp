@@ -3,6 +3,8 @@
 #include "Core/Log.hpp"
 #include "Core/Paths.hpp"
 #include "Migration/Migration.hpp"
+#include "Skins/SkinSync.hpp"
+#include "Skins/SkinUiState.hpp"
 #include "Ui/EditionResolver.hpp"
 #include <SDL3/SDL.h>
 #include <cstdlib>
@@ -108,6 +110,7 @@ bool Application::initialize() {
   playtime_.load();
   const std::filesystem::path public_root =
       resolve_root("EMERALD_PUBLIC_DIR", "public");
+  public_root_ = public_root;
   const std::filesystem::path resource_root =
       resolve_root("EMERALD_RESOURCE_DIR", "resources");
   const std::filesystem::path ui_docs_root =
@@ -133,6 +136,7 @@ bool Application::initialize() {
   services.audio = &audio_;
   services.dlc_source = resource_root / "DLC";
   services.skin_pck = core::app_data_dir() / "Skin.pck";
+  services.public_root = public_root;
   launch_.configure(config_, playtime_, resource_root, core::app_data_dir(),
                     services.dlc_source, services.skin_pck);
   download_revision_ = downloads_.revision();
@@ -228,6 +232,14 @@ void Application::close_gamepad(uint32_t instance_id) {
 void Application::render() {
   if (ui_ == nullptr) {
     return;
+  }
+  if (skins::SkinUiState::instance().consume_picks(config_, public_root_)) {
+    ui_->invalidate();
+  }
+  if (skins::SkinUiState::instance().sync_needed) {
+    skins::SkinUiState::instance().sync_needed = false;
+    skins::sync_skin_pck(config_.data(), public_root_,
+                         core::app_data_dir() / "Skin.pck");
   }
   if (downloads_.revision() != download_revision_) {
     download_revision_ = downloads_.revision();
