@@ -179,7 +179,7 @@ void DiscordRpc::refresh(const DiscordState &state) {
   timestamps.start = static_cast<int64_t>(start_time_);
   presence.timestamps = timestamps;
   presence.buttons = std::vector<Button>{
-      Button{"Discord", "https://discord.gg/cQVKhQXcCx"},
+      Button{"Discord", "https://discord.com/invite/lce-hub-1492416855124480153"},
       Button{"Get Emerald", "https://github.com/LCE-Hub/LCE-Emerald-Launcher"}};
 
   client_->set_presence(presence);

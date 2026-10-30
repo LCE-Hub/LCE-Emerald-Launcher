@@ -44,8 +44,8 @@
         <column class="divider"/>
         <column class="spacer"/>
         <row class="social-row">
-          <image class="social-icon" src="/images/discord.png"/>
-          <image class="social-icon" src="/images/github.png"/>
+          <button onclick="open:https://discord.com/invite/lce-hub-1492416855124480153"><image class="social-icon" src="/images/discord.png"/></button>
+          <button onclick="open:https://github.com/LCE-Hub"><image class="social-icon" src="/images/github.png"/></button>
         </row>
       </column>
       <column class="skin-dock" style="position:absolute;left:64px;top:120px;width:220px">
