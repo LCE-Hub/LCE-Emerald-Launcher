@@ -1,0 +1,15 @@
+<ui xmlns="emerald" version="1">
+<style>
+.slider {
+    width: 600px;
+    height: 42px;
+    font-size: 18px;
+    color: #ffffff;
+    background-image: /images/Button_Background2.png;
+}
+.slider:hover {color: #ffff55;}
+</style>
+<template name="Slider">
+<slider class="slider" label="{{label}}" value="{{value}}" onchange="{{onchange}}" width="600px" height="42px"/>
+</template>
+</ui>

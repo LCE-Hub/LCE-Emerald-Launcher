@@ -7,3 +7,6 @@
 [submodule "GoldMapper"]
 	path = GoldMapper
 	url = https://github.com/LCE-Hub/GoldMapper
+[submodule "src/discord_ipc_cpp"]
+	path = src/discord_ipc_cpp
+	url = https://github.com/LCE-Hub/discordipc

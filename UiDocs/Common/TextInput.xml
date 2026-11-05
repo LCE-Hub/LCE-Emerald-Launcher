@@ -1,0 +1,12 @@
+<ui xmlns="emerald" version="1">
+<style>
+    .settings-text {
+      width: 600px;
+      font-size: 18px;
+      color: #ffffff;
+    }
+</style>
+<template name="TextInput">
+<textinput class="textinput" label="{{label}}" value="{{value}}" onsubmit="{{onsubmit}}" multiline="{{multiline}}" width="600px"/>
+</template>
+</ui>

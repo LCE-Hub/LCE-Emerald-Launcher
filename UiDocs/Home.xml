@@ -1,0 +1,64 @@
+<ui xmlns="emerald" version="1">
+  <import href="Common/Buttons.xml"/>
+  <import href="Common/TitleImage.xml"/>
+  <style>
+    .home-container { width: 540px; gap: 12px; }
+    .buttons {width: 100%; gap: 12px; }
+    .divider { width: 192px; height: 3px; background: #a0a0a0; opacity: 0.6; align: center; }
+    .social-row { gap: 32px; align: center; }
+    .social-icon { width: 64px; height: 64px; }
+    .spacer { height: 18px; }
+    .skin-dock { gap: 12px; }
+    .home-username { width: 65px; font-size: 20px; }
+    .sq-btn {
+      width: 44px;
+      height: 44px;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+      align: center;
+      justify: center;
+      padding: 6px;
+    }
+    .sq-btn:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .sq-btn-icon { width: 32px; height: 32px; }
+  </style>
+  <view id="home">
+    <tooltip icon="A">{{t:common.select}}</tooltip>
+    <column width="1280px" height="720px" align="center" justify="center" padding="40">
+      <use template="TitleImage"/>
+      <column height="50px"/>
+      <column class="home-container" align="center">
+        <column class="buttons" align="center">
+          <use if="{{showPlay}}" template="HomeButton" action="versions.launch:{{profile}}" label="{{t:home.playGame}}"/>
+          <use if="{{showStop}}" template="HomeButton" extraclasses="main-button-danger" action="versions.stop:{{profile}}" label="{{t:home.stopGame}}"/>
+          <use if="{{showIdle}}" template="HomeButton" extraclasses="main-button-disabled" label="{{t:home.playGame}}"/>
+          <use template="HomeButton" action="go:settings" label="{{t:home.helpAndOptions}}"/>
+          <use template="HomeButton" action="go:versions" label="{{t:home.versions}}"/>
+          <use template="HomeButton" action="quit" label="{{t:home.workshop}}"/> <!--neo: TODO-->
+          <use template="HomeButton" action="quit" label="{{t:home.developerTools}}"/> <!--neo: TODO-->
+        </column>
+        <column class="spacer"/>
+        <column class="divider"/>
+        <column class="spacer"/>
+        <row class="social-row">
+          <button onclick="open:https://discord.com/invite/lce-hub-1492416855124480153"><image class="social-icon" src="/images/discord.png"/></button>
+          <button onclick="open:https://github.com/LCE-Hub"><image class="social-icon" src="/images/github.png"/></button>
+        </row>
+      </column>
+      <column class="skin-dock" style="position:absolute;left:64px;top:120px;width:220px">
+        <textinput class="home-username" style="width:{{usernameWidth}}" value="{{username}}" onsubmit="home.username" center="true" align="center"/>
+        <column width="220px" height="380px">
+          <skinpreview kind="viewer" src="{{skinSource}}" slim="{{skinSlim}}" cape="{{capeSource}}" ears="{{ears}}" flip="{{flip}}" style="position:absolute;left:-20px;top:-59px;width:260px;height:450px"/>
+        </column>
+        <row gap="16" align="center">
+          <button class="sq-btn" onclick="go:skins">
+            <image class="sq-btn-icon" src="/images/Change_Skin_Icon.png" fit="contain"/>
+          </button>
+        </row>
+      </column>
+    </column>
+  </view>
+</ui>

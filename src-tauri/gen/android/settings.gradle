@@ -1,5 +1,0 @@
-include ':app'
-include ':diamondruntime'
-project(':diamondruntime').projectDir = new File(settingsDir, '../../../DiamondRuntime/app/app')
-
-apply from: 'tauri.settings.gradle'

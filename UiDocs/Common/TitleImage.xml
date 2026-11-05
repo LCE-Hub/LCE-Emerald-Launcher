@@ -1,0 +1,5 @@
+<ui xmlns="emerald" version="1">
+  <template name="TitleImage">
+    <image src="{{titleImage}}" width="560px" height="140px" align="center" fit="contain"/>
+  </template>
+</ui>
