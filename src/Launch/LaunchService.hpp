@@ -1,6 +1,7 @@
 #pragma once
 #include "Config/ConfigSchema.hpp"
 #include "Config/ConfigStore.hpp"
+#include "Instances/RunnerDownloader.hpp"
 #include "Instances/Runners.hpp"
 #include "Launch/GameLauncher.hpp"
 #include "Launch/MacosRuntime.hpp"
@@ -42,6 +43,8 @@ public:
   void clear_log();
   MacosRuntime &macos_runtime() { return macos_; }
   const MacosRuntime &macos_runtime() const { return macos_; }
+  instances::RunnerDownloader &runner_downloads() { return runners_; }
+  const instances::RunnerDownloader &runner_downloads() const { return runners_; }
 
 private:
   config::ConfigStore *config_ = nullptr;
@@ -52,6 +55,7 @@ private:
   std::filesystem::path skin_pck_;
   GameLauncher launcher_;
   MacosRuntime macos_;
+  instances::RunnerDownloader runners_;
   bool running_ = false;
   bool has_log_ = false;
   bool show_log_ = false;

@@ -295,7 +295,8 @@ void UiSystem::play_sound_for(const std::string &handler) {
     return;
   }
   if (handler.rfind("open:", 0) == 0 ||
-      handler.rfind("overlay.toasts.", 0) == 0) {
+      handler.rfind("overlay.toasts.", 0) == 0 ||
+      handler == "settings.downloadRunner") {
     return;
   }
   if (handler == "settings.back" || handler == "skineditor.back" || handler == "quit") {

@@ -196,4 +196,40 @@ std::vector<std::string> DownloadManager::known_ids() const {
   }
   return ids;
 }
+
+void DownloadManager::track_external(const std::string &instance_id,
+                                     bool active, double percent,
+                                     const std::string &error) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  auto found = jobs_.find(instance_id);
+  if (!active) {
+    if (found == jobs_.end() || found->second->finished.load()) {
+      return;
+    }
+    DownloadSnapshot snapshot;
+    snapshot.percent = percent;
+    if (error.empty()) {
+      snapshot.state = DownloadState::finished;
+      snapshot.percent = 100.0;
+    } else {
+      snapshot.state = DownloadState::failed;
+      snapshot.message = error;
+    }
+    found->second->snapshot = snapshot;
+    found->second->finished.store(true);
+    ++revision_;
+    return;
+  }
+  if (found != jobs_.end() && found->second->finished.load()) {
+    auto job = std::make_shared<Job>();
+    found->second = std::move(job);
+  }
+  if (found == jobs_.end()) {
+    auto job = std::make_shared<Job>();
+    found = jobs_.emplace(instance_id, std::move(job)).first;
+  }
+  found->second->snapshot.state = DownloadState::running;
+  found->second->snapshot.percent = percent;
+  ++revision_;
+}
 } // namespace emerald::instances

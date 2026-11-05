@@ -51,13 +51,15 @@ public:
   std::vector<std::string> known_ids() const;
   uint64_t revision() const;
   void shutdown();
+  void track_external(const std::string &instance_id, bool active,
+                      double percent, const std::string &error);
 
 private:
   struct Job;
   void touch(const std::string &instance_id, const DownloadSnapshot &snapshot);
   void finish(const std::string &instance_id, const DownloadSnapshot &snapshot);
   mutable std::mutex mutex_;
-  std::map<std::string, std::shared_ptr<Job>> jobs_;
+  std::map<std::string, std::shared_ptr<Job>> jobs_; //neo: wow even software has jobs and you dont
   uint64_t revision_ = 0;
 };
 } // namespace emerald::instances

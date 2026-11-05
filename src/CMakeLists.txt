@@ -48,6 +48,7 @@ set(EMERALD_CORE_SOURCES
     Instances/Editions.cpp
     Instances/DownloadManager.cpp
     Instances/InstanceSync.cpp
+    Instances/RunnerDownloader.cpp
     Instances/Runners.cpp
     Instances/Workshop.cpp
     Net/HttpClient.cpp

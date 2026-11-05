@@ -51,6 +51,7 @@ private:
   uint64_t download_revision_ = 0;
   uint64_t launch_revision_ = 0;
   uint64_t macos_revision_ = 0;
+  uint64_t runner_download_revision_ = 0;
   std::filesystem::path public_root_;
   std::map<std::string, instances::DownloadState> download_states_;
 };

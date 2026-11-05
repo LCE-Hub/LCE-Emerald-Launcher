@@ -2,16 +2,18 @@
 #include "Audio/AudioEngine.hpp"
 #include "Core/Log.hpp"
 #include "Instances/Editions.hpp"
+#include "Instances/Runners.hpp"
+#include "Platform/Platform.hpp"
 #include "Ui/EditionResolver.hpp"
 #include "Ui/I18n.hpp"
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <numeric>
 #include <unordered_map>
 namespace emerald::ui {
 namespace {
 using Replacements = std::vector<std::pair<std::string, std::string>>;
-
 std::string replace_all(std::string text, const Replacements &replacements) {
   for (const auto &[token, value] : replacements) {
     const std::string placeholder = "{{" + token + "}}";
@@ -98,6 +100,32 @@ Json row_text(std::string label, std::string value, std::string onsubmit) {
   row["onsubmit"] = std::move(onsubmit);
   row["isText"] = true;
   return row;
+}
+
+std::string host_arch() {
+#if defined(__x86_64__) || defined(_M_X64)
+  return "x86_64";
+#elif defined(__aarch64__) || defined(_M_ARM64)
+  return "aarch64";
+#elif defined(__arm__) || defined(_M_ARM)
+  return "arm";
+#else
+  return "x86_64";
+#endif
+}
+
+std::string selected_runner_name(const config::AppConfig &config) {
+  if (!config.linux_runner.has_value()) {
+    return "Native / Default";
+  }
+  const std::vector<instances::Runner> runners_list =
+      instances::RunnerManager().available();
+  for (const instances::Runner &runner : runners_list) {
+    if (runner.id == *config.linux_runner) {
+      return runner.name;
+    }
+  }
+  return "Native / Default";
 }
 } // namespace
 
@@ -285,8 +313,10 @@ Json SettingsView::data(const UiServices &services) const {
                      "settings.cat:network", true));
       items.push_back(row_button(translate(services, "settings.launcherMisc"),
                                  "settings.cat:integrations", true));
-      items.push_back(row_button(translate(services, "settings.launcherLinux"),
-                                 "settings.cat:linux", true));
+      if (platform::current_os() == platform::Os::Linux) {
+        items.push_back(row_button(translate(services, "settings.launcherLinux"),
+                                   "settings.cat:linux", true));
+      }
       items.push_back(row_button(translate(services, "settings.launcherData"),
                                  "settings.cat:data", true));
     } else if (launcher_sub_ == LauncherSub::Display) {
@@ -294,18 +324,23 @@ Json SettingsView::data(const UiServices &services) const {
           row_toggle(translate(services, "settings.startInFullscreen"),
                      config.start_fullscreen.value_or(false),
                      "settings.toggle:fullscreen"));
+      /*
+       *neo: i got rid of these from 1.x since i dont wanna include them in >=2.x
+
       items.push_back(row_toggle(translate(services, "settings.animations"),
                                  config.animations_enabled.value_or(true),
                                  "settings.toggle:animations"));
       items.push_back(row_toggle(translate(services, "settings.clickEffects"),
                                  config.vfx_enabled.value_or(true),
                                  "settings.toggle:vfx"));
+
       items.push_back(row_toggle(translate(services, "settings.skipIntro"),
                                  config.skip_intro.value_or(false),
                                  "settings.toggle:skipintro"));
       items.push_back(row_toggle(translate(services, "settings.legacyMode"),
                                  config.legacy_mode.value_or(false),
                                  "settings.toggle:legacy"));
+      */
     } else if (launcher_sub_ == LauncherSub::Network) {
       items.push_back(row_text(translate(services, "settings.httpProxy"),
                                config.http_proxy.value_or(""),
@@ -317,14 +352,31 @@ Json SettingsView::data(const UiServices &services) const {
       items.push_back(row_button(translate(services, "settings.languages"),
                                  "settings.menu:language", true));
     } else if (launcher_sub_ == LauncherSub::Linux) {
-      items.push_back(row_button(interpolate(services, "settings.runner",
-                                             {{"value", "Native / Default"}}),
-                                 "settings.runner"));
+      items.push_back(row_button(
+          translate(services, "settings.runner") + ": " +
+              selected_runner_name(config),
+          "settings.runner"));
       items.push_back(row_toggle(translate(services, "settings.mangohud"),
                                  config.mangohud_enabled.value_or(false),
                                  "settings.toggle:mangohud"));
-      items.push_back(row_button(translate(services, "settings.downloadRunner"),
-                                 "settings.downloadRunner", true));
+      const bool runner_downloading =
+          services.launch != nullptr &&
+          services.launch->runner_downloads().active();
+      if (runner_downloading) {
+        const double percent = services.launch->runner_downloads()
+                                   .percent()
+                                   .value_or(0.0);
+        items.push_back(
+            row_button(interpolate(services, "settings.downloadingRunner",
+                                   {{"progress",
+                                     std::to_string(static_cast<int>(
+                                         std::floor(percent)))}}),
+                       "settings.downloadRunner", true));
+      } else {
+        items.push_back(
+            row_button(translate(services, "settings.downloadRunner"),
+                       "settings.downloadRunner", true));
+      }
     } else if (launcher_sub_ == LauncherSub::Data) {
       items.push_back(row_button(translate(services, "settings.exportSettings"),
                                  "settings.export", true));
@@ -635,6 +687,41 @@ bool SettingsView::action(std::string_view name, UiServices &services) {
     if (services.navigate) {
       services.navigate("home");
     }
+    return true;
+  }
+
+  if (name == "settings.runner") {
+    instances::RunnerManager runners;
+    const std::vector<instances::Runner> runners_list = runners.available();
+    if (runners_list.empty()) {
+      return true;
+    }
+    std::size_t next = 0;
+    if (config.linux_runner.has_value()) {
+      for (std::size_t index = 0; index < runners_list.size(); ++index) {
+        if (runners_list[index].id == *config.linux_runner) {
+          next = (index + 1) % runners_list.size();
+          break;
+        }
+      }
+    }
+    config.linux_runner = runners_list[next].id;
+    services.config->save();
+    return true;
+  }
+
+  if (name == "settings.downloadRunner") {
+    if (services.launch == nullptr ||
+        services.launch->runner_downloads().active()) {
+      return true;
+    }
+    const std::string arch = host_arch();
+    const std::string name = "GE-Proton11-6-" + arch;
+    const std::string url =
+        "https://github.com/GloriousEggroll/proton-ge-custom/releases/"
+        "download/GE-Proton11-6/GE-Proton11-6-" +
+        arch + ".tar.gz";
+    services.launch->runner_downloads().start(name, url);
     return true;
   }
 

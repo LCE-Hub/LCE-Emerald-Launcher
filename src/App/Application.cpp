@@ -9,6 +9,7 @@
 #include <SDL3/SDL.h>
 #include <cstdlib>
 #include <filesystem>
+#include <format>
 #include <vector>
 namespace emerald::app {
 namespace {
@@ -133,6 +134,7 @@ bool Application::initialize() {
   services.playtime = &playtime_;
   services.downloads = &downloads_;
   services.launch = &launch_;
+  launch_.runner_downloads().set_report_target(&downloads_);
   services.audio = &audio_;
   services.dlc_source = resource_root / "DLC";
   services.skin_pck = core::app_data_dir() / "Skin.pck";
@@ -142,6 +144,7 @@ bool Application::initialize() {
   download_revision_ = downloads_.revision();
   launch_revision_ = launch_.revision();
   macos_revision_ = launch_.macos_runtime().revision();
+  runner_download_revision_ = launch_.runner_downloads().revision();
   services.quit = [this] { running_ = false; };
   ui_->set_services(services);
   ui_->set_language(config_.data().language.value_or("en"));
@@ -233,6 +236,15 @@ void Application::render() {
   if (ui_ == nullptr) {
     return;
   }
+  if (config_.data().start_fullscreen.value_or(false)) {
+      if (!SDL_SetWindowFullscreen(window_, true)) {
+          core::error(std::format(":: failed to set fullscreen: %s", SDL_GetError()));
+      }
+  } else { //neo: sdl is weird and i need to do that for auto-applying the fullscreen effect upon clicking
+      if (!SDL_SetWindowFullscreen(window_, false)) {
+          core::error(std::format(":: failed to set fullscreen: %s", SDL_GetError()));
+      }
+  }
   if (skins::SkinUiState::instance().consume_picks(config_, public_root_)) {
     ui_->invalidate();
   }
@@ -306,6 +318,10 @@ void Application::render() {
   }
   if (launch_.macos_runtime().revision() != macos_revision_) {
     macos_revision_ = launch_.macos_runtime().revision();
+    ui_->invalidate();
+  }
+  if (launch_.runner_downloads().revision() != runner_download_revision_) {
+    runner_download_revision_ = launch_.runner_downloads().revision();
     ui_->invalidate();
   }
   audio_.set_music_paused(launch_.snapshot().running || !window_visible_);
