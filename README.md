@@ -210,17 +210,6 @@ Refer to [BUILDING.md](BUILDING.md).
 xattr -cr /path/to/Emerald\ Legacy\ Launcher.app
 ```
 
-### Linux WebView Issues
-
-Ensure WebKit2GTK-4.1 is installed:
-```bash
-# Check installation
-pkg-config --modversion webkit2gtk-4.1
-
-# Reinstall if needed
-sudo apt install --reinstall libwebkit2gtk-4.1-0
-```
-
 ### Game Not Launching
 
 1. Verify game files are properly installed via the launcher (also try clicking Repair which will reinstall it but keeps your data)
@@ -247,6 +236,8 @@ sudo apt install --reinstall libwebkit2gtk-4.1-0
 - **Hvrket** - Russian translation
 - **HuntedRaven (Robin)** - Homebrew, Nix and Gentoo packaging
 - **AntiApple4life** - AUR packaging
+- **Lilliethelily**: LCEOnline Artwork
+- **DaPogLord**: Help with a lot of Emerald's update artwork
 
 ---
 

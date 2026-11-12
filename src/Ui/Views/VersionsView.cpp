@@ -8,6 +8,7 @@
 #include "Instances/Editions.hpp"
 #include "Instances/InstanceManager.hpp"
 #include "Launch/Servers.hpp"
+#include "Skins/SkinUiState.hpp"
 #include "Ui/EditionResolver.hpp"
 #include "Ui/I18n.hpp"
 #include <algorithm>
@@ -91,6 +92,7 @@ Json VersionsView::data(const UiServices &services) const {
       data["titleImage"] = edition.title_image;
       break;
     }
+    if (config.bedrock_enabled.value() == true) data["titleImage"] = "/images/marketplacetitle.png";
   }
 
   int menu_row_index = -1;
@@ -107,8 +109,8 @@ Json VersionsView::data(const UiServices &services) const {
 
     Json entry = Json::object();
     entry["id"] = edition.id;
-    entry["name"] = edition.name;
-    entry["desc"] = edition.desc;
+    entry["name"] = !config.bedrock_enabled.value() == true ? edition.name : "Marketplace";
+    entry["desc"] = !config.bedrock_enabled.value() == true ? edition.desc : "Marketplace";
     entry["logo"] = edition.logo;
     entry["category"] = edition.category;
     entry["installed"] = installed;
@@ -126,7 +128,6 @@ Json VersionsView::data(const UiServices &services) const {
     entry["hasArgsSchema"] =
         installed && has_args_schema(instance_manager, edition.id);
     entry["path"] = instance_manager.working_dir(edition.id).string();
-
     if (services.downloads != nullptr) {
       const instances::DownloadSnapshot download =
           services.downloads->snapshot(edition.id);
@@ -194,6 +195,7 @@ Json VersionsView::data(const UiServices &services) const {
       }
       const auto translate = [&services](const char *key,
                                          const char *fallback) {
+        if (services.config->data().bedrock_enabled.value() == true) {return(std::string("Marketplace"));}
         return services.i18n != nullptr ? services.i18n->translate(key)
                                         : std::string(fallback);
       };
@@ -343,6 +345,7 @@ bool VersionsView::action(std::string_view name, UiServices &services) {
   if (verb == "versions.select") {
     services.config->data().profile = argument;
     services.config->save();
+    skins::SkinUiState::instance().sync_needed = true;
     close_menu(services);
     return true;
   }
@@ -466,6 +469,7 @@ bool VersionsView::action(std::string_view name, UiServices &services) {
     if (services.config->data().profile.value_or("") == pending) {
       services.config->data().profile = "legacy_evolved";
       services.config->save();
+      skins::SkinUiState::instance().sync_needed = true;
     }
     status_ = "Deleted " + pending;
     return true;

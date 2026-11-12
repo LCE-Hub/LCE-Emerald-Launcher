@@ -131,6 +131,7 @@ std::string selected_runner_name(const config::AppConfig &config) {
 
 std::string SettingsView::translate(const UiServices &services,
                                     std::string_view key) const {
+  if (services.config->data().bedrock_enabled.value() == true) {return(std::string("Marketplace"));}
   if (services.i18n == nullptr) {
     return std::string(key);
   }
@@ -234,6 +235,7 @@ Json SettingsView::data(const UiServices &services) const {
     if (edition.has_value() && !edition->title_image.empty()) {
       data["titleImage"] = edition->title_image;
     }
+    if (config.bedrock_enabled.value() == true) data["titleImage"] = "/images/marketplacetitle.png";
   }
   if (services.config == nullptr) {
     data["layout"] = "panel";
@@ -324,6 +326,9 @@ Json SettingsView::data(const UiServices &services) const {
           row_toggle(translate(services, "settings.startInFullscreen"),
                      config.start_fullscreen.value_or(false),
                      "settings.toggle:fullscreen"));
+      items.push_back(row_toggle("Bedrock Mode",
+                                 config.bedrock_enabled.value_or(false),
+                                 "settings.toggle:bedrock"));
       /*
        *neo: i got rid of these from 1.x since i dont wanna include them in >=2.x
 
@@ -445,7 +450,6 @@ bool SettingsView::action(std::string_view name, UiServices &services) {
     return false;
   }
   config::AppConfig &config = services.config->data();
-
   if (name == "settings.back") {
     go_back(services);
     return true;
@@ -484,6 +488,12 @@ bool SettingsView::action(std::string_view name, UiServices &services) {
       }
       return true;
     }
+    if (menu == "controls") {
+      if (services.navigate) {
+        services.navigate("goldmapper");
+      }
+      return true;
+    }
     core::info(std::string{"settings: not implemented -> "} +
                std::string(name));
     return true;
@@ -518,6 +528,8 @@ bool SettingsView::action(std::string_view name, UiServices &services) {
       config.vfx_enabled = !config.vfx_enabled.value_or(true);
     } else if (which == "fullscreen") {
       config.start_fullscreen = !config.start_fullscreen.value_or(false);
+    } else if (which == "bedrock") {
+        config.bedrock_enabled = !config.bedrock_enabled.value_or(true);
     } else if (which == "legacy") {
       config.legacy_mode = !config.legacy_mode.value_or(false);
     } else if (which == "mangohud") {
@@ -716,12 +728,12 @@ bool SettingsView::action(std::string_view name, UiServices &services) {
       return true;
     }
     const std::string arch = host_arch();
-    const std::string name = "GE-Proton11-6-" + arch;
+    const std::string rname = "GE-Proton11-6-" + arch;
     const std::string url =
         "https://github.com/GloriousEggroll/proton-ge-custom/releases/"
         "download/GE-Proton11-6/GE-Proton11-6-" +
         arch + ".tar.gz";
-    services.launch->runner_downloads().start(name, url);
+    services.launch->runner_downloads().start(rname, url);
     return true;
   }
 

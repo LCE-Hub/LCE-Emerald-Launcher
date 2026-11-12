@@ -1,5 +1,6 @@
 #include "Ui/Binding.hpp"
 #include "Ui/I18n.hpp"
+#include "Ui/View.hpp"
 #include <charconv>
 #include <vector>
 namespace emerald::ui {
@@ -40,8 +41,8 @@ std::vector<std::string_view> split_path(std::string_view path) {
 
 } // namespace
 
-DataContext::DataContext(const Json &root, const I18n *i18n)
-    : root_(root), i18n_(i18n) {}
+DataContext::DataContext(const Json &root, const I18n *i18n, const UiServices *ui)
+    : root_(root), i18n_(i18n), ui_(ui) {}
 void DataContext::push_scope(const Json &scope) { scopes_.push_back(&scope); }
 void DataContext::pop_scope() {
   if (!scopes_.empty()) {
@@ -143,6 +144,7 @@ std::string DataContext::resolve(std::string_view text) const {
       expression.remove_suffix(1);
     }
     if (expression.starts_with("t:")) {
+      if (ui_->config->data().bedrock_enabled.value() == true) {return "Marketplace";}
       const std::string key(expression.substr(2));
       result.append(i18n_ != nullptr ? i18n_->translate(key) : key);
     } else {

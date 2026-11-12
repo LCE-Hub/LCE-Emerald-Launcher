@@ -11,6 +11,7 @@ namespace emerald::ui {
 namespace {
 std::string translate(const UiServices &services, const char *key,
                       const std::string &fallback) {
+  if (services.config->data().bedrock_enabled.value() == true) {return(std::string("Marketplace"));}
   return services.i18n != nullptr ? services.i18n->translate(key) : fallback;
 }
 

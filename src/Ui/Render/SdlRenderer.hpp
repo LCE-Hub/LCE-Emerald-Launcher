@@ -23,7 +23,7 @@ public:
   const std::string &default_font() const { return default_font_; }
   SDL_Renderer *handle() const { return renderer_; }
   void fill_rect(const Rect &rect, Color color) override;
-  void draw_image(const std::string &source, const Rect &rect,
+  void draw_image(const std::string &source, Rect rect,
                   float alpha = 1.0F) override;
   void draw_image_tinted(const std::string &source, const Rect &rect,
                          Color tint, float alpha = 1.0F) override;
@@ -50,6 +50,7 @@ public:
     tooltips_ = std::move(tooltips);
   }
   void set_tooltip_set(std::string set) { tooltip_set_ = std::move(set); }
+  const std::string &tooltip_set() const { return tooltip_set_; }
 
 private:
   std::string family_for(const ComputedStyle &style) const;

@@ -24,6 +24,7 @@ struct UiServices {
   audio::AudioEngine *audio = nullptr;
   NotificationHub *notifications = nullptr;
   const I18n *i18n = nullptr;
+  std::function<std::string()> tooltip_set;
   std::filesystem::path dlc_source;
   std::filesystem::path skin_pck;
   std::filesystem::path public_root;

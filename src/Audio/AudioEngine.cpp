@@ -6,7 +6,7 @@
 namespace emerald::audio {
 namespace {
 constexpr const char *kMusicTracks[] = {
-    "music/Moog City 2.ogg", "music/Blind Spots.ogg",
+    "music/Moog City 2.ogg", "music/Mutation.ogg", "music/Blind Spots.ogg",
     "music/Key.ogg",         "music/Living Mice.ogg",
     "music/Oxygene.ogg",     "music/Subwoofer Lullaby.ogg",
 };

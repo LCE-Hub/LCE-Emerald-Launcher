@@ -27,7 +27,7 @@ Element *find_blocking_element(Element *element, const Vec2 &point) {
   }
   return nullptr;
 }
-ControllerType controller_type_from_sdl(SDL_GamepadType type) {
+ControllerType controller_type(SDL_GamepadType type) {
   switch (type) {
   case SDL_GAMEPAD_TYPE_XBOX360:
     return ControllerType::Xbox360;
@@ -52,13 +52,12 @@ std::string tooltip_set_for(
     ControllerType type) { // neo: TODO: update controller tooltip types
   switch (type) {
   case ControllerType::Orbis:
-    return "Durango";
+    return "Orbis";
   case ControllerType::Xbox360:
-    return "Durango";
+    return "Xbox360";
   case ControllerType::PS3:
-    return "Durango";
-  case ControllerType::Switch:
-    return "Durango";
+    return "PS3";
+  case ControllerType::Switch: //neo: yes i got no switch tooltips
   case ControllerType::Durango:
   case ControllerType::Unknown:
     return "Durango";
@@ -115,7 +114,7 @@ void UiSystem::detect_controller_type() {
   if (ids != nullptr) {
     for (int i = 0; i < count; ++i) {
       const ControllerType type =
-          controller_type_from_sdl(SDL_GetGamepadTypeForID(ids[i]));
+          controller_type(SDL_GetGamepadTypeForID(ids[i]));
       if (type != ControllerType::Unknown) {
         detected = type;
         break;
@@ -134,6 +133,7 @@ void UiSystem::refresh_tooltips(const Json &data) {
       inner = inner.substr(2, inner.size() - 4);
     }
     if (inner.starts_with("t:")) {
+        if (services_.config->data().bedrock_enabled.value() == true) {return(std::string("Marketplace"));}
       return i18n_.translate(inner.substr(2));
     }
     return inner;
@@ -299,7 +299,9 @@ void UiSystem::play_sound_for(const std::string &handler) {
       handler == "settings.downloadRunner") {
     return;
   }
-  if (handler == "settings.back" || handler == "skineditor.back" || handler == "quit") {
+  if (handler == "settings.back" || handler == "skineditor.back" ||
+      handler == "goldmapper.back" || handler == "goldmapper.modal.cancel" ||
+      handler == "quit") {
     services_.audio->play_back();
     return;
   }
@@ -316,7 +318,7 @@ void UiSystem::rebuild() {
   update_panorama();
   const Json data = view->second->data(services_);
   refresh_tooltips(data);
-  DataContext context(data, &i18n_);
+  DataContext context(data, &i18n_, &services_);
   ViewBuilder builder(document_, registry_);
   tree_ = builder.build(current_view_, context);
   if (tree_ == nullptr) {
@@ -380,7 +382,7 @@ void UiSystem::rebuild_overlay() {
   if (!data.value("overlayVisible", false)) {
     return;
   }
-  DataContext context(data, &i18n_);
+  DataContext context(data, &i18n_, &services_);
   ViewBuilder builder(document_, registry_);
   ElementPtr tree = builder.build("overlay", context);
   if (tree == nullptr) {
@@ -846,7 +848,7 @@ void UiSystem::handle_event(const SDL_Event &event) {
     gamepad_ = true;
     renderer_.set_input_device(true);
     set_controller_type(
-        controller_type_from_sdl(SDL_GetGamepadTypeForID(event.gbutton.which)));
+        controller_type(SDL_GetGamepadTypeForID(event.gbutton.which)));
     {
       TextInputElement *typing = active_text_input();
       const bool editing = typing != nullptr && typing->editing();

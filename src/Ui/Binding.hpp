@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Json.hpp"
+#include "Ui/View.hpp"
 #include <string>
 #include <string_view>
 #include <vector>
@@ -8,7 +9,7 @@ class I18n;
 using emerald::Json;
 class DataContext {
 public:
-  DataContext(const Json &root, const I18n *i18n);
+  DataContext(const Json &root, const I18n *i18n, const UiServices *ui);
   void push_scope(const Json &scope);
   void pop_scope();
   std::string resolve(std::string_view text) const;
@@ -20,6 +21,7 @@ public:
 private:
   const Json &root_;
   const I18n *i18n_;
+  const UiServices *ui_;
   std::vector<const Json *> scopes_;
 };
 } // namespace emerald::ui

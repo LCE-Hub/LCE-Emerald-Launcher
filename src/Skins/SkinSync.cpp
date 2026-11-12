@@ -1,5 +1,6 @@
 #include "Skins/SkinSync.hpp"
 #include "Instances/Editions.hpp"
+#include "Instances/InstanceManager.hpp"
 #include "Skins/SkinAssets.hpp"
 #include "Skins/SkinLibrary.hpp"
 #include "Skins/SkinPck.hpp"
@@ -8,6 +9,7 @@
 #include <algorithm>
 #include <cstring>
 #include <string>
+#include <system_error>
 #include <vector>
 namespace emerald::skins {
 bool sync_skin_pck(const config::AppConfig &config,
@@ -26,9 +28,13 @@ bool sync_skin_pck(const config::AppConfig &config,
   const std::string username = config.username;
   const std::string profile = config.profile.value_or("legacy_evolved");
   bool edition_not_support_slim_skins = true; //neo: dont ask about the variable name.
-  if (const std::optional<instances::Edition> edition =
-          ui::find_config_edition(config, profile);
-      edition.has_value() && edition->supports_slim_skins) {
+  const std::optional<instances::Edition> edition =
+      ui::find_config_edition(config, profile);
+  if (edition.has_value() && edition->supports_slim_skins) {
+    edition_not_support_slim_skins = false;
+  } else if (std::filesystem::exists(
+                 instances::InstanceManager(config).working_dir(profile) /
+                 ".emerald-x64")) {
     edition_not_support_slim_skins = false;
   }
 

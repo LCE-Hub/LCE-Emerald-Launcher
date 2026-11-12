@@ -28,6 +28,7 @@ Json HomeView::data(const UiServices &services) const {
     if (edition.has_value() && !edition->title_image.empty()) {
       data["titleImage"] = edition->title_image;
     }
+    if (config.bedrock_enabled.value() == true) data["titleImage"] = "/images/marketplacetitle.png";
   }
   std::string running_id;
   if (services.launch != nullptr) {

@@ -36,6 +36,7 @@ public:
       dirty_ = true;
     };
     services_.notifications = &notifications_;
+    services_.tooltip_set = [this]() { return renderer_.tooltip_set(); };
     services_.focus_element = [this](const std::string &id) {
       focus_element(id);
     };

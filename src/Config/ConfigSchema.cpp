@@ -210,6 +210,7 @@ Json to_json(const AppConfig &config) {
   json_set(object, "vfxEnabled", config.vfx_enabled);
   json_set(object, "rpcEnabled", config.rpc_enabled);
   json_set(object, "startFullscreen", config.start_fullscreen);
+  json_set(object, "bedrockMode", config.bedrock_enabled);
   json_set(object, "musicVol", config.music_vol);
   json_set(object, "sfxVol", config.sfx_vol);
   json_set(object, "legacyMode", config.legacy_mode);
@@ -289,6 +290,7 @@ AppConfig from_json(const Json &object_value) {
   config.vfx_enabled = json_optional<bool>(object, "vfxEnabled");
   config.rpc_enabled = json_optional<bool>(object, "rpcEnabled");
   config.start_fullscreen = json_optional<bool>(object, "startFullscreen");
+  config.bedrock_enabled = json_optional<bool>(object, "bedrockMode");
   config.music_vol = json_optional<std::uint32_t>(object, "musicVol");
   config.sfx_vol = json_optional<std::uint32_t>(object, "sfxVol");
   config.legacy_mode = json_optional<bool>(object, "legacyMode");
@@ -356,6 +358,9 @@ void apply_legacy_defaults(AppConfig &config) {
   }
   if (!config.start_fullscreen.has_value()) {
     config.start_fullscreen = false;
+  }
+  if (!config.bedrock_enabled.has_value()) {
+    config.bedrock_enabled = false;
   }
   if (!config.music_vol.has_value()) {
     config.music_vol = 50;

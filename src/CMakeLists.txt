@@ -119,7 +119,7 @@ target_link_libraries(emerald_audio
 )
 
 emerald_apply_warnings(emerald_audio)
-set(EMERALD_UI_SOURCES
+set(EMERALD_UI_SOURCES #neo: yes im listing them manually. i need a specific order. you cannot convince me to use glob.
     Ui/Style.cpp
     Ui/Element.cpp
     Ui/EditionResolver.cpp
@@ -141,6 +141,7 @@ set(EMERALD_UI_SOURCES
     Ui/Views/CreditsView.cpp
     Ui/Views/SkinsView.cpp
     Ui/Views/SkinEditorView.cpp
+    Ui/Views/GoldMapperView.cpp
     Skins/SkinLibrary.cpp
     Skins/SkinAssets.cpp
     Skins/SkinPck.cpp

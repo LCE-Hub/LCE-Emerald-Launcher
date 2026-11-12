@@ -1,6 +1,9 @@
 #include "Ui/I18n.hpp"
+#include "Config/ConfigStore.hpp"
 #include "Core/Log.hpp"
+#include "Ui/View.hpp"
 #include <fstream>
+#include <format>
 namespace emerald::ui {
 namespace {
 void flatten(const Json &node, const std::string &prefix,

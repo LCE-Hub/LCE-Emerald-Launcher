@@ -196,9 +196,12 @@ void read_output(ProcessImpl &impl) {
 } // namespace
 
 bool Process::spawn(const ProcessSpec &spec, std::string &error) {
-  if (impl_->started) {
+  if (impl_->started && impl_->running) {
     error = "process already started";
     return false;
+  }
+  if (impl_->started && !impl_->running) {
+    impl_ = std::make_unique<ProcessImpl>();
   }
   if (spec.program.empty()) {
     error = "no program specified";
@@ -372,9 +375,12 @@ void read_output(ProcessImpl &impl) {
 } // namespace
 
 bool Process::spawn(const ProcessSpec &spec, std::string &error) {
-  if (impl_->started) {
+  if (impl_->started && impl_->running) {
     error = "process already started";
     return false;
+  }
+  if (impl_->started && !impl_->running) {
+    impl_ = std::make_unique<ProcessImpl>();
   }
   SECURITY_ATTRIBUTES attributes{};
   attributes.nLength = sizeof(attributes);

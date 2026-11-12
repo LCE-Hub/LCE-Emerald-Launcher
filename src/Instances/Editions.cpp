@@ -21,7 +21,7 @@ const std::vector<Edition> &build_base_editions() {
        "Nightly/LCE-Revelations-Client-Win64.zip",
        "/images/minecraft_title_revelations.png", "/images/revelations.png",
        "vanilla_tu19", "", false, true, false, false, false, false},
-      {"refourj", "ReFourJ",
+      {"ntce", "Project NTCE",
        "A LCE Project which aims to bring the feel and functionality from "
        "Minecraft: Playstation Edition directly natively to your PC!",
        "https://git.neolegacy.dev/ProjectLCE/Client/releases/download/latest/"
@@ -50,7 +50,7 @@ const std::vector<Edition> &build_base_editions() {
        "moonEditionWindows64.zip",
        "/images/minecraft_title_moon.png", "/images/moonEdition.png",
        "moonedition", "", false, true, false, false, false, false},
-      {"lceonline", "LCE Online Client",
+      {"lceonline", "LCEOnline Client",
        "[DISCONTINUED!] Restoring the classic LCE online experience with "
        "friends, world hosting, leaderboards & more.",
        "emerald://PLEASE_IM_TIRED_OF_ALL_THIS", "/images/lceonline.png",

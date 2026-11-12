@@ -8,7 +8,7 @@ class RenderContext {
 public:
   virtual ~RenderContext() = default;
   virtual void fill_rect(const Rect &rect, Color color) = 0;
-  virtual void draw_image(const std::string &source, const Rect &rect,
+  virtual void draw_image(const std::string &source, Rect rect,
                           float alpha = 1.0F) = 0;
   virtual void draw_image_tinted(const std::string &source, const Rect &rect,
                                  Color tint, float alpha = 1.0F) = 0;

@@ -83,7 +83,7 @@ void SdlRenderer::fill_rect(const Rect &rect, Color color) {
   SDL_RenderFillRect(renderer_, &target);
 }
 
-void SdlRenderer::draw_image(const std::string &source, const Rect &rect,
+void SdlRenderer::draw_image(const std::string &source, Rect rect,
                              float alpha) {
   SDL_Texture *texture = textures_.load(source);
   SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
@@ -309,11 +309,11 @@ void SdlRenderer::overlays() {
   textStyle.fontSize = 18;
   draw_text(EMERALD_VERSION_TEXT, Rect{1200, 680, 400, 300}, textStyle);
   const std::string set_root = "/images/tooltips/" + tooltip_set_;
+#define isNotXbox360 tooltip_set_ != "Xbox360"
   float x = 50;
   for (const TooltipHint &hint : tooltips_) {
-    draw_image(set_root + "/BG.png", Rect{x, 670, 35, 35});
-    draw_image(set_root + "/" + hint.icon + ".png", Rect{x, 670, 35, 35});
-    draw_text(hint.label, Rect{x + 35, 680, 400, 300}, textStyle);
+    draw_image(set_root + "/" + hint.icon + ".png", Rect{x, 675, isNotXbox360 ? 30.0F : 34.0F, isNotXbox360 ? 30.0F : 32.0F});
+    draw_text(hint.label, Rect{x + 36, 680, 400, 300}, textStyle);
     x += 35.0F + text_size(hint.label, textStyle).width + 24.0F;
   }
 }

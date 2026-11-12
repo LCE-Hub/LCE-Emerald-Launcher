@@ -73,6 +73,7 @@ struct AppConfig {
   std::optional<bool> vfx_enabled;
   std::optional<bool> rpc_enabled;
   std::optional<bool> start_fullscreen;
+  std::optional<bool> bedrock_enabled;
   std::optional<std::uint32_t> music_vol;
   std::optional<std::uint32_t> sfx_vol;
   std::optional<bool> legacy_mode;
