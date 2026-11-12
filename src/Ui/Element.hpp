@@ -91,13 +91,16 @@ public:
   void set_hovered(bool h) { hovered_ = h; }
   bool is_hovered() const { return hovered_; }
   void set_hover_style(ComputedStyle s) { hover_style_ = std::move(s); }
+  void set_descendant_hovers(std::vector<DescendantHover> rules) {
+    descendant_hovers_ = std::move(rules);
+  }
   const ComputedStyle &visual_style() const {
-    if (hover_style_) {
-      for (const Element *ancestor = this; ancestor != nullptr;
-           ancestor = ancestor->parent_) {
-        if (ancestor->hovered_) {
-          return *hover_style_;
-        }
+    if (hover_style_ && hovered_) {
+      return *hover_style_;
+    }
+    if (!descendant_hovers_.empty()) {
+      if (const ComputedStyle *style = descendant_style()) {
+        return *style;
       }
     }
     return style_;
@@ -117,9 +120,12 @@ protected:
   Element *parent_ = nullptr;
 
 private:
+  const ComputedStyle *descendant_style() const;
   bool hovered_ = false;
   bool interactive_ = false;
   std::optional<ComputedStyle> hover_style_;
+  std::vector<DescendantHover> descendant_hovers_;
+  mutable ComputedStyle descendant_style_;
 };
 
 class TextInputElement : public Element {

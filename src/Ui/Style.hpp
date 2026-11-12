@@ -87,12 +87,25 @@ struct StyleRule {
   std::vector<std::string> declarations;
 };
 
+struct DescendantHover {
+  struct Part {
+    std::string selector;
+    bool hover = false;
+  };
+  std::vector<Part> ancestors;
+  bool subject_hover = false;
+  ComputedStyle style;
+};
+
 struct StyleSheet {
   std::vector<StyleRule> rules;
   ComputedStyle applyTo(const ComputedStyle &base, const std::string &tag,
                         const std::string &id,
                         const std::vector<std::string> &classes,
                         bool hovered = false) const;
+  std::vector<DescendantHover>
+  matching_descendants(const std::string &tag, const std::string &id,
+                       const std::vector<std::string> &classes) const;
 };
 
 bool parse_color(std::string_view text, Color &out);

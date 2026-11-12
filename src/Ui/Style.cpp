@@ -656,12 +656,80 @@ ComputedStyle ComputedStyle::merge(const ComputedStyle &base,
   return result;
 }
 
+namespace {
+bool selector_part_matches(const std::string_view selector,
+                           const std::string &tag, const std::string &id,
+                           const std::vector<std::string> &classes) {
+  if (selector.empty()) {
+    return false;
+  }
+  if (selector[0] == '#') {
+    return id == selector.substr(1);
+  }
+  if (selector[0] == '.' && selector.find('.', 1) == std::string_view::npos) {
+    const std::string className(selector.substr(1));
+    for (const std::string &cls : classes) {
+      if (cls == className) {
+        return true;
+      }
+    }
+    return false;
+  }
+  std::vector<std::string_view> tokens;
+  std::size_t start = 0;
+  for (std::size_t i = 0; i <= selector.size(); ++i) {
+    if (i == selector.size() || selector[i] == '.') {
+      tokens.push_back(selector.substr(start, i - start));
+      start = i + 1;
+    }
+  }
+  std::size_t index = 0;
+  if (!tokens.empty() && !tokens[0].empty()) {
+    if (tag != tokens[0]) {
+      return false;
+    }
+    index = 1;
+  }
+  for (std::size_t i = index; i < tokens.size(); ++i) {
+    const std::string className(tokens[i]);
+    bool found = false;
+    for (const std::string &cls : classes) {
+      if (cls == className) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      return false;
+    }
+  }
+  return true;
+}
+
+std::vector<std::string_view> split_selector_parts(std::string_view selector) {
+  std::vector<std::string_view> parts;
+  std::size_t start = 0;
+  for (std::size_t i = 0; i <= selector.size(); ++i) {
+    if (i == selector.size() || selector[i] == ' ') {
+      if (i > start) {
+        parts.push_back(selector.substr(start, i - start));
+      }
+      start = i + 1;
+    }
+  }
+  return parts;
+}
+} // namespace
+
 ComputedStyle StyleSheet::applyTo(const ComputedStyle &base,
                                   const std::string &tag, const std::string &id,
                                   const std::vector<std::string> &classes,
                                   bool hovered) const {
   ComputedStyle result = base;
   for (const StyleRule &rule : rules) {
+    if (rule.selector.find(' ') != std::string::npos) {
+      continue;
+    }
     std::string_view selector = rule.selector;
     bool wantsHover = false;
     const std::size_t hoverPos = selector.find(":hover");
@@ -673,23 +741,7 @@ ComputedStyle StyleSheet::applyTo(const ComputedStyle &base,
       selector.remove_suffix(selector.size() - hoverPos);
     }
 
-    bool matches = false;
-    if (!selector.empty()) {
-      if (selector[0] == '.') {
-        const std::string className(selector.substr(1));
-        for (const std::string &cls : classes) {
-          if (cls == className) {
-            matches = true;
-            break;
-          }
-        }
-      } else if (selector[0] == '#') {
-        matches = id == selector.substr(1);
-      } else {
-        matches = tag == selector;
-      }
-    }
-    if (!matches) {
+    if (!selector_part_matches(selector, tag, id, classes)) {
       continue;
     }
     if (wantsHover) {
@@ -703,6 +755,48 @@ ComputedStyle StyleSheet::applyTo(const ComputedStyle &base,
       apply_declaration(result, declaration.substr(0, colon),
                         declaration.substr(colon + 1));
     }
+  }
+  return result;
+}
+
+std::vector<DescendantHover> StyleSheet::matching_descendants(
+    const std::string &tag, const std::string &id,
+    const std::vector<std::string> &classes) const {
+  std::vector<DescendantHover> result;
+  for (const StyleRule &rule : rules) {
+    const std::vector<std::string_view> parts =
+        split_selector_parts(rule.selector);
+    if (parts.size() < 2) {
+      continue;
+    }
+    DescendantHover entry;
+    std::string_view subject = parts.back();
+    if (subject.ends_with(":hover")) {
+      entry.subject_hover = true;
+      subject.remove_suffix(6);
+    }
+    if (!selector_part_matches(subject, tag, id, classes)) {
+      continue;
+    }
+    for (std::size_t i = 0; i + 1 < parts.size(); ++i) {
+      std::string_view part = parts[i];
+      DescendantHover::Part ancestor;
+      if (part.ends_with(":hover")) {
+        ancestor.hover = true;
+        part.remove_suffix(6);
+      }
+      ancestor.selector = std::string(part);
+      entry.ancestors.push_back(std::move(ancestor));
+    }
+    for (const std::string &declaration : rule.declarations) {
+      const std::size_t colon = declaration.find(':');
+      if (colon == std::string::npos) {
+        continue;
+      }
+      apply_declaration(entry.style, declaration.substr(0, colon),
+                        declaration.substr(colon + 1));
+    }
+    result.push_back(std::move(entry));
   }
   return result;
 }

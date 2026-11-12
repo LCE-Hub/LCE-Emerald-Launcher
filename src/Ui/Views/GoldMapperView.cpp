@@ -6,6 +6,7 @@
 #include "Ui/I18n.hpp"
 #include <algorithm>
 #include <cctype>
+#include <cstdlib>
 #include <filesystem>
 #include <map>
 #include <vector>
@@ -48,6 +49,21 @@ std::string display_name(const std::string &id) {
   return label;
 }
 
+std::string row_label(const std::string &id) {
+  if (starts_with(id, "DINPUT_")) {
+    const std::vector<std::string> &targets = launch::controller_targets();
+    const std::string digits = id.substr(7);
+    if (!digits.empty() &&
+        digits.find_first_not_of("0123456789") == std::string::npos) {
+      const int index = std::atoi(digits.c_str());
+      if (index >= 0 && static_cast<std::size_t>(index) < targets.size()) {
+        return display_name(targets[static_cast<std::size_t>(index)]);
+      }
+    }
+  }
+  return display_name(id);
+}
+
 std::vector<std::string> keyboard_ids() {
   std::vector<std::string> ids;
   for (const GoldMapperMapping &mapping : launch::default_mappings()) {
@@ -66,7 +82,8 @@ std::map<std::string, std::string> load_binds(const config::AppConfig &config) {
   for (const GoldMapperMapping &mapping : *config.goldmapper_mappings) {
     if (starts_with(mapping.from, "KEY_") ||
         starts_with(mapping.from, "MOUSE_") ||
-        starts_with(mapping.from, "PAD_")) {
+        starts_with(mapping.from, "PAD_") ||
+        starts_with(mapping.from, "DINPUT_")) {
       binds[mapping.from] = mapping.to;
     }
   }
@@ -95,8 +112,10 @@ build_payload(const std::map<std::string, std::string> &binds) {
   }
   const std::vector<std::string> &targets = launch::controller_targets();
   for (std::size_t index = 0; index < targets.size(); ++index) {
-    payload.push_back(
-        GoldMapperMapping{"DINPUT_" + std::to_string(index), targets[index]});
+    const std::string id = "DINPUT_" + std::to_string(index);
+    const auto found = binds.find(id);
+    payload.push_back(GoldMapperMapping{
+        id, found != binds.end() ? found->second : targets[index]});
   }
   return payload;
 }
@@ -151,6 +170,22 @@ std::string tooltip_image(const std::filesystem::path &public_root,
   return "";
 }
 
+std::string controller_icon(const std::string &id) {
+  static const std::map<std::string, std::string> ICONS = {
+      {"PAD_LTHUMB", "LS"},
+      {"PAD_RTHUMB", "RS"},
+      {"PAD_DPAD_UP", "Up"},
+      {"PAD_DPAD_DOWN", "Down"},
+      {"PAD_DPAD_LEFT", "Left"},
+      {"PAD_DPAD_RIGHT", "Right"},
+  };
+  const auto found = ICONS.find(id);
+  if (found != ICONS.end()) {
+    return found->second;
+  }
+  return id.substr(4);
+}
+
 Json bind_row(const std::string &id, const std::string &label,
               const std::map<std::string, std::string> &binds,
               const std::filesystem::path &public_root,
@@ -164,7 +199,10 @@ Json bind_row(const std::string &id, const std::string &label,
   row["value"] = value;
   row["focusId"] = "gmbind:" + id;
   row["action"] = "goldmapper.open:" + id;
-  const std::string image = tooltip_image(public_root, tooltip_set, value);
+  const std::string image = starts_with(to, "PAD_")
+                                ? tooltip_image(public_root, tooltip_set,
+                                                controller_icon(to))
+                                : "";
   if (!image.empty()) {
     row["image"] = image;
   } else {
@@ -236,9 +274,10 @@ Json GoldMapperView::data(const UiServices &services) const {
       {"isHeader", true},
       {"label", translate(services, "goldMapper.controller", "Controller")}});
   const std::vector<std::string> &controllers = launch::controller_targets();
-  for (const std::string &id : controllers) {
-    rows.push_back(
-        bind_row(id, display_name(id), binds, services.public_root, tooltip_set));
+  for (std::size_t index = 0; index < controllers.size(); ++index) {
+    rows.push_back(bind_row("DINPUT_" + std::to_string(index),
+                            display_name(controllers[index]), binds,
+                            services.public_root, tooltip_set));
   }
 
   rows.push_back(
@@ -263,7 +302,7 @@ Json GoldMapperView::data(const UiServices &services) const {
     data["modalOpen"] = true;
     data["assignTitle"] = replace_token(
         translate(services, "goldMapper.assign", "Assign {{name}}"), "{{name}}",
-        display_name(editing_));
+        row_label(editing_));
     const std::string &source = editing_;
     data["mouseGroup"] = cell_group({
         cell_json("MOUSE_LEFT", mouse_label(services, "MOUSE_LEFT"),

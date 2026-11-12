@@ -964,6 +964,71 @@ void Element::reveal() {
     }
   }
 }
+
+namespace {
+bool part_matches(const DescendantHover::Part &part, const Element &element) {
+  if (part.hover && !element.is_hovered()) {
+    return false;
+  }
+  const std::string &selector = part.selector;
+  if (selector.empty()) {
+    return false;
+  }
+  if (selector[0] == '#') {
+    return element.id() == selector.substr(1);
+  }
+  std::vector<std::string> tokens;
+  std::size_t start = 0;
+  for (std::size_t i = 0; i <= selector.size(); ++i) {
+    if (i == selector.size() || selector[i] == '.') {
+      tokens.push_back(std::string(selector.substr(start, i - start)));
+      start = i + 1;
+    }
+  }
+  std::size_t index = 0;
+  if (!tokens.empty() && !tokens[0].empty()) {
+    if (std::string_view(element.tag()) != tokens[0]) {
+      return false;
+    }
+    index = 1;
+  }
+  for (std::size_t i = index; i < tokens.size(); ++i) {
+    bool found = false;
+    for (const std::string &cls : element.classes()) {
+      if (cls == tokens[i]) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      return false;
+    }
+  }
+  return true;
+}
+} // namespace
+
+const ComputedStyle *Element::descendant_style() const {
+  for (const DescendantHover &rule : descendant_hovers_) {
+    if (rule.subject_hover && !hovered_) {
+      continue;
+    }
+    const Element *node = parent_;
+    std::size_t index = rule.ancestors.size();
+    while (index > 0 && node != nullptr) {
+      if (part_matches(rule.ancestors[index - 1], *node)) {
+        --index;
+      }
+      node = node->parent_;
+    }
+    if (index == 0) {
+      descendant_style_ = ComputedStyle::merge(style_, rule.style);
+      return &descendant_style_;
+    }
+  }
+  return nullptr;
+}
+
 Element *Element::hit_test(const Vec2 &point) {
   if (!style_.visible) {
     return nullptr;

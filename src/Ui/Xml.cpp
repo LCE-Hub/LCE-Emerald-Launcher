@@ -372,5 +372,7 @@ void ViewBuilder::apply_styles(
   if (hover.hovered) {
     element.set_hover_style(std::move(hover));
   }
+  element.set_descendant_hovers(document_.styles().matching_descendants(
+      node.name(), element.id(), element.classes()));
 }
 } // namespace emerald::ui
