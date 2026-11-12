@@ -189,7 +189,7 @@
             <label text="{{t:skins.capeLibrary}}"/>
           </button>
           <column flex="1"/>
-          <button class="toolbar-btn" onclick="skins.import">
+          <button id="skins-import-btn" class="toolbar-btn" onclick="skins.import">
             <label text="{{importLabel}}"/>
           </button>
           <button class="toolbar-btn {{deleteClass}}" onclick="{{deleteAction}}">
@@ -239,7 +239,7 @@
         </button>
       </column>
       <column if="{{importOpen}}" class="backdrop" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" align="center" justify="center">
-        <column class="modal-frame" width="440px" align="center" gap="10">
+        <column id="skins-import-modal" class="modal-frame" width="440px" align="center" gap="10">
           <label class="modal-title" text="{{importLabel}}"/>
           <column if="{{importRoot}}" width="100%" gap="10" align="center">
             <button class="modal-btn-wide" onclick="skins.import.file">

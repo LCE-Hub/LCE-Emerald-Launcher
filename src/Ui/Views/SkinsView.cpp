@@ -75,6 +75,7 @@ void SkinsView::on_enter() { skins::SkinUiState::instance().view_mode = "skin"; 
 bool SkinsView::on_escape(UiServices &services) {
   skins::SkinUiState &state = skins::SkinUiState::instance();
   if (state.import_open) {
+    const bool was_open = state.import_open;
     if (state.import_mode.empty()) {
       state.reset_import();
     } else {
@@ -85,6 +86,7 @@ bool SkinsView::on_escape(UiServices &services) {
     if (services.audio != nullptr) {
       services.audio->play_back();
     }
+    sync_import_focus(services, was_open);
     return true;
   }
   if (services.audio != nullptr) {
@@ -345,6 +347,21 @@ void SkinsView::rename_entry(const std::string &id, UiServices &services) {
   }
 }
 
+void SkinsView::sync_import_focus(UiServices &services, bool was_open) const {
+  const bool open = skins::SkinUiState::instance().import_open;
+  if (open == was_open || services.focus_scope == nullptr) {
+    return;
+  }
+  if (open) {
+    services.focus_scope("skins-import-modal");
+    return;
+  }
+  services.focus_scope("");
+  if (services.focus_element != nullptr) {
+    services.focus_element("skins-import-btn");
+  }
+}
+
 bool SkinsView::action(std::string_view name, UiServices &services) {
   if (services.config == nullptr) {
     return false;
@@ -373,12 +390,14 @@ bool SkinsView::action(std::string_view name, UiServices &services) {
     return true;
   }
   if (verb == "skins.import") {
+    const bool was_open = state.import_open;
     if (state.view_mode == "cape") {
       state.open_import_dialog();
     } else {
       state.reset_import();
       state.import_open = true;
     }
+    sync_import_focus(services, was_open);
     return true;
   }
   if (verb == "skins.import.file") {
@@ -390,6 +409,7 @@ bool SkinsView::action(std::string_view name, UiServices &services) {
     return true;
   }
   if (verb == "skins.import.back") {
+    const bool was_open = state.import_open;
     if (state.import_mode.empty()) {
       state.reset_import();
     } else {
@@ -397,6 +417,7 @@ bool SkinsView::action(std::string_view name, UiServices &services) {
       state.username_draft.clear();
       state.import_error.clear();
     }
+    sync_import_focus(services, was_open);
     return true;
   }
   if (verb == "skins.username") {
@@ -407,6 +428,7 @@ bool SkinsView::action(std::string_view name, UiServices &services) {
     if (state.importing || state.username_draft.empty()) {
       return true;
     }
+    const bool was_open = state.import_open;
     state.importing = true;
     state.import_error.clear();
     std::string error;
@@ -419,6 +441,7 @@ bool SkinsView::action(std::string_view name, UiServices &services) {
           error.empty() ? translate(services, "skins.failedToFetch",
                                     "Failed to fetch")
                         : error;
+      sync_import_focus(services, was_open);
       return true;
     }
     state.process_import("data:image/png;base64," + fetched->base64,
@@ -426,8 +449,10 @@ bool SkinsView::action(std::string_view name, UiServices &services) {
     return true;
   }
   if (verb == "skins.import.normal" || verb == "skins.import.slim") {
+    const bool was_open = state.import_open;
     state.finalize_import(*services.config, services.public_root,
                           verb == "skins.import.slim");
+    sync_import_focus(services, was_open);
     return true;
   }
   if (verb == "skins.select") {

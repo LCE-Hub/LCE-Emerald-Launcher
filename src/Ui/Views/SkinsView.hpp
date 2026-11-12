@@ -15,5 +15,6 @@ private:
   void select_cape(const std::string &id, UiServices &services);
   void delete_active_cape(UiServices &services);
   void rename_entry(const std::string &id, UiServices &services);
+  void sync_import_focus(UiServices &services, bool was_open) const;
 };
 } // namespace emerald::ui
