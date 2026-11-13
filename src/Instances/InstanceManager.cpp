@@ -28,6 +28,7 @@ const std::vector<std::string> kKeepList{
     "profile9.dat",
     "profile10.dat",
     "proton_prefix",
+    "mods", //neo: for Hellish Ends mods
 };
 }
 
