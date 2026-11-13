@@ -179,7 +179,6 @@
     <tooltip icon="A">{{t:common.select}}</tooltip>
     <tooltip icon="B">{{t:common.back}}</tooltip>
     <column width="1280px" height="720px" align="center" justify="center">
-      <row height="80px" />
       <column width="1024px" align="center" gap="12">
         <row class="skins-toolbar">
           <button class="skins-tab {{skinTabClass}}" onclick="skins.mode.skin">

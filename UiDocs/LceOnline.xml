@@ -152,7 +152,7 @@
     <tooltip icon="A">{{t:common.select}}</tooltip>
     <tooltip icon="B">{{t:common.back}}</tooltip>
     <column width="1280px" height="720px" padding="40" align="center">
-      <column if="{{signedIn}}" width="1024px" height="640px" gap="0px" justify="center" align="center">
+      <column if="{{signedIn}}" width="1024px" height="540px" gap="0px" justify="center" align="center">
         <image class="lce-title" src="/images/lceonline.png" fit="contain"/>
         <column height="12px"/>
         <row class="lce-tabs">
@@ -172,8 +172,8 @@
             </row>
           </button>
         </row>
-        <column class="optionsbg" padding="4" width="100%" height="404px" align="center" justify="center">
-          <column if="{{tabFriends}}" width="100%" height="372px" gap="8px">
+        <column class="optionsbg" padding="4" width="100%" height="444px" align="center" justify="center">
+          <column if="{{tabFriends}}" width="100%" height="412px" gap="8px">
             <row class="lce-actions">
               <button if="{{hosting}}" class="lce-action" onclick="lceonline.stopHost">
                 <label text="{{t:lceOnline.stopHosting}}"/>
