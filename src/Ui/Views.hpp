@@ -2,6 +2,7 @@
 #include "Ui/Views/CreditsView.hpp"
 #include "Ui/Views/GoldMapperView.hpp"
 #include "Ui/Views/HomeView.hpp"
+#include "Ui/Views/LceOnlineView.hpp"
 #include "Ui/Views/OverlayView.hpp"
 #include "Ui/Views/SettingsView.hpp"
 #include "Ui/Views/SkinEditorView.hpp"
@@ -18,5 +19,6 @@ REGISTER("credits", CreditsView);
 REGISTER("skins", SkinsView);
 REGISTER("skineditor", SkinEditorView);
 REGISTER("goldmapper", GoldMapperView);
+REGISTER("lceonline", LceOnlineView);
 REGISTER("overlay", OverlayView);
 #endif

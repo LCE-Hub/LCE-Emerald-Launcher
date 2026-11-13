@@ -53,6 +53,12 @@ public:
   }
   void navigate(const std::string &view_id);
   void navigate_back();
+  std::string translate(const std::string &key) const {
+    return i18n_.translate(key);
+  }
+  std::string translate(const std::string &key, const std::string &defaultval) const {
+    return i18n_.translate(key, defaultval);
+  }
   void invalidate() { dirty_ = true; }
   void push_toast(std::string title, std::string message,
                   ToastVariant variant, std::string on_click = "");  const std::string &current_view() const { return current_view_; }
@@ -90,9 +96,9 @@ private:
   Element *find_hoverable(Element *element, const Vec2 &point) const;
   bool hover_path(Element *e, const Vec2 &p,
                   std::vector<Element *> &path) const;
-  SdlRenderer renderer_;
   Panorama panorama_;
   ElementRegistry &registry_;
+  SdlRenderer renderer_;
   I18n i18n_;
   UiDocument document_;
   HandlerRegistry handlers_;

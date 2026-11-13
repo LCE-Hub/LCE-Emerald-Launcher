@@ -191,7 +191,11 @@
     "error": "Ошибка",
     "ok": "OK",
     "failedToStartHosting": "Не удалось создать игру",
-    "anErrorOccurred": "Произошла ошибка"
+    "anErrorOccurred": "Произошла ошибка",
+    "signIn": "Войти",
+    "register": "Регистрация",
+    "password": "Пароль",
+    "enterCredentials": "Введите имя пользователя и пароль"
   },
   "devtools": {
     "comingSoon": "Скоро",

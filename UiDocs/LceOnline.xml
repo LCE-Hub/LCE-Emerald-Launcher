@@ -1,0 +1,326 @@
+<ui xmlns="emerald" version="1">
+  <import href="Common/Buttons.xml"/>
+  <style>
+    .lce-title { width: 400px; height: 100px; align: center; }
+    .lce-tabs { width: 100%; height: 54px; gap: 0px; padding: 0px 1px; margin-bottom: -8px; }
+    .lce-tab {
+      flex: 1;
+      height: 64px;
+      align: center;
+      text-align: center;
+      font-size: 20px;
+      color: #333333;
+      border-image: url(/images/LargeTabOff.png) 32px fill / 20px;
+      border-width: 12px;
+    }
+    .lce-tab-active { border-image: url(/images/LargeTab.png) 32px fill / 20px; }
+    .lce-count {
+      background: #d72f2f;
+      color: #ffffff;
+      font-size: 14px;
+      padding: 2px 8px;
+    }
+    .optionsbg {
+      border-image: url(/images/FJ_Panel9Grid.png) 32px fill / 20px;
+      border-width: 12px;
+    }
+    .lce-recess {
+      border-image: url(/images/FJ_PanelRecess.png) 12px fill / 12px;
+      border-width: 12px;
+    }
+    .lce-actions { width: 100%; height: 44px; gap: 8px; }
+    .lce-action {
+      flex: 1;
+      height: 44px;
+      align: center;
+      font-size: 20px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 2px 2px;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .lce-action:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .lce-row {
+      width: 100%;
+      height: 72px;
+      align: center;
+      gap: 12px;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .lce-row:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+    }
+    .lce-row-name { font-size: 20px; color: #ffffff; text-shadow: #3f3f3f 1px 1px; }
+    .lce-row-sub { font-size: 14px; color: #b0b0b0; text-shadow: #3f3f3f 1px 1px; }
+    .lce-row-btn {
+      width: 40px;
+      height: 40px;
+      align: center;
+      font-size: 16px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 1px 1px;
+      border-image: url(/images/checkbox.png) 4px fill / 12px;
+      border-width: 12px;
+    }
+    .lce-row-btn:hover {
+      border-image: url(/images/checkbox_highlighted.png) 4px fill / 12px;
+      border-width: 12px;
+      color: #ffff55;
+    }
+    .lce-empty { width: 100%; height: 200px; align: center; justify: center; }
+    .lce-empty-label { font-size: 18px; color: #808080; text-shadow: #3f3f3f 1px 1px; }
+    .lce-logo-btn { height: 24px; align: center; }
+    .lce-auth {
+      width: 500px;
+      align: center;
+      gap: 14px;
+      border-image: url(/images/background.png) 4 4 4 4 fill / 4px;
+      padding: 28px 32px;
+    }
+    .lce-auth-logo { width: 256px; height: 64px; }
+    .lce-auth-title { font-size: 24px; color: #2a2a2a; }
+    .lce-auth-mode { width: 100%; height: 44px; gap: 4px; }
+    .lce-input { width: 100%; }
+    .lce-error { color: #ff5555; font-size: 16px; }
+    .lce-action-btn {
+      flex: 1;
+      height: 44px;
+      align: center;
+      font-size: 20px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 2px 2px;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .lce-action-btn:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .lce-submit { width: 100%; height: 48px; align: center; font-size: 19px; color: #ffffff; text-shadow: #3f3f3f 2px 2px; border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px; }
+    .lce-submit:hover { border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px; color: #ffff55; }
+    .backdrop { background: rgba(0, 0, 0, 0.6); }
+    .modalframe {
+      border-image: url(/images/background.png) 4 4 4 4 fill / 4px;
+      border-width: 12px;
+      font-size: 18px;
+      padding: 12px;
+      align: center;
+    }
+    .modal-addfriend { width: 420px; gap: 16px; }
+    .modal-join { width: 450px; gap: 12px; }
+    .modal-error { width: 400px; gap: 16px; }
+    .modal-title { font-size: 22px; text-shadow: #3f3f3f 2px 2px; }
+    .modal-prompt { align: center; color: #ffffff; font-size: 16px; }
+    .modal-warn { align: center; color: #ff8080; font-size: 14px; }
+    .modal-launching { align: center; color: #ffffff; font-size: 16px; }
+    .modal-message { align: center; color: #ffffff; font-size: 18px; }
+    .modal-btn {
+      width: 140px;
+      height: 40px;
+      align: center;
+      font-size: 18px;
+      color: #ffffff;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .modal-btn:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .modal-btn-accent {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffffff;
+    }
+    .modal-btn-accent:hover {
+      color: #ffff55;
+    }
+    .modal-btn-flex { flex: 1; }
+    .modal-actions { width: 100%; gap: 12px; align: center; justify: center; }
+    .modal-input { width: 100%; font-size: 18px; }
+    .modal-row { width: 100%; height: 48px; align: center; gap: 12px; padding: 0px 12px; }
+    .modal-row:hover { background: rgba(0, 0, 0, 0.2); }
+    .selected { background: rgba(0, 0, 0, 0.2); }
+    .selected .modal-row-name { color: #ffff55; }
+    .modal-row-name { font-size: 18px; color: #ffffff; text-shadow: #3f3f3f 1px 1px; }
+    .modal-row-logo { width: 32px; height: 32px; }
+  </style>
+  <view id="lceonline">
+    <tooltip icon="A">{{t:common.select}}</tooltip>
+    <tooltip icon="B">{{t:common.back}}</tooltip>
+    <column width="1280px" height="720px" padding="40" align="center">
+      <column if="{{signedIn}}" width="1024px" height="640px" gap="0px" justify="center" align="center">
+        <image class="lce-title" src="/images/lceonline.png" fit="contain"/>
+        <column height="12px"/>
+        <row class="lce-tabs">
+          <button class="lce-tab {{friendsTabClass}}" onclick="lceonline.tab:friends">
+            <label text="{{t:lceOnline.friends}}" align="center" text-align="center" />
+          </button>
+          <button class="lce-tab {{requestsTabClass}}" onclick="lceonline.tab:requests">
+            <row gap="12" align="center">
+              <label text="{{t:lceOnline.requests}}" align="center" text-align="center" />
+              <label if="{{requestCount}}" class="lce-count" text="{{requestCount}}"/>
+            </row>
+          </button>
+          <button class="lce-tab {{invitesTabClass}}" onclick="lceonline.tab:invites">
+            <row gap="12" align="center">
+              <label text="{{t:lceOnline.invites}}" align="center" text-align="center" />
+              <label if="{{inviteCount}}" class="lce-count" text="{{inviteCount}}"/>
+            </row>
+          </button>
+        </row>
+        <column class="optionsbg" padding="4" width="100%" height="404px" align="center" justify="center">
+          <column if="{{tabFriends}}" width="100%" height="372px" gap="8px">
+            <row class="lce-actions">
+              <button if="{{hosting}}" class="lce-action" onclick="lceonline.stopHost">
+                <label text="{{t:lceOnline.stopHosting}}"/>
+              </button>
+              <button if="{{notHosting}}" class="lce-action" onclick="lceonline.host">
+                <label text="{{t:lceOnline.hostGame}}"/>
+              </button>
+              <button class="lce-action" onclick="lceonline.addFriend.open">
+                <label text="{{t:lceOnline.addFriend}}"/>
+              </button>
+              <button class="lce-action" onclick="lceonline.logout">
+                <label text="{{t:lceOnline.signOut}}"/>
+              </button>
+            </row>
+            <scroll class="lce-recess" width="100%" height="320px" hide-partial="true">
+              <column gap="4" width="100%">
+                <column if="{{friendsEmpty}}" class="lce-empty">
+                  <label class="lce-empty-label" align="center" text="{{t:lceOnline.noneAvailable}}"/>
+                </column>
+                <row foreach="{{friends}}" as="friend" class="lce-row">
+                  <column flex="1" gap="4" align="center">
+                    <label class="lce-row-name" text="{{friend.name}}"/>
+                    <label class="lce-row-sub" text="@{{friend.username}}"/>
+                  </column>
+                  <row gap="8" align="center">
+                    <button if="{{hosting}}" class="lce-row-btn" width="80px" onclick="{{friend.inviteAction}}">
+                      <label text="{{t:lceOnline.invite}}"/>
+                    </button>
+                    <button class="lce-row-btn" onclick="{{friend.action}}">
+                      <label text="X" color="#ff0000" font-size="24px" />
+                    </button>
+                  </row>
+                </row>
+              </column>
+            </scroll>
+          </column>
+          <scroll if="{{tabRequests}}" class="lce-recess" width="100%" height="372px" hide-partial="true">
+            <column gap="4" width="97.9%">
+              <column if="{{requestsEmpty}}" class="lce-empty">
+                <label class="lce-empty-label" align="center" text="{{t:lceOnline.noneAvailable}}"/>
+              </column>
+              <row foreach="{{requests}}" as="request" class="lce-row">
+                <column flex="1" gap="4" align="center">
+                  <label class="lce-row-name" text="{{request.name}}"/>
+                  <label class="lce-row-sub" text="@{{request.username}}"/>
+                </column>
+                <row gap="8" align="center">
+                  <button class="lce-row-btn" onclick="{{request.acceptAction}}">
+                    <label text="{{t:lceOnline.accept}}"/>
+                  </button>
+                  <button class="lce-row-btn" onclick="{{request.declineAction}}">
+                    <label text="{{t:lceOnline.decline}}"/>
+                  </button>
+                </row>
+              </row>
+            </column>
+          </scroll>
+          <scroll if="{{tabInvites}}" class="lce-recess" width="100%" height="372px" hide-partial="true">
+            <column gap="4" width="97.9%">
+              <column if="{{invitesEmpty}}" class="lce-empty">
+                <label class="lce-empty-label" align="center" text="{{t:lceOnline.noneAvailable}}"/>
+              </column>
+              <row foreach="{{invites}}" as="invite" class="lce-row">
+                <column flex="1" gap="4" align="center">
+                  <label class="lce-row-name" text="{{invite.name}}"/>
+                  <label class="lce-row-sub" text="{{t:lceOnline.invite}}"/>
+                </column>
+                <row gap="8" align="center">
+                  <button class="lce-row-btn" onclick="{{invite.joinAction}}">
+                    <label text="{{t:lceOnline.accept}}"/>
+                  </button>
+                  <button class="lce-row-btn" onclick="{{invite.declineAction}}">
+                    <label text="{{t:lceOnline.decline}}"/>
+                  </button>
+                </row>
+              </row>
+            </column>
+          </scroll>
+        </column>
+        <column height="8px"/>
+      </column>
+      <row if="{{signedOut}}" height="120px"/>
+      <column if="{{signedOut}}" class="lce-auth">
+        <image class="lce-auth-logo" src="/images/lceonline.png" fit="contain"/>
+        <label class="lce-auth-title" text="{{authSubmitLabel}}"/>
+        <row class="lce-auth-mode">
+          <button class="lce-action-btn {{authLoginClass}}" onclick="lceonline.auth.login">
+            <label font-size="20px" text="{{t:lceOnline.signIn}}"/>
+          </button>
+          <button class="lce-action-btn {{authRegisterClass}}" onclick="lceonline.auth.register">
+            <label font-size="20px" text="{{t:lceOnline.register}}"/>
+          </button>
+        </row>
+        <textinput id="lceonline-username" class="lce-input" color="#ffffff" value="{{authUsername}}" onsubmit="lceonline.auth.username" label="{{t:lceOnline.username}}"/>
+        <textinput id="lceonline-password" class="lce-input" color="#ffffff" value="" onsubmit="lceonline.auth.password" label="{{t:lceOnline.password}}"/>
+        <label if="{{authError}}" class="lce-error" text="{{authError}}"/>
+        <button class="lce-submit {{authBusyClass}}" onclick="lceonline.auth.submit">
+          <label text="{{authSubmitLabel}}"/>
+        </button>
+      </column>
+      <column class="backdrop" if="{{addFriendOpen}}" align="center" justify="center" style="position:absolute;left:0px;top:0px;width:1280px;height:720px">
+        <column class="modalframe modal-addfriend">
+          <label class="modal-title" text="{{t:lceOnline.addFriend}}"/>
+          <textinput id="lceonline-add-friend" class="modal-input" value="" onsubmit="lceonline.addFriend.submit" label="{{t:lceOnline.username}}"/>
+          <row class="modal-actions">
+            <button class="modal-btn modal-btn-flex modal-btn-accent" onclick="lceonline.addFriend.submit">
+              <label text="{{t:lceOnline.send}}"/>
+            </button>
+            <button class="modal-btn modal-btn-flex" onclick="lceonline.addFriend.cancel">
+              <label text="{{t:lceOnline.cancel}}"/>
+            </button>
+          </row>
+        </column>
+      </column>
+      <column class="backdrop" if="{{joinOpen}}" align="center" justify="center" style="position:absolute;left:0px;top:0px;width:1280px;height:720px">
+        <column class="modalframe modal-join">
+          <label class="modal-title" text="{{t:modals.chooseInstance.title}}"/>
+          <label class="modal-prompt" text="{{joinPrompt}}"/>
+          <label if="{{noInstances}}" class="modal-warn" text="{{t:modals.chooseInstance.noInstances}}"/>
+          <scroll width="100%" height="280px" hide-partial="true">
+            <column gap="4" width="100%">
+              <row foreach="{{instances}}" as="instance" class="modal-row {{instance.selectedClass}}" onclick="lceonline.join.select:{{instance.id}}">
+                <image class="modal-row-logo" src="{{instance.logo}}" fit="contain"/>
+                <label class="modal-row-name" text="{{instance.name}}"/>
+              </row>
+            </column>
+          </scroll>
+          <label if="{{joining}}" class="modal-launching" text="{{t:modals.chooseInstance.launching}}"/>
+          <row class="modal-actions">
+            <button if="{{hasInstances}}" class="modal-btn modal-btn-accent" onclick="lceonline.join.confirm">
+              <label text="{{t:modals.chooseInstance.join}}"/>
+            </button>
+            <button class="modal-btn" onclick="lceonline.join.close">
+              <label text="{{t:modals.chooseInstance.cancel}}"/>
+            </button>
+          </row>
+        </column>
+      </column>
+      <column class="backdrop" if="{{error}}" align="center" justify="center" style="position:absolute;left:0px;top:0px;width:1280px;height:720px">
+        <column class="modalframe modal-error">
+          <label class="modal-title" text="{{t:lceOnline.error}}"/>
+          <label class="modal-message" text="{{error}}"/>
+          <button class="modal-btn modal-btn-accent" onclick="lceonline.error.ok">
+            <label text="{{t:lceOnline.ok}}"/>
+          </button>
+        </column>
+      </column>
+    </column>
+  </view>
+</ui>

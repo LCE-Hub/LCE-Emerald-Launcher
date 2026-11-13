@@ -44,6 +44,9 @@ std::string view_details(const std::string &view) {
   if (view == "settings") {
     return "In Settings";
   }
+  if (view == "lceonline") {
+    return "Browsing Friends";
+  }
   return "In Menus";
 }
 } // namespace

@@ -191,7 +191,11 @@
     "error": "Error",
     "ok": "OK",
     "failedToStartHosting": "Failed to start hosting",
-    "anErrorOccurred": "An error occurred"
+    "anErrorOccurred": "An error occurred",
+    "signIn": "Sign In",
+    "register": "Register",
+    "password": "Password",
+    "enterCredentials": "Enter a username and password"
   },
   "devtools": {
     "comingSoon": "Coming Soon",

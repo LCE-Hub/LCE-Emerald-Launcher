@@ -7,6 +7,7 @@
 #include "Instances/ArgsSchema.hpp"
 #include "Instances/Editions.hpp"
 #include "Instances/InstanceManager.hpp"
+#include "Instances/UpdateChecker.hpp"
 #include "Launch/Servers.hpp"
 #include "Skins/SkinUiState.hpp"
 #include "Ui/EditionResolver.hpp"
@@ -123,8 +124,10 @@ Json VersionsView::data(const UiServices &services) const {
     entry["comingSoon"] = edition.coming_soon;
     entry["canDownload"] = !edition.url.empty() && !edition.hidden;
     entry["showInstall"] = !installed;
-    entry["showGear"] = true;
-    entry["updateAvailable"] = false;
+    const bool has_update =
+        services.updates != nullptr && services.updates->has_update(edition.id);
+    entry["showGear"] = !has_update;
+    entry["updateAvailable"] = has_update;
     entry["hasArgsSchema"] =
         installed && has_args_schema(instance_manager, edition.id);
     entry["path"] = instance_manager.working_dir(edition.id).string();
@@ -218,8 +221,12 @@ Json VersionsView::data(const UiServices &services) const {
       };
       const std::string &id = open_menu_id_;
       if (installed) {
+        const bool has_update =
+            services.updates != nullptr && services.updates->has_update(id);
         add_item("/images/Update_Icon.png",
-                 translate("versions.repair", "Repair"),
+                 translate(has_update ? "versions.updateAvailable"
+                                      : "versions.repair",
+                           has_update ? "Update Available" : "Repair"),
                  "versions.repair:" + id, false);
       }
       if (installed) {
@@ -377,6 +384,9 @@ bool VersionsView::action(std::string_view name, UiServices &services) {
   const instances::InstanceManager instance_manager(services.config->data());
   if (verb == "versions.install" || verb == "versions.repair") {
     close_menu(services);
+    if (services.updates != nullptr) {
+      services.updates->clear_update(argument);
+    }
     if (services.downloads == nullptr) {
       status_ = "Downloads are not available";
       return true;

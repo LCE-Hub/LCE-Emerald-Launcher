@@ -70,6 +70,7 @@ struct ComputedStyle {
   std::optional<Align> textAlign;
   float opacity = 1.0F;
   Align align = Align::Stretch;
+  std::optional<Align> justify;
   bool visible = true;
   bool hovered = false;
   bool absolute = false;

@@ -234,9 +234,9 @@ xattr -cr /path/to/Emerald\ Legacy\ Launcher.app
 - **DTention** - Original creator of [LCE-Save-Converter](https://github.com/dtentiion/LCE-Save-Converter)
 - **dydymiku** - French translation
 - **Hvrket** - Russian translation
-- **HuntedRaven (Robin)** - Homebrew, Nix and Gentoo packaging
+- **HuntedRaven (Quinn)** - Homebrew, Nix and Gentoo packaging
 - **AntiApple4life** - AUR packaging
-- **Lilliethelily**: LCEOnline Artwork
+- **Lilliethelily**: LCEOnline and Cafeberry Artwork
 - **DaPogLord**: Help with a lot of Emerald's update artwork
 
 ---

@@ -6,10 +6,12 @@
 #include "Skins/SkinSync.hpp"
 #include "Skins/SkinUiState.hpp"
 #include "Ui/EditionResolver.hpp"
+#include "Ui/Render/TextureCache.hpp"
 #include <SDL3/SDL.h>
 #include <cstdlib>
 #include <filesystem>
 #include <format>
+#include <optional>
 #include <vector>
 namespace emerald::app {
 namespace {
@@ -134,6 +136,8 @@ bool Application::initialize() {
   services.playtime = &playtime_;
   services.downloads = &downloads_;
   services.launch = &launch_;
+  services.lce_online = &lce_online_;
+  services.updates = &update_checker_;
   launch_.runner_downloads().set_report_target(&downloads_);
   services.audio = &audio_;
   services.dlc_source = resource_root / "DLC";
@@ -141,10 +145,14 @@ bool Application::initialize() {
   services.public_root = public_root;
   launch_.configure(config_, playtime_, resource_root, core::app_data_dir(),
                     services.dlc_source, services.skin_pck);
+  lce_online_.configure(config_);
   download_revision_ = downloads_.revision();
   launch_revision_ = launch_.revision();
   macos_revision_ = launch_.macos_runtime().revision();
   runner_download_revision_ = launch_.runner_downloads().revision();
+  update_checker_.start(config_.data(),
+                        ui::resolve_config_editions(config_.data()));
+  update_revision_ = update_checker_.revision();
   services.quit = [this] { running_ = false; };
   ui_->set_services(services);
   ui_->set_language(config_.data().language.value_or("en"));
@@ -154,6 +162,7 @@ bool Application::initialize() {
 }
 
 void Application::shutdown() {
+  update_checker_.stop();
   audio_.shutdown();
   discord_.shutdown();
   ui_.reset();
@@ -271,6 +280,9 @@ void Application::render() {
                               : snapshot.message,
                         ui::ToastVariant::Error);
       }
+      if (snapshot.state == instances::DownloadState::finished) {
+        update_checker_.clear_update(id);
+      }
       if (found != download_states_.end()) {
         found->second = snapshot.state;
       } else {
@@ -323,6 +335,44 @@ void Application::render() {
   if (launch_.runner_downloads().revision() != runner_download_revision_) {
     runner_download_revision_ = launch_.runner_downloads().revision();
     ui_->invalidate();
+  }
+  if (lce_online_.revision() != lce_revision_) {
+    lce_revision_ = lce_online_.revision();
+    ui_->invalidate();
+  }
+  if (update_checker_.revision() != update_revision_) {
+    update_revision_ = update_checker_.revision();
+    ui_->invalidate();
+  }
+  for (const auto &notification : update_checker_.drain_notifications()) {
+    ui_->push_toast(
+        ui_->translate(notification.title_key, notification.default_title),
+        notification.message, notification.variant, notification.on_click);
+  }
+  for (const lce::LceNotification &notification :
+       lce_online_.drain_notifications()) {
+    const bool is_invite =
+        notification.kind == lce::LceNotification::Kind::Invite;
+    ui_->push_toast(
+        ui_->translate(is_invite ? "download.gameInvite"
+                                 : "download.friendRequest"),
+        is_invite ? notification.name + " invited you to play!"
+                  : notification.name + " wants to be friends!",
+        ui::ToastVariant::Update, "go:lceonline");
+  }
+  if (const std::optional<lce::LceSessionState> session =
+          lce_online_.consume_session()) {
+    config::AppConfig &config = config_.data();
+    if (session->signed_in) {
+      config.lceonline_token = session->token;
+      config.lceonline_username = session->username;
+      config.lceonline_display_name = session->display_name;
+    } else {
+      config.lceonline_token.reset();
+      config.lceonline_username.reset();
+      config.lceonline_display_name.reset();
+    }
+    config_.save();
   }
   audio_.set_music_paused(launch_.snapshot().running || !window_visible_);
   audio_.update();

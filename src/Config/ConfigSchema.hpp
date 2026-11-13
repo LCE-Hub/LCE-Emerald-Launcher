@@ -104,6 +104,9 @@ struct AppConfig {
   std::optional<bool> tray_icon;
   std::optional<bool> show_layers;
   std::optional<bool> macos_runtime_installed;
+  std::optional<std::string> lceonline_token;
+  std::optional<std::string> lceonline_username;
+  std::optional<std::string> lceonline_display_name;
 };
 
 Json to_json(const AppConfig &config);

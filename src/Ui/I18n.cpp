@@ -60,6 +60,11 @@ std::string I18n::translate(std::string_view key) const {
   return found == strings_.end() ? std::string(key) : found->second;
 }
 
+std::string I18n::translate(std::string_view key, std::string_view defaultval) const {
+  const auto found = strings_.find(std::string(key));
+  return found == strings_.end() ? std::string(defaultval) : found->second;
+}
+
 std::string I18n::font_for_language() const {
   if (language_ == "ru") {
     return "/fonts/rus/minecraft.ttf";

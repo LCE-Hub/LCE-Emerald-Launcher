@@ -57,6 +57,9 @@
           <button class="sq-btn" onclick="go:skins">
             <image class="sq-btn-icon" src="/images/Change_Skin_Icon.png" fit="contain"/>
           </button>
+          <button class="sq-btn" onclick="go:lceonline">
+            <image class="sq-btn-icon" src="/images/lce_online.png" fit="contain"/>
+          </button>
         </row>
       </column>
     </column>

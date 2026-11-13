@@ -34,7 +34,8 @@ void LaunchService::configure(config::ConfigStore &config,
 }
 
 bool LaunchService::start(const std::string &instance_id,
-                          const std::vector<config::McServer> &servers) {
+                          const std::vector<config::McServer> &servers,
+                          const std::vector<std::string> &extra_args) {
   if (running_) {
     return false;
   }
@@ -80,6 +81,8 @@ bool LaunchService::start(const std::string &instance_id,
   context.app_data_dir = app_data_dir_;
   context.extra_args =
       config.extra_launch_args.value_or(std::vector<std::string>{});
+  context.extra_args.insert(context.extra_args.end(), extra_args.begin(),
+                            extra_args.end());
   const std::vector<std::string> instance_args =
       instance_launch_arguments(config, instance_id);
   context.extra_args.insert(context.extra_args.end(), instance_args.begin(),

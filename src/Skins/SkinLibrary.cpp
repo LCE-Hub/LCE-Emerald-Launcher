@@ -52,6 +52,7 @@ const std::vector<SavedCape> &default_capes() {
       {"360", "Minecraft: Xbox 360 Edition Cape", "/Capes/360_Cape.png"},
       {"ruby", "Ruby", "/Capes/RubyCape.png"},
       {"ntce", "NTCE Cape", "/Capes/NTCECAPE.png"},
+      {"vice", "Vice Cape", "/Capes/ViceCape.png"},
   };
   return capes;
 }

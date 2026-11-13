@@ -1,6 +1,9 @@
 #include "Net/HttpClient.hpp"
+#include <cctype>
 #include <cstdio>
 #include <curl/curl.h>
+#include <format>
+#include "Core/Log.hpp"
 namespace emerald::net {
 namespace {
 struct HeaderCapture {
@@ -31,6 +34,19 @@ std::size_t write_body(char *data, std::size_t size, std::size_t count,
   return size * count;
 }
 
+bool equals_ignore_case(std::string_view a, std::string_view b) {
+  if (a.size() != b.size()) {
+    return false;
+  }
+  for (std::size_t i = 0; i < a.size(); ++i) {
+    if (std::tolower(static_cast<unsigned char>(a[i])) !=
+        std::tolower(static_cast<unsigned char>(b[i]))) {
+      return false;
+    }
+  }
+  return true;
+}
+
 std::size_t capture_header(char *data, std::size_t size, std::size_t count,
                            void *userdata) {
   auto *capture = static_cast<HeaderCapture *>(userdata);
@@ -46,10 +62,13 @@ std::size_t capture_header(char *data, std::size_t size, std::size_t count,
     while (!value.empty() && (value.back() == '\r' || value.back() == '\n')) {
       value.pop_back();
     }
-    if (name == "Last-Modified") {
+    if (equals_ignore_case(name, "Last-Modified")) {
       capture->last_modified = value;
-    } else if (name == "Content-Length") {
-      capture->content_length = std::stoll(value);
+    } else if (equals_ignore_case(name, "Content-Length")) {
+      try {
+        capture->content_length = std::stoll(value);
+      } catch (...) {
+      }
     }
   }
   return size * count;
@@ -130,6 +149,87 @@ HttpResponse HttpClient::get(const std::string &url) {
   response.last_modified = std::move(capture.last_modified);
   response.content_length = capture.content_length;
   curl_easy_cleanup(handle);
+  core::info(std::format("[httpclient::get] [{}] {} ->body:\n{}", response.status, url, response.body));
+  return response;
+}
+
+HttpResponse HttpClient::head(const std::string &url) {
+  HttpResponse response;
+  CURL *handle = curl_easy_init();
+  if (handle == nullptr) {
+    return response;
+  }
+  HeaderCapture capture;
+  apply_common_options(handle, proxy_);
+  curl_easy_setopt(handle, CURLOPT_TIMEOUT, 15L);
+  curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
+  curl_easy_setopt(handle, CURLOPT_NOBODY, 1L);
+  curl_easy_setopt(handle, CURLOPT_HEADERFUNCTION, capture_header);
+  curl_easy_setopt(handle, CURLOPT_HEADERDATA, &capture);
+  curl_easy_setopt(handle, CURLOPT_NOSIGNAL, 1L);
+  const CURLcode result = curl_easy_perform(handle);
+  if (result == CURLE_OK) {
+    curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &response.status);
+  }
+  response.last_modified = std::move(capture.last_modified);
+  response.content_length = capture.content_length;
+  curl_easy_cleanup(handle);
+  if (core::verbose()) {
+    core::info(std::format(
+        "[httpclient::head] [{}] {} ->body:\n{}", response.status, url,
+        response.body));
+  }
+  return response;
+}
+
+HttpResponse HttpClient::request(
+    const std::string &method, const std::string &url,
+    const std::string &body,
+    const std::vector<std::pair<std::string, std::string>> &headers) {
+  HttpResponse response;
+  CURL *handle = curl_easy_init();
+  if (handle == nullptr) {
+    return response;
+  }
+  struct curl_slist *header_list = nullptr;
+  for (const auto &header : headers) {
+    header_list = curl_slist_append(
+        header_list, (header.first + ": " + header.second).c_str());
+  }
+  HeaderCapture capture;
+  WriteState state;
+  state.body = &response.body;
+  apply_common_options(handle, proxy_);
+  curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
+  curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_body);
+  curl_easy_setopt(handle, CURLOPT_WRITEDATA, &state);
+  curl_easy_setopt(handle, CURLOPT_HEADERFUNCTION, capture_header);
+  curl_easy_setopt(handle, CURLOPT_HEADERDATA, &capture);
+  curl_easy_setopt(handle, CURLOPT_NOSIGNAL, 1L);
+  if (method == "HEAD") {
+    curl_easy_setopt(handle, CURLOPT_NOBODY, 1L);
+  } else {
+    curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, method.c_str());
+  }
+  if (!body.empty()) {
+    curl_easy_setopt(handle, CURLOPT_POSTFIELDS, body.c_str());
+    curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE,
+                     static_cast<long>(body.size()));
+  }
+  if (header_list != nullptr) {
+    curl_easy_setopt(handle, CURLOPT_HTTPHEADER, header_list);
+  }
+  const CURLcode result = curl_easy_perform(handle);
+  if (result == CURLE_OK) {
+    curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &response.status);
+  }
+  curl_slist_free_all(header_list);
+  curl_easy_cleanup(handle);
+  if (core::verbose()) {
+    core::info(std::format(
+        "[httpclient::request({})] [{}] {} ->body:\n{}", method,
+        response.status, url, response.body));
+  }
   return response;
 }
 

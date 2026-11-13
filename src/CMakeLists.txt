@@ -51,7 +51,10 @@ set(EMERALD_CORE_SOURCES
     Instances/RunnerDownloader.cpp
     Instances/Runners.cpp
     Instances/Workshop.cpp
+    Instances/UpdateChecker.cpp
     Net/HttpClient.cpp
+    Net/LceOnline.cpp
+    Net/LceRelay.cpp
     Playtime/PlaytimeStore.cpp
     State/StateStore.cpp
     Migration/Migration.cpp
@@ -135,6 +138,7 @@ set(EMERALD_UI_SOURCES #neo: yes im listing them manually. i need a specific ord
     Ui/Render/FontCache.cpp
     Ui/Render/Panorama.cpp
     Ui/Views/HomeView.cpp
+    Ui/Views/LceOnlineView.cpp
     Ui/Views/SettingsView.cpp
     Ui/Views/OverlayView.cpp
     Ui/Views/VersionsView.cpp

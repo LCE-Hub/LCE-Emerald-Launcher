@@ -191,7 +191,11 @@
     "error": "Erreur",
     "ok": "OK",
     "failedToStartHosting": "Hébergement échoué",
-    "anErrorOccurred": "Une erreur s'est produite"
+    "anErrorOccurred": "Une erreur s'est produite",
+    "signIn": "Se connecter",
+    "register": "S'inscrire",
+    "password": "Mot de passe",
+    "enterCredentials": "Entrez un pseudo et un mot de passe"
   },
   "devtools": {
     "comingSoon": "Bientôt",

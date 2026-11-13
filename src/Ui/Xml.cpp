@@ -41,7 +41,8 @@ bool is_style_attribute(const std::string &name) {
          name == "padding" || name == "gap" || name == "margin" ||
          name == "margin-top" || name == "margin-bottom" ||
          name == "background" || name == "color" || name == "font-family" ||
-         name == "font-size" || name == "align" || name == "background-image" ||
+         name == "font-size" || name == "align" || name == "justify" ||
+         name == "background-image" ||
          name == "flex" || name == "border-width" || name == "border-image" ||
          name == "letter-spacing" || name == "line-height" ||
          name == "font-weight" || name == "text-align";

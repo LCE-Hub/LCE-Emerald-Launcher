@@ -8,6 +8,8 @@ enum class LogLevel {
   Error,
 };
 
+void set_verbose(bool enabled);
+bool verbose();
 void log(LogLevel level, std::string_view message);
 void debug(std::string_view message);
 void info(std::string_view message);

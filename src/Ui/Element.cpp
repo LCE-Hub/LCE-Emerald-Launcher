@@ -147,6 +147,28 @@ public:
     float cursorY = rect.y + pad_top() + borderColor;
     const float innerWidth = std::max(0.0F, rect.width - hspace());
     const float innerHeight = std::max(0.0F, rect.height - vspace());
+    if (style_.justify.has_value() && *style_.justify != Align::Start) {
+      float stacked = 0.0F;
+      std::size_t stacked_count = 0;
+      for (ElementPtr &child : children_) {
+        if (!child->style().visible || child->style().absolute) {
+          continue;
+        }
+        stacked += child->resolve_h(innerHeight);
+        if (child->style().marginTop.has_value()) {
+          stacked += *child->style().marginTop;
+        }
+        if (child->style().marginBottom.has_value()) {
+          stacked += *child->style().marginBottom;
+        }
+        ++stacked_count;
+      }
+      if (stacked_count > 1) {
+        stacked += style_.gap * static_cast<float>(stacked_count - 1);
+      }
+      const float leftover = std::max(0.0F, innerHeight - stacked);
+      cursorY += *style_.justify == Align::Center ? leftover * 0.5F : leftover;
+    }
     const std::size_t count = visible_children(children_);
     std::size_t index = 0;
     for (ElementPtr &child : children_) {
@@ -259,6 +281,11 @@ public:
     if (count > 1)
       fixed += style_.gap * float(count - 1);
     const float remaining = std::max(0.0F, innerWidth - fixed);
+    if (flexTotal <= 0.0F && style_.justify.has_value() &&
+        *style_.justify != Align::Start) {
+      const float leftover = std::max(0.0F, innerWidth - fixed);
+      cursorX += *style_.justify == Align::Center ? leftover * 0.5F : leftover;
+    }
     std::size_t index = 0;
     for (ElementPtr &child : children_) {
       if (!child->style().visible || child->style().absolute) {

@@ -254,6 +254,9 @@ Json to_json(const AppConfig &config) {
   json_set(object, "trayIcon", config.tray_icon);
   json_set(object, "showLayers", config.show_layers);
   json_set(object, "macosRuntimeInstalled", config.macos_runtime_installed);
+  json_set(object, "lceOnlineToken", config.lceonline_token);
+  json_set(object, "lceOnlineUsername", config.lceonline_username);
+  json_set(object, "lceOnlineDisplayName", config.lceonline_display_name);
   return object;
 }
 
@@ -339,6 +342,11 @@ AppConfig from_json(const Json &object_value) {
   config.show_layers = json_optional<bool>(object, "showLayers");
   config.macos_runtime_installed =
       json_optional<bool>(object, "macosRuntimeInstalled");
+  config.lceonline_token = json_optional<std::string>(object, "lceOnlineToken");
+  config.lceonline_username =
+      json_optional<std::string>(object, "lceOnlineUsername");
+  config.lceonline_display_name =
+      json_optional<std::string>(object, "lceOnlineDisplayName");
 
   return config;
 }

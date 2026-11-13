@@ -28,7 +28,8 @@ public:
                  const std::filesystem::path &skin_pck);
 
   bool start(const std::string &instance_id,
-             const std::vector<config::McServer> &servers);
+             const std::vector<config::McServer> &servers,
+             const std::vector<std::string> &extra_args = {});
   void stop();
   void poll();
   bool running() const { return running_; }

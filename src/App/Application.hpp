@@ -2,7 +2,9 @@
 #include "Audio/AudioEngine.hpp"
 #include "Config/ConfigStore.hpp"
 #include "Instances/DownloadManager.hpp"
+#include "Instances/UpdateChecker.hpp"
 #include "Launch/LaunchService.hpp"
+#include "Net/LceOnline.hpp"
 #include "Playtime/PlaytimeStore.hpp"
 #include "State/StateStore.hpp"
 #include "Integrations/DiscordRpc.hpp"
@@ -42,7 +44,9 @@ private:
   playtime::PlaytimeStore playtime_;
   state::StateStore state_;
   instances::DownloadManager downloads_;
+  instances::UpdateChecker update_checker_;
   launch::LaunchService launch_;
+  lce::LceOnlineService lce_online_;
   std::unique_ptr<ui::UiSystem> ui_;
   std::vector<SDL_Gamepad *> gamepads_;
   integrations::DiscordRpc discord_;
@@ -52,6 +56,8 @@ private:
   uint64_t launch_revision_ = 0;
   uint64_t macos_revision_ = 0;
   uint64_t runner_download_revision_ = 0;
+  uint64_t lce_revision_ = 0;
+  uint64_t update_revision_ = 0;
   std::filesystem::path public_root_;
   std::map<std::string, instances::DownloadState> download_states_;
 };

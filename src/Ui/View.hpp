@@ -3,6 +3,7 @@
 #include "Core/Json.hpp"
 #include "Instances/DownloadManager.hpp"
 #include "Launch/LaunchService.hpp"
+#include "Net/LceOnline.hpp"
 #include "Playtime/PlaytimeStore.hpp"
 #include "Ui/Notifications.hpp"
 #include <filesystem>
@@ -14,7 +15,10 @@ class I18n;
 } // namespace emerald::ui
 namespace emerald::audio {
 class AudioEngine;
-} // namespace emerald::audio
+}
+namespace emerald::instances {
+class UpdateChecker;
+}
 namespace emerald::ui {
 struct UiServices {
   config::ConfigStore *config = nullptr;
@@ -23,6 +27,8 @@ struct UiServices {
   launch::LaunchService *launch = nullptr;
   audio::AudioEngine *audio = nullptr;
   NotificationHub *notifications = nullptr;
+  lce::LceOnlineService *lce_online = nullptr;
+  instances::UpdateChecker *updates = nullptr;
   const I18n *i18n = nullptr;
   std::function<std::string()> tooltip_set;
   std::filesystem::path dlc_source;

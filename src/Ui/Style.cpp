@@ -400,6 +400,11 @@ void apply_declaration(ComputedStyle &style, std::string_view name,
     apply_text_shadow(style, value);
   } else if (name == "align") {
     parse_align(value, style.align);
+  } else if (name == "justify") {
+    Align justify = Align::Start;
+    if (parse_align(value, justify)) {
+      style.justify = justify == Align::Stretch ? Align::Start : justify;
+    }
   } else if (name == "visible" || name == "display") {
     style.visible = value != "none";
   } else if (name == "position") {
@@ -640,6 +645,9 @@ ComputedStyle ComputedStyle::merge(const ComputedStyle &base,
   }
   if (overlay.align != Align::Stretch) {
     result.align = overlay.align;
+  }
+  if (overlay.justify.has_value()) {
+    result.justify = overlay.justify;
   }
   if (overlay.absolute) {
     result.absolute = true;

@@ -1,7 +1,9 @@
 #include "Core/Log.hpp"
 #include <SDL3/SDL_log.h>
+#include <atomic>
 namespace emerald::core {
 namespace {
+std::atomic<bool> g_verbose{false};
 SDL_LogPriority to_sdl_priority(LogLevel level) {
   switch (level) {
   case LogLevel::Debug:
@@ -18,6 +20,8 @@ SDL_LogPriority to_sdl_priority(LogLevel level) {
 
 } // namespace
 
+void set_verbose(bool enabled) { g_verbose.store(enabled); }
+bool verbose() { return g_verbose.load(); }
 void log(LogLevel level, std::string_view message) {
   SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, to_sdl_priority(level), "%.*s",
                  static_cast<int>(message.size()), message.data());

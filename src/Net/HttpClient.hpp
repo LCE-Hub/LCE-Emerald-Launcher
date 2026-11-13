@@ -4,6 +4,8 @@
 #include <functional>
 #include <optional>
 #include <string>
+#include <utility>
+#include <vector>
 namespace emerald::net {
 class CancelToken {
 public:
@@ -28,6 +30,11 @@ public:
   HttpClient(const HttpClient &) = delete;
   HttpClient &operator=(const HttpClient &) = delete;
   HttpResponse get(const std::string &url);
+  HttpResponse head(const std::string &url);
+  HttpResponse request(const std::string &method, const std::string &url,
+                       const std::string &body,
+                       const std::vector<std::pair<std::string, std::string>>
+                           &headers = {});
   bool
   download(const std::string &url, const std::filesystem::path &dest,
            CancelToken &token,

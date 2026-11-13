@@ -14,6 +14,7 @@ public:
   void set_language(std::string_view language_code);
   const std::string &language() const { return language_; }
   std::string translate(std::string_view key) const;
+  std::string translate(std::string_view key, std::string_view defaultval) const;
   std::string font_for_language() const;
 
 private:
