@@ -26,6 +26,7 @@ void ConfigStore::load() {
     Json parsed = Json::parse(*contents, nullptr, false);
     if (!parsed.is_discarded() && parsed.is_object()) {
       config_ = from_json(parsed);
+      apply_legacy_defaults(config_);
       document_ = parsed;
       return;
     }
