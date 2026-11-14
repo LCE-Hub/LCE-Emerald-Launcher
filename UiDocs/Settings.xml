@@ -22,7 +22,6 @@
       font-size: 20px;
       text-shadow: #3f3f3f 2px 2px;
     }
-    .settings-main-btn:hover .settings-main-label { color: #ffff55; }
     .settings-panel-bg {
       border-image: url("/images/options_background.png") 4 fill;
       border-width: 12px;
@@ -64,7 +63,6 @@
       color: #ffffff;
       font-size: 20px;
     }
-    .settings-row-btn:hover .settings-row-label { color: #ffff55; }
     .settings-toggle:hover .settings-checkbox-base {
       background-image: /images/checkbox_highlighted.png;
     }

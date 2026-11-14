@@ -16,13 +16,13 @@
       color: #ffff00;
     }
     .gm-reset {
-      width: 688px;
+      width: 665px;
       height: 40px;
       font-size: 18px;
       letter-spacing: 1.8px;
     }
     .gm-bindrow {
-      width: 680px;
+      width: 665px;
       height: 40px;
       font-size: 18px;
       letter-spacing: 1.8px;
@@ -128,7 +128,7 @@
       color: #ffff00;
     }
     .gm-key-input {
-      height: 40px;
+      height: 120px;
       font-size: 16px;
       color: #ffffff;
       padding-left: 12px;
@@ -160,7 +160,7 @@
       <column align="center" width="720px" gap="16" style="position:absolute;left:280px;top:60px">
         <scroll id="gm-list" class="gm-list" width="720px" height="560px">
           <column id="gm-rows" width="688px" gap="8" foreach="{{rows}}" as="item">
-            <row if="{{item.isReset}}" class="gm-stone gm-reset" onclick="goldmapper.reset" width="688px" height="40px" gap="0">
+            <row if="{{item.isReset}}" class="gm-stone gm-reset" onclick="goldmapper.reset" height="40px" gap="0">
               <label text="{{item.label}}" flex="1" text-align="center" align="center" />
             </row>
             <row if="{{item.isEnable}}" class="gm-enable-row" onclick="goldmapper.toggle" width="688px" height="40px">
@@ -171,12 +171,11 @@
               <label class="gm-enable-label" text="{{item.label}}" align="center" />
             </row>
             <label if="{{item.isHeader}}" class="gm-header" text="{{item.label}}"/>
-            <row if="{{item.isBind}}" id="{{item.focusId}}" class="gm-stone gm-bindrow" onclick="{{item.action}}" width="680px" height="40px">
+            <row if="{{item.isBind}}" id="{{item.focusId}}" class="gm-stone gm-bindrow" onclick="{{item.action}}" height="40px">
               <label class="gm-bind-label" align="center" text=" {{item.label}}"/>
               <row>
                 <image if="{{item.image}}" src="{{item.image}}" width="26px" height="24px" align="center"/>
                 <label if="{{item.showText}}" class="gm-bind-value" align="center" text="{{item.value}}"/>
-                <label align="center" text="  "/> <!--neo: just a bit of margin lol -->
               </row>
             </row>
           </column>
