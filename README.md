@@ -73,6 +73,7 @@ LCE Emerald Launcher is the easiest way to play Minecraft Legacy Console Edition
 | **Developer Tools** | Create and edit 4J's propriatery file formats with ease! |
 | **World conversion** | Import `.ms` files, Java worlds or even an Xbox 360/PS3 world! (Beta) |
 | **Playtime counting** | Count your playtime and see your most active days! |
+| **Controls Customization** | Customize every single bind on any device to any other button! |
 
 ---
 

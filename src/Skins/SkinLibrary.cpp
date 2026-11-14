@@ -35,7 +35,9 @@ const std::vector<SavedCape> &default_capes() {
   static const std::vector<SavedCape> capes = {
       {"emerald", "Emerald Cape", "/Capes/Emerald_Cape.png"},
       {"4j", "4J Studios", "/Capes/4J.png"},
-      {"neocape", "neoCape", "/Capes/NeoCape.png"},
+      {"neolegacycape", "neoCape", "/Capes/neolegacycape.png"},
+      {"neolegacycontributorcape", "neoLegacy Contributor Cape", "/Capes/contributorcape.png"},
+      {"neocape", "Alternative neoCape", "/Capes/NeoCape.png"},
       {"unused2", "Unused Cape 2", "/Capes/Unused_Cape_2.png"},
       {"he", "Hellish Ends Cape", "/Capes/HE-cape.png"},
       {"soul", "Undertale SOUL", "/Capes/undertale-soul.png"},
