@@ -34,3 +34,20 @@ target_compile_definitions(emerald_core PUBLIC
 target_compile_definitions(emerald_core PUBLIC
     EMERALD_VERSION="${CMAKE_PROJECT_VERSION}")
 install(TARGETS emerald RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+option(EMERALD_BUILD_GOLDMAPPER "Build GoldMapper and refresh resources/ binaries" ON)
+if(EMERALD_BUILD_GOLDMAPPER)
+    set(GOLDMAPPER_CMAKE_ARGS
+        "-DGOLDMAPPER_DIR=${CMAKE_CURRENT_SOURCE_DIR}/GoldMapper"
+        "-DRESOURCE_DIR=${EMERALD_RESOURCE_DIR}"
+    )
+    add_custom_target(goldmapper ALL
+        COMMAND "${CMAKE_COMMAND}" ${GOLDMAPPER_CMAKE_ARGS}
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/GoldMapper.cmake"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMENT "Building GoldMapper and refreshing resources/"
+        VERBATIM
+    )
+    if(TARGET emerald_core)
+        add_dependencies(emerald_core goldmapper)
+    endif()
+endif()
