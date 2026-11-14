@@ -1,0 +1,274 @@
+<ui xmlns="emerald" version="1">
+  <import href="Common/Buttons.xml"/>
+  <style>
+    .skins-toolbar { width: 100%; gap: 12px; }
+    .skins-tab {
+      width: 170px;
+      height: 44px;
+      font-size: 20px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 2px 2px;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .skins-tab:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+    }
+    .skins-tab-active {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .skins-tab-active:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+    }
+    .toolbar-btn {
+      width: 176px;
+      height: 44px;
+      font-size: 20px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 2px 2px;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .toolbar-btn:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .toolbar-btn-disabled {
+      color: #808080;
+      opacity: 0.8;
+    }
+    .toolbar-btn-disabled:hover {
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      color: #808080;
+    }
+    .sq-btn-icon { width: 32px; height: 32px; }
+    .options-bg {
+      border-image: url(/images/options_background.png) 4 fill / 12px;
+      border-width: 12px;
+    }
+    .skin-recess {
+      border-image: url(/images/versionrecess.png) 12 30 30 12 fill / 12px 30px 30px 12px;
+      border-width: 12px;
+    }
+    .skin-row {
+      padding: 0;
+      gap: 12px;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+      color: #ffffff;
+    }
+    .skin-row:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+    }
+    .skin-row-active {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .skin-row-active:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+    }
+    .skin-thumb {
+      width: 48px;
+      height: 48px;
+      align: center;
+    }
+    .cape-thumb {
+      width: 48px;
+      height: 48px;
+      background: rgba(0, 0, 0, 0.3);
+      align: center;
+      justify: center;
+    }
+    .none-mark {
+      font-size: 28px;
+      color: #808080;
+      text-shadow: #3f3f3f 2px 2px;
+    }
+    .skin-name {
+      font-size: 20px;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .skin-name-active { color: #ffff55; }
+    .skin-input { font-size: 18px; }
+    .back-btn {
+      width: 288px;
+      height: 56px;
+      font-size: 20px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 2px 2px;
+      border-image: url(/images/Layout_Button_Bmp.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .back-btn:hover {
+      border-image: url(/images/Layout_Button_Over.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .backdrop { background: rgba(0, 0, 0, 0.6); }
+    .modal-frame {
+      border-image: url(/images/frame_background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+      font-size: 18px;
+      padding: 12px;
+    }
+    .modal-title {
+      color: #ffffff;
+      font-size: 22px;
+      text-shadow: #3f3f3f 2px 2px;
+      margin-bottom: 10px;
+    }
+    .modal-btn {
+      width: 160px;
+      height: 40px;
+      font-size: 18px;
+      color: #ffffff;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .modal-btn:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .modal-btn-wide {
+      width: 100%;
+      height: 48px;
+      font-size: 18px;
+      color: #ffffff;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .modal-btn-wide:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .modal-btn-busy { opacity: 0.5; }
+    .choose-label {
+      color: #dddddd;
+      font-size: 16px;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .error-label {
+      color: #ff8080;
+      font-size: 14px;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .modal-input { width: 100%; font-size: 18px; }
+  </style>
+  <template name="SkinRow">
+    <row class="skin-row {{activeClass}}" onclick="{{action}}" align="stretch" gap="12px">
+      <skinmodel kind="head" src="{{url}}" slim="{{slim}}" width="48px" height="48px" align="center"/>
+      <column flex="1" justify="center" align="center">
+        <label if="{{notEditable}}" class="skin-name {{nameClass}}" text="{{name}}"/>
+        <textinput if="{{editable}}" class="skin-input" width="240px" value="{{name}}" onsubmit="{{renameAction}}"/>
+      </column>
+    </row>
+  </template>
+  <template name="CapeRow">
+    <row class="skin-row {{activeClass}}" onclick="{{action}}" align="stretch" gap="12px">
+      <column if="{{isNone}}" class="cape-thumb">
+        <label class="none-mark" text="X"/>
+      </column>
+      <skinpreview if="{{notNone}}" kind="cape" src="{{url}}" width="30px" height="48px" align="center"/>
+      <column flex="1" justify="center" align="center">
+        <label if="{{notEditable}}" class="skin-name {{nameClass}}" text="{{name}}"/>
+        <textinput if="{{editable}}" class="skin-input" width="240px" value="{{name}}" onsubmit="{{renameAction}}"/>
+      </column>
+    </row>
+  </template>
+  <view id="skins">
+    <tooltip icon="A">{{t:common.select}}</tooltip>
+    <tooltip icon="B">{{t:common.back}}</tooltip>
+    <column width="1280px" height="720px" align="center" justify="center">
+      <column width="1024px" align="center" gap="12">
+        <row class="skins-toolbar">
+          <button class="skins-tab {{skinTabClass}}" onclick="skins.mode.skin">
+            <label text="{{t:skins.skinLibrary}}"/>
+          </button>
+          <button class="skins-tab {{capeTabClass}}" onclick="skins.mode.cape">
+            <label text="{{t:skins.capeLibrary}}"/>
+          </button>
+          <column flex="1"/>
+          <button id="skins-import-btn" class="toolbar-btn" onclick="skins.import">
+            <label text="{{importLabel}}"/>
+          </button>
+          <button class="toolbar-btn {{deleteClass}}" onclick="{{deleteAction}}">
+            <label text="{{deleteLabel}}"/>
+          </button>
+          <button if="{{skinMode}}" class="toolbar-btn" onclick="go:skineditor">
+            <label text="{{t:skins.editSkin}}"/>
+          </button>
+        </row>
+        <column class="options-bg" padding="4" width="1024px" height="460px" align="center">
+          <scroll class="skin-recess" width="100%" height="100%" hide-partial="true">
+            <column gap="4" width="97.9%">
+              <column if="{{skinMode}}">
+                <column foreach="{{skinItems}}" as="item" gap="4">
+                <use template="SkinRow"
+                  action="{{item.action}}"
+                  url="{{item.url}}"
+                  slim="{{item.slim}}"
+                  name="{{item.name}}"
+                  editable="{{item.editable}}"
+                  notEditable="{{item.notEditable}}"
+                  activeClass="{{item.activeClass}}"
+                  nameClass="{{item.nameClass}}"
+                  renameAction="{{item.renameAction}}"/>
+              </column>
+            </column>
+              <column if="{{capeMode}}">
+                <column foreach="{{capeItems}}" as="item" gap="4">
+                <use template="CapeRow"
+                  action="{{item.action}}"
+                  url="{{item.url}}"
+                  isNone="{{item.isNone}}"
+                  notNone="{{item.notNone}}"
+                  name="{{item.name}}"
+                  editable="{{item.editable}}"
+                  notEditable="{{item.notEditable}}"
+                  activeClass="{{item.activeClass}}"
+                  nameClass="{{item.nameClass}}"
+                  renameAction="{{item.renameAction}}"/>
+              </column>
+              </column>
+            </column>
+          </scroll>
+        </column>
+        <button class="back-btn" onclick="go:home">
+          <label text="{{t:common.back}}"/>
+        </button>
+      </column>
+      <column if="{{importOpen}}" class="backdrop" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" align="center" justify="center">
+        <column id="skins-import-modal" class="modal-frame" width="440px" align="center" gap="10">
+          <label class="modal-title" text="{{importLabel}}"/>
+          <column if="{{importRoot}}" width="100%" gap="10" align="center">
+            <button class="modal-btn-wide" onclick="skins.import.file">
+              <label text="{{t:skins.fromFile}}"/>
+            </button>
+            <button class="modal-btn-wide" onclick="skins.import.username">
+              <label text="{{t:skins.fromUsername}}"/>
+            </button>
+          </column>
+          <column if="{{importUsernameMode}}" width="100%" gap="10">
+            <textinput class="modal-input" value="{{usernameValue}}" onsubmit="skins.username"/>
+            <label if="{{importError}}" class="error-label" text="{{importError}}"/>
+            <button class="modal-btn-wide {{importingClass}}" onclick="skins.import.fetch">
+              <label text="{{fetchLabel}}"/>
+            </button>
+          </column>
+          <column if="{{importModelMode}}" width="100%" gap="10" align="center">
+            <label class="choose-label" text="{{t:skins.chooseModelType}}"/>
+            <button class="modal-btn-wide" onclick="skins.import.normal">
+              <label text="{{t:skins.normalWideArms}}"/>
+            </button>
+            <button class="modal-btn-wide" onclick="skins.import.slim">
+              <label text="{{t:skins.slimThinArms}}"/>
+            </button>
+          </column>
+          <button class="modal-btn" onclick="skins.import.back">
+            <label text="{{t:common.cancel}}"/>
+          </button>
+        </column>
+      </column>
+    </column>
+  </view>
+</ui>

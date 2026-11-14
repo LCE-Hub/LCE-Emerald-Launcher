@@ -1,0 +1,236 @@
+<ui xmlns="emerald" version="1">
+  <style>
+    .backdrop { background: rgba(0, 0, 0, 0.6); }
+    .gm-list {
+      border-image: url(/images/options_background.png) 4 fill / 12px;
+      border-width: 12px;
+      padding: 16px;
+    }
+    .gm-stone {
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+      color: #ffffff;
+    }
+    .gm-stone:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff00;
+    }
+    .gm-reset {
+      width: 688px;
+      height: 40px;
+      font-size: 18px;
+      letter-spacing: 1.8px;
+    }
+    .gm-bindrow {
+      width: 680px;
+      height: 40px;
+      font-size: 18px;
+      letter-spacing: 1.8px;
+      gap: 12px;
+    }
+    .gm-bind-label {
+      flex: 1;
+      font-size: 18px;
+      letter-spacing: 1.8px;
+      text-align: left;
+    }
+    .gm-bind-value {
+      font-size: 16px;
+      letter-spacing: 1.6px;
+      opacity: 0.7;
+    }
+    .gm-enable-row {
+      width: 688px;
+      height: 40px;
+      gap: 12px;
+      padding-left: 8px;
+      padding-right: 16px;
+      align: center;
+      color: #333333;
+    }
+    .gm-enable-row:hover { color: #ffff00; }
+    .gm-enable-label {
+      flex: 1;
+      font-size: 18px;
+      letter-spacing: 1.8px;
+      text-align: left;
+    }
+    .gm-enable-row:hover .gm-checkbox {
+      background-image: url(/images/checkbox_highlighted.png);
+    }
+    .gm-checkmark {
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      width: 24px;
+      height: 24px;
+    }
+    .gm-header {
+      width: 688px;
+      font-size: 14px;
+      color: #000000;
+      letter-spacing: 1.4px;
+      padding-left: 4px;
+      padding-right: 4px;
+      padding-top: 12px;
+      padding-bottom: 4px;
+    }
+    .gm-back {
+      width: 160px;
+      height: 40px;
+      font-size: 20px;
+      color: #ffffff;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .gm-back:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff00;
+    }
+    .gm-modal {
+      border-image: url(/images/options_background.png) 4 fill / 12px;
+      border-width: 12px;
+      padding: 20px;
+      gap: 12px;
+    }
+    .gm-modal-title {
+      font-size: 20px;
+      color: #000000;
+      letter-spacing: 1px;
+      align: center;
+    }
+    .gm-sector {
+      font-size: 14px;
+      color: #000000;
+      letter-spacing: 1.4px;
+      text-align: left;
+      margin-top: 2px;
+    }
+    .gm-sep {
+      height: 1px;
+      background: rgba(0, 0, 0, 0.25);
+    }
+    .gm-cell {
+      height: 42px;
+      font-size: 16px;
+      letter-spacing: 1.4px;
+      color: #ffffff;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .gm-cell:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff00;
+    }
+    .gm-cell-active { color: #ffff00; }
+    .gm-cell-active:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff00;
+    }
+    .gm-key-input {
+      height: 40px;
+      font-size: 16px;
+      color: #ffffff;
+      padding-left: 12px;
+      padding-right: 12px;
+      align: center;
+    }
+    .gm-key-error {
+      font-size: 12px;
+      color: #dc2626;
+      text-align: center;
+    }
+    .gm-cancel {
+      width: 240px;
+      height: 44px;
+      font-size: 18px;
+      color: #ffffff;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .gm-cancel:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff00;
+    }
+  </style>
+  <view id="goldmapper">
+    <tooltip icon="A">{{t:common.select}}</tooltip>
+    <tooltip icon="B">{{t:common.back}}</tooltip>
+    <column width="1280px" height="720px" align="center">
+      <column align="center" width="720px" gap="16" style="position:absolute;left:280px;top:60px">
+        <scroll id="gm-list" class="gm-list" width="720px" height="560px">
+          <column id="gm-rows" width="688px" gap="8" foreach="{{rows}}" as="item">
+            <row if="{{item.isReset}}" class="gm-stone gm-reset" onclick="goldmapper.reset" width="688px" height="40px" gap="0">
+              <label text="{{item.label}}" flex="1" text-align="center" align="center" />
+            </row>
+            <row if="{{item.isEnable}}" class="gm-enable-row" onclick="goldmapper.toggle" width="688px" height="40px">
+              <row width="24px" height="24px" align="center">
+                <image class="gm-checkbox" src="/images/checkbox.png" width="24px" height="24px" align="center"/>
+                <image if="{{item.checked}}" class="gm-checkmark" src="/images/check.png"/>
+              </row>
+              <label class="gm-enable-label" text="{{item.label}}" align="center" />
+            </row>
+            <label if="{{item.isHeader}}" class="gm-header" text="{{item.label}}"/>
+            <row if="{{item.isBind}}" id="{{item.focusId}}" class="gm-stone gm-bindrow" onclick="{{item.action}}" width="680px" height="40px">
+              <label class="gm-bind-label" align="center" text=" {{item.label}}"/>
+              <row>
+                <image if="{{item.image}}" src="{{item.image}}" width="26px" height="24px" align="center"/>
+                <label if="{{item.showText}}" class="gm-bind-value" align="center" text="{{item.value}}"/>
+                <label align="center" text="  "/> <!--neo: just a bit of margin lol -->
+              </row>
+            </row>
+          </column>
+        </scroll>
+        <button class="gm-back" onclick="goldmapper.back">
+          <label text="{{backLabel}}"/>
+        </button>
+      </column>
+      <column if="{{modalOpen}}" class="backdrop" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" onclick="goldmapper.modal.cancel">
+        <column id="gm-modal-frame" class="gm-modal" style="position:absolute;left:330px;top:70px;width:620px;height:580px">
+          <label class="gm-modal-title" text="{{assignTitle}}"/>
+          <scroll id="gm-modal-scroll" height="414px">
+            <column gap="10">
+              <label class="gm-sector" text="{{t:goldMapper.mouse}}"/>
+              <row gap="8">
+                <button if="{{mouseGroup.c0}}" class="gm-cell {{mouseGroup.c0.activeClass}}" flex="1" onclick="{{mouseGroup.c0.action}}">
+                  <label text="{{mouseGroup.c0.label}}"/>
+                </button>
+                <button if="{{mouseGroup.c1}}" class="gm-cell {{mouseGroup.c1.activeClass}}" flex="1" onclick="{{mouseGroup.c1.action}}">
+                  <label text="{{mouseGroup.c1.label}}"/>
+                </button>
+                <button if="{{mouseGroup.c2}}" class="gm-cell {{mouseGroup.c2.activeClass}}" flex="1" onclick="{{mouseGroup.c2.action}}">
+                  <label text="{{mouseGroup.c2.label}}"/>
+                </button>
+              </row>
+              <column class="gm-sep"/>
+              <label class="gm-sector" text="{{t:goldMapper.controller}}"/>
+              <column gap="8" foreach="{{controlRows}}" as="group">
+                <row gap="8">
+                  <button if="{{group.c0}}" class="gm-cell {{group.c0.activeClass}}" flex="1" onclick="{{group.c0.action}}">
+                    <label text="{{group.c0.label}}"/>
+                  </button>
+                  <button if="{{group.c1}}" class="gm-cell {{group.c1.activeClass}}" flex="1" onclick="{{group.c1.action}}">
+                    <label text="{{group.c1.label}}"/>
+                  </button>
+                  <button if="{{group.c2}}" class="gm-cell {{group.c2.activeClass}}" flex="1" onclick="{{group.c2.action}}">
+                    <label text="{{group.c2.label}}"/>
+                  </button>
+                  <button if="{{group.c3}}" class="gm-cell {{group.c3.activeClass}}" flex="1" onclick="{{group.c3.action}}">
+                    <label text="{{group.c3.label}}"/>
+                  </button>
+                </row>
+              </column>
+              <column class="gm-sep"/>
+              <label class="gm-sector" text="{{t:goldMapper.keyboard}}"/>
+              <textinput class="gm-key-input" value="{{keyValue}}" label="{{t:goldMapper.typeKeyName}}" onsubmit="goldmapper.key" center="true"/>
+              <label if="{{keyError}}" class="gm-key-error" text="{{keyErrorText}}"/>
+            </column>
+          </scroll>
+          <button class="gm-cancel" align="center" onclick="goldmapper.modal.cancel">
+            <label text="{{cancelLabel}}"/>
+          </button>
+        </column>
+      </column>
+    </column>
+  </view>
+</ui>

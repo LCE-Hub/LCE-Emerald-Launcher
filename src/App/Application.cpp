@@ -1,0 +1,512 @@
+#include "App/Application.hpp"
+#include "Core/EmbeddedAssets.hpp"
+#include "Core/Log.hpp"
+#include "Core/Paths.hpp"
+#include "Migration/Migration.hpp"
+#include "Skins/SkinElements.hpp"
+#include "Skins/SkinSync.hpp"
+#include "Skins/SkinUiState.hpp"
+#include "Ui/AppViews.hpp"
+#include "lazuli/Log.hpp"
+#include "Ui/EditionResolver.hpp"
+#include <SDL3/SDL.h>
+#include <cstdlib>
+#include <filesystem>
+#include <format>
+#include <optional>
+#include <vector>
+namespace emerald::app {
+namespace {
+constexpr int kDefaultWindowWidth = 1280;
+constexpr int kDefaultWindowHeight = 720;
+constexpr const char *kWindowTitle = "Emerald Legacy Launcher";
+constexpr int kLogicalWidth = 1280;
+constexpr int kLogicalHeight = 720;
+std::filesystem::path env_directory(const char *name) {
+  const char *value = std::getenv(name);
+  if (value == nullptr || value[0] == '\0') {
+    return {};
+  }
+  const std::filesystem::path path{value};
+  return std::filesystem::is_directory(path) ? path : std::filesystem::path{};
+}
+
+std::filesystem::path bundle_root() {
+  static const std::filesystem::path root = [] {
+    const std::filesystem::path bundled =
+        core::app_data_dir() / "runtime" /
+        std::string(core::embedded::build_id());
+    if (core::embedded::is_extracted(bundled)) {
+      return bundled;
+    }
+    if (core::embedded::extract_to(bundled)) {
+      return bundled;
+    }
+    core::warn("assets: failed to extract embedded resources");
+    return bundled;
+  }();
+  return root;
+}
+
+std::filesystem::path resolve_root(const char *env, const char *name) {
+  if (const std::filesystem::path override = env_directory(env);
+      !override.empty()) {
+    return override;
+  }
+  const std::filesystem::path beside = core::executable_dir() / name;
+  if (std::filesystem::is_directory(beside)) {
+    return beside;
+  }
+  return bundle_root() / name;
+}
+} // namespace
+
+Application::Application() = default;
+Application::~Application() { shutdown(); }
+bool Application::initialize() {
+  SDL_SetAppMetadata("Emerald Legacy Launcher", EMERALD_VERSION,
+                     "com.emerald.legacy");
+  if (!SDL_Init(SDL_INIT_VIDEO)) {
+    core::error(std::string{"SDL_Init failed: "} + SDL_GetError());
+    return false;
+  }
+  SDL_InitSubSystem(SDL_INIT_GAMEPAD);
+  {
+    int count = 0;
+    SDL_JoystickID *ids = SDL_GetGamepads(&count);
+    for (int i = 0; i < count; ++i) {
+      open_gamepad(ids[i]);
+    }
+    SDL_free(ids);
+  }
+
+  window_ = SDL_CreateWindow(kWindowTitle, kDefaultWindowWidth,
+                             kDefaultWindowHeight, SDL_WINDOW_RESIZABLE);
+  if (window_ == nullptr) {
+    core::error(std::string{"SDL_CreateWindow failed: "} + SDL_GetError());
+    return false;
+  }
+
+  renderer_ = SDL_CreateRenderer(window_, nullptr);
+  if (renderer_ == nullptr) {
+    core::error(std::string{"SDL_CreateRenderer failed: "} + SDL_GetError());
+    return false;
+  }
+
+  SDL_SetRenderVSync(renderer_, 1);
+  SDL_SetRenderLogicalPresentation(renderer_, kLogicalWidth, kLogicalHeight,
+                                   SDL_LOGICAL_PRESENTATION_LETTERBOX);
+  SDL_StartTextInput(window_);
+  core::info(":: starting up Emerald Launcher");
+  lazuli::log::set_sink([](lazuli::log::Level level, std::string_view message) {
+    switch (level) {
+    case lazuli::log::Level::Debug:
+      core::debug(message);
+      break;
+    case lazuli::log::Level::Info:
+      core::info(message);
+      break;
+    case lazuli::log::Level::Warn:
+      core::warn(message);
+      break;
+    case lazuli::log::Level::Error:
+      core::error(message);
+      break;
+    }
+  });
+  core::info(std::string{"  - app data dir: "} + core::app_data_dir().string());
+  config_.load();
+  core::info(std::string{"  - username: "} + config_.data().username);
+  state_.load();
+  const migration::MigrationReport report =
+      migration::run_migration(config_, state_);
+  if (report.ran) {
+    core::info(std::string{":: migration: files="} +
+               std::to_string(report.storage_files) +
+               " entries=" + std::to_string(report.entries) +
+               " mapped=" + std::to_string(report.mapped) +
+               " completed=" + (report.completed ? "true" : "false"));
+  }
+  discord_.configure(config_);
+  playtime_.load();
+  const std::filesystem::path public_root =
+      resolve_root("EMERALD_PUBLIC_DIR", "public");
+  public_root_ = public_root;
+  const std::filesystem::path resource_root =
+      resolve_root("EMERALD_RESOURCE_DIR", "resources");
+  const std::filesystem::path ui_docs_root =
+      resolve_root("EMERALD_UI_DOCS_DIR", "UiDocs");
+  core::info(std::string{"  - public dir: "} + public_root.string());
+  core::info(std::string{"  - resources dir: "} + resource_root.string());
+  core::info(std::string{"  - ui docs dir: "} + ui_docs_root.string());
+  audio_.initialize(public_root);
+  audio_.set_music_volume(config_.data().music_vol.value_or(50));
+  audio_.set_sfx_volume(config_.data().sfx_vol.value_or(100));
+  lazuli::register_builtin_elements();
+  ui::register_skin_elements();
+  ui_ = std::make_unique<lazuli::UiSystem>(renderer_, ui_docs_root, public_root,
+                                           resource_root / "i18n");
+  ui_->set_status_text(EMERALD_VERSION_TEXT);
+  ui::register_views(*ui_);
+  ui::UiServices &services = ui_services_;
+  services.config = &config_;
+  services.playtime = &playtime_;
+  services.downloads = &downloads_;
+  services.launch = &launch_;
+  services.lce_online = &lce_online_;
+  services.updates = &update_checker_;
+  launch_.runner_downloads().set_report_target(&downloads_);
+  services.audio = &audio_;
+  services.dlc_source = resource_root / "DLC";
+  services.skin_pck = core::app_data_dir() / "Skin.pck";
+  services.public_root = public_root;
+  launch_.configure(config_, playtime_, resource_root, core::app_data_dir(),
+                    services.dlc_source, services.skin_pck);
+  lce_online_.configure(config_);
+  download_revision_ = downloads_.revision();
+  launch_revision_ = launch_.revision();
+  macos_revision_ = launch_.macos_runtime().revision();
+  runner_download_revision_ = launch_.runner_downloads().revision();
+  update_checker_.start(config_.data(),
+                        ui::resolve_config_editions(config_.data()));
+  update_revision_ = update_checker_.revision();
+  services.quit = [this] { running_ = false; };
+  ui_->set_services(&services);
+  ui_->set_quit(services.quit);
+  ui_->set_sounds(lazuli::UiSounds{
+      .press = [this] { audio_.play_press(); },
+      .back = [this] { audio_.play_back(); },
+      .scroll = [this] { audio_.play_scroll(); },
+      .effect = [this](std::string_view key) {
+        if (key == "toast.error") {
+          audio_.play_sfx("in.ogg");
+        } else if (key == "toast.show") {
+          audio_.play_sfx("notification.ogg");
+        } else if (key == "toast.hide") {
+          audio_.play_sfx("out.ogg");
+        }
+      },
+  });
+  ui_->set_sound_for([](std::string_view handler) -> lazuli::UiSound {
+    const std::string name(handler);
+    if (name.rfind("open:", 0) == 0 || name.rfind("overlay.toasts.", 0) == 0 ||
+        name == "settings.downloadRunner") {
+      return lazuli::UiSound::None;
+    }
+    if (name == "settings.back" || name == "skineditor.back" ||
+        name == "goldmapper.back" || name == "goldmapper.modal.cancel" ||
+        name == "quit") {
+      return lazuli::UiSound::Back;
+    }
+    return lazuli::UiSound::Press;
+  });
+  ui_->set_translator([this](std::string_view) -> std::optional<std::string> {
+    if (config_.data().bedrock_enabled.value() == true) {
+      return std::string{"Marketplace"};
+    }
+    return std::nullopt;
+  });
+  ui_->set_panorama_source([this] {
+    std::string source = "panorama/vanilla_tu19_Panorama_Background_Day.png";
+    const config::AppConfig &config = config_.data();
+    const std::string profile = config.profile.value_or("");
+    std::string base = "vanilla_tu19";
+    const std::optional<instances::Edition> edition =
+        ui::find_config_edition(config, profile);
+    if (edition.has_value() && !edition->panorama.empty()) {
+      base = edition->panorama;
+    }
+    std::string override_path;
+    if (config.customizations.has_value()) {
+      const auto found = config.customizations->find(profile);
+      if (found != config.customizations->end() &&
+          found->second.panorama.has_value()) {
+        override_path = *found->second.panorama;
+      }
+    }
+    const bool remote = override_path.rfind("data:", 0) == 0 ||
+                        override_path.rfind("blob:", 0) == 0 ||
+                        override_path.rfind("http", 0) == 0;
+    if (!override_path.empty() && !remote) {
+      source = override_path;
+    } else {
+      const bool is_day = config.daytime.value_or(true);
+      source = "panorama/" + base + "_Panorama_Background_" +
+               (is_day ? "Day" : "Night") + ".png";
+    }
+    return source;
+  });
+  ui_->set_mouse_observer(
+      [](float x, float y) { ui::note_logical_mouse(x, y); });
+  services.i18n = &ui_->i18n();
+  services.notifications = &ui_->notifications();
+  services.navigate = [p = ui_.get()](const std::string &id) {
+    p->navigate(id);
+  };
+  services.change_language = [p = ui_.get()](const std::string &language) {
+    p->set_language(language);
+  };
+  services.reset_focus = [p = ui_.get()] { p->reset_focus(); };
+  services.tooltip_set = [p = ui_.get()] { return p->tooltip_set(); };
+  services.focus_element = [p = ui_.get()](const std::string &id) {
+    p->focus_element(id);
+  };
+  services.focus_scope = [p = ui_.get()](const std::string &id) {
+    p->set_focus_scope(id);
+  };
+  services.read_text_input = [p = ui_.get()] { return p->text_result(); };
+  services.text_edited = [p = ui_.get()] { return p->text_edited(); };
+  services.notify = [p = ui_.get()](const std::string &title,
+                                    const std::string &message,
+                                    lazuli::ToastVariant variant,
+                                    const std::string &on_click) {
+    p->push_toast(title, message, variant, on_click);
+  };
+  if (!ui_->initialize()) {
+    core::error("ui: failed to initialize");
+    return false;
+  }
+  ui_->set_language(config_.data().language.value_or("en"));
+  ui_->navigate("home");
+  audio_.start_music();
+  return true;
+}
+
+void Application::shutdown() {
+  update_checker_.stop();
+  audio_.shutdown();
+  discord_.shutdown();
+  ui_.reset();
+  downloads_.shutdown();
+  if (renderer_ != nullptr) {
+    SDL_DestroyRenderer(renderer_);
+    renderer_ = nullptr;
+  }
+  if (window_ != nullptr) {
+    SDL_DestroyWindow(window_);
+    window_ = nullptr;
+  }
+  if (SDL_WasInit(0) != 0) {
+    SDL_Quit();
+  }
+}
+
+void Application::handle_event(const SDL_Event &event) {
+  switch (event.type) {
+  case SDL_EVENT_QUIT:
+    running_ = false;
+    break;
+  case SDL_EVENT_KEY_DOWN:
+    if (ui_ != nullptr) {
+      ui_->handle_event(event);
+    }
+    break;
+  case SDL_EVENT_MOUSE_BUTTON_DOWN:
+  case SDL_EVENT_MOUSE_MOTION:
+  case SDL_EVENT_MOUSE_WHEEL:
+  case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+  case SDL_EVENT_TEXT_INPUT:
+    if (ui_ != nullptr) {
+      ui_->handle_event(event);
+    }
+    break;
+  case SDL_EVENT_GAMEPAD_ADDED:
+    open_gamepad(event.gdevice.which);
+    if (ui_ != nullptr) {
+      ui_->handle_event(event);
+    }
+    break;
+  case SDL_EVENT_GAMEPAD_REMOVED:
+    close_gamepad(event.gdevice.which);
+    if (ui_ != nullptr) {
+      ui_->handle_event(event);
+    }
+    break;
+  case SDL_EVENT_WINDOW_MINIMIZED:
+  case SDL_EVENT_WINDOW_HIDDEN:
+    window_visible_ = false;
+    break;
+  case SDL_EVENT_WINDOW_RESTORED:
+  case SDL_EVENT_WINDOW_SHOWN:
+    window_visible_ = true;
+    break;
+  default:
+    break;
+  }
+}
+
+void Application::open_gamepad(uint32_t instance_id) {
+  SDL_Gamepad *pad = SDL_OpenGamepad(instance_id);
+  if (pad != nullptr) {
+    gamepads_.push_back(pad);
+  }
+}
+
+void Application::close_gamepad(uint32_t instance_id) {
+  for (auto it = gamepads_.begin(); it != gamepads_.end(); ++it) {
+    if (SDL_GetGamepadID(*it) == instance_id) {
+      SDL_CloseGamepad(*it);
+      gamepads_.erase(it);
+      break;
+    }
+  }
+}
+
+void Application::render() {
+  if (ui_ == nullptr) {
+    return;
+  }
+  if (config_.data().start_fullscreen.value_or(false)) {
+      if (!SDL_SetWindowFullscreen(window_, true)) {
+          core::error(std::format(":: failed to set fullscreen: %s", SDL_GetError()));
+      }
+  } else { //neo: sdl is weird and i need to do that for auto-applying the fullscreen effect upon clicking
+      if (!SDL_SetWindowFullscreen(window_, false)) {
+          core::error(std::format(":: failed to set fullscreen: %s", SDL_GetError()));
+      }
+  }
+  if (skins::SkinUiState::instance().consume_picks(config_, public_root_)) {
+    ui_->invalidate();
+  }
+  if (skins::SkinUiState::instance().sync_needed) {
+    skins::SkinUiState::instance().sync_needed = false;
+    skins::sync_skin_pck(config_.data(), public_root_,
+                         core::app_data_dir() / "Skin.pck");
+  }
+  if (downloads_.revision() != download_revision_) {
+    download_revision_ = downloads_.revision();
+    ui_->invalidate();
+  }
+  for (const std::string &id : downloads_.known_ids()) {
+    const instances::DownloadSnapshot snapshot = downloads_.snapshot(id);
+    auto found = download_states_.find(id);
+    const instances::DownloadState previous =
+        found == download_states_.end() ? instances::DownloadState::idle
+                                        : found->second;
+    if (snapshot.state != previous) {
+      if (snapshot.state == instances::DownloadState::failed &&
+          previous != instances::DownloadState::failed) {
+        ui_->push_toast("", snapshot.message.empty()
+                              ? "Failed to download " + id
+                              : snapshot.message,
+                        lazuli::ToastVariant::Error);
+      }
+      if (snapshot.state == instances::DownloadState::finished) {
+        update_checker_.clear_update(id);
+      }
+      if (found != download_states_.end()) {
+        found->second = snapshot.state;
+      } else {
+        download_states_.emplace(id, snapshot.state);
+      }
+    }
+  }
+  launch_.poll();
+  {
+    integrations::DiscordState drpc;
+    drpc.enabled = config_.data().rpc_enabled.value_or(true);
+    const launch::LaunchSnapshot snap = launch_.snapshot();
+    drpc.running = snap.running;
+    drpc.username = config_.data().username;
+    drpc.view = ui_ ? ui_->current_view() : std::string();
+    if (snap.running) {
+      drpc.instance_id = snap.instance_id;
+      if (const auto edition =
+              ui::find_config_edition(config_.data(), snap.instance_id)) {
+        drpc.version_name = edition->name;
+        drpc.instance_logo = edition->logo;
+        drpc.multiplayer = edition->lce_online;
+      }
+    }
+    const std::vector<std::string> active_downloads = downloads_.active_ids();
+    drpc.downloading_count = static_cast<int>(active_downloads.size());
+    if (!active_downloads.empty()) {
+      const std::string &first = active_downloads.front();
+      drpc.downloading_id = first;
+      drpc.download_percent =
+          static_cast<int>(downloads_.snapshot(first).percent);
+      if (const auto edition = ui::find_config_edition(config_.data(), first)) {
+        drpc.downloading_name = edition->name;
+      } else if (first.rfind("runner_", 0) == 0) {
+        drpc.downloading_name = first.substr(7);
+      } else {
+        drpc.downloading_name = "Game Files";
+      }
+    }
+    discord_.update(drpc);
+  }
+  if (launch_.revision() != launch_revision_) {
+    launch_revision_ = launch_.revision();
+    ui_->invalidate();
+  }
+  if (launch_.macos_runtime().revision() != macos_revision_) {
+    macos_revision_ = launch_.macos_runtime().revision();
+    ui_->invalidate();
+  }
+  if (launch_.runner_downloads().revision() != runner_download_revision_) {
+    runner_download_revision_ = launch_.runner_downloads().revision();
+    ui_->invalidate();
+  }
+  if (lce_online_.revision() != lce_revision_) {
+    lce_revision_ = lce_online_.revision();
+    ui_->invalidate();
+  }
+  if (update_checker_.revision() != update_revision_) {
+    update_revision_ = update_checker_.revision();
+    ui_->invalidate();
+  }
+  for (const auto &notification : update_checker_.drain_notifications()) {
+    ui_->push_toast(
+        ui_->translate(notification.title_key, notification.default_title),
+        notification.message, notification.variant, notification.on_click);
+  }
+  for (const lce::LceNotification &notification :
+       lce_online_.drain_notifications()) {
+    const bool is_invite =
+        notification.kind == lce::LceNotification::Kind::Invite;
+    ui_->push_toast(
+        ui_->translate(is_invite ? "download.gameInvite"
+                                 : "download.friendRequest"),
+        is_invite ? notification.name + " invited you to play!"
+                  : notification.name + " wants to be friends!",
+        lazuli::ToastVariant::Update, "go:lceonline");
+  }
+  if (const std::optional<lce::LceSessionState> session =
+          lce_online_.consume_session()) {
+    config::AppConfig &config = config_.data();
+    if (session->signed_in) {
+      config.lceonline_token = session->token;
+      config.lceonline_username = session->username;
+      config.lceonline_display_name = session->display_name;
+    } else {
+      config.lceonline_token.reset();
+      config.lceonline_username.reset();
+      config.lceonline_display_name.reset();
+    }
+    config_.save();
+  }
+  audio_.set_music_paused(launch_.snapshot().running || !window_visible_);
+  audio_.update();
+  ui_->render();
+}
+
+int Application::run() {
+  if (!initialize()) {
+    shutdown();
+    return 1;
+  }
+
+  running_ = true;
+  while (running_) {
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+      handle_event(event);
+    }
+    render();
+  }
+
+  shutdown();
+  core::info(":: bye bye~");
+  return 0;
+}
+} // namespace emerald::app

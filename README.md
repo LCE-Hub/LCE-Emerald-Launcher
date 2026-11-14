@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This branch is for **Project Radium**, a rewrite of the Emerald Launcher in C++ with SDL3 and it's own UI system.
+
 <div align="center">
   <img height="150" src="https://raw.githubusercontent.com/LCE-Hub/LCE-Emerald-Launcher/refs/heads/main/public/images/icon.png" alt="LCE Emerald Launcher Logo">
   <h1>LCE Emerald Launcher</h1>
@@ -207,17 +210,6 @@ Refer to [BUILDING.md](BUILDING.md).
 xattr -cr /path/to/Emerald\ Legacy\ Launcher.app
 ```
 
-### Linux WebView Issues
-
-Ensure WebKit2GTK-4.1 is installed:
-```bash
-# Check installation
-pkg-config --modversion webkit2gtk-4.1
-
-# Reinstall if needed
-sudo apt install --reinstall libwebkit2gtk-4.1-0
-```
-
 ### Game Not Launching
 
 1. Verify game files are properly installed via the launcher (also try clicking Repair which will reinstall it but keeps your data)
@@ -242,8 +234,10 @@ sudo apt install --reinstall libwebkit2gtk-4.1-0
 - **DTention** - Original creator of [LCE-Save-Converter](https://github.com/dtentiion/LCE-Save-Converter)
 - **dydymiku** - French translation
 - **Hvrket** - Russian translation
-- **HuntedRaven (Robin)** - Homebrew, Nix and Gentoo packaging
+- **HuntedRaven (Quinn)** - Homebrew, Nix and Gentoo packaging
 - **AntiApple4life** - AUR packaging
+- **Lilliethelily**: LCEOnline and Cafeberry Artwork
+- **DaPogLord**: Help with a lot of Emerald's update artwork
 
 ---
 

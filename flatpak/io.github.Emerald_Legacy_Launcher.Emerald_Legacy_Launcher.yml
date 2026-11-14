@@ -1,51 +1,72 @@
 app-id: io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher
 runtime: org.gnome.Platform
-runtime-version: "48"
+runtime-version: "49"
 sdk: org.gnome.Sdk
-sdk-extensions:
-  - org.freedesktop.Sdk.Extension.node20
-  - org.freedesktop.Sdk.Extension.rust-stable
 command: emerald-legacy-launcher
 finish-args:
   - --share=network
   - --share=ipc
   - --device=input
-  - --socket=x11
-  - --socket=wayland
   - --device=dri
-  - --filesystem=xdg-data
+  - --socket=wayland
+  - --socket=fallback-x11
   - --socket=pulseaudio
+  - --filesystem=xdg-data
   - --filesystem=xdg-run/pipewire-0
-  - --socket=session-bus
-  - --talk-name=org.freedesktop.portal.Desktop
-  - --talk-name=org.freedesktop.portal.OpenURI
-
 modules:
-  - shared-modules/libayatana-appindicator/libayatana-appindicator-gtk3.json
+  - name: SDL3
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DSDL_SHARED=ON
+      - -DSDL_STATIC=OFF
+      - -DSDL_TESTS=OFF
+    sources:
+      - type: git
+        url: https://github.com/libsdl-org/SDL.git
+        tag: release-3.2.30
+        commit: f5e5f6588921eed3d7d048ce43d9eb1ff0da0ffc
+  - name: SDL3_ttf
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DSDLTTF_VENDORED=ON
+      - -DSDLTTF_PLUTOSVG=OFF
+      - -DSDLTTF_EXAMPLES=OFF
+    sources:
+      - type: git
+        url: https://github.com/libsdl-org/SDL_ttf.git
+        tag: release-3.2.2
+        commit: a1ce3670aec736ecbf0936c43f2f0cc53aa61e5b
+  - name: pugixml
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DBUILD_TESTING=OFF
+    sources:
+      - type: git
+        url: https://github.com/zeux/pugixml.git
+        tag: v1.15
+        commit: ee86beb30e4973f5feffe3ce63bfa4fbadf72f38
   - name: emerald-legacy-launcher
-    buildsystem: simple
+    buildsystem: cmake-ninja
     build-options:
-      append-path: /usr/lib/sdk/node20/bin:/usr/lib/sdk/rust-stable/bin
       build-args:
         - --share=network
-      env:
-        PKG_CONFIG_PATH: /usr/lib/sdk/node20/lib/pkgconfig:/usr/lib/sdk/rust-stable/lib/pkgconfig
-        CARGO_HOME: /run/build/emerald-legacy-launcher/cargo
-        PNPM_HOME: /run/build/emerald-legacy-launcher/pnpm-home
-    build-commands:
-      - . /usr/lib/sdk/rust-stable/enable.sh
-      - mkdir -p /run/build/emerald-legacy-launcher/pnpm-bin
-      - curl -fSL https://github.com/pnpm/pnpm/releases/download/v10.32.1/pnpm-linux-x64 -o /run/build/emerald-legacy-launcher/pnpm-bin/pnpm # yes i hardcode URLs
-      - chmod +x /run/build/emerald-legacy-launcher/pnpm-bin/pnpm
-      - export PATH=/run/build/emerald-legacy-launcher/pnpm-bin:$PATH
-      - CI=true PATH=/run/build/emerald-legacy-launcher/pnpm-bin:$PATH /run/build/emerald-legacy-launcher/pnpm-bin/pnpm install
-      - CI=true PATH=/run/build/emerald-legacy-launcher/pnpm-bin:$PATH /run/build/emerald-legacy-launcher/pnpm-bin/pnpm tauri build --no-bundle
-      - install -Dm755 src-tauri/target/release/emerald-legacy-launcher /app/bin/emerald-legacy-launcher
-      - mkdir -p /app/share/emerald-legacy-launcher/
-      - cp -r dist /app/share/emerald-legacy-launcher/
+    post-install:
       - install -Dm644 flatpak/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.desktop /app/share/applications/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.desktop
       - install -Dm644 flatpak/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.metainfo.xml /app/share/metainfo/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.metainfo.xml
       - install -Dm644 public/images/icon.png /app/share/icons/hicolor/512x512/apps/io.github.Emerald_Legacy_Launcher.Emerald_Legacy_Launcher.png
     sources:
       - type: dir
         path: ..
+        skip:
+          - DiamondRuntime
+          - GoldMapper
+          - old
+          - build
+          - android_extras
+          - .cache
+          - .git
+          - .flatpak-builder
+          - emerald-repo
+          - build-flatpak
+          - emerald.flatpak
