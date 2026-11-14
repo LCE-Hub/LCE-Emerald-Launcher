@@ -1,6 +1,6 @@
 #include "Ui/Views/OverlayView.hpp"
 #include "Ui/EditionResolver.hpp"
-#include "Ui/I18n.hpp"
+#include "lazuli/I18n.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>

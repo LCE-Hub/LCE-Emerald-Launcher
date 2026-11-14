@@ -5,7 +5,7 @@
 #include "Instances/Runners.hpp"
 #include "Platform/Platform.hpp"
 #include "Ui/EditionResolver.hpp"
-#include "Ui/I18n.hpp"
+#include "lazuli/I18n.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>

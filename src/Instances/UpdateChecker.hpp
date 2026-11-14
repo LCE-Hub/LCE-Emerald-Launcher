@@ -1,7 +1,7 @@
 #pragma once
 #include "Config/ConfigSchema.hpp"
 #include "Instances/Editions.hpp"
-#include "Ui/Notifications.hpp"
+#include "lazuli/Notifications.hpp"
 #include <atomic>
 #include <cstdint>
 #include <mutex>
@@ -15,7 +15,7 @@ struct PendingNotification {
   std::string title_key;
   std::string message;
   std::string default_title;
-  ui::ToastVariant variant = ui::ToastVariant::Update;
+  lazuli::ToastVariant variant = lazuli::ToastVariant::Update;
   std::string on_click;
 };
 

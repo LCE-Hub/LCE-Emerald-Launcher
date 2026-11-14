@@ -5,7 +5,7 @@
 #include "Skins/SkinFetch.hpp"
 #include "Skins/SkinLibrary.hpp"
 #include "Skins/SkinUiState.hpp"
-#include "Ui/I18n.hpp"
+#include "lazuli/I18n.hpp"
 #include <algorithm>
 #include <string>
 #include <vector>

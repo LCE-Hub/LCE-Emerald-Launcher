@@ -10,3 +10,6 @@
 [submodule "src/discord_ipc_cpp"]
 	path = src/discord_ipc_cpp
 	url = https://github.com/LCE-Hub/discordipc
+[submodule "Lazuli"]
+	path = Lazuli
+	url = https://github.com/LCE-Hub/Lazuli

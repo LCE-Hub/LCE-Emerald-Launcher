@@ -75,6 +75,7 @@ target_link_libraries(emerald_core
     PUBLIC
         SDL3::SDL3
         nlohmann_json::nlohmann_json
+        lazuli
 )
 
 if(NOT WIN32)
@@ -123,20 +124,8 @@ target_link_libraries(emerald_audio
 
 emerald_apply_warnings(emerald_audio)
 set(EMERALD_UI_SOURCES #neo: yes im listing them manually. i need a specific order. you cannot convince me to use glob.
-    Ui/Style.cpp
-    Ui/Element.cpp
     Ui/EditionResolver.cpp
-    Ui/Binding.cpp
-    Ui/I18n.cpp
-    Ui/Notifications.cpp
-    Ui/Xml.cpp
-    Ui/Handlers.cpp
-    Ui/UiSystem.cpp
-    Ui/Render/TextureCache.cpp
-    Ui/Render/SdlRenderer.cpp
-    Ui/Render/SvgRaster.cpp
-    Ui/Render/FontCache.cpp
-    Ui/Render/Panorama.cpp
+    Ui/AppViews.cpp
     Ui/Views/HomeView.cpp
     Ui/Views/LceOnlineView.cpp
     Ui/Views/SettingsView.cpp
@@ -157,11 +146,11 @@ set(EMERALD_UI_SOURCES #neo: yes im listing them manually. i need a specific ord
 )
 
 add_library(emerald_ui STATIC ${EMERALD_UI_SOURCES})
-target_include_directories(emerald_ui PRIVATE "${CMAKE_SOURCE_DIR}/third_party/nanosvg")
 target_link_libraries(emerald_ui
     PUBLIC
         emerald_core
         emerald_audio
+        lazuli
     PRIVATE
         SDL3::SDL3
         SDL3_ttf::SDL3_ttf

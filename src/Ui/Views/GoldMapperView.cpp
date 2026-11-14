@@ -3,7 +3,7 @@
 #include "Config/ConfigSchema.hpp"
 #include "Core/Log.hpp"
 #include "Launch/GoldMapper.hpp"
-#include "Ui/I18n.hpp"
+#include "lazuli/I18n.hpp"
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>

@@ -8,7 +8,8 @@
 #include "Playtime/PlaytimeStore.hpp"
 #include "State/StateStore.hpp"
 #include "Integrations/DiscordRpc.hpp"
-#include "Ui/UiSystem.hpp"
+#include "Ui/View.hpp"
+#include "lazuli/UiSystem.hpp"
 #include <SDL3/SDL_events.h>
 #include <cstdint>
 #include <filesystem>
@@ -47,7 +48,8 @@ private:
   instances::UpdateChecker update_checker_;
   launch::LaunchService launch_;
   lce::LceOnlineService lce_online_;
-  std::unique_ptr<ui::UiSystem> ui_;
+  std::unique_ptr<lazuli::UiSystem> ui_;
+  ui::UiServices ui_services_;
   std::vector<SDL_Gamepad *> gamepads_;
   integrations::DiscordRpc discord_;
   audio::AudioEngine audio_;

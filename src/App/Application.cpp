@@ -3,10 +3,12 @@
 #include "Core/Log.hpp"
 #include "Core/Paths.hpp"
 #include "Migration/Migration.hpp"
+#include "Skins/SkinElements.hpp"
 #include "Skins/SkinSync.hpp"
 #include "Skins/SkinUiState.hpp"
+#include "Ui/AppViews.hpp"
+#include "lazuli/Log.hpp"
 #include "Ui/EditionResolver.hpp"
-#include "Ui/Render/TextureCache.hpp"
 #include <SDL3/SDL.h>
 #include <cstdlib>
 #include <filesystem>
@@ -96,6 +98,22 @@ bool Application::initialize() {
                                    SDL_LOGICAL_PRESENTATION_LETTERBOX);
   SDL_StartTextInput(window_);
   core::info(":: starting up Emerald Launcher");
+  lazuli::log::set_sink([](lazuli::log::Level level, std::string_view message) {
+    switch (level) {
+    case lazuli::log::Level::Debug:
+      core::debug(message);
+      break;
+    case lazuli::log::Level::Info:
+      core::info(message);
+      break;
+    case lazuli::log::Level::Warn:
+      core::warn(message);
+      break;
+    case lazuli::log::Level::Error:
+      core::error(message);
+      break;
+    }
+  });
   core::info(std::string{"  - app data dir: "} + core::app_data_dir().string());
   config_.load();
   core::info(std::string{"  - username: "} + config_.data().username);
@@ -124,14 +142,13 @@ bool Application::initialize() {
   audio_.initialize(public_root);
   audio_.set_music_volume(config_.data().music_vol.value_or(50));
   audio_.set_sfx_volume(config_.data().sfx_vol.value_or(100));
-  ui_ = std::make_unique<ui::UiSystem>(renderer_, ui_docs_root, public_root,
-                                       resource_root / "i18n");
-  if (!ui_->initialize()) {
-    core::error("ui: failed to initialize");
-    return false;
-  }
-
-  ui::UiServices services;
+  lazuli::register_builtin_elements();
+  ui::register_skin_elements();
+  ui_ = std::make_unique<lazuli::UiSystem>(renderer_, ui_docs_root, public_root,
+                                           resource_root / "i18n");
+  ui_->set_status_text(EMERALD_VERSION_TEXT);
+  ui::register_views(*ui_);
+  ui::UiServices &services = ui_services_;
   services.config = &config_;
   services.playtime = &playtime_;
   services.downloads = &downloads_;
@@ -154,7 +171,101 @@ bool Application::initialize() {
                         ui::resolve_config_editions(config_.data()));
   update_revision_ = update_checker_.revision();
   services.quit = [this] { running_ = false; };
-  ui_->set_services(services);
+  ui_->set_services(&services);
+  ui_->set_quit(services.quit);
+  ui_->set_sounds(lazuli::UiSounds{
+      .press = [this] { audio_.play_press(); },
+      .back = [this] { audio_.play_back(); },
+      .scroll = [this] { audio_.play_scroll(); },
+      .effect = [this](std::string_view key) {
+        if (key == "toast.error") {
+          audio_.play_sfx("in.ogg");
+        } else if (key == "toast.show") {
+          audio_.play_sfx("notification.ogg");
+        } else if (key == "toast.hide") {
+          audio_.play_sfx("out.ogg");
+        }
+      },
+  });
+  ui_->set_sound_for([](std::string_view handler) -> lazuli::UiSound {
+    const std::string name(handler);
+    if (name.rfind("open:", 0) == 0 || name.rfind("overlay.toasts.", 0) == 0 ||
+        name == "settings.downloadRunner") {
+      return lazuli::UiSound::None;
+    }
+    if (name == "settings.back" || name == "skineditor.back" ||
+        name == "goldmapper.back" || name == "goldmapper.modal.cancel" ||
+        name == "quit") {
+      return lazuli::UiSound::Back;
+    }
+    return lazuli::UiSound::Press;
+  });
+  ui_->set_translator([this](std::string_view) -> std::optional<std::string> {
+    if (config_.data().bedrock_enabled.value() == true) {
+      return std::string{"Marketplace"};
+    }
+    return std::nullopt;
+  });
+  ui_->set_panorama_source([this] {
+    std::string source = "panorama/vanilla_tu19_Panorama_Background_Day.png";
+    const config::AppConfig &config = config_.data();
+    const std::string profile = config.profile.value_or("");
+    std::string base = "vanilla_tu19";
+    const std::optional<instances::Edition> edition =
+        ui::find_config_edition(config, profile);
+    if (edition.has_value() && !edition->panorama.empty()) {
+      base = edition->panorama;
+    }
+    std::string override_path;
+    if (config.customizations.has_value()) {
+      const auto found = config.customizations->find(profile);
+      if (found != config.customizations->end() &&
+          found->second.panorama.has_value()) {
+        override_path = *found->second.panorama;
+      }
+    }
+    const bool remote = override_path.rfind("data:", 0) == 0 ||
+                        override_path.rfind("blob:", 0) == 0 ||
+                        override_path.rfind("http", 0) == 0;
+    if (!override_path.empty() && !remote) {
+      source = override_path;
+    } else {
+      const bool is_day = config.daytime.value_or(true);
+      source = "panorama/" + base + "_Panorama_Background_" +
+               (is_day ? "Day" : "Night") + ".png";
+    }
+    return source;
+  });
+  ui_->set_mouse_observer(
+      [](float x, float y) { ui::note_logical_mouse(x, y); });
+  services.i18n = &ui_->i18n();
+  services.notifications = &ui_->notifications();
+  services.navigate = [p = ui_.get()](const std::string &id) {
+    p->navigate(id);
+  };
+  services.change_language = [p = ui_.get()](const std::string &language) {
+    p->set_language(language);
+  };
+  services.reset_focus = [p = ui_.get()] { p->reset_focus(); };
+  services.tooltip_set = [p = ui_.get()] { return p->tooltip_set(); };
+  services.focus_element = [p = ui_.get()](const std::string &id) {
+    p->focus_element(id);
+  };
+  services.focus_scope = [p = ui_.get()](const std::string &id) {
+    p->set_focus_scope(id);
+  };
+  services.read_text_input = [p = ui_.get()] { return p->text_result(); };
+  services.text_edited = [p = ui_.get()] { return p->text_edited(); };
+  services.notify = [p = ui_.get()](const std::string &title,
+                                    const std::string &message,
+                                    lazuli::ToastVariant variant,
+                                    const std::string &on_click) {
+    p->push_toast(title, message, variant, on_click);
+  };
+  if (!ui_->initialize()) {
+    core::error("ui: failed to initialize");
+    return false;
+  }
   ui_->set_language(config_.data().language.value_or("en"));
   ui_->navigate("home");
   audio_.start_music();
@@ -278,7 +389,7 @@ void Application::render() {
         ui_->push_toast("", snapshot.message.empty()
                               ? "Failed to download " + id
                               : snapshot.message,
-                        ui::ToastVariant::Error);
+                        lazuli::ToastVariant::Error);
       }
       if (snapshot.state == instances::DownloadState::finished) {
         update_checker_.clear_update(id);
@@ -358,7 +469,7 @@ void Application::render() {
                                  : "download.friendRequest"),
         is_invite ? notification.name + " invited you to play!"
                   : notification.name + " wants to be friends!",
-        ui::ToastVariant::Update, "go:lceonline");
+        lazuli::ToastVariant::Update, "go:lceonline");
   }
   if (const std::optional<lce::LceSessionState> session =
           lce_online_.consume_session()) {

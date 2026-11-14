@@ -1,7 +1,7 @@
 #include "Ui/Views/SkinEditorView.hpp"
 #include "Audio/AudioEngine.hpp"
 #include "Skins/SkinUiState.hpp"
-#include "Ui/I18n.hpp"
+#include "lazuli/I18n.hpp"
 #include <algorithm>
 #include <array>
 #include <cctype>

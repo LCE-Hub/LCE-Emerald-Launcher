@@ -1,5 +1,5 @@
 #pragma once
-#include "Ui/Types.hpp"
+#include "Ui/Compat.hpp"
 #include <cstddef>
 #include <string>
 namespace emerald::ui {

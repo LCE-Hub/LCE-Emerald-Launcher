@@ -132,7 +132,7 @@ void UpdateChecker::run(config::AppConfig config, std::vector<Edition> editions)
             notif.title_key = "download.updateAvailable";
             notif.default_title = "Update Available!";
             notif.message = "Update " + remote_version + " is available!";
-            notif.variant = ui::ToastVariant::Update;
+            notif.variant = lazuli::ToastVariant::Update;
             notif.on_click =
                 "open:https://github.com/LCE-Hub/LCE-Emerald-Launcher/releases/latest";
             pending_notifications_.push_back(std::move(notif));
@@ -207,7 +207,7 @@ void UpdateChecker::run(config::AppConfig config, std::vector<Edition> editions)
       notif.message = "Updates are available for " +
                       std::to_string(updated_names.size()) + " versions!";
     }
-    notif.variant = ui::ToastVariant::Update;
+    notif.variant = lazuli::ToastVariant::Update;
     notif.on_click = "go:versions";
     pending_notifications_.push_back(std::move(notif));
     ++revision_;

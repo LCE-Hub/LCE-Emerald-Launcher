@@ -1,21 +1,15 @@
 #pragma once
+#include "Audio/AudioEngine.hpp"
 #include "Config/ConfigStore.hpp"
-#include "Core/Json.hpp"
 #include "Instances/DownloadManager.hpp"
 #include "Launch/LaunchService.hpp"
 #include "Net/LceOnline.hpp"
 #include "Playtime/PlaytimeStore.hpp"
-#include "Ui/Notifications.hpp"
+#include "Ui/Compat.hpp"
 #include <filesystem>
 #include <functional>
 #include <string>
 #include <string_view>
-namespace emerald::ui {
-class I18n;
-} // namespace emerald::ui
-namespace emerald::audio {
-class AudioEngine;
-}
 namespace emerald::instances {
 class UpdateChecker;
 }
@@ -47,17 +41,24 @@ struct UiServices {
       notify;
 };
 
-class View {
+class View : public lazuli::Screen {
 public:
-  virtual ~View() = default;
-  virtual std::string_view id() const = 0;
+  std::string_view id() const override = 0;
+  Json data(const void *services) const final {
+    return data(*static_cast<const UiServices *>(services));
+  }
+  bool action(std::string_view name, void *services) final {
+    return action(name, *static_cast<UiServices *>(services));
+  }
+  bool on_escape(void *services) final {
+    return on_escape(*static_cast<UiServices *>(services));
+  }
   virtual Json data(const UiServices &services) const = 0;
   virtual bool action(std::string_view name, UiServices &services) {
     (void)name;
     (void)services;
     return false;
   }
-  virtual void on_enter() {}
   virtual bool on_escape(UiServices &services) {
     (void)services;
     return false;

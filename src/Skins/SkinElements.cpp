@@ -1,8 +1,8 @@
 #include "Skins/SkinElements.hpp"
 #include "Skins/SkinModel3D.hpp"
 #include "Skins/SkinUiState.hpp"
-#include "Ui/Element.hpp"
-#include "Ui/Render/SdlRenderer.hpp"
+#include "lazuli/Element.hpp"
+#include "lazuli/Render/SdlRenderer.hpp"
 #include <SDL3/SDL.h>
 #include <algorithm>
 #include <cmath>
