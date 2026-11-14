@@ -1,14 +1,14 @@
 > [!IMPORTANT]
-> This branch is for **Project Radium**, a rewrite of the Emerald Launcher in C++ with SDL3 and it's own UI system.
+> This branch is for **Project Radium**, a rewrite of the Emerald Launcher in C++ with SDL3 and [it's own UI system, Lazuli.](https://github.com/LCE-Hub/Lazuli).
 
 <div align="center">
   <img height="150" src="https://raw.githubusercontent.com/LCE-Hub/LCE-Emerald-Launcher/refs/heads/main/public/images/icon.png" alt="LCE Emerald Launcher Logo">
   <h1>LCE Emerald Launcher</h1>
   <p><strong>FOSS cross-platform launcher for Minecraft Legacy Console Edition</strong></p>
   <p>
-    <img src="https://img.shields.io/badge/version-1.6.1-blue?style=flat-square" alt="Version">
+    <img src="https://img.shields.io/badge/version-2.0.0-blue?style=flat-square" alt="Version">
     <img src="https://img.shields.io/badge/license-GPL--3.0-green?style=flat-square" alt="License">
-    <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20GNU/Linux-lightgrey?style=flat-square" alt="Platforms">
+    <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20GNU/Linux%20%7C%20Android-lightgrey?style=flat-square" alt="Platforms">
   </p>
 </div>
 
@@ -52,7 +52,7 @@
 
 LCE Emerald Launcher is the easiest way to play Minecraft Legacy Console Edition on PC. Install community builds, manage versions, customize skins, and launch instantly from one lightweight hub.
 
-**Why Emerald?** Traditional launchers often rely on bloated frameworks, consuming excessive resources. Emerald utilizes a modern **Tauri** architecture, using only a low amount of RAM, leaving your PC's resources dedicated to the game itself.
+**Why Emerald?** Traditional launchers often rely on bloated frameworks, consuming excessive resources. Emerald is written in the C++ programming language, using only a **very low amount** of RAM (Sorry, Sam Altman.), leaving your PC's resources dedicated to the game itself. As well as the many features that enhances your experiences such as Skins, Capes, Workshop, LCEOnline, etc.
 
 ---
 
@@ -60,15 +60,15 @@ LCE Emerald Launcher is the easiest way to play Minecraft Legacy Console Edition
 
 | Feature | Description |
 |---------|-------------|
-| **Automated Setup** | One-click installation for neoLegacy, Revelations, Hellish Ends, Moon Edition and others |
+| **Automated Setup** | One-click installation for neoLegacy, NTCE, Revelations, Hellish Ends, Moon Edition and others |
 | **Cross-Platform** | Native support for Windows, macOS (Intel & Apple Silicon), and Linux (Steam Deck is also supported!) |
-| **Lightweight** | Very light RAM usage thanks to Rust backend and Tauri framework |
+| **Lightweight** | Very light RAM usage thanks to the [Lazuli UI Framework](https://github.com/LCE-Hub/Lazuli) and C++ |
 | **Easy Configuration** | Built-in settings for username, game parameters, and profiles |
-| **Skin Viewer** | Interactive skin preview using Three.js with layer support |
+| **Skin Viewer** | Interactive skin preview with layers |
 | **Custom Skins** | Import and manage your own skins and capes |
 | **Controller Support** | Full gamepad navigation support (keyboard support included) |
 | **Discord Rich Presence** | Show your current activity and game status on Discord |
-| **Workshop** | Community content like DLCs, Textures, Skins and more |
+| **Workshop** | Community content like DLCs, Textures, Skins, Mods and more |
 | **Free Multiplayer** | Powered by LCEOnline, Emerald provides a free multiplayer service so you can play with anyone without port forwarding! |
 | **Developer Tools** | Create and edit 4J's propriatery file formats with ease! |
 | **World conversion** | Import `.ms` files, Java worlds or even an Xbox 360/PS3 world! (Beta) |

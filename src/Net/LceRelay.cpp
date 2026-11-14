@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cstring>
 #include <thread>
+#include <vector>
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -49,6 +50,14 @@ void close_socket(socket_t handle) {
   ::closesocket(handle);
 #else
   ::close(handle);
+#endif
+}
+
+void shutdown_socket(socket_t handle) {
+#ifdef _WIN32
+  ::shutdown(handle, SD_BOTH);
+#else
+  ::shutdown(handle, SHUT_RDWR);
 #endif
 }
 
@@ -133,10 +142,21 @@ void copy_bidirectional(socket_t a, socket_t b) {
   char buffer[8192];
   std::size_t outbound = 0;
   std::size_t inbound = 0;
-  const auto log_totals = [&] {
-    core::info("lcerelay: relay session ended (game -> proxy " +
+  const auto log_totals = [&](const std::string &reason) {
+    core::info("lcerelay: relay session ended: " + reason + " (game -> proxy " +
                std::to_string(outbound) + " B, proxy -> game " +
                std::to_string(inbound) + " B)");
+  };
+  const auto hex_head = [&](int count) {
+    static const char *digits = "0123456789abcdef";
+    std::string out;
+    for (int i = 0; i < count && i < 16; ++i) {
+      const unsigned char c = static_cast<unsigned char>(buffer[i]);
+      out.push_back(digits[c >> 4]);
+      out.push_back(digits[c & 15]);
+      out.push_back(' ');
+    }
+    return out;
   };
   while (true) {
     fd_set readable;
@@ -149,7 +169,7 @@ void copy_bidirectional(socket_t a, socket_t b) {
     const int highest = (a > b ? a : b) + 1;
     if (::select(highest, &readable, nullptr, nullptr, nullptr) <= 0) {
 #endif
-      log_totals();
+      log_totals("select failed: " + socket_error());
       return;
     }
 #ifdef _WIN32
@@ -164,32 +184,34 @@ void copy_bidirectional(socket_t a, socket_t b) {
     if (RELAY_IS_SET(a)) {
       const int received = static_cast<int>(RELAY_RECV(a));
       if (received <= 0) {
-        log_totals();
+        log_totals(received == 0 ? "game closed the connection"
+                                 : "game recv error: " + socket_error());
         return;
       }
-      if (/*core::verbose()*/ true) {
+      if (core::verbose()) {
         core::info("lcerelay: packet " + std::to_string(received) +
-                   " B game -> proxy");
+                   " B game -> proxy [" + hex_head(received) + "]");
       }
       outbound += static_cast<std::size_t>(received);
       if (RELAY_SEND(b, received) < 0) {
-        log_totals();
+        log_totals("send to proxy failed: " + socket_error());
         return;
       }
     }
     if (RELAY_IS_SET(b)) {
       const int received = static_cast<int>(RELAY_RECV(b));
       if (received <= 0) {
-        log_totals();
+        log_totals(received == 0 ? "proxy closed the connection"
+                                 : "proxy recv error: " + socket_error());
         return;
       }
-      if (/*core::verbose()*/ true) {
+      if (core::verbose()) {
         core::info("lcerelay: packet " + std::to_string(received) +
-                   " B proxy -> game");
+                   " B proxy -> game [" + hex_head(received) + "]");
       }
       inbound += static_cast<std::size_t>(received);
       if (RELAY_SEND(a, received) < 0) {
-        log_totals();
+        log_totals("send to game failed: " + socket_error());
         return;
       }
     }
@@ -318,7 +340,7 @@ void LceRelay::run_host(std::string token, std::uint16_t game_port) {
     return;
   }
   core::info("lcerelay: host registered with proxy");
-  socket_t game_stream = kInvalidSocket;
+  socket_t probe_game = kInvalidSocket;
   const auto deadline = std::chrono::steady_clock::now() +
                         std::chrono::seconds(30);
   while (std::chrono::steady_clock::now() < deadline) {
@@ -329,13 +351,13 @@ void LceRelay::run_host(std::string token, std::uint16_t game_port) {
       active_.store(0);
       return;
     }
-    game_stream = connect_tcp("127.0.0.1", game_port, error);
-    if (game_stream != kInvalidSocket) {
+    probe_game = connect_tcp("127.0.0.1", game_port, error);
+    if (probe_game != kInvalidSocket) {
       break;
     }
     std::this_thread::sleep_for(std::chrono::seconds(1));
   }
-  if (game_stream == kInvalidSocket) {
+  if (probe_game == kInvalidSocket) {
     set_error("Timed out waiting for game to start");
     untrack(static_cast<std::intptr_t>(host_conn));
     close_socket(host_conn);
@@ -343,56 +365,65 @@ void LceRelay::run_host(std::string token, std::uint16_t game_port) {
     active_.store(0);
     return;
   }
-  track(static_cast<std::intptr_t>(game_stream));
-  core::info("lcerelay: game server connected on port " +
+  close_socket(probe_game);
+  core::info("lcerelay: game server is up on port " +
              std::to_string(game_port));
-  std::string client_line;
-  if (!read_line(host_conn, client_line)) {
-    set_error("Proxy closed before client joined");
-    untrack(static_cast<std::intptr_t>(host_conn));
-    untrack(static_cast<std::intptr_t>(game_stream));
-    close_socket(host_conn);
-    close_socket(game_stream);
-    host_running_.store(0);
-    active_.store(0);
-    return;
+
+  std::vector<std::thread> sessions;
+  while (!stopping_.load()) {
+    std::string client_line;
+    if (!read_line(host_conn, client_line)) {
+      if (!stopping_.load()) {
+        set_error("Proxy closed the host connection");
+      }
+      break;
+    }
+    const std::size_t space = client_line.find(' ');
+    const std::string verb =
+        space == std::string::npos ? client_line : client_line.substr(0, space);
+    const std::string joiner_id =
+        space == std::string::npos ? std::string()
+                                   : client_line.substr(space + 1);
+    if (verb != "CLIENT" || joiner_id.empty()) {
+      core::warn("lcerelay: ignoring unexpected line from proxy: " +
+                 client_line);
+      continue;
+    }
+
+    const socket_t game_stream = connect_tcp("127.0.0.1", game_port, error);
+    if (game_stream == kInvalidSocket) {
+      set_error("Could not connect to game for " + joiner_id + ": " + error);
+      continue;
+    }
+    track(static_cast<std::intptr_t>(game_stream));
+    const socket_t accept_conn = connect_tcp(kProxyAddr, kProxyPort, error);
+    if (accept_conn == kInvalidSocket) {
+      set_error("Proxy connect failed: " + error);
+      untrack(static_cast<std::intptr_t>(game_stream));
+      close_socket(game_stream);
+      continue;
+    }
+    track(static_cast<std::intptr_t>(accept_conn));
+    write_line(accept_conn, "ACCEPT " + token + " 0 " + joiner_id);
+    core::info("lcerelay: client joined (" + joiner_id +
+               "), relaying game <-> proxy");
+    sessions.emplace_back([this, game_stream, accept_conn, joiner_id] {
+      copy_bidirectional(game_stream, accept_conn);
+      untrack(static_cast<std::intptr_t>(game_stream));
+      untrack(static_cast<std::intptr_t>(accept_conn));
+      close_socket(game_stream);
+      close_socket(accept_conn);
+      core::info("lcerelay: client left (" + joiner_id + ")");
+    });
   }
-  const std::size_t space = client_line.find(' ');
-  const std::string verb =
-      space == std::string::npos ? client_line : client_line.substr(0, space);
-  const std::string joiner_id =
-      space == std::string::npos ? std::string() : client_line.substr(space + 1);
-  if (verb != "CLIENT" || joiner_id.empty()) {
-    set_error("Expected CLIENT, got: " + client_line);
-    untrack(static_cast<std::intptr_t>(host_conn));
-    untrack(static_cast<std::intptr_t>(game_stream));
-    close_socket(host_conn);
-    close_socket(game_stream);
-    host_running_.store(0);
-    active_.store(0);
-    return;
-  }
-  const socket_t accept_conn = connect_tcp(kProxyAddr, kProxyPort, error);
-  if (accept_conn == kInvalidSocket) {
-    set_error("Proxy connect failed: " + error);
-    untrack(static_cast<std::intptr_t>(host_conn));
-    untrack(static_cast<std::intptr_t>(game_stream));
-    close_socket(host_conn);
-    close_socket(game_stream);
-    host_running_.store(0);
-    active_.store(0);
-    return;
-  }
-  track(static_cast<std::intptr_t>(accept_conn));
-  write_line(accept_conn, "ACCEPT " + token + " 0 " + joiner_id);
-  core::info("lcerelay: client joined (" + joiner_id + "), relaying game <-> proxy");
-  copy_bidirectional(game_stream, accept_conn);
+
   untrack(static_cast<std::intptr_t>(host_conn));
-  untrack(static_cast<std::intptr_t>(game_stream));
-  untrack(static_cast<std::intptr_t>(accept_conn));
   close_socket(host_conn);
-  close_socket(game_stream);
-  close_socket(accept_conn);
+  for (std::thread &session : sessions) {
+    if (session.joinable()) {
+      session.join();
+    }
+  }
   host_running_.store(0);
   active_.store(0);
 }
@@ -452,6 +483,7 @@ void LceRelay::stop_all() {
   {
     std::lock_guard<std::mutex> lock(sockets_mutex_);
     for (const std::intptr_t handle : sockets_) {
+      shutdown_socket(static_cast<socket_t>(handle));
       close_socket(static_cast<socket_t>(handle));
     }
     sockets_.clear();
