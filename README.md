@@ -239,6 +239,7 @@ xattr -cr /path/to/Emerald\ Legacy\ Launcher.app
 - **AntiApple4life** - AUR packaging
 - **Lilliethelily**: LCEOnline and Cafeberry Artwork
 - **DaPogLord**: Help with a lot of Emerald's update artwork
+- **Dllie/LCEGuys**: A lot of Workshop content and help with Beta Testing
 
 ---
 
