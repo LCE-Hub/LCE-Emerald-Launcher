@@ -37,9 +37,13 @@ make -C flatpak
 
 ## Android
 
+Requirements: Android SDK (`~/Android/Sdk`), Android NDK 28.2.13676358 (or set `ANDROID_NDK_HOME`), and a JDK (`adb` from platform-tools is used by `make install`).
+
 Building Emerald on Android is pretty easy,
 
 ```sh
 make -C android_extras assets  #neo: fetches the rootfs and proton11
 make -C android_extras build
 ```
+
+Extras: `make -C android_extras install` (install via adb), `make -C android_extras debug` (unsigned debug build), `make -C android_extras clean`.

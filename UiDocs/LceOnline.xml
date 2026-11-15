@@ -150,7 +150,7 @@
   </style>
   <view id="lceonline">
     <tooltip icon="A">{{t:common.select}}</tooltip>
-    <tooltip icon="B">{{t:common.back}}</tooltip>
+    <tooltip icon="B" action="@back">{{t:common.back}}</tooltip>
     <column width="1280px" height="720px" padding="40" align="center">
       <column if="{{signedIn}}" width="1024px" height="540px" gap="0px" justify="center" align="center">
         <image class="lce-title" src="/images/lceonline.png" fit="contain"/>

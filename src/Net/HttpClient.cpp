@@ -4,6 +4,7 @@
 #include <curl/curl.h>
 #include <format>
 #include "Core/Log.hpp"
+#include "Core/Paths.hpp"
 namespace emerald::net {
 namespace {
 struct HeaderCapture {
@@ -110,6 +111,20 @@ void apply_common_options(CURL *handle, const std::string &proxy) {
   curl_easy_setopt(handle, CURLOPT_TIMEOUT, 500L);
   curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1L);
   // neo: dont set proxy.
+#if defined(__ANDROID__)
+  static const std::string ca_bundle = [] {
+    std::error_code error;
+    const std::filesystem::path path = core::app_data_dir() / "cacert.pem";
+    if (std::filesystem::exists(path, error) &&
+        std::filesystem::file_size(path, error) > 0) {
+      return path.string();
+    }
+    return std::string{};
+  }();
+  if (!ca_bundle.empty()) {
+    curl_easy_setopt(handle, CURLOPT_CAINFO, ca_bundle.c_str());
+  }
+#endif
 }
 
 } // namespace

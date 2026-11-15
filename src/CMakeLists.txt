@@ -1,27 +1,32 @@
 set(EMERALD_GENERATED_DIR "${CMAKE_BINARY_DIR}/generated")
+option(EMERALD_ANDROID "Build the launcher as an Android shared library" OFF)
 file(MAKE_DIRECTORY "${EMERALD_GENERATED_DIR}")
 set(EMERALD_EMBED_OUTPUT "${EMERALD_GENERATED_DIR}/EmbeddedAssets.cpp")
-add_executable(emerald_embed "${CMAKE_SOURCE_DIR}/tools/EmbedAssets.cpp")
-set_target_properties(emerald_embed PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tools"
-)
+if(EMERALD_PREGENERATED_EMBED)
+    set(EMERALD_EMBED_OUTPUT "${EMERALD_PREGENERATED_EMBED}")
+else()
+    add_executable(emerald_embed "${CMAKE_SOURCE_DIR}/tools/EmbedAssets.cpp")
+    set_target_properties(emerald_embed PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tools"
+    )
 
-file(GLOB_RECURSE EMERALD_ASSET_FILES CONFIGURE_DEPENDS
-    "${EMERALD_PUBLIC_DIR}/*"
-    "${EMERALD_RESOURCE_DIR}/*"
-    "${EMERALD_UI_DOCS_DIR}/*"
-)
+    file(GLOB_RECURSE EMERALD_ASSET_FILES CONFIGURE_DEPENDS
+        "${EMERALD_PUBLIC_DIR}/*"
+        "${EMERALD_RESOURCE_DIR}/*"
+        "${EMERALD_UI_DOCS_DIR}/*"
+    )
 
-add_custom_command(
-    OUTPUT "${EMERALD_EMBED_OUTPUT}"
-    COMMAND emerald_embed "${EMERALD_EMBED_OUTPUT}"
-            public "${EMERALD_PUBLIC_DIR}"
-            resources "${EMERALD_RESOURCE_DIR}"
-            UiDocs "${EMERALD_UI_DOCS_DIR}"
-    DEPENDS emerald_embed ${EMERALD_ASSET_FILES}
-    COMMENT "Embedding public/, resources/ and UiDocs/ into the executable"
-    VERBATIM
-)
+    add_custom_command(
+        OUTPUT "${EMERALD_EMBED_OUTPUT}"
+        COMMAND emerald_embed "${EMERALD_EMBED_OUTPUT}"
+                public "${EMERALD_PUBLIC_DIR}"
+                resources "${EMERALD_RESOURCE_DIR}"
+                UiDocs "${EMERALD_UI_DOCS_DIR}"
+        DEPENDS emerald_embed ${EMERALD_ASSET_FILES}
+        COMMENT "Embedding public/, resources/ and UiDocs/ into the executable"
+        VERBATIM
+    )
+endif()
 
 set(EMERALD_CORE_SOURCES
     Core/EmbeddedAssets.cpp
@@ -32,6 +37,7 @@ set(EMERALD_CORE_SOURCES
     Config/ConfigSchema.cpp
     Config/ConfigStore.cpp
     Platform/Platform.cpp
+    Platform/AndroidBridge.cpp
     Platform/Process.cpp
     Launch/Servers.cpp
     Launch/GoldMapper.cpp
@@ -103,6 +109,14 @@ elseif(APPLE)
         "-framework CoreAudio"
         "-framework AudioToolbox"
     )
+elseif(ANDROID)
+    target_link_libraries(emerald_miniaudio PUBLIC
+        Threads::Threads
+        OpenSLES
+        aaudio
+        ${CMAKE_DL_LIBS}
+        m
+    )
 else()
     target_link_libraries(emerald_miniaudio PUBLIC
         Threads::Threads
@@ -159,28 +173,41 @@ target_link_libraries(emerald_ui
 )
 
 emerald_apply_warnings(emerald_ui)
-add_executable(emerald
-    WIN32
-    MACOSX_BUNDLE
-    Main.cpp
-    App/Application.cpp
-)
+if(EMERALD_ANDROID)
+    add_library(emerald SHARED
+        Main.cpp
+        App/Application.cpp
+    )
+    set_target_properties(emerald PROPERTIES
+        OUTPUT_NAME "main"
+    )
+    target_compile_definitions(emerald PRIVATE EMERALD_ANDROID)
+else()
+    add_executable(emerald
+        WIN32
+        MACOSX_BUNDLE
+        Main.cpp
+        App/Application.cpp
+    )
+
+    set_target_properties(emerald PROPERTIES
+        MACOSX_BUNDLE_BUNDLE_NAME "Emerald Legacy Launcher"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.emerald.legacy"
+        MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
+        OUTPUT_NAME "emerald-legacy-launcher"
+    )
+endif()
 
 target_link_libraries(emerald
     PRIVATE
         emerald_ui
         emerald_integrations
         discord_ipc_cpp
+        pugixml::pugixml
 )
 
 emerald_apply_warnings(emerald)
-set_target_properties(emerald PROPERTIES
-    MACOSX_BUNDLE_BUNDLE_NAME "Emerald Legacy Launcher"
-    MACOSX_BUNDLE_GUI_IDENTIFIER "com.emerald.legacy"
-    MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
-    MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
-    OUTPUT_NAME "emerald-legacy-launcher"
-)
 set(EMERALD_INTEGRATIONS_SOURCES
     Integrations/DiscordRpc.cpp
 )

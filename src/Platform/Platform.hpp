@@ -8,6 +8,7 @@ enum class Os {
   Linux,
   Macos,
   Windows,
+  Android,
 };
 
 Os current_os();

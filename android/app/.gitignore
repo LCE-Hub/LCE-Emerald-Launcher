@@ -1,0 +1,9 @@
+key.properties
+release.keystore
+jniLibs/
+src/main/assets/*.tar.zst
+src/main/assets/cacert.pem
+src/main/java/org/
+.gradle/
+build/
+local.properties

@@ -9,6 +9,7 @@
 #include "Ui/AppViews.hpp"
 #include "lazuli/Log.hpp"
 #include "Ui/EditionResolver.hpp"
+#include "Platform/AndroidBridge.hpp"
 #include <SDL3/SDL.h>
 #include <cstdlib>
 #include <filesystem>
@@ -66,6 +67,10 @@ Application::~Application() { shutdown(); }
 bool Application::initialize() {
   SDL_SetAppMetadata("Emerald Legacy Launcher", EMERALD_VERSION,
                      "com.emerald.legacy");
+  platform::android_prepare_runtime_files();
+#if defined(__ANDROID__)
+  SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
+#endif
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     core::error(std::string{"SDL_Init failed: "} + SDL_GetError());
     return false;
@@ -86,6 +91,9 @@ bool Application::initialize() {
     core::error(std::string{"SDL_CreateWindow failed: "} + SDL_GetError());
     return false;
   }
+#if defined(__ANDROID__)
+  SDL_SetWindowFullscreen(window_, true);
+#endif
 
   renderer_ = SDL_CreateRenderer(window_, nullptr);
   if (renderer_ == nullptr) {
@@ -329,6 +337,9 @@ void Application::handle_event(const SDL_Event &event) {
   case SDL_EVENT_WINDOW_RESTORED:
   case SDL_EVENT_WINDOW_SHOWN:
     window_visible_ = true;
+#if defined(__ANDROID__)
+    launch_.android_returned();
+#endif
     break;
   default:
     break;
@@ -356,7 +367,14 @@ void Application::render() {
   if (ui_ == nullptr) {
     return;
   }
-  if (config_.data().start_fullscreen.value_or(false)) {
+  bool want_fullscreen = config_.data().start_fullscreen.value_or(false);
+#if defined(__ANDROID__)
+  want_fullscreen = true;
+#endif
+  const bool fullscreen_now =
+      (SDL_GetWindowFlags(window_) & SDL_WINDOW_FULLSCREEN) != 0;
+  if (want_fullscreen != fullscreen_now) {
+      if (want_fullscreen) {
       if (!SDL_SetWindowFullscreen(window_, true)) {
           core::error(std::format(":: failed to set fullscreen: %s", SDL_GetError()));
       }
@@ -364,6 +382,7 @@ void Application::render() {
       if (!SDL_SetWindowFullscreen(window_, false)) {
           core::error(std::format(":: failed to set fullscreen: %s", SDL_GetError()));
       }
+  }
   }
   if (skins::SkinUiState::instance().consume_picks(config_, public_root_)) {
     ui_->invalidate();

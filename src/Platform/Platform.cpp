@@ -1,4 +1,5 @@
 #include "Platform/Platform.hpp"
+#include "Platform/AndroidBridge.hpp"
 #include "Core/Paths.hpp"
 #include <cstdint>
 #include <cstdio>
@@ -18,6 +19,8 @@ Os current_os() {
   return Os::Windows;
 #elif defined(__APPLE__)
   return Os::Macos;
+#elif defined(__ANDROID__)
+  return Os::Android;
 #else
   return Os::Linux;
 #endif
@@ -29,6 +32,8 @@ std::string_view os_name(Os os) {
     return "windows";
   case Os::Macos:
     return "macos";
+  case Os::Android:
+    return "android";
   case Os::Linux:
     break;
   }
@@ -140,10 +145,16 @@ void kill_process_tree_matching(std::string_view command_marker) {
 }
 
 void kill_process_tree(const std::filesystem::path &instance_dir) {
+#if defined(__ANDROID__)
+  (void)instance_dir;
+  kill_process_tree_matching("Minecraft.Client.exe");
+#else
   kill_process_tree_matching(
       unix_path_to_wine_z_path(instance_dir / "Minecraft.Client.exe"));
+#endif
 }
 
+#if !defined(__ANDROID__)
 bool open_path(const std::filesystem::path &path) {
   const std::string text = path.string();
   if (fork() == 0) {
@@ -157,5 +168,10 @@ bool open_path(const std::filesystem::path &path) {
   }
   return true;
 }
+#else
+bool open_path(const std::filesystem::path &path) {
+  return android_bridge_start(path, BridgeAction::OpenContainer);
+}
+#endif
 #endif
 } // namespace emerald::platform

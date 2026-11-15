@@ -32,6 +32,7 @@ public:
              const std::vector<std::string> &extra_args = {});
   void stop();
   void poll();
+  void android_returned();
   bool running() const { return running_; }
   const std::string &running_instance() const { return active_instance_; }
   LaunchSnapshot snapshot() const;

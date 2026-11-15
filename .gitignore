@@ -17,6 +17,9 @@ Thumbs.db
 /result
 /result-*
 *.log
+/android_extras/build/
+/android_extras/prefix/
+/android_extras/emerald_embed*
 /resources/GoldMapperLib.dll
 /resources/GoldMapperLauncher.exe
 #/src-tauri/gen/android/app/src/main/assets/imagefs.tar.zst

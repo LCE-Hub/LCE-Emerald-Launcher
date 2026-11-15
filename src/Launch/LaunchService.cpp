@@ -5,6 +5,7 @@
 #include "Instances/InstanceSync.hpp"
 #include "Launch/LaunchPlan.hpp"
 #include "Launch/Servers.hpp"
+#include "Platform/AndroidBridge.hpp"
 #include "Platform/Platform.hpp"
 #include <algorithm>
 namespace emerald::launch {
@@ -88,6 +89,25 @@ bool LaunchService::start(const std::string &instance_id,
   context.extra_args.insert(context.extra_args.end(), instance_args.begin(),
                             instance_args.end());
 
+#if defined(__ANDROID__)
+  if (!platform::android_bridge_start(working_dir, platform::BridgeAction::Play,
+                                      context.extra_args)) {
+    status_message_ = "Failed to start the game runtime.";
+    return false;
+  }
+  if (playtime_ != nullptr) {
+    playtime_->start_active_session(instance_id);
+  }
+  running_ = true;
+  has_log_ = false;
+  show_log_ = false;
+  last_success_ = true;
+  active_instance_ = instance_id;
+  status_message_.clear();
+  ++revision_;
+  return true;
+#endif
+
   if (platform::current_os() == platform::Os::Linux &&
       config.linux_runner.has_value()) {
     instances::RunnerManager runners;
@@ -128,7 +148,12 @@ void LaunchService::stop() {
   if (!running_) {
     return;
   }
+#if defined(__ANDROID__)
+  platform::kill_process_tree_matching(
+      std::string(instances::kExecutableMarker));
+#else
   launcher_.stop();
+#endif
   if (playtime_ != nullptr) {
     playtime_->finish_active_session();
   }
@@ -137,6 +162,23 @@ void LaunchService::stop() {
   last_success_ = true;
   status_message_.clear();
   ++revision_;
+}
+
+void LaunchService::android_returned() {
+#if defined(__ANDROID__)
+  if (!running_) {
+    return;
+  }
+  if (playtime_ != nullptr) {
+    playtime_->finish_active_session();
+  }
+  running_ = false;
+  has_log_ = true;
+  last_success_ = true;
+  show_log_ = false;
+  status_message_.clear();
+  ++revision_;
+#endif
 }
 
 void LaunchService::poll() {

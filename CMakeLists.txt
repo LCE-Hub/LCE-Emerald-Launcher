@@ -33,7 +33,9 @@ target_compile_definitions(emerald_core PUBLIC
     EMERALD_VERSION_TEXT="v${CMAKE_PROJECT_VERSION}")
 target_compile_definitions(emerald_core PUBLIC
     EMERALD_VERSION="${CMAKE_PROJECT_VERSION}")
-install(TARGETS emerald RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+install(TARGETS emerald
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 option(EMERALD_BUILD_GOLDMAPPER "Build GoldMapper and refresh resources/ binaries" ON)
 if(EMERALD_BUILD_GOLDMAPPER)
     set(GOLDMAPPER_CMAKE_ARGS

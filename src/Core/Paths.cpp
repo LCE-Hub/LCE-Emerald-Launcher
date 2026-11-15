@@ -1,6 +1,9 @@
 #include "Core/Paths.hpp"
 #include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_stdinc.h>
+#if defined(__ANDROID__)
+#include <SDL3/SDL_system.h>
+#endif
 #include <cstdlib>
 #include <optional>
 #include <string>
@@ -38,6 +41,15 @@ std::filesystem::path base_data_dir() {
   return executable_dir();
 #elif defined(__APPLE__)
   return home_dir() / "Library" / "Application Support";
+#elif defined(__ANDROID__)
+  const char *internal = SDL_GetAndroidInternalStoragePath();
+  if (internal != nullptr && internal[0] != '\0') {
+    return std::filesystem::path{internal} / ".." / ".."; //neo: ../.. because um.. SDL WHY DO YOU ADD A `files/com.emerald.legacy` HUH???
+  }
+  if (auto xdg = env_path("XDG_DATA_HOME")) {
+    return *xdg;
+  }
+  return home_dir() / ".local" / "share";
 #else
   if (auto xdg = env_path("XDG_DATA_HOME")) {
     return *xdg;

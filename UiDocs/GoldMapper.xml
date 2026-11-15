@@ -155,7 +155,7 @@
   </style>
   <view id="goldmapper">
     <tooltip icon="A">{{t:common.select}}</tooltip>
-    <tooltip icon="B">{{t:common.back}}</tooltip>
+    <tooltip icon="B" action="@back">{{t:common.back}}</tooltip>
     <column width="1280px" height="720px" align="center">
       <column align="center" width="720px" gap="16" style="position:absolute;left:280px;top:60px">
         <scroll id="gm-list" class="gm-list" width="720px" height="560px">

@@ -272,6 +272,9 @@ bool build_launch_plan(const LaunchContext &context, LaunchPlan &plan,
     return build_linux_plan(context, plan, error);
   case platform::Os::Macos:
     return build_macos_plan(context, plan, error);
+  case platform::Os::Android:
+    error = "diamondruntime";
+    return false;
   case platform::Os::Windows:
     break;
   }

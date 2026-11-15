@@ -86,7 +86,7 @@
     </button>
   </template>
   <view id="skineditor">
-    <tooltip icon="B">{{t:common.back}}</tooltip>
+    <tooltip icon="B" action="@back">{{t:common.back}}</tooltip>
     <column width="1280px" height="720px" align="center" padding="40" gap="12">
       <label class="editor-title" text="{{t:skinEditor.title}}"/>
       <row gap="24" align="start">

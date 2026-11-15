@@ -3,7 +3,9 @@
 #include "Core/Log.hpp"
 #include "Instances/Editions.hpp"
 #include "Instances/Runners.hpp"
+#include "Platform/AndroidBridge.hpp"
 #include "Platform/Platform.hpp"
+#include "Core/Paths.hpp"
 #include "Ui/EditionResolver.hpp"
 #include "lazuli/I18n.hpp"
 #include <algorithm>
@@ -571,6 +573,29 @@ bool SettingsView::action(std::string_view name, UiServices &services) {
     if (services.audio != nullptr) {
       services.audio->skip_track(1);
     }
+    return true;
+  }
+
+  if (name == "settings.androidContainer") {
+    platform::android_bridge_start(core::instances_dir(),
+                                   platform::BridgeAction::OpenSettings);
+    return true;
+  }
+  if (name == "settings.androidOpen") {
+    platform::android_bridge_start(core::instances_dir(),
+                                   platform::BridgeAction::OpenContainer);
+    return true;
+  }
+  if (name == "settings.androidAudio") {
+    const std::string backend =
+        config.android_audio_backend.value_or("pulseaudio") == "alsa"
+            ? "pulseaudio"
+            : "alsa";
+    config.android_audio_backend = backend;
+    services.config->save();
+    platform::android_bridge_start(core::instances_dir(),
+                                   platform::BridgeAction::SetAudioBackend,
+                                   {backend});
     return true;
   }
 
