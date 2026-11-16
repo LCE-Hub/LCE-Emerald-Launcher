@@ -104,7 +104,11 @@ bool Application::initialize() {
   SDL_SetRenderVSync(renderer_, 1);
   SDL_SetRenderLogicalPresentation(renderer_, kLogicalWidth, kLogicalHeight,
                                    SDL_LOGICAL_PRESENTATION_LETTERBOX);
+#if defined(__ANDROID__)
+  SDL_SetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD, "1");
+#else
   SDL_StartTextInput(window_);
+#endif
   core::info(":: starting up Emerald Launcher");
   lazuli::log::set_sink([](lazuli::log::Level level, std::string_view message) {
     switch (level) {
@@ -312,6 +316,10 @@ void Application::handle_event(const SDL_Event &event) {
   case SDL_EVENT_MOUSE_BUTTON_DOWN:
   case SDL_EVENT_MOUSE_MOTION:
   case SDL_EVENT_MOUSE_WHEEL:
+  case SDL_EVENT_FINGER_DOWN:
+  case SDL_EVENT_FINGER_MOTION:
+  case SDL_EVENT_FINGER_UP:
+  case SDL_EVENT_FINGER_CANCELED:
   case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
   case SDL_EVENT_TEXT_INPUT:
     if (ui_ != nullptr) {

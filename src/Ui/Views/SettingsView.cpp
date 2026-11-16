@@ -259,8 +259,10 @@ Json SettingsView::data(const UiServices &services) const {
         row_button(translate(services, "settings.game"), "settings.menu:game"));
     items.push_back(row_button(translate(services, "settings.controls"),
                                "settings.menu:controls"));
+#ifdef __ANDROID__
     items.push_back(row_button(translate(services, "settings.android"),
                                "settings.menu:android"));
+#endif
     items.push_back(row_button(translate(services, "settings.credits"),
                                "settings.menu:credits"));
   } else if (menu_ == Menu::Audio) {
