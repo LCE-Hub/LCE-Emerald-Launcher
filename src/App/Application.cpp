@@ -185,6 +185,12 @@ bool Application::initialize() {
   services.quit = [this] { running_ = false; };
   ui_->set_services(&services);
   ui_->set_quit(services.quit);
+  ui_->set_press_observer([this](float x, float y) {
+    click_vfx_.press(x, y);
+  });
+  ui_->set_overlay_hook([this](lazuli::SdlRenderer &renderer, double now) {
+    click_vfx_.draw(renderer, now);
+  });
   ui_->set_sounds(lazuli::UiSounds{
       .press = [this] { audio_.play_press(); },
       .back = [this] { audio_.play_back(); },
@@ -514,6 +520,7 @@ void Application::render() {
   }
   audio_.set_music_paused(launch_.snapshot().running || !window_visible_);
   audio_.update();
+  click_vfx_.set_enabled(config_.data().vfx_enabled.value_or(true));
   ui_->render();
 }
 

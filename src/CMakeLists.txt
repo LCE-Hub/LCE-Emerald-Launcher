@@ -157,6 +157,7 @@ set(EMERALD_UI_SOURCES #neo: yes im listing them manually. i need a specific ord
     Skins/SkinModel3D.cpp
     Skins/SkinUiState.cpp
     Skins/SkinElements.cpp
+    Ui/ClickVfx.cpp
 )
 
 add_library(emerald_ui STATIC ${EMERALD_UI_SOURCES})

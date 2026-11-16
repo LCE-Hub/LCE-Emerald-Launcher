@@ -338,10 +338,10 @@ Json SettingsView::data(const UiServices &services) const {
 
       items.push_back(row_toggle(translate(services, "settings.animations"),
                                  config.animations_enabled.value_or(true),
-                                 "settings.toggle:animations"));
+                                 "settings.toggle:animations"));*/
       items.push_back(row_toggle(translate(services, "settings.clickEffects"),
                                  config.vfx_enabled.value_or(true),
-                                 "settings.toggle:vfx"));
+                                 "settings.toggle:vfx"));/*
 
       items.push_back(row_toggle(translate(services, "settings.skipIntro"),
                                  config.skip_intro.value_or(false),
