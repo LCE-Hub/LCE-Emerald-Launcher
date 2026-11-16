@@ -15,12 +15,13 @@ const std::vector<Edition> &build_base_editions() {
        "LCEWindows64.zip",
        "/images/cafeberry_title.png", "", "vanilla_tu24", "", false, false,
        false, false, false, false},
-      {"revelations", "Legacy Revelations",
-       "QoL, performance, hardcore mode, & security features for LCE.",
-       "https://git.revela.dev/itsRevela/LCE-Revelations/releases/download/"
-       "Nightly/LCE-Revelations-Client-Win64.zip",
-       "/images/minecraft_title_revelations.png", "/images/revelations.png",
-       "vanilla_tu19", "", false, true, false, false, false, false},
+      {"legacy_nether_fork", "Hellish Ends",
+       "QoL, Random additions, and Nether/End/Aether dimensions overhaul "
+       "(Modded build!)",
+       "https://github.com/deadvoxelx/ThatModdedRepo/releases/download/nightly/"
+       "LCEWindows64.zip",
+       "/images/minecraft_title_hellishends.png", "/images/hellishEndsIcon.png",
+       "hellishends", "", false, false, false, false, false, false},
       {"ntce", "Project NTCE",
        "A LCE Project which aims to bring the feel and functionality from "
        "Minecraft: Playstation Edition directly natively to your PC!",
@@ -37,13 +38,12 @@ const std::vector<Edition> &build_base_editions() {
        "emerald://PLEASE_IM_TIRED_OF_ALL_THIS",
        "/images/minecraft_title_360revived.png", "/images/360_revived.png",
        "360revived", "", false, false, false, true, false, true},
-      {"legacy_nether_fork", "Hellish Ends",
-       "QoL, Random additions, and Nether/End/Aether dimensions overhaul "
-       "(Modded build!)",
-       "https://github.com/deadvoxelx/ThatModdedRepo/releases/download/nightly/"
-       "LCEWindows64.zip",
-       "/images/minecraft_title_hellishends.png", "/images/hellishEndsIcon.png",
-       "hellishends", "", false, false, false, false, false, false},
+      {"revelations", "Legacy Revelations",
+       "QoL, performance, hardcore mode, & security features for LCE.",
+       "https://git.revela.dev/itsRevela/LCE-Revelations/releases/download/"
+       "Nightly/LCE-Revelations-Client-Win64.zip",
+       "/images/minecraft_title_revelations.png", "/images/revelations.png",
+       "vanilla_tu19", "", false, true, false, false, false, false},
       {"moon_edition", "Minecraft: Moon Edition",
        "Galacticraft LCE port (Modded build!)",
        "https://github.com/blazin-blaze/moon-edition/releases/latest/download/"
