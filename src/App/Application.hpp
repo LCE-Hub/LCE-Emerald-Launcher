@@ -3,6 +3,7 @@
 #include "Config/ConfigStore.hpp"
 #include "Instances/DownloadManager.hpp"
 #include "Instances/UpdateChecker.hpp"
+#include "Instances/WorkshopStore.hpp"
 #include "Launch/LaunchService.hpp"
 #include "Net/LceOnline.hpp"
 #include "Playtime/PlaytimeStore.hpp"
@@ -47,6 +48,7 @@ private:
   state::StateStore state_;
   instances::DownloadManager downloads_;
   instances::UpdateChecker update_checker_;
+  instances::WorkshopStore workshop_;
   launch::LaunchService launch_;
   lce::LceOnlineService lce_online_;
   std::unique_ptr<lazuli::UiSystem> ui_;
@@ -62,6 +64,7 @@ private:
   uint64_t runner_download_revision_ = 0;
   uint64_t lce_revision_ = 0;
   uint64_t update_revision_ = 0;
+  uint64_t workshop_revision_ = 0;
   std::filesystem::path public_root_;
   std::map<std::string, instances::DownloadState> download_states_;
 };

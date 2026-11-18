@@ -29,7 +29,7 @@ public:
   ~HttpClient();
   HttpClient(const HttpClient &) = delete;
   HttpClient &operator=(const HttpClient &) = delete;
-  HttpResponse get(const std::string &url);
+  HttpResponse get(const std::string &url, bool log_body = true);
   HttpResponse head(const std::string &url);
   HttpResponse request(const std::string &method, const std::string &url,
                        const std::string &body,

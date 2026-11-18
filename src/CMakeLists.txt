@@ -57,6 +57,7 @@ set(EMERALD_CORE_SOURCES
     Instances/RunnerDownloader.cpp
     Instances/Runners.cpp
     Instances/Workshop.cpp
+    Instances/WorkshopStore.cpp
     Instances/UpdateChecker.cpp
     Net/HttpClient.cpp
     Net/LceOnline.cpp
@@ -149,6 +150,7 @@ set(EMERALD_UI_SOURCES #neo: yes im listing them manually. i need a specific ord
     Ui/Views/SkinsView.cpp
     Ui/Views/SkinEditorView.cpp
     Ui/Views/GoldMapperView.cpp
+    Ui/Views/WorkshopView.cpp
     Skins/SkinLibrary.cpp
     Skins/SkinAssets.cpp
     Skins/SkinPck.cpp

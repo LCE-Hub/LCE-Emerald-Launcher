@@ -2,6 +2,7 @@
 #include "Core/Log.hpp"
 #include "Instances/InstanceManager.hpp"
 #include "Launch/Servers.hpp"
+#include "Platform/Platform.hpp"
 #include "Ui/EditionResolver.hpp"
 #include <algorithm>
 #include <cctype>
@@ -15,6 +16,7 @@ Json HomeView::data(const UiServices &services) const {
   data["usernameWidth"] = "65px";
   data["profile"] = "legacy_evolved";
   data["language"] = "en";
+  data["isDesktop"] = platform::current_os() != platform::Os::Android;
   if (services.config != nullptr) {
     const config::AppConfig &config = services.config->data();
     const instances::InstanceManager instance_manager(config);

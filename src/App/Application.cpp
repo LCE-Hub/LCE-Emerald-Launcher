@@ -167,6 +167,7 @@ bool Application::initialize() {
   services.launch = &launch_;
   services.lce_online = &lce_online_;
   services.updates = &update_checker_;
+  services.workshop = &workshop_;
   launch_.runner_downloads().set_report_target(&downloads_);
   services.audio = &audio_;
   services.dlc_source = resource_root / "DLC";
@@ -182,6 +183,8 @@ bool Application::initialize() {
   update_checker_.start(config_.data(),
                         ui::resolve_config_editions(config_.data()));
   update_revision_ = update_checker_.revision();
+  workshop_.start(config_.data());
+  workshop_revision_ = workshop_.revision();
   services.quit = [this] { running_ = false; };
   ui_->set_services(&services);
   ui_->set_quit(services.quit);
@@ -291,6 +294,7 @@ bool Application::initialize() {
 }
 
 void Application::shutdown() {
+  workshop_.stop();
   update_checker_.stop();
   audio_.shutdown();
   discord_.shutdown();
@@ -486,6 +490,20 @@ void Application::render() {
   }
   if (update_checker_.revision() != update_revision_) {
     update_revision_ = update_checker_.revision();
+    ui_->invalidate();
+  }
+  if (workshop_.revision() != workshop_revision_) {
+    workshop_revision_ = workshop_.revision();
+    ui_->invalidate();
+  }
+  if (const std::optional<config::CustomEdition> edition =
+          workshop_.consume_pending_edition()) {
+    config::AppConfig &config = config_.data();
+    if (!config.custom_editions.has_value()) {
+      config.custom_editions = std::vector<config::CustomEdition>{};
+    }
+    config.custom_editions->push_back(*edition);
+    config_.save();
     ui_->invalidate();
   }
   for (const auto &notification : update_checker_.drain_notifications()) {

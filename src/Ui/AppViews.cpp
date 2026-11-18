@@ -9,6 +9,7 @@
 #include "Ui/Views/SkinEditorView.hpp"
 #include "Ui/Views/SkinsView.hpp"
 #include "Ui/Views/VersionsView.hpp"
+#include "Ui/Views/WorkshopView.hpp"
 namespace emerald::ui {
 void register_views(lazuli::UiSystem &ui) {
   ui.register_screen(std::make_unique<HomeView>());
@@ -19,6 +20,7 @@ void register_views(lazuli::UiSystem &ui) {
   ui.register_screen(std::make_unique<SkinEditorView>());
   ui.register_screen(std::make_unique<GoldMapperView>());
   ui.register_screen(std::make_unique<LceOnlineView>());
+  ui.register_screen(std::make_unique<WorkshopView>());
   ui.register_screen(std::make_unique<OverlayView>());
 }
 } // namespace emerald::ui

@@ -2,6 +2,7 @@
 #include "Audio/AudioEngine.hpp"
 #include "Config/ConfigStore.hpp"
 #include "Instances/DownloadManager.hpp"
+#include "Instances/WorkshopStore.hpp"
 #include "Launch/LaunchService.hpp"
 #include "Net/LceOnline.hpp"
 #include "Playtime/PlaytimeStore.hpp"
@@ -23,6 +24,7 @@ struct UiServices {
   NotificationHub *notifications = nullptr;
   lce::LceOnlineService *lce_online = nullptr;
   instances::UpdateChecker *updates = nullptr;
+  instances::WorkshopStore *workshop = nullptr;
   const I18n *i18n = nullptr;
   std::function<std::string()> tooltip_set;
   std::filesystem::path dlc_source;

@@ -91,7 +91,7 @@ int capture_progress(void *userdata, curl_off_t total, curl_off_t now,
   const double percent = static_cast<double>(now) / static_cast<double>(total);
   if (percent - state->last_percent >= 0.01) {
     state->last_percent = percent;
-    if (state->on_progress != nullptr) {
+    if (state->on_progress != nullptr && *state->on_progress) {
       (*state->on_progress)(static_cast<double>(total),
                             static_cast<double>(now));
     }
@@ -140,7 +140,7 @@ HttpClient::HttpClient(std::optional<std::string> proxy)
 }
 
 HttpClient::~HttpClient() = default;
-HttpResponse HttpClient::get(const std::string &url) {
+HttpResponse HttpClient::get(const std::string &url, bool log_body) {
   HttpResponse response;
   CURL *handle = curl_easy_init();
   if (handle == nullptr) {
@@ -164,7 +164,9 @@ HttpResponse HttpClient::get(const std::string &url) {
   response.last_modified = std::move(capture.last_modified);
   response.content_length = capture.content_length;
   curl_easy_cleanup(handle);
-  core::info(std::format("[httpclient::get] [{}] {} ->body:\n{}", response.status, url, response.body));
+  if (log_body && core::verbose()) {
+    core::info(std::format("[httpclient::get] [{}] {} ->body:\n{}", response.status, url, response.body));
+  }
   return response;
 }
 
@@ -270,7 +272,7 @@ bool HttpClient::download(
   }
 
   ProgressState progress;
-  progress.on_progress = &on_progress;
+  progress.on_progress = on_progress ? &on_progress : nullptr;
   apply_common_options(handle, proxy_);
   curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
   curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_body);
@@ -278,9 +280,11 @@ bool HttpClient::download(
   curl_easy_setopt(handle, CURLOPT_HEADERFUNCTION, capture_header);
   curl_easy_setopt(handle, CURLOPT_HEADERDATA, &capture);
   curl_easy_setopt(handle, CURLOPT_NOSIGNAL, 1L);
-  curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0L);
-  curl_easy_setopt(handle, CURLOPT_XFERINFOFUNCTION, capture_progress);
-  curl_easy_setopt(handle, CURLOPT_XFERINFODATA, &progress);
+  curl_easy_setopt(handle, CURLOPT_NOPROGRESS, on_progress ? 0L : 1L);
+  if (on_progress) {
+    curl_easy_setopt(handle, CURLOPT_XFERINFOFUNCTION, capture_progress);
+    curl_easy_setopt(handle, CURLOPT_XFERINFODATA, &progress);
+  }
   const CURLcode result = curl_easy_perform(handle);
   std::fclose(state.file);
   state.file = nullptr;

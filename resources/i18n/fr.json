@@ -479,7 +479,8 @@
     "removing": "Retrait...",
     "deletingFiles": "Fichiers supprimé avec succès",
     "removedSuccessfully": "Retiré avec succès!",
-    "removalFailed": "Retrait échoué"
+    "removalFailed": "Retrait échoué",
+    "installationRunning": "Une installation est déjà en cours"
   },
   "screenshots": {
     "title": "Capture d'écran",

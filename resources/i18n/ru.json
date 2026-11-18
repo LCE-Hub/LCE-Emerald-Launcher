@@ -479,7 +479,8 @@
     "removing": "Удаление...",
     "deletingFiles": "Удаление установленных файлов...",
     "removedSuccessfully": "Успешно удалено!",
-    "removalFailed": "Ошибка удаления"
+    "removalFailed": "Ошибка удаления",
+    "installationRunning": "Установка уже выполняется"
   },
   "screenshots": {
     "title": "Скриншоты",

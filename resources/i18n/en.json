@@ -479,7 +479,8 @@
     "removing": "Removing...",
     "deletingFiles": "Deleting installed files",
     "removedSuccessfully": "Removed Successfully!",
-    "removalFailed": "Removal Failed"
+    "removalFailed": "Removal Failed",
+    "installationRunning": "An installation is already running"
   },
   "screenshots": {
     "title": "Screenshots",
