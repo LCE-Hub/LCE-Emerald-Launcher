@@ -11,10 +11,14 @@
 #include "Ui/Views/VersionsView.hpp"
 #include "Ui/Views/WorkshopView.hpp"
 namespace emerald::ui {
-void register_views(lazuli::UiSystem &ui) {
+void register_views(lazuli::UiSystem &ui, VersionsView **versions_view) {
   ui.register_screen(std::make_unique<HomeView>());
   ui.register_screen(std::make_unique<SettingsView>());
-  ui.register_screen(std::make_unique<VersionsView>());
+  auto versions = std::make_unique<VersionsView>();
+  if (versions_view != nullptr) {
+    *versions_view = versions.get();
+  }
+  ui.register_screen(std::move(versions));
   ui.register_screen(std::make_unique<CreditsView>());
   ui.register_screen(std::make_unique<SkinsView>());
   ui.register_screen(std::make_unique<SkinEditorView>());

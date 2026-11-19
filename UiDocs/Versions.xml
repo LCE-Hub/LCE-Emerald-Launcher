@@ -84,6 +84,41 @@
     }
     .modal-btn-danger { color: #ff5555; }
     .modal-btn-danger:hover { color: #ff8080; }
+    .import-input { width: 100%; font-size: 16px; color: #ffffff; }
+    .import-browse {
+      width: 20px;
+      height: 20px;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+      padding: 2px;
+    }
+    .import-browse:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+    }
+    .import-browse-icon { width: 28px; height: 28px; }
+    .import-path-value {
+      font-size: 12px;
+      color: #aaaaaa;
+      text-shadow: #000000 1px 1px;
+    }
+    .error-label {
+      font-size: 14px;
+      color: #ff8080;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .add-instance-btn {
+      width: 97.9%;
+      height: 40px;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+      color: #ffffff;
+      padding: 4px;
+    }
+    .add-instance-btn:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .add-instance-label { font-size: 16px; }
     .gear-menu-shell {
       background: #4b4b4b;
     }
@@ -127,15 +162,15 @@
     }
   </style>
   <template name="EditionRow">
-    <row id="edition-{{id}}" class="edition-row {{rowClass}}" onclick="versions.select:{{id}}" align="stretch">
-      <image class="edition-logo" src="{{logo}}" fit="contain" align="center" />
-      <column gap="4" align="center" flex="1">
+    <row id="{{rowId}}" class="edition-row {{rowClass}} {{addRowClass}}" onclick="{{rowAction}}" align="{{rowAlign}}" justify="{{rowJustify}}">
+      <image if="{{isEdition}}" class="edition-logo" src="{{logo}}" fit="contain" align="center" />
+      <column if="{{isEdition}}" gap="4" align="center" flex="1">
         <row gap="8" align="start">
           <label class="edition-name" text="{{name}}" />
           <label if="{{isCustom}}" class="badge-custom" text="{{t:versions.custom}}" />
         </row>
       </column>
-      <row gap="8" align="center">
+      <row if="{{isEdition}}" gap="8" align="center">
         <button if="{{showInstall}}" class="action-btn" onclick="versions.install:{{id}}">
           <image class="action-icon" src="/images/Download_Icon.png" />
         </button>
@@ -147,11 +182,13 @@
           <image if="{{showGear}}" class="action-icon" src="/images/gear.png" />
         </button>
       </row>
+      <label if="{{isAdd}}" class="add-instance-label" text="+ Import Instance"/>
     </row>
   </template>
   <view id="versions">
     <tooltip icon="A">{{t:common.select}}</tooltip>
     <tooltip icon="B" action="@back">{{t:common.back}}</tooltip>
+    <tooltip icon="Y" action="versions.import.open">{{t:modals.customTu.importTitle}}</tooltip>
     <column width="1280px" height="720px" align="center" padding="40">
       <use template="TitleImage"/>
       <column height="20px"/>
@@ -161,6 +198,13 @@
             <use template="EditionRow"
               id="{{edition.id}}"
               name="{{edition.name}}"
+              isAdd="{{edition.isAdd}}"
+              isEdition="{{edition.isEdition}}"
+              rowId="{{edition.rowId}}"
+              rowAction="{{edition.rowAction}}"
+              rowAlign="{{edition.rowAlign}}"
+              rowJustify="{{edition.rowJustify}}"
+              addRowClass="{{edition.addRowClass}}"
               logo="{{edition.logo}}"
               isCustom="{{edition.isCustom}}"
               notInstalled="{{edition.notInstalled}}"
@@ -209,6 +253,33 @@
             </button>
             <button class="modal-btn modal-btn-danger" onclick="versions.delete.confirm">
               <label text="{{t:common.delete}}"/>
+            </button>
+          </row>
+        </column>
+      </column>
+      <column class="backdrop" if="{{importModal}}" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" onclick="versions.import.cancel">
+        <column id="versions-import-modal" class="options-bg" style="position:absolute;left:440px;top:120px;width:400px" padding="12" align="center" gap="8" onclick="versions.import.block">
+          <label class="modal-title" text="{{importTitle}}" />
+          <column width="100%" gap="6">
+            <textinput id="versions-import-name" class="import-input" value="{{importName}}" label="{{t:modals.customTu.tuName}}" onsubmit="versions.import.name" />
+            <textinput id="versions-import-desc" class="import-input" value="{{importDesc}}" label="{{t:modals.customTu.description}}" onsubmit="versions.import.desc" />
+            <row width="100%" gap="6" align="center">
+              <column flex="1">
+                <textinput id="versions-import-url" class="import-input" value="{{importUrl}}" label="{{t:modals.customTu.downloadUrl}}" onsubmit="versions.import.url" />
+              </column>
+              <button id="versions-import-browse" class="import-browse" onclick="versions.import.browse">
+                <image class="import-browse-icon" src="/images/Folder_Icon.png" />
+              </button>
+            </row>
+            <label if="{{importPath}}" class="import-path-value" text="{{importPath}}" />
+            <label if="{{importError}}" class="error-label" text="{{importError}}" />
+          </column>
+          <row align="center" gap="20">
+            <button class="modal-btn" onclick="versions.import.cancel">
+              <label text="{{t:common.cancel}}"/>
+            </button>
+            <button id="versions-import-submit" class="modal-btn" onclick="versions.import.submit">
+              <label text="{{importSubmitLabel}}"/>
             </button>
           </row>
         </column>

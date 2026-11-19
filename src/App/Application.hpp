@@ -22,6 +22,9 @@
 struct SDL_Window;
 struct SDL_Renderer;
 struct SDL_Gamepad;
+namespace emerald::ui {
+class VersionsView;
+}
 namespace emerald::app {
 class Application {
 public:
@@ -52,6 +55,7 @@ private:
   launch::LaunchService launch_;
   lce::LceOnlineService lce_online_;
   std::unique_ptr<lazuli::UiSystem> ui_;
+  ui::VersionsView *versions_view_ = nullptr;
   ui::UiServices ui_services_;
   ui::ClickVfx click_vfx_;
   std::vector<SDL_Gamepad *> gamepads_;

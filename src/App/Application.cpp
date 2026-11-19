@@ -7,6 +7,7 @@
 #include "Skins/SkinSync.hpp"
 #include "Skins/SkinUiState.hpp"
 #include "Ui/AppViews.hpp"
+#include "Ui/Views/VersionsView.hpp"
 #include "lazuli/Log.hpp"
 #include "Ui/EditionResolver.hpp"
 #include "Platform/AndroidBridge.hpp"
@@ -159,7 +160,7 @@ bool Application::initialize() {
   ui_ = std::make_unique<lazuli::UiSystem>(renderer_, ui_docs_root, public_root,
                                            resource_root / "i18n");
   ui_->set_status_text(EMERALD_VERSION_TEXT);
-  ui::register_views(*ui_);
+  ui::register_views(*ui_, &versions_view_);
   ui::UiServices &services = ui_services_;
   services.config = &config_;
   services.playtime = &playtime_;
@@ -320,6 +321,12 @@ void Application::handle_event(const SDL_Event &event) {
     break;
   case SDL_EVENT_KEY_DOWN:
     if (ui_ != nullptr) {
+      if (!event.key.repeat && event.key.key == SDLK_E &&
+          ui_->current_view() == "versions" && versions_view_ != nullptr &&
+          !versions_view_->import_modal_open()) {
+        versions_view_->action("versions.import.open", ui_services_);
+        ui_->invalidate();
+      }
       ui_->handle_event(event);
     }
     break;
@@ -330,9 +337,19 @@ void Application::handle_event(const SDL_Event &event) {
   case SDL_EVENT_FINGER_MOTION:
   case SDL_EVENT_FINGER_UP:
   case SDL_EVENT_FINGER_CANCELED:
-  case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
   case SDL_EVENT_TEXT_INPUT:
     if (ui_ != nullptr) {
+      ui_->handle_event(event);
+    }
+    break;
+  case SDL_EVENT_GAMEPAD_BUTTON_DOWN: //neo: i had to hardcode it here because im lazy
+    if (ui_ != nullptr) {
+      if (event.gbutton.button == SDL_GAMEPAD_BUTTON_NORTH &&
+          ui_->current_view() == "versions" && versions_view_ != nullptr &&
+          !versions_view_->import_modal_open()) {
+        versions_view_->action("versions.import.open", ui_services_);
+        ui_->invalidate();
+      }
       ui_->handle_event(event);
     }
     break;
@@ -401,6 +418,9 @@ void Application::render() {
           core::error(std::format(":: failed to set fullscreen: %s", SDL_GetError()));
       }
   }
+  }
+  if (versions_view_ != nullptr && versions_view_->consume_folder_pick()) {
+    ui_->invalidate();
   }
   if (skins::SkinUiState::instance().consume_picks(config_, public_root_)) {
     ui_->invalidate();

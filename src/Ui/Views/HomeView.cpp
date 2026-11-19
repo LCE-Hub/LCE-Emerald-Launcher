@@ -73,9 +73,10 @@ Json HomeView::data(const UiServices &services) const {
     }
     data["ears"] = lowered == "deadmau5";
     data["flip"] = lowered == "dinnerbone" || lowered == "grumm";
-    data["usernameWidth"] =
-        std::to_string((std::max(config.username.size(), std::size_t{3}) + 2) *
-                       13) + "px";
+    const int username_width = static_cast<int>(
+        (std::max(config.username.size(), std::size_t{3}) + 2) * 13);
+    data["usernameWidth"] = std::to_string(username_width) + "px";
+    data["usernameLeft"] = std::to_string((220 - username_width) / 2.0) + "px";
   }
   return data;
 }

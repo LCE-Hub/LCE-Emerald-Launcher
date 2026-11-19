@@ -28,7 +28,8 @@ const std::vector<std::string> kKeepList{
     "profile9.dat",
     "profile10.dat",
     "proton_prefix",
-    "mods", //neo: for Hellish Ends mods
+    "mods", //neo: for Hellish Ends/NTCE/other mods
+    //neo: dont add the `.emerald-` files because they can be changed by an update
 };
 }
 

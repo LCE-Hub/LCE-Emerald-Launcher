@@ -12,8 +12,11 @@
 #include "Skins/SkinUiState.hpp"
 #include "Ui/EditionResolver.hpp"
 #include "lazuli/I18n.hpp"
+#include <SDL3/SDL.h>
 #include <algorithm>
 #include <cstdlib>
+#include <filesystem>
+#include <optional>
 #include <utility>
 #include <vector>
 namespace emerald::ui {
@@ -21,7 +24,9 @@ namespace {
 constexpr const char *kArgsSchemaFile = "Arguments.Schema.json";
 constexpr const char *kGearMenuScope = "gear-menu";
 constexpr const char *kDeleteModalScope = "delete-modal";
+constexpr const char *kImportModalScope = "versions-import-modal";
 constexpr const char *kEditionRowPrefix = "edition-";
+constexpr const char *kAddInstanceId = "add-instance";
 constexpr int kMenuFirstRowTop = 244;
 constexpr int kMenuRowStep = 76;
 constexpr int kMenuMinTop = 220;
@@ -52,7 +57,27 @@ std::string state_name(instances::DownloadState state) {
   return "idle";
 }
 
+std::optional<std::string> g_import_folder_pick;
+void SDLCALL import_folder_callback(void *, const char *const *filelist, int) {
+  if (filelist == nullptr || filelist[0] == nullptr) {
+    return;
+  }
+  g_import_folder_pick = std::string(filelist[0]);
+}
+
 } // namespace
+
+std::string VersionsView::translate(const UiServices &services,
+                                    std::string_view key,
+                                    const char *fallback) const {
+  if (services.config != nullptr &&
+      services.config->data().bedrock_enabled.value() == true) {
+    return "Marketplace";
+  }
+  return services.i18n != nullptr
+             ? services.i18n->translate(key, fallback)
+             : std::string(fallback);
+}
 
 Json VersionsView::data(const UiServices &services) const {
   Json data = Json::object();
@@ -71,6 +96,20 @@ Json VersionsView::data(const UiServices &services) const {
   data["menuTitle"] = "";
   data["menuDeleteLabel"] = "";
   data["menuTop"] = kMenuFirstRowTop;
+  data["importModal"] = import_modal_;
+  data["importTitle"] =
+      import_editing_
+          ? translate(services, "modals.customTu.editTitle", "Edit Custom TU")
+          : translate(services, "modals.customTu.importTitle",
+                      "Import Custom TU");
+  data["importSubmitLabel"] =
+      import_editing_ ? translate(services, "modals.customTu.save", "Save")
+                      : translate(services, "modals.customTu.import", "Import");
+  data["importName"] = import_name_;
+  data["importDesc"] = import_desc_;
+  data["importUrl"] = import_url_;
+  data["importPath"] = import_path_;
+  data["importError"] = import_error_;
   Json items = Json::array();
   Json danger_items = Json::array();
   data["menuItems"] = Json::array();
@@ -109,7 +148,11 @@ Json VersionsView::data(const UiServices &services) const {
     ++visible_index;
 
     Json entry = Json::object();
+    entry["isEdition"] = true;
     entry["id"] = edition.id;
+    entry["rowId"] = std::string(kEditionRowPrefix) + edition.id;
+    entry["rowAction"] = "versions.select:" + edition.id;
+    entry["rowAlign"] = "stretch";
     entry["name"] = !config.bedrock_enabled.value() == true ? edition.name : "Marketplace";
     entry["desc"] = !config.bedrock_enabled.value() == true ? edition.desc : "Marketplace";
     entry["logo"] = edition.logo;
@@ -172,6 +215,15 @@ Json VersionsView::data(const UiServices &services) const {
     data["editions"].push_back(std::move(entry));
   }
 
+  Json add_entry = Json::object();
+  add_entry["id"] = kAddInstanceId;
+  add_entry["isAdd"] = true;
+  add_entry["rowId"] = kAddInstanceId;
+  add_entry["rowAction"] = "versions.import.open";
+  add_entry["rowAlign"] = "center";
+  add_entry["rowJustify"] = "center";
+  add_entry["addRowClass"] = "add-instance-btn";
+  data["editions"].push_back(std::move(add_entry));
   data["installedCount"] = 0;
   for (const Json &item : data["editions"]) {
     if (item.value("installed", false)) {
@@ -282,7 +334,7 @@ Json VersionsView::data(const UiServices &services) const {
     data["deleteTitle"] = std::move(delete_title_template);
   }
 
-  if (!open_menu_id_.empty() || !delete_pending_id_.empty()) {
+  if (!open_menu_id_.empty() || !delete_pending_id_.empty() || import_modal_) {
     Json tooltips = Json::array(); // neo: thats how you do it manually :3
     Json select = Json::object();
     select["icon"] = "A";
@@ -335,6 +387,151 @@ void VersionsView::close_delete_modal(UiServices &services) {
   if (!id.empty() && services.focus_element) {
     services.focus_element(std::string(kEditionRowPrefix) + id);
   }
+}
+
+void VersionsView::open_import_modal(const std::string &id,
+                                     UiServices &services) {
+  if (import_modal_) {
+    return;
+  }
+  close_menu(services);
+  delete_pending_id_.clear();
+  import_modal_ = true;
+  import_editing_ = !id.empty();
+  import_error_.clear();
+  import_id_.clear();
+  import_name_.clear();
+  import_desc_.clear();
+  import_url_.clear();
+  import_path_.clear();
+  import_return_focus_id_ =
+      id.empty() ? kAddInstanceId : std::string(kEditionRowPrefix) + id;
+  if (!id.empty()) {
+    import_id_ = id;
+    const auto &custom_editions = services.config->data().custom_editions;
+    if (custom_editions.has_value()) {
+      for (const config::CustomEdition &candidate : *custom_editions) {
+        if (candidate.id != id) {
+          continue;
+        }
+        import_name_ = candidate.name;
+        import_desc_ = candidate.desc;
+        import_url_ = candidate.url;
+        import_path_ = candidate.path.value_or("");
+        break;
+      }
+    }
+  }
+  if (services.focus_scope) {
+    services.focus_scope(kImportModalScope);
+  }
+  if (services.focus_element) {
+    services.focus_element("versions-import-name");
+  }
+  if (services.audio != nullptr) {
+    services.audio->play_press();
+  }
+}
+
+void VersionsView::close_import_modal(UiServices &services) {
+  if (!import_modal_) {
+    return;
+  }
+  import_modal_ = false;
+  if (services.focus_scope) {
+    services.focus_scope("");
+  }
+  if (services.focus_element) {
+    services.focus_element(import_return_focus_id_);
+  }
+}
+
+bool VersionsView::save_import_modal(UiServices &services) {
+  if (import_name_.empty()) {
+    import_error_ = translate(services, "modals.customTu.nameRequired",
+                              "Name is required");
+    return true;
+  }
+  if (import_url_.empty() && import_path_.empty()) {
+    import_error_ = translate(services, "modals.customTu.urlOrPathRequired",
+                              "URL or Path is required");
+    return true;
+  }
+  if (!import_url_.empty() && import_url_.rfind("http", 0) != 0) {
+    import_error_ =
+        translate(services, "modals.customTu.invalidUrl", "Invalid URL");
+    return true;
+  }
+  std::error_code path_error;
+  if (!import_path_.empty() &&
+      !std::filesystem::is_directory(import_path_, path_error)) {
+    import_error_ = translate(services, "versions.invalidDirectory",
+                              "Invalid Directory");
+    return true;
+  }
+  import_error_.clear();
+  const std::string id =
+      import_editing_ && !import_id_.empty()
+          ? import_id_
+          : "custom_" + std::to_string(SDL_GetTicks());
+  config::CustomEdition edition;
+  edition.id = id;
+  edition.name = import_name_;
+  edition.desc = import_desc_.empty()
+                     ? translate(services, "modals.customTu.defaultDesc",
+                                 "Custom imported TU")
+                     : import_desc_;
+  edition.url = import_url_;
+  if (!import_path_.empty()) {
+    edition.path = import_path_;
+  }
+  auto &custom_editions = services.config->data().custom_editions;
+  if (!custom_editions.has_value()) {
+    custom_editions = std::vector<config::CustomEdition>{};
+  }
+  if (import_editing_) {
+    bool replaced = false;
+    for (config::CustomEdition &existing : *custom_editions) {
+      if (existing.id != id) {
+        continue;
+      }
+      existing = std::move(edition);
+      replaced = true;
+      break;
+    }
+    if (!replaced) {
+      custom_editions->push_back(std::move(edition));
+    }
+  } else {
+    custom_editions->push_back(std::move(edition));
+    services.config->data().profile = id;
+    skins::SkinUiState::instance().sync_needed = true;
+  }
+  services.config->save();
+  close_import_modal(services);
+  if (services.audio != nullptr) {
+    services.audio->play_press();
+  }
+  return true;
+}
+
+void VersionsView::open_folder_picker() {
+  int count = 0;
+  SDL_Window **windows = SDL_GetWindows(&count);
+  SDL_Window *window = count > 0 ? windows[0] : nullptr;
+  SDL_ShowOpenFolderDialog(import_folder_callback, nullptr, window, nullptr,
+                           false);
+  SDL_free(windows);
+}
+
+bool VersionsView::consume_folder_pick() {
+  if (!g_import_folder_pick.has_value()) {
+    return false;
+  }
+  import_path_ = *g_import_folder_pick;
+  g_import_folder_pick.reset();
+  import_error_.clear();
+  return true;
 }
 
 bool VersionsView::action(std::string_view name, UiServices &services) {
@@ -444,9 +641,65 @@ bool VersionsView::action(std::string_view name, UiServices &services) {
 
   if (verb == "versions.folder" || verb == "versions.steam" ||
       verb == "versions.importWorld" || verb == "versions.backup" ||
-      verb == "versions.setUid" || verb == "versions.editCustom") {
+      verb == "versions.setUid") {
     close_menu(services);
     return true;
+  }
+
+  if (verb == "versions.editCustom" || verb == "versions.import.open") {
+    open_import_modal(argument, services);
+    return true;
+  }
+
+  if (action == "versions.import.name") {
+    if (services.read_text_input) {
+      import_name_ = services.read_text_input();
+    }
+    if (services.focus_element) {
+      services.focus_element("versions-import-desc");
+    }
+    return true;
+  }
+
+  if (action == "versions.import.desc") {
+    if (services.read_text_input) {
+      import_desc_ = services.read_text_input();
+    }
+    if (services.focus_element) {
+      services.focus_element("versions-import-url");
+    }
+    return true;
+  }
+
+  if (action == "versions.import.url") {
+    if (services.read_text_input) {
+      import_url_ = services.read_text_input();
+    }
+    if (services.focus_element) {
+      services.focus_element("versions-import-submit");
+    }
+    return true;
+  }
+
+  if (action == "versions.import.browse") {
+    open_folder_picker();
+    return true;
+  }
+
+  if (action == "versions.import.block") {
+    return true;
+  }
+
+  if (action == "versions.import.cancel") {
+    close_import_modal(services);
+    if (services.audio != nullptr) {
+      services.audio->play_back();
+    }
+    return true;
+  }
+
+  if (action == "versions.import.submit") {
+    return save_import_modal(services);
   }
 
   if (verb == "versions.delete") {
@@ -489,6 +742,13 @@ bool VersionsView::action(std::string_view name, UiServices &services) {
 }
 
 bool VersionsView::on_escape(UiServices &services) {
+  if (import_modal_) {
+    close_import_modal(services);
+    if (services.audio != nullptr) {
+      services.audio->play_back();
+    }
+    return true;
+  }
   if (!open_menu_id_.empty()) {
     close_menu(services);
     if (services.audio != nullptr) {

@@ -49,7 +49,7 @@
         </row>
       </column>
       <column class="skin-dock" style="position:absolute;left:64px;top:120px;width:220px">
-        <textinput class="home-username" style="width:{{usernameWidth}}" value="{{username}}" onsubmit="home.username" center="true" align="center"/>
+        <column width="220px" height="40px"/>
         <column width="220px" height="380px">
           <skinpreview kind="viewer" src="{{skinSource}}" slim="{{skinSlim}}" cape="{{capeSource}}" ears="{{ears}}" flip="{{flip}}" style="position:absolute;left:-20px;top:-59px;width:260px;height:450px"/>
         </column>
@@ -61,6 +61,7 @@
             <image class="sq-btn-icon" src="/images/lce_online.png" fit="contain"/>
           </button>
         </row>
+        <textinput id="home-username" class="home-username" style="position:absolute;left:{{usernameLeft}};top:0px;width:{{usernameWidth}}" value="{{username}}" onsubmit="home.username" center="true" align="center"/>
       </column>
     </column>
   </view>
