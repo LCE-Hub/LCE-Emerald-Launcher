@@ -286,11 +286,16 @@ bool LceRelay::join_listening() const {
   return join_listening_.load() > 0;
 }
 
+int LceRelay::hosted_clients() const {
+  return hosted_clients_.load();
+}
+
 void LceRelay::start_host(const std::string &auth_token,
                           std::uint16_t game_port) {
   stop_all();
   stopping_.store(false);
   host_running_.store(1);
+  hosted_clients_.store(0);
   active_.store(1);
   workers_.emplace_back([this, token = auth_token, port = game_port] {
     run_host(token, port);
@@ -407,12 +412,14 @@ void LceRelay::run_host(std::string token, std::uint16_t game_port) {
     write_line(accept_conn, "ACCEPT " + token + " 0 " + joiner_id);
     core::info("lcerelay: client joined (" + joiner_id +
                "), relaying game <-> proxy");
+    hosted_clients_.fetch_add(1);
     sessions.emplace_back([this, game_stream, accept_conn, joiner_id] {
       copy_bidirectional(game_stream, accept_conn);
       untrack(static_cast<std::intptr_t>(game_stream));
       untrack(static_cast<std::intptr_t>(accept_conn));
       close_socket(game_stream);
       close_socket(accept_conn);
+      hosted_clients_.fetch_sub(1);
       core::info("lcerelay: client left (" + joiner_id + ")");
     });
   }
@@ -496,6 +503,7 @@ void LceRelay::stop_all() {
   workers_.clear();
   host_running_.store(0);
   join_listening_.store(0);
+  hosted_clients_.store(0);
   active_.store(0);
 }
 } // namespace emerald::lce

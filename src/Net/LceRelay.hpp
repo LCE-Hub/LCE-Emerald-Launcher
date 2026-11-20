@@ -19,6 +19,7 @@ public:
   bool active() const;
   bool host_running() const;
   bool join_listening() const;
+  int hosted_clients() const;
   std::string last_error() const;
 private:
   void run_host(std::string token, std::uint16_t game_port);
@@ -30,6 +31,7 @@ private:
   std::atomic<bool> stopping_{false};
   std::atomic<int> host_running_{0};
   std::atomic<int> join_listening_{0};
+  std::atomic<int> hosted_clients_{0};
   std::atomic<int> active_{0};
   mutable std::mutex error_mutex_;
   std::string last_error_;

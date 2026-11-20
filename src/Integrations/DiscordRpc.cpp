@@ -3,6 +3,7 @@
 #include "discord_ipc_cpp/discord_ipc_client.hpp"
 #include "discord_ipc_cpp/ipc_types.hpp"
 #include <chrono>
+#include <ctime>
 #include <string>
 #include <thread>
 #include <vector>
@@ -46,6 +47,18 @@ std::string view_details(const std::string &view) {
   }
   if (view == "lceonline") {
     return "Browsing Friends";
+  }
+  if (view == "skins") {
+      return "Changing Skins";
+  }
+  if (view == "skineditor") {
+      return "Editing a Skin";
+  }
+  if (view == "workshop") {
+      return "Browsing Workshop";
+  }
+  if (view == "goldmapper") {
+      return "Customizing controls";
   }
   return "In Menus";
 }
@@ -128,7 +141,7 @@ void DiscordRpc::refresh(const DiscordState &state) {
   RichPresence presence;
   presence.name = "Emerald Launcher";
   presence.type = ActivityType::at_game;
-  presence.status_display_type = StatusDisplayType::sdt_details;
+  presence.status_display_type = state.running ? StatusDisplayType::sdt_details : StatusDisplayType::sdt_name;
   std::string details;
   std::string status;
   std::string large_image = kDefaultLogo;
@@ -165,18 +178,15 @@ void DiscordRpc::refresh(const DiscordState &state) {
   if (state.running && !state.username.empty()) {
     Party party;
     party.id = "emerald_" + state.username;
-    party.size = {1, 2};
+    party.size = {1, state.joined_clients > 0 ? state.joined_clients : 1};
     presence.party = party;
   }
 
   Assets assets;
   assets.large_image = large_image;
   assets.large_text = large_text;
-  assets.small_image = kDefaultLogo;
-  assets.small_text =
-      state.running
-          ? (state.version_name.empty() ? "Playing" : state.version_name)
-          : "Emerald Launcher";
+  assets.small_image = asset_url("/images/icon.png");
+  assets.small_text = "Emerald Launcher";
   presence.assets = assets;
   Timestamps timestamps;
   timestamps.start = static_cast<int64_t>(start_time_);

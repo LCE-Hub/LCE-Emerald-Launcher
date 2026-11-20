@@ -24,6 +24,7 @@ struct DiscordState {
   std::string downloading_name;
   int download_percent = 0;
   int downloading_count = 0;
+  int joined_clients = 0;
 };
 
 class DiscordRpc {

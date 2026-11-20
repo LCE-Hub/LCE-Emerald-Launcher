@@ -473,6 +473,7 @@ void Application::render() {
         drpc.version_name = edition->name;
         drpc.instance_logo = edition->logo;
         drpc.multiplayer = edition->lce_online;
+        drpc.joined_clients = lce_online_.relay().hosted_clients();
       }
     }
     const std::vector<std::string> active_downloads = downloads_.active_ids();

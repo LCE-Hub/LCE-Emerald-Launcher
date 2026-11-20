@@ -3,7 +3,7 @@
   <import href="Common/TitleImage.xml"/>
   <style>
     .home-container { width: 540px; gap: 12px; }
-    .buttons {width: 100%; gap: 12px; }
+    .buttons {width: 100%; gap: 12px; align: center; }
     .divider { width: 192px; height: 3px; background: #a0a0a0; opacity: 0.6; align: center; }
     .social-row { gap: 32px; align: center; }
     .social-icon { width: 64px; height: 64px; }

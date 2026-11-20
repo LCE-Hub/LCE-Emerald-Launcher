@@ -14,8 +14,8 @@
 
   .button-wrapper { width: 100%;}
   .main-button {
-      width: 90%;
-      height: 44px;
+      width: 480px;
+      height: 42px;
       font-size: 20px;
       color: #ffffff;
       text-shadow: #3f3f3f 2px 2px;
@@ -39,15 +39,13 @@
   </style>
   <template name="MenuButton">
     <button class="button" onclick="{{action}}">
-      <label class="buttonlabel" text="{{label}}"/>
+      <label class="buttonlabel" text="{{label}}" font-size="20px"/>
     </button>
   </template>
 
   <template name="HomeButton">
-    <column class="button-wrapper" align="center">
-      <button class="main-button {{extraclasses}}" onclick="{{action}}" align="center">
-        <label class="main-button-label" text="{{label}}"/>
-      </button>
-    </column>
+    <button class="main-button {{extraclasses}}" onclick="{{action}}" align="center" width="480px" height="42px">
+      <label text="{{label}}"/>
+    </button>
   </template>
 </ui>
