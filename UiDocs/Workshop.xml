@@ -1,0 +1,1027 @@
+<ui xmlns="emerald" version="1">
+  <import href="Common/Buttons.xml"/>
+  <style>
+    .ws-upper { text-transform: uppercase; }
+    .ws-tabs { width: 100%; height: 54px; gap: 0px; padding: 0px 1px; margin-bottom: -8px; }
+    .ws-tab {
+      flex: 1;
+      height: 64px;
+      align: center;
+      font-size: 16px;
+      color: #333333;
+      border-image: url(/images/LargeTabOff.png) 32px fill / 20px;
+      border-width: 12px;
+    }
+    .ws-tab-active { border-image: url(/images/LargeTab.png) 32px fill / 20px; }
+    .ws-tab-text { text-align: center; }
+    .optionsbg {
+      border-image: url(/images/FJ_Panel9Grid.png) 32px fill / 20px;
+      border-width: 12px;
+    }
+    .ws-recess {
+      border-image: url(/images/FJ_PanelRecess.png) 12px fill / 12px;
+      border-width: 12px;
+    }
+    .ws-toolbar { width: 100%; height: 44px; gap: 8px; }
+    .ws-filter {
+      flex: 1;
+      height: 44px;
+      font-size: 16px;
+      color: #ffffff;
+    }
+    .ws-clear { width: 36px; height: 44px; align: center; font-size: 16px; color: #999999; }
+    .ws-clear:hover { color: #ffffff; }
+    .ws-bulk-row { gap: 12px; align: center; justify: center; }
+    .ws-bulk {
+      height: 32px;
+      align: center;
+      font-size: 14px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 1px 1px;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .ws-bulk:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .ws-bulk-update { color: #ffff55; }
+    .ws-bulk-update:hover { color: #ffff55; }
+    .ws-divider-dark { width: 100%; height: 2px; background: #333333; }
+    .ws-divider-soft { width: 100%; height: 1px; background: #444444; }
+    .ws-divider-strong { width: 100%; height: 2px; background: #555555; }
+    .ws-cat-bar { width: 100%; height: 32px; gap: 8px; align: center; }
+    .ws-cat {
+      height: 30px;
+      align: center;
+      border-color: #444444;
+      border-width: 1px;
+      background: rgba(0, 0, 0, 0.3);
+    }
+    .ws-cat-text { font-size: 12px; color: #a0a0a0; text-transform: uppercase; }
+    .ws-cat:hover { border-color: #888888; }
+    .ws-cat:hover .ws-cat-text { color: #ffffff; }
+    .ws-cat-active { border-color: #ffff55; background: rgba(0, 0, 0, 0.6); }
+    .ws-cat-active .ws-cat-text { color: #ffff55; }
+    .ws-grid { width: 100%; gap: 6px; padding: 0px; }
+    .ws-grid-row { width: 100%; justify: space-between; padding-bottom: 4px; }
+    .ws-card {
+      width: 280px;
+      height: 245px;
+      border-image: url(/images/options_background.png) 4 fill / 12px;
+      border-width: 12px;
+      margin: 4px;
+    }
+    .ws-card-focus {
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      width: 100%;
+      height: 100%;
+      border-color: #ffff55;
+      border-width: 2px;
+      opacity: 0;
+    }
+    .ws-card-focus:hover { opacity: 1; }
+    .ws-card-thumb-wrap { width: 100%; height: 133px; }
+    .ws-card-thumb { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; }
+    .ws-card-noimage {
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      width: 100%;
+      height: 100%;
+      align: center;
+      justify: center;
+      background: rgba(0, 0, 0, 0.5);
+    }
+    .ws-card-noimage-text {
+      font-size: 13px;
+      color: #555555;
+      text-transform: uppercase;
+      text-align: center;
+      letter-spacing: 2px;
+    }
+    .ws-chip {
+      padding: 2px 6px;
+      font-size: 8px;
+    }
+    .ws-chip-cat {
+      position: absolute;
+      right: 4px;
+      top: 4px;
+      background: rgba(0, 0, 0, 0.8);
+      border-color: #555555;
+      border-width: 1px;
+      color: #ffff55;
+    }
+    .ws-chip-update {
+      position: absolute;
+      left: 4px;
+      top: 4px;
+      background: rgba(255, 136, 0, 0.9);
+      border-color: #ff6600;
+      border-width: 1px;
+      color: #ffffff;
+    }
+    .ws-chip-installed {
+      position: absolute;
+      left: 4px;
+      top: 4px;
+      background: #55ff55;
+      border-color: rgba(85, 255, 85, 0.6);
+      border-width: 1px;
+      color: #003300;
+      font-weight: bold;
+    }
+    .ws-card-body {
+      width: 100%;
+      height: 92px;
+      padding: 12px;
+      gap: 4px;
+      background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.2));
+    }
+    .ws-card-name {
+      width: 220px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #ffffff;
+      text-shadow: #3f3f3f 1px 1px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .ws-card:hover .ws-card-name { color: #ffff55; }
+    .ws-card-meta { width: 100%; justify: space-between; align: center; }
+    .ws-card-version {
+      font-size: 10px;
+      color: #a0a0a0;
+      text-shadow: #3f3f3f 1px 1px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .ws-card-author {
+      width: 140px;
+      font-size: 9px;
+      color: #55ff55;
+      text-shadow: #3f3f3f 1px 1px;
+      opacity: 0.8;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .ws-card-desc {
+      width: 212px;
+      font-size: 10px;
+      color: #888888;
+      text-shadow: #3f3f3f 1px 1px;
+      max-lines: 2;
+      margin-top: 4px;
+    }
+    .ws-empty { width: 100%; height: 200px; align: center; justify: center; }
+    .ws-empty-label {
+      font-size: 18px;
+      color: #e0e0e0;
+      text-shadow: #3f3f3f 1px 1px;
+      text-transform: uppercase;
+      text-align: center;
+      opacity: 0.6;
+    }
+    .ws-loading {
+      font-size: 24px;
+      color: #ffff55;
+      text-shadow: #3f3f3f 1px 1px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+    .ws-error-label {
+      font-size: 18px;
+      color: #ff5555;
+      text-shadow: #3f3f3f 1px 1px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+    .ws-logo-row { width: 100%; height: 40px; align: center; justify: center; }
+    .ws-logo { width: 80px; height: 20px; }
+    .ws-logo-img { width: 80px; height: 20px; opacity: 0.7; }
+    .ws-backdrop { background: rgba(0, 0, 0, 0.85); }
+    .ws-modal-main {
+      width: 640px;
+      height: 604px;
+      align: center;
+      border-image: url(/images/options_background.png) 4 fill / 12px;
+      border-width: 12px;
+    }
+    .ws-modal-head { width: 100%; height: 240px; background: rgba(0, 0, 0, 0.6); }
+    .ws-modal-thumb { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; }
+    .ws-modal-noimage {
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      width: 100%;
+      height: 100%;
+      align: center;
+      justify: center;
+      opacity: 0.2;
+    }
+    .ws-modal-noimage-text {
+      font-size: 32px;
+      color: #ffffff;
+      text-transform: uppercase;
+      text-align: center;
+      letter-spacing: 2px;
+    }
+    .ws-modal-shade {
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.4) 40%, transparent);
+    }
+    .ws-modal-caption { position: absolute; left: 24px; bottom: 16px; width: 568px; gap: 2px; }
+    .ws-modal-name {
+      width: 568px;
+      font-size: 30px;
+      font-weight: bold;
+      color: #ffffff;
+      text-shadow: #3f3f3f 2px 2px;
+    }
+    .ws-modal-by {
+      font-size: 16px;
+      color: #ffff55;
+      text-shadow: #3f3f3f 1px 1px;
+      text-transform: uppercase;
+      opacity: 0.9;
+    }
+    .ws-modal-flag {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      padding: 4px 8px;
+      font-size: 10px;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-modal-flag-update {
+      background: #ff8800;
+      border-color: #ff6600;
+      border-width: 1px;
+      color: #ffffff;
+    }
+    .ws-modal-flag-installed {
+      background: #003300;
+      border-color: rgba(85, 255, 85, 0.6);
+      border-width: 1px;
+      color: #55ff55;
+    }
+    .ws-modal-body { width: 100%; height: 340px; padding: 24px; gap: 24px; }
+    .ws-modal-scroll { width: 100%; height: 220px; }
+    .ws-modal-content { width: 100%; gap: 24px; }
+    .ws-modal-desc {
+      width: 100%;
+      font-size: 14px;
+      color: #cccccc;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-modal-extended {
+      width: 100%;
+      padding: 16px;
+      gap: 8px;
+      border-color: #444444;
+      border-width: 1px;
+      background: rgba(0, 0, 0, 0.4);
+    }
+    .ws-modal-extended-head {
+      font-size: 10px;
+      color: #aaaaaa;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: bold;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-modal-extended-text {
+      width: 100%;
+      font-size: 14px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-modal-meta-grid { width: 100%; gap: 32px; }
+    .ws-modal-meta-col { flex: 1; gap: 6px; }
+    .ws-modal-meta-head {
+      font-size: 10px;
+      color: #888888;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: bold;
+      text-shadow: #3f3f3f 1px 1px;
+      margin-bottom: 4px;
+    }
+    .ws-modal-meta-head-alt {
+      font-size: 10px;
+      color: #666666;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: bold;
+      text-shadow: #3f3f3f 1px 1px;
+      margin-bottom: 4px;
+    }
+    .ws-modal-meta-row { width: 100%; justify: space-between; }
+    .ws-modal-meta-label { font-size: 12px; color: #888888; text-shadow: #3f3f3f 1px 1px; }
+    .ws-modal-meta-value { font-size: 12px; color: #ffffff; text-shadow: #3f3f3f 1px 1px; }
+    .ws-meta-value-ok { font-size: 12px; color: #55ff55; text-shadow: #3f3f3f 1px 1px; }
+    .ws-meta-value-update { font-size: 12px; color: #ff8800; text-shadow: #3f3f3f 1px 1px; }
+    .ws-modal-chip {
+      align: start;
+      padding: 2px 8px;
+      font-size: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      border-color: #444444;
+      border-width: 1px;
+      color: #a0a0a0;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-chip-dep-installed {
+      background: #003300;
+      border-color: rgba(85, 255, 85, 0.6);
+      color: #55ff55;
+    }
+    .ws-chip-dep {
+      background: rgba(0, 0, 0, 0.6);
+      border-color: rgba(255, 136, 0, 0.4);
+      color: #ffaa33;
+    }
+    .ws-modal-section { width: 100%; gap: 6px; }
+    .ws-modal-deps-head {
+      font-size: 10px;
+      color: #ffaa33;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: bold;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-modal-eds-head {
+      font-size: 10px;
+      color: #55aaff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: bold;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-modal-eds-text {
+      align: start;
+      padding: 2px 8px;
+      font-size: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      border-color: rgba(85, 170, 255, 0.4);
+      border-width: 1px;
+      color: #55aaff;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-modal-files-head {
+      font-size: 10px;
+      color: #666666;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: bold;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-modal-file-list { width: 100%; gap: 6px; }
+    .ws-modal-file {
+      width: 100%;
+      padding: 8px;
+      gap: 2px;
+      background: rgba(0, 0, 0, 0.2);
+      border-color: #222222;
+      border-width: 1px;
+    }
+    .ws-modal-file-main {
+      font-size: 12px;
+      color: #a0a0a0;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-modal-file-split {
+      padding: 2px 6px;
+      font-size: 8px;
+      background: rgba(0, 0, 0, 0.6);
+      border-color: #555555;
+      border-width: 1px;
+      color: #ffff55;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-modal-file-parts {
+      font-size: 9px;
+      color: #666666;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-modal-file-dest {
+      font-size: 9px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-modal-actions { width: 100%; height: 48px; gap: 16px; }
+    .ws-mbtn {
+      height: 48px;
+      align: center;
+      font-size: 20px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 2px 2px;
+      background-image: url(/images/Button_Background.png);
+    }
+    .ws-mbtn:hover { background-image: url(/images/button_highlighted.png); }
+    .ws-mbtn-install { flex: 1; }
+    .ws-mbtn-install:hover { color: #ffff55; }
+    .ws-mbtn-remove { width: 144px; }
+    .ws-mbtn-remove:hover { color: #ff5555; }
+    .ws-mbtn-back { width: 144px; }
+    .ws-mbtn-back:hover { color: #ffff55; }
+    .ws-modal-small {
+      width: 520px;
+      align: center;
+      background-image: url(/images/frame_background.png);
+      border-color: #555555;
+      border-width: 2px;
+    }
+    .ws-modal-deps { height: 448px; }
+    .ws-modal-install { height: 400px; }
+    .ws-modal-uninstall { height: 400px; }
+    .ws-sm-head { width: 100%; height: 100px; padding: 24px; }
+    .ws-sm-title {
+      font-size: 24px;
+      color: #ffffff;
+      font-weight: bold;
+      text-shadow: #3f3f3f 2px 2px;
+    }
+    .ws-sm-title-deps {
+      font-size: 24px;
+      color: #ffaa33;
+      font-weight: bold;
+      text-shadow: #3f3f3f 2px 2px;
+    }
+    .ws-sm-title-danger {
+      font-size: 24px;
+      color: #ff5555;
+      font-weight: bold;
+      text-shadow: #3f3f3f 2px 2px;
+    }
+    .ws-sm-sub {
+      font-size: 14px;
+      color: #a0a0a0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: #3f3f3f 1px 1px;
+      margin-top: 4px;
+      opacity: 0.8;
+    }
+    .ws-sm-list { width: 100%; padding: 16px; gap: 8px; }
+    .ws-dep-row {
+      width: 100%;
+      padding: 12px;
+      justify: space-between;
+      background: rgba(0, 0, 0, 0.2);
+      border-color: #444444;
+      border-width: 1px;
+    }
+    .ws-dep-name { font-size: 16px; color: #ffffff; text-shadow: #3f3f3f 1px 1px; }
+    .ws-dep-version {
+      font-size: 10px;
+      color: #a0a0a0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-dep-note {
+      font-size: 12px;
+      color: #888888;
+      text-align: center;
+      margin-top: 12px;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-sm-footer {
+      width: 100%;
+      height: 64px;
+      padding: 12px 16px;
+      gap: 16px;
+      background: rgba(0, 0, 0, 0.4);
+    }
+    .ws-sm-btn {
+      flex: 1;
+      height: 40px;
+      align: center;
+      font-size: 18px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 2px 2px;
+      background-image: url(/images/Button_Background.png);
+    }
+    .ws-sm-btn:hover { background-image: url(/images/button_highlighted.png); color: #ffff55; }
+    .ws-sm-btn-install {
+      color: #ffff55;
+      background-image: url(/images/button_highlighted.png);
+    }
+    .ws-state { width: 100%; padding: 32px 8px; gap: 12px; align: center; }
+    .ws-state-title-install {
+      font-size: 24px;
+      color: #ffff55;
+      text-align: center;
+      text-shadow: #3f3f3f 2px 2px;
+    }
+    .ws-state-title-success {
+      font-size: 24px;
+      color: #55ff55;
+      text-align: center;
+      text-shadow: #3f3f3f 2px 2px;
+    }
+    .ws-state-title-error {
+      font-size: 20px;
+      color: #ff5555;
+      text-align: center;
+      text-shadow: #3f3f3f 2px 2px;
+    }
+    .ws-state-sub {
+      font-size: 12px;
+      color: #a0a0a0;
+      text-align: center;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-progress-row { width: 100%; padding: 0px 8px; justify: space-between; }
+    .ws-progress-label { font-size: 11px; color: #ffff55; text-shadow: #3f3f3f 1px 1px; }
+    .ws-progress-pct { font-size: 11px; color: #ffff55; text-shadow: #3f3f3f 1px 1px; }
+    .ws-progress {
+      width: 100%;
+      height: 12px;
+      padding: 2px;
+      background: rgba(0, 0, 0, 0.6);
+      border-color: #3f3f3f;
+      border-width: 2px;
+    }
+    .ws-progress-fill { background: #ffff55; }
+    .ws-dep-chips { width: 100%; gap: 6px; justify: center; }
+    .ws-chip-pending {
+      align: start;
+      padding: 2px 8px;
+      font-size: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      border-color: rgba(255, 136, 0, 0.4);
+      border-width: 1px;
+      color: #ffaa33;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-retry {
+      width: 128px;
+      height: 36px;
+      align: center;
+      font-size: 14px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 1px 1px;
+      background-image: url(/images/Button_Background.png);
+    }
+    .ws-retry:hover { background-image: url(/images/button_highlighted.png); }
+    .ws-target {
+      width: 100%;
+      padding: 12px;
+      border-color: #444444;
+      border-width: 2px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .ws-target:hover { border-color: #ffff55; background: rgba(0, 0, 0, 0.4); }
+    .ws-target:hover .ws-target-name { color: #ffff55; }
+    .ws-target-name { font-size: 18px; color: #ffffff; text-shadow: #3f3f3f 1px 1px; }
+    .ws-target-version {
+      font-size: 10px;
+      color: #666666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .ws-target-selected { border-color: #ffff55; background: rgba(0, 0, 0, 0.4); }
+    .ws-target-selected .ws-target-name { color: #ffff55; }
+    .ws-target-danger:hover { border-color: #ff5555; }
+    .ws-target-danger:hover .ws-target-name { color: #ff5555; }
+    .ws-target-selected-danger { border-color: #ff5555; background: rgba(0, 0, 0, 0.4); }
+    .ws-target-selected-danger .ws-target-name { color: #ff5555; }
+  </style>
+  <view id="workshop">
+    <tooltip icon="A">{{t:common.select}}</tooltip>
+    <tooltip icon="B" action="@back">{{t:common.back}}</tooltip>
+    <column width="1280px" height="720px" align="center" padding="40">
+      <row class="ws-tabs">
+        <button class="ws-tab {{tabSkinClass}}" onclick="workshop.tab:Skin">
+          <label class="ws-tab-text" text="{{t:workshop.tabs.skin}}"/>
+        </button>
+        <button class="ws-tab {{tabTextureClass}}" onclick="workshop.tab:Texture">
+          <label class="ws-tab-text" text="{{t:workshop.tabs.texture}}"/>
+        </button>
+        <button class="ws-tab {{tabWorldClass}}" onclick="workshop.tab:World">
+          <label class="ws-tab-text" text="{{t:workshop.tabs.world}}"/>
+        </button>
+        <button class="ws-tab {{tabModClass}}" onclick="workshop.tab:Mod">
+          <label class="ws-tab-text" text="{{t:workshop.tabs.mod}}"/>
+        </button>
+        <button class="ws-tab {{tabDlcClass}}" onclick="workshop.tab:DLC">
+          <label class="ws-tab-text" text="{{t:workshop.tabs.dlc}}"/>
+        </button>
+        <button class="ws-tab {{tabVersionsClass}}" onclick="workshop.tab:Versions">
+          <label class="ws-tab-text" text="{{t:workshop.tabs.versions}}"/>
+        </button>
+        <button class="ws-tab {{tabInstalledClass}}" onclick="workshop.tab:Installed">
+          <label class="ws-tab-text" text="{{t:workshop.tabs.installed}}"/>
+        </button>
+        <button class="ws-tab {{tabSearchClass}}" onclick="workshop.tab:Search">
+          <label class="ws-tab-text" text="{{t:workshop.tabs.search}}"/>
+        </button>
+        <button class="ws-tab {{tabServerClass}}" onclick="workshop.tab:Server">
+          <label class="ws-tab-text" text="{{t:workshop.tabs.server}}"/>
+        </button>
+      </row>
+      <column class="optionsbg" padding="6" width="1200px" height="580px" align="center">
+        <column if="{{loading}}" class="ws-empty">
+          <label class="ws-loading" text="{{t:workshop.searchingArchives}}"/>
+        </column>
+        <column if="{{hasError}}" class="ws-empty">
+          <label class="ws-error-label" text="{{error}}"/>
+        </column>
+        <column if="{{showSearchTabPrompt}}" class="ws-empty">
+          <label class="ws-empty-label" text="{{t:workshop.startTypingToSearch}}"/>
+        </column>
+        <column if="{{showContent}}" width="100%" height="528px" gap="6px">
+          <row if="{{showSearch}}" class="ws-toolbar">
+            <textinput id="workshop-search" class="ws-filter" value="{{search}}" onsubmit="workshop.search" label="{{searchLabel}}"/>
+            <button if="{{hasSearch}}" class="ws-clear" onclick="workshop.search.clear">
+              <label text="X"/>
+            </button>
+          </row>
+          <row if="{{showServerCategories}}" class="ws-cat-bar">
+            <button foreach="{{serverCategories}}" as="cat" class="ws-cat {{cat.cls}}" onclick="{{cat.action}}">
+              <label class="ws-cat-text" text="{{cat.label}}"/>
+            </button>
+          </row>
+          <scroll class="ws-recess" width="100%" height="530px" hide-partial="true">
+            <column class="ws-grid">
+              <column if="{{showBulkActions}}" width="100%" gap="0px">
+                <row class="ws-bulk-row">
+                  <button class="ws-bulk ws-bulk-update" onclick="workshop.updateAll">
+                    <label text="{{updateAllLabel}}"/>
+                  </button>
+                  <button class="ws-bulk" onclick="workshop.reinstallAll">
+                    <label text="{{reinstallAllLabel}}"/>
+                  </button>
+                </row>
+                <column class="ws-divider-dark"/>
+              </column>
+              <column if="{{noItems}}" class="ws-empty">
+                <label class="ws-empty-label" text="{{emptyMessage}}"/>
+              </column>
+              <row foreach="{{rows}}" as="row" class="ws-grid-row">
+                <column if="{{row.has0}}" class="ws-card" onclick="{{row.c0.action}}">
+                  <column class="ws-card-thumb-wrap">
+                    <image if="{{row.c0.hasThumb}}" class="ws-card-thumb" src="{{row.c0.thumb}}" fit="cover"/>
+                    <column if="{{row.c0.noThumb}}" class="ws-card-noimage">
+                      <label class="ws-card-noimage-text" text="{{row.c0.noImageLabel}}"/>
+                    </column>
+                    <row if="{{row.c0.badge}}" class="ws-chip ws-chip-cat">
+                      <label class="ws-upper" text="{{row.c0.badge}}"/>
+                    </row>
+                    <row if="{{row.c0.update}}" class="ws-chip ws-chip-update">
+                      <label class="ws-upper" text="{{row.c0.updateLabel}}"/>
+                    </row>
+                    <row if="{{row.c0.showInstalled}}" class="ws-chip ws-chip-installed">
+                      <label class="ws-upper" text="{{row.c0.installedLabel}}"/>
+                    </row>
+                  </column>
+                  <column class="ws-card-body">
+                    <label class="ws-card-name" text="{{row.c0.name}}"/>
+                    <row class="ws-card-meta">
+                      <label class="ws-card-version" text="v{{row.c0.version}}"/>
+                      <label class="ws-card-author" text="{{row.c0.author}}"/>
+                    </row>
+                    <label class="ws-card-desc" text="{{row.c0.desc}}"/>
+                    <column class="ws-card-focus"/>
+                  </column>
+                </column>
+                <column if="{{row.has1}}" class="ws-card" onclick="{{row.c1.action}}">
+                  <column class="ws-card-thumb-wrap">
+                    <image if="{{row.c1.hasThumb}}" class="ws-card-thumb" src="{{row.c1.thumb}}" fit="cover"/>
+                    <column if="{{row.c1.noThumb}}" class="ws-card-noimage">
+                      <label class="ws-card-noimage-text" text="{{row.c1.noImageLabel}}"/>
+                    </column>
+                    <row if="{{row.c1.badge}}" class="ws-chip ws-chip-cat">
+                      <label class="ws-upper" text="{{row.c1.badge}}"/>
+                    </row>
+                    <row if="{{row.c1.update}}" class="ws-chip ws-chip-update">
+                      <label class="ws-upper" text="{{row.c1.updateLabel}}"/>
+                    </row>
+                    <row if="{{row.c1.showInstalled}}" class="ws-chip ws-chip-installed">
+                      <label class="ws-upper" text="{{row.c1.installedLabel}}"/>
+                    </row>
+                  </column>
+                  <column class="ws-card-body">
+                    <label class="ws-card-name" text="{{row.c1.name}}"/>
+                    <row class="ws-card-meta">
+                      <label class="ws-card-version" text="v{{row.c1.version}}"/>
+                      <label class="ws-card-author" text="{{row.c1.author}}"/>
+                    </row>
+                    <label class="ws-card-desc" text="{{row.c1.desc}}"/>
+                    <column class="ws-card-focus"/>
+                  </column>
+                </column>
+                <column if="{{row.has2}}" class="ws-card" onclick="{{row.c2.action}}">
+                  <column class="ws-card-thumb-wrap">
+                    <image if="{{row.c2.hasThumb}}" class="ws-card-thumb" src="{{row.c2.thumb}}" fit="cover"/>
+                    <column if="{{row.c2.noThumb}}" class="ws-card-noimage">
+                      <label class="ws-card-noimage-text" text="{{row.c2.noImageLabel}}"/>
+                    </column>
+                    <row if="{{row.c2.badge}}" class="ws-chip ws-chip-cat">
+                      <label class="ws-upper" text="{{row.c2.badge}}"/>
+                    </row>
+                    <row if="{{row.c2.update}}" class="ws-chip ws-chip-update">
+                      <label class="ws-upper" text="{{row.c2.updateLabel}}"/>
+                    </row>
+                    <row if="{{row.c2.showInstalled}}" class="ws-chip ws-chip-installed">
+                      <label class="ws-upper" text="{{row.c2.installedLabel}}"/>
+                    </row>
+                  </column>
+                  <column class="ws-card-body">
+                    <label class="ws-card-name" text="{{row.c2.name}}"/>
+                    <row class="ws-card-meta">
+                      <label class="ws-card-version" text="v{{row.c2.version}}"/>
+                      <label class="ws-card-author" text="{{row.c2.author}}"/>
+                    </row>
+                    <label class="ws-card-desc" text="{{row.c2.desc}}"/>
+                    <column class="ws-card-focus"/>
+                  </column>
+                </column>
+                <column if="{{row.has3}}" class="ws-card" onclick="{{row.c3.action}}">
+                  <column class="ws-card-thumb-wrap">
+                    <image if="{{row.c3.hasThumb}}" class="ws-card-thumb" src="{{row.c3.thumb}}" fit="cover"/>
+                    <column if="{{row.c3.noThumb}}" class="ws-card-noimage">
+                      <label class="ws-card-noimage-text" text="{{row.c3.noImageLabel}}"/>
+                    </column>
+                    <row if="{{row.c3.badge}}" class="ws-chip ws-chip-cat">
+                      <label class="ws-upper" text="{{row.c3.badge}}"/>
+                    </row>
+                    <row if="{{row.c3.update}}" class="ws-chip ws-chip-update">
+                      <label class="ws-upper" text="{{row.c3.updateLabel}}"/>
+                    </row>
+                    <row if="{{row.c3.showInstalled}}" class="ws-chip ws-chip-installed">
+                      <label class="ws-upper" text="{{row.c3.installedLabel}}"/>
+                    </row>
+                  </column>
+                  <column class="ws-card-body">
+                    <label class="ws-card-name" text="{{row.c3.name}}"/>
+                    <row class="ws-card-meta">
+                      <label class="ws-card-version" text="v{{row.c3.version}}"/>
+                      <label class="ws-card-author" text="{{row.c3.author}}"/>
+                    </row>
+                    <label class="ws-card-desc" text="{{row.c3.desc}}"/>
+                    <column class="ws-card-focus"/>
+                  </column>
+                </column>
+              </row>
+            </column>
+          </scroll>
+        </column>
+      </column>
+      <column class="ws-backdrop" if="{{modalOpen}}" align="center" justify="center" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" onclick="workshop.close">
+        <column id="workshop-modal" class="ws-modal-main" onclick="workshop.modal.block">
+          <column class="ws-modal-head">
+            <image if="{{modal.hasThumb}}" class="ws-modal-thumb" src="{{modal.thumb}}" fit="cover"/>
+            <column if="{{modal.noThumb}}" class="ws-modal-noimage">
+              <label class="ws-modal-noimage-text" text="{{modal.noImageLabel}}"/>
+            </column>
+            <column class="ws-modal-shade"/>
+            <column class="ws-modal-caption">
+              <label class="ws-modal-name" text="{{modal.name}}"/>
+              <label class="ws-modal-by" text="{{modal.byAuthor}}"/>
+            </column>
+            <row if="{{modal.needsUpdate}}" class="ws-modal-flag ws-modal-flag-update">
+              <label class="ws-upper" text="{{modal.updateAvailableBadge}}"/>
+            </row>
+            <row if="{{modal.showInstalledBadge}}" class="ws-modal-flag ws-modal-flag-installed">
+              <label class="ws-upper" text="{{modal.installedBadge}}"/>
+            </row>
+            <row if="{{modal.showSavedBadge}}" class="ws-modal-flag ws-modal-flag-installed">
+              <label class="ws-upper" text="{{modal.savedBadge}}"/>
+            </row>
+          </column>
+          <column class="ws-modal-body">
+            <scroll class="ws-modal-scroll">
+              <column class="ws-modal-content">
+                <label if="{{modal.desc}}" class="ws-modal-desc" text="{{modal.desc}}"/>
+                <column if="{{modal.hasExtended}}" class="ws-modal-extended">
+                  <label class="ws-modal-extended-head" text="{{modal.detailsLabel}}"/>
+                  <label class="ws-modal-extended-text" text="{{modal.extended}}"/>
+                </column>
+                <column class="ws-divider-soft"/>
+                <row class="ws-modal-meta-grid">
+                  <column if="{{modal.isServer}}" class="ws-modal-meta-col">
+                    <label class="ws-modal-meta-head" text="{{modal.metadataLabel}}"/>
+                    <row class="ws-modal-meta-row">
+                      <label class="ws-modal-meta-label" text="{{modal.addressLabel}}"/>
+                      <label class="ws-meta-value-ok" text="{{modal.serverAddress}}"/>
+                    </row>
+                    <row class="ws-modal-meta-row">
+                      <label class="ws-modal-meta-label" text="{{modal.typeLabel}}"/>
+                      <label class="ws-modal-meta-value" text="{{modal.serverType}}"/>
+                    </row>
+                    <row class="ws-modal-meta-row">
+                      <label class="ws-modal-meta-label" text="{{modal.versionLabel}}"/>
+                      <label class="ws-modal-meta-value" text="v{{modal.serverVersion}}"/>
+                    </row>
+                    <row class="ws-modal-meta-row">
+                      <label class="ws-modal-meta-label" text="{{modal.ownerLabel}}"/>
+                      <label class="ws-modal-meta-value" text="{{modal.serverOwner}}"/>
+                    </row>
+                    <row if="{{modal.hasDiscord}}" class="ws-modal-meta-row">
+                      <label class="ws-modal-meta-label" text="{{modal.discordLabel}}"/>
+                      <label class="ws-meta-value-ok" text="{{modal.serverDiscord}}"/>
+                    </row>
+                  </column>
+                  <column if="{{modal.isVersion}}" class="ws-modal-meta-col">
+                    <label class="ws-modal-meta-head" text="{{modal.metadataLabel}}"/>
+                    <row class="ws-modal-meta-row">
+                      <label class="ws-modal-meta-label" text="{{modal.versionLabel}}"/>
+                      <label class="ws-modal-meta-value" text="v{{modal.version}}"/>
+                    </row>
+                    <row class="ws-modal-meta-row">
+                      <label class="ws-modal-meta-label" text="{{modal.packageIdLabel}}"/>
+                      <label class="ws-meta-value-ok" text="{{modal.packageId}}"/>
+                    </row>
+                  </column>
+                  <column if="{{modal.isContent}}" class="ws-modal-meta-col">
+                    <label class="ws-modal-meta-head" text="{{modal.metadataLabel}}"/>
+                    <row class="ws-modal-meta-row">
+                      <label class="ws-modal-meta-label" text="{{modal.versionLabel}}"/>
+                      <label class="ws-modal-meta-value" text="v{{modal.version}}"/>
+                    </row>
+                    <row class="ws-modal-meta-row">
+                      <label class="ws-modal-meta-label" text="{{modal.packageIdLabel}}"/>
+                      <label class="ws-meta-value-ok" text="{{modal.packageId}}"/>
+                    </row>
+                    <row if="{{modal.hasInstalled}}" class="ws-modal-meta-row">
+                      <label class="ws-modal-meta-label" text="{{modal.installedLabel}}"/>
+                      <label class="{{modal.installedVersionCls}}" text="v{{modal.installedVersion}}{{modal.outdatedLabel}}"/>
+                    </row>
+                  </column>
+                  <column class="ws-modal-meta-col">
+                    <label class="ws-modal-meta-head-alt" text="{{modal.categoriesLabel}}"/>
+                    <row foreach="{{modal.categories}}" as="cat" class="ws-modal-chip">
+                      <label class="ws-upper" text="{{cat}}"/>
+                    </row>
+                  </column>
+                </row>
+                <column if="{{modal.hasDependencies}}" class="ws-modal-section">
+                  <column class="ws-divider-dark"/>
+                  <label class="ws-modal-deps-head" text="{{t:workshop.requiredDependencies}}"/>
+                  <row foreach="{{modal.dependencies}}" as="dep" class="ws-modal-chip {{dep.cls}}">
+                    <label class="ws-upper" text="{{dep.label}}"/>
+                  </row>
+                </column>
+                <column if="{{modal.hasRequiredEditions}}" class="ws-modal-section">
+                  <column class="ws-divider-dark"/>
+                  <label class="ws-modal-eds-head" text="{{t:workshop.requiredEditions}}"/>
+                  <row foreach="{{modal.requiredEditions}}" as="req" class="ws-modal-eds-text">
+                    <label class="ws-upper" text="{{req.name}}"/>
+                  </row>
+                </column>
+                <column if="{{modal.hasFiles}}" class="ws-modal-section">
+                  <column class="ws-divider-dark"/>
+                  <label class="ws-modal-files-head" text="{{modal.filesLabel}}"/>
+                  <column class="ws-modal-file-list">
+                    <column foreach="{{modal.files}}" as="file" class="ws-modal-file">
+                      <row class="ws-card-meta">
+                        <label class="ws-modal-file-main" text="{{file.main}}"/>
+                        <row if="{{file.split}}" class="ws-modal-file-split">
+                          <label class="ws-upper" text="{{file.splitLabel}}"/>
+                        </row>
+                        <label if="{{file.dest}}" class="ws-modal-file-dest" text="{{file.dest}}"/>
+                      </row>
+                      <label if="{{file.split}}" class="ws-modal-file-parts" text="{{file.parts}}"/>
+                    </column>
+                  </column>
+                </column>
+              </column>
+            </scroll>
+            <row class="ws-modal-actions">
+              <button class="ws-mbtn ws-mbtn-install" onclick="{{modal.installAction}}">
+                <label text="{{modal.installLabel}}"/>
+              </button>
+              <button if="{{modal.hasInstalled}}" class="ws-mbtn ws-mbtn-remove" onclick="workshop.uninstall.open">
+                <label text="{{modal.removeLabel}}"/>
+              </button>
+              <button class="ws-mbtn ws-mbtn-back" onclick="workshop.close">
+                <label text="{{modal.backLabel}}"/>
+              </button>
+            </row>
+          </column>
+        </column>
+      </column>
+      <column class="ws-backdrop" if="{{depsOpen}}" align="center" justify="center" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" onclick="workshop.close">
+        <column id="workshop-deps" class="ws-modal-small ws-modal-deps" onclick="workshop.modal.block">
+          <column class="ws-sm-head">
+            <label class="ws-sm-title-deps" text="{{depsTitle}}"/>
+            <label class="ws-sm-sub" text="{{depsSubtitle}}"/>
+          </column>
+          <column class="ws-divider-strong"/>
+          <scroll width="100%" height="276px">
+            <column class="ws-sm-list">
+              <row foreach="{{unresolvedDeps}}" as="dep" class="ws-dep-row">
+                <label class="ws-dep-name" text="{{dep.name}}"/>
+                <label class="ws-dep-version" text="v{{dep.version}}"/>
+              </row>
+              <label class="ws-dep-note" text="{{depsNote}}"/>
+            </column>
+          </scroll>
+          <column class="ws-divider-strong"/>
+          <row class="ws-sm-footer">
+            <button class="ws-sm-btn" onclick="workshop.deps.cancel">
+              <label text="{{cancelLabel}}"/>
+            </button>
+            <button class="ws-sm-btn ws-sm-btn-install" onclick="workshop.deps.confirm">
+              <label text="{{t:workshop.install}}"/>
+            </button>
+          </row>
+        </column>
+      </column>
+      <column class="ws-backdrop" if="{{installOpen}}" align="center" justify="center" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" onclick="workshop.close">
+        <column id="workshop-install" class="ws-modal-small ws-modal-install" onclick="workshop.modal.block">
+          <column class="ws-sm-head">
+            <label class="ws-sm-title" text="{{installTitle}}"/>
+            <label class="ws-sm-sub" text="{{installSubtitle}}"/>
+          </column>
+          <column class="ws-divider-strong"/>
+          <scroll width="100%" height="294px">
+            <column class="ws-sm-list">
+              <column if="{{installBusy}}" class="ws-state">
+                <label class="ws-state-title-install" text="{{installingLabel}}"/>
+                <label if="{{installHasDeps}}" class="ws-state-sub" text="{{downloadingDepsLabel}}"/>
+                <label if="{{installHasNoDeps}}" class="ws-state-sub" text="{{downloadingLabel}}"/>
+                <row class="ws-progress-row">
+                  <label class="ws-progress-label" text="{{jobLabel}}"/>
+                  <label class="ws-progress-pct" text="{{jobPercent}}%"/>
+                </row>
+                <row class="ws-progress">
+                  <column class="ws-progress-fill" style="width:{{jobPercent}}%"/>
+                </row>
+                <row if="{{installHasDeps}}" class="ws-dep-chips">
+                  <row foreach="{{modal.dependencies}}" as="dep" class="ws-chip-pending">
+                    <label class="ws-upper" text="{{dep.name}}"/>
+                  </row>
+                </row>
+              </column>
+              <column if="{{installDone}}" class="ws-state">
+                <label class="ws-state-title-success" text="{{installedOkLabel}}"/>
+                <label class="ws-state-sub" text="{{pressKeyLabel}}"/>
+              </column>
+              <column if="{{installHasError}}" class="ws-state">
+                <label class="ws-state-title-error" text="{{installFailedLabel}}"/>
+                <label class="ws-state-sub" text="{{installError}}"/>
+                <button class="ws-retry" onclick="workshop.install.retry">
+                  <label text="{{retryLabel}}"/>
+                </button>
+              </column>
+              <column if="{{installReady}}" width="100%" gap="8px">
+                <column if="{{noTargets}}" class="ws-empty" height="120px">
+                  <label class="ws-state-title-error" text="{{noTargetsLabel}}"/>
+                </column>
+                <row foreach="{{installTargets}}" as="target" class="ws-target {{target.cls}}" onclick="workshop.install.target:{{target.id}}">
+                  <label class="ws-target-name" text="{{target.name}}"/>
+                </row>
+              </column>
+            </column>
+          </scroll>
+        </column>
+      </column>
+      <column class="ws-backdrop" if="{{uninstallOpen}}" align="center" justify="center" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" onclick="workshop.close">
+        <column id="workshop-uninstall" class="ws-modal-small ws-modal-uninstall" onclick="workshop.modal.block">
+          <column class="ws-sm-head">
+            <label class="ws-sm-title-danger" text="{{uninstallTitle}}"/>
+            <label class="ws-sm-sub" text="{{uninstallSubtitle}}"/>
+          </column>
+          <column class="ws-divider-strong"/>
+          <scroll width="100%" height="294px">
+            <column class="ws-sm-list">
+              <column if="{{uninstallBusy}}" class="ws-state">
+                <label class="ws-state-title-error" text="{{removingLabel}}"/>
+                <label class="ws-state-sub" text="{{deletingLabel}}"/>
+              </column>
+              <column if="{{uninstallDone}}" class="ws-state">
+                <label class="ws-state-title-success" text="{{removedLabel}}"/>
+                <label class="ws-state-sub" text="{{pressKeyLabel}}"/>
+              </column>
+              <column if="{{uninstallHasError}}" class="ws-state">
+                <label class="ws-state-title-error" text="{{removalFailedLabel}}"/>
+                <label class="ws-state-sub" text="{{uninstallError}}"/>
+                <button class="ws-retry" onclick="workshop.uninstall.retry">
+                  <label text="{{retryLabel}}"/>
+                </button>
+              </column>
+              <column if="{{uninstallReady}}" width="100%" gap="8px">
+                <row foreach="{{uninstallList}}" as="entry" class="ws-target ws-target-danger {{entry.cls}}" onclick="workshop.uninstall.target:{{entry.id}}">
+                  <label class="ws-target-name" text="{{entry.name}}"/>
+                  <label class="ws-target-version" text="v{{entry.version}}"/>
+                </row>
+              </column>
+            </column>
+          </scroll>
+        </column>
+      </column>
+    </column>
+  </view>
+</ui>
