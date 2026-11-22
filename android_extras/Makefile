@@ -11,6 +11,7 @@ BUILD := $(HERE)/build
 STAMPS := $(BUILD)/stamps
 PREFIX := $(HERE)/prefix
 GEN := $(BUILD)/generated
+EMBED_ASSETS := $(shell find $(ROOT)/public $(ROOT)/resources $(ROOT)/UiDocs -type f -print 2>/dev/null | sed 's/ /\\ /g')
 APPSRC := $(ROOT)/android/app/src/main
 ASSETS := $(APPSRC)/assets
 JNILIBS := $(APPSRC)/jniLibs/arm64-v8a
@@ -153,7 +154,7 @@ $(STAMPS)/sqlite.stamp: | $(STAMPS) $(PREFIX)/lib $(PREFIX)/include check-ndk
 $(BUILD)/emerald_embed: $(ROOT)/tools/EmbedAssets.cpp
 	c++ -std=c++20 -O2 -o $@ $<
 
-$(GEN)/EmbeddedAssets.cpp: $(BUILD)/emerald_embed | $(GEN)
+$(GEN)/EmbeddedAssets.cpp: $(BUILD)/emerald_embed $(EMBED_ASSETS) | $(GEN)
 	$< $@ public $(ROOT)/public resources $(ROOT)/resources UiDocs $(ROOT)/UiDocs
 
 native: $(STAMPS)/native.stamp

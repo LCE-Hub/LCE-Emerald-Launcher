@@ -38,7 +38,7 @@
           <use template="HomeButton" action="go:settings" label="{{t:home.helpAndOptions}}"/>
           <use template="HomeButton" action="go:versions" label="{{t:home.versions}}"/>
           <use template="HomeButton" action="go:workshop" label="{{t:home.workshop}}"/>
-          <use if="{{isDesktop}}" template="HomeButton" action="quit" label="{{t:home.developerTools}}"/> <!--neo: TODO-->
+          <use template="HomeButton" action="quit" label="{{t:home.developerTools}}"/> <!--neo: TODO-->
         </column>
         <column class="spacer"/>
         <column class="divider"/>

@@ -18,6 +18,8 @@ private:
   enum class Modal { None, Args, Prefix, EnvVars, ResetA, ResetB };
 
   std::string translate(const UiServices &services, std::string_view key) const;
+  std::string translate(const UiServices &services, std::string_view key,
+                        std::string_view fallback) const;
   std::string interpolate(
       const UiServices &services, std::string_view key,
       const std::vector<std::pair<std::string, std::string>> &replacements)

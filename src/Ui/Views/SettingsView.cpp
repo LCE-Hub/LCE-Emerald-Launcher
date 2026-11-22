@@ -140,6 +140,17 @@ std::string SettingsView::translate(const UiServices &services,
   return services.i18n->translate(key);
 }
 
+std::string SettingsView::translate(const UiServices &services,
+                                    std::string_view key,
+                                    std::string_view fallback) const {
+  if (services.config->data().bedrock_enabled.value() == true) {return(std::string("Marketplace"));}
+  if (services.i18n == nullptr) {
+    return std::string(fallback);
+  }
+  const std::string translated = services.i18n->translate(key);
+  return translated == key ? std::string(fallback) : translated;
+}
+
 std::string SettingsView::interpolate(const UiServices &services,
                                       std::string_view key,
                                       const Replacements &replacements) const {
@@ -412,8 +423,9 @@ Json SettingsView::data(const UiServices &services) const {
                    "settings.androidContainer"));
     items.push_back(row_button(translate(services, "settings.openContainer"),
                                "settings.androidOpen"));
-    items.push_back(row_button(translate(services, "settings.openInFiles"),
-                               "settings.androidFiles"));
+    items.push_back(row_button(
+        translate(services, "settings.openInFiles", "Open in Files"),
+        "settings.androidFiles"));
     items.push_back(row_button(
         interpolate(services, "settings.androidAudio",
                     {{"backend", config.android_audio_backend.value_or(

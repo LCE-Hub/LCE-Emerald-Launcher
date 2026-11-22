@@ -11,6 +11,10 @@
   public <methods>;
   public <fields>;
 }
+-keep class com.emerald.legacy.LauncherFiles {
+  public <methods>;
+  public <fields>;
+}
 -dontwarn com.android.org.conscrypt.SSLParametersImpl
 -dontwarn org.apache.harmony.xnet.provider.jsse.SSLParametersImpl
 -dontwarn org.bouncycastle.jsse.BCSSLParameters
