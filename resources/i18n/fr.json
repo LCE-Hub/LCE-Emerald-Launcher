@@ -98,6 +98,7 @@
     "byAuthor": "par {{author}}",
     "containerSettings": "paramètres de conteneur",
     "openContainer": "Ouvrir le conteneur",
+    "openInFiles": "Ouvrir dans Fichiers",
     "androidAudio": "Audio: {{backend}}",
     "reset": {
       "title": "Réinitialliser",

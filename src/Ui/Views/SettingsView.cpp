@@ -412,6 +412,8 @@ Json SettingsView::data(const UiServices &services) const {
                    "settings.androidContainer"));
     items.push_back(row_button(translate(services, "settings.openContainer"),
                                "settings.androidOpen"));
+    items.push_back(row_button(translate(services, "settings.openInFiles"),
+                               "settings.androidFiles"));
     items.push_back(row_button(
         interpolate(services, "settings.androidAudio",
                     {{"backend", config.android_audio_backend.value_or(
@@ -586,6 +588,10 @@ bool SettingsView::action(std::string_view name, UiServices &services) {
   if (name == "settings.androidOpen") {
     platform::android_bridge_start(core::instances_dir(),
                                    platform::BridgeAction::OpenContainer);
+    return true;
+  }
+  if (name == "settings.androidFiles") {
+    platform::open_directory(core::app_data_dir());
     return true;
   }
   if (name == "settings.androidAudio") {

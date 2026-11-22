@@ -98,6 +98,7 @@
     "byAuthor": "by {{author}}",
     "containerSettings": "Container Settings",
     "openContainer": "Open Container",
+    "openInFiles": "Open in Files",
     "androidAudio": "Audio: {{backend}}",
     "reset": {
       "title": "Reset Setup",

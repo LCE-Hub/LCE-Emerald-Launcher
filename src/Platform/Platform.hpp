@@ -23,4 +23,5 @@ std::string unix_path_to_wine_z_path(const std::filesystem::path &path);
 void kill_process_tree(const std::filesystem::path &instance_dir);
 void kill_process_tree_matching(std::string_view command_marker);
 bool open_path(const std::filesystem::path &path);
+bool open_directory(const std::filesystem::path &path);
 } // namespace emerald::platform

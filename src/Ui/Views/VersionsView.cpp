@@ -9,6 +9,7 @@
 #include "Instances/InstanceManager.hpp"
 #include "Instances/UpdateChecker.hpp"
 #include "Launch/Servers.hpp"
+#include "Platform/Platform.hpp"
 #include "Skins/SkinUiState.hpp"
 #include "Ui/EditionResolver.hpp"
 #include "lazuli/I18n.hpp"
@@ -639,9 +640,14 @@ bool VersionsView::action(std::string_view name, UiServices &services) {
     return true;
   }
 
-  if (verb == "versions.folder" || verb == "versions.steam" ||
-      verb == "versions.importWorld" || verb == "versions.backup" ||
-      verb == "versions.setUid") {
+  if (verb == "versions.folder") {
+    close_menu(services);
+    platform::open_directory(instance_manager.working_dir(argument));
+    return true;
+  }
+
+  if (verb == "versions.steam" || verb == "versions.importWorld" ||
+      verb == "versions.backup" || verb == "versions.setUid") {
     close_menu(services);
     return true;
   }

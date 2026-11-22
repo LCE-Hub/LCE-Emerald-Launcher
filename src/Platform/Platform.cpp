@@ -164,6 +164,7 @@ bool open_path(const std::filesystem::path &path) {
 #else
     execlp("xdg-open", "xdg-open", text.c_str(), static_cast<char *>(nullptr));
 #endif
+    //neo: TODO: windows
     _exit(127);
   }
   return true;
@@ -174,4 +175,14 @@ bool open_path(const std::filesystem::path &path) {
 }
 #endif
 #endif
+
+bool open_directory(const std::filesystem::path &path) {
+  std::error_code error;
+  std::filesystem::create_directories(path, error);
+#if defined(__ANDROID__)
+  return android_open_directory(path);
+#else
+  return open_path(path);
+#endif
+}
 } // namespace emerald::platform

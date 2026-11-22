@@ -44,6 +44,11 @@ bool android_bridge_start(const std::filesystem::path &instance_path,
   return false;
 }
 
+bool android_open_directory(const std::filesystem::path &path) {
+  (void)path;
+  return false;
+}
+
 void android_prepare_runtime_files() {}
 #else
 bool android_bridge_start(const std::filesystem::path &instance_path,
@@ -120,6 +125,122 @@ bool android_bridge_start(const std::filesystem::path &instance_path,
     return false;
   }
   return true;
+}
+
+bool android_open_directory(const std::filesystem::path &path) {
+  JNIEnv *env = static_cast<JNIEnv *>(SDL_GetAndroidJNIEnv());
+  if (env == nullptr) {
+    core::error("android: no JNI environment");
+    return false;
+  }
+  jobject activity = static_cast<jobject>(SDL_GetAndroidActivity());
+  if (activity == nullptr) {
+    core::error("android: no activity");
+    return false;
+  }
+  jclass context_class = env->FindClass("android/content/Context");
+  jclass file_class = env->FindClass("java/io/File");
+  jclass provider_class = env->FindClass("androidx/core/content/FileProvider");
+  jclass intent_class = env->FindClass("android/content/Intent");
+  if (context_class == nullptr || file_class == nullptr ||
+      provider_class == nullptr || intent_class == nullptr) {
+    if (env->ExceptionCheck()) {
+      env->ExceptionDescribe();
+      env->ExceptionClear();
+    }
+    return false;
+  }
+  jmethodID get_package =
+      env->GetMethodID(context_class, "getPackageName", "()Ljava/lang/String;");
+  jmethodID file_ctor =
+      env->GetMethodID(file_class, "<init>", "(Ljava/lang/String;)V");
+  jmethodID get_uri = env->GetStaticMethodID(
+      provider_class, "getUriForFile",
+      "(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;");
+  jmethodID intent_ctor =
+      env->GetMethodID(intent_class, "<init>", "(Ljava/lang/String;)V");
+  jmethodID set_data_and_type = env->GetMethodID(
+      intent_class, "setDataAndType",
+      "(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/Intent;");
+  jmethodID set_package = env->GetMethodID(
+      intent_class, "setPackage", "(Ljava/lang/String;)Landroid/content/Intent;");
+  jmethodID add_flags =
+      env->GetMethodID(intent_class, "addFlags", "(I)Landroid/content/Intent;");
+  jmethodID start_activity = env->GetMethodID(
+      env->GetObjectClass(activity), "startActivity", "(Landroid/content/Intent;)V");
+  if (get_package == nullptr || file_ctor == nullptr || get_uri == nullptr ||
+      intent_ctor == nullptr || set_data_and_type == nullptr ||
+      set_package == nullptr || add_flags == nullptr ||
+      start_activity == nullptr) {
+    if (env->ExceptionCheck()) {
+      env->ExceptionDescribe();
+      env->ExceptionClear();
+    }
+    return false;
+  }
+  jstring package_name =
+      static_cast<jstring>(env->CallObjectMethod(activity, get_package));
+  const char *package_chars = package_name != nullptr
+                                  ? env->GetStringUTFChars(package_name, nullptr)
+                                  : nullptr;
+  const std::string authority =
+      package_chars != nullptr ? std::string(package_chars) + ".fileprovider"
+                               : std::string();
+  if (package_chars != nullptr) {
+    env->ReleaseStringUTFChars(package_name, package_chars);
+  }
+  if (package_name != nullptr) {
+    env->DeleteLocalRef(package_name);
+  }
+  if (authority.empty()) {
+    return false;
+  }
+  jstring path_string = env->NewStringUTF(path.string().c_str());
+  jstring authority_string = env->NewStringUTF(authority.c_str());
+  jobject file = env->NewObject(file_class, file_ctor, path_string);
+  jobject uri = env->CallStaticObjectMethod(provider_class, get_uri, activity,
+                                             authority_string, file);
+  if (env->ExceptionCheck()) {
+    env->ExceptionDescribe();
+    env->ExceptionClear();
+  }
+  jstring action = env->NewStringUTF("android.intent.action.VIEW");
+  jstring mime = env->NewStringUTF("vnd.android.document/directory");
+  const auto start = [&](const char *target_package) {
+    jobject intent = env->NewObject(intent_class, intent_ctor, action);
+    env->CallObjectMethod(intent, set_data_and_type, uri, mime);
+    if (target_package != nullptr) {
+      jstring package = env->NewStringUTF(target_package);
+      env->CallObjectMethod(intent, set_package, package);
+      env->DeleteLocalRef(package);
+    }
+    env->CallObjectMethod(intent, add_flags, static_cast<jint>(0x10000003));
+    env->CallVoidMethod(activity, start_activity, intent);
+    env->DeleteLocalRef(intent);
+    if (env->ExceptionCheck()) {
+      env->ExceptionDescribe();
+      env->ExceptionClear();
+      return false;
+    }
+    return true;
+  };
+  bool started = uri != nullptr && start("com.android.documentsui");
+  if (!started && uri != nullptr) {
+    started = start(nullptr);
+  }
+  env->DeleteLocalRef(mime);
+  env->DeleteLocalRef(action);
+  if (uri != nullptr) {
+    env->DeleteLocalRef(uri);
+  }
+  env->DeleteLocalRef(file);
+  env->DeleteLocalRef(authority_string);
+  env->DeleteLocalRef(path_string);
+  env->DeleteLocalRef(intent_class);
+  env->DeleteLocalRef(provider_class);
+  env->DeleteLocalRef(file_class);
+  env->DeleteLocalRef(context_class);
+  return started;
 }
 
 void android_prepare_runtime_files() {
