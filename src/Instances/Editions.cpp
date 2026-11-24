@@ -22,13 +22,6 @@ const std::vector<Edition> &build_base_editions() {
        "LCEWindows64.zip",
        "/images/minecraft_title_hellishends.png", "/images/hellishEndsIcon.png",
        "hellishends", "", false, false, false, false, false, false},
-      {"ntce", "Project NTCE",
-       "A LCE Project which aims to bring the feel and functionality from "
-       "Minecraft: Playstation Edition directly natively to your PC!",
-       "https://git.neolegacy.dev/ProjectLCE/Client/releases/download/latest/"
-       "MinecraftPS4Edition.zip",
-       "/images/MinecraftPS4Edition.png", "/images/projectlce.png",
-       "legacyorbis", "", true, false, false, false, false, false},
       {"lostlegacy", "Minecraft Lost Legacy",
        "Downporting project aiming at bringing back the feel of Title Update 1 "
        "with extra QoL features.",
