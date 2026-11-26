@@ -140,7 +140,7 @@
     }
     .modal-btn-flex { flex: 1; }
     .modal-actions { width: 100%; gap: 12px; align: center; justify: center; }
-    .modal-input { width: 100%; font-size: 18px; }
+    .modal-input { width: 360px; font-size: 18px; }
     .modal-row { width: 100%; height: 48px; align: center; gap: 12px; padding: 0px 12px; }
     .modal-row:hover { background: rgba(0, 0, 0, 0.2); }
     .selected { background: rgba(0, 0, 0, 0.2); }
@@ -274,53 +274,50 @@
           <label text="{{authSubmitLabel}}"/>
         </button>
       </column>
-      <column class="backdrop" if="{{addFriendOpen}}" align="center" justify="center" style="position:absolute;left:0px;top:0px;width:1280px;height:720px">
-        <column class="modalframe modal-addfriend">
-          <label class="modal-title" text="{{t:lceOnline.addFriend}}"/>
-          <textinput id="lceonline-add-friend" class="modal-input" value="" onsubmit="lceonline.addFriend.submit" label="{{t:lceOnline.username}}"/>
-          <row class="modal-actions">
-            <button class="modal-btn modal-btn-flex modal-btn-accent" onclick="lceonline.addFriend.submit">
-              <label text="{{t:lceOnline.send}}"/>
-            </button>
-            <button class="modal-btn modal-btn-flex" onclick="lceonline.addFriend.cancel">
-              <label text="{{t:lceOnline.cancel}}"/>
-            </button>
-          </row>
-        </column>
-      </column>
-      <column class="backdrop" if="{{joinOpen}}" align="center" justify="center" style="position:absolute;left:0px;top:0px;width:1280px;height:720px">
-        <column class="modalframe modal-join">
-          <label class="modal-title" text="{{t:modals.chooseInstance.title}}"/>
-          <label class="modal-prompt" text="{{joinPrompt}}"/>
-          <label if="{{noInstances}}" class="modal-warn" text="{{t:modals.chooseInstance.noInstances}}"/>
-          <scroll width="100%" height="280px" hide-partial="true">
-            <column gap="4" width="100%">
-              <row foreach="{{instances}}" as="instance" class="modal-row {{instance.selectedClass}}" onclick="lceonline.join.select:{{instance.id}}">
-                <image class="modal-row-logo" src="{{instance.logo}}" fit="contain"/>
-                <label class="modal-row-name" text="{{instance.name}}"/>
-              </row>
-            </column>
-          </scroll>
-          <label if="{{joining}}" class="modal-launching" text="{{t:modals.chooseInstance.launching}}"/>
-          <row class="modal-actions">
-            <button if="{{hasInstances}}" class="modal-btn modal-btn-accent" onclick="lceonline.join.confirm">
-              <label text="{{t:modals.chooseInstance.join}}"/>
-            </button>
-            <button class="modal-btn" onclick="lceonline.join.close">
-              <label text="{{t:modals.chooseInstance.cancel}}"/>
-            </button>
-          </row>
-        </column>
-      </column>
-      <column class="backdrop" if="{{error}}" align="center" justify="center" style="position:absolute;left:0px;top:0px;width:1280px;height:720px">
-        <column class="modalframe modal-error">
-          <label class="modal-title" text="{{t:lceOnline.error}}"/>
-          <label class="modal-message" text="{{error}}"/>
-          <button class="modal-btn modal-btn-accent" onclick="lceonline.error.ok">
-            <label text="{{t:lceOnline.ok}}"/>
-          </button>
-        </column>
-      </column>
+      <modal id="lceonline-add-friend-modal"
+             open="{{addFriendOpen}}"
+             width="420px"
+             padding="12px"
+             gap="16px"
+             title="{{t:lceOnline.addFriend}}"
+             confirm-label="{{t:lceOnline.send}}"
+             cancel-label="{{t:lceOnline.cancel}}"
+             confirm="lceonline.addFriend.submit"
+             cancel="lceonline.addFriend.cancel">
+        <textinput id="lceonline-add-friend" align="center" class="modal-input" value="" onsubmit="lceonline.addFriend.submit" label="{{t:lceOnline.username}}"/>
+      </modal>
+      <modal id="lceonline-join-modal"
+             open="{{joinOpen}}"
+             width="450px"
+             padding="12px"
+             gap="12px"
+             title="{{t:modals.chooseInstance.title}}"
+             message="{{joinPrompt}}"
+             confirm-if="{{hasInstances}}"
+             confirm-label="{{t:modals.chooseInstance.join}}"
+             cancel-label="{{t:modals.chooseInstance.cancel}}"
+             confirm="lceonline.join.confirm"
+             cancel="lceonline.join.close">
+        <label if="{{noInstances}}" class="modal-warn" text="{{t:modals.chooseInstance.noInstances}}"/>
+        <scroll width="100%" height="280px" hide-partial="true">
+          <column gap="4" width="100%">
+            <row foreach="{{instances}}" as="instance" class="modal-row {{instance.selectedClass}}" onclick="lceonline.join.select:{{instance.id}}">
+              <image class="modal-row-logo" src="{{instance.logo}}" fit="contain"/>
+              <label class="modal-row-name" text="{{instance.name}}"/>
+            </row>
+          </column>
+        </scroll>
+        <label if="{{joining}}" class="modal-launching" text="{{t:modals.chooseInstance.launching}}"/>
+      </modal>
+      <modal id="lceonline-error-modal"
+             open="{{error}}"
+             width="400px"
+             padding="12px"
+             gap="16px"
+             title="{{t:lceOnline.error}}"
+             message="{{error}}"
+             confirm-label="{{t:lceOnline.ok}}"
+             confirm="lceonline.error.ok" />
     </column>
   </view>
 </ui>

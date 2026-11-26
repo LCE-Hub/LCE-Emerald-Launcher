@@ -85,10 +85,11 @@
     }
     .modal-btn-danger { color: #ff5555; }
     .modal-btn-danger:hover { color: #ff8080; }
-    .import-input { width: 100%; font-size: 16px; color: #ffffff; }
+    .import-input { width: 340px; font-size: 16px; color: #ffffff;align:center; }
+    .import-input2 { width: 300px; font-size: 16px; color: #ffffff;align:center; }
     .import-browse {
-      width: 20px;
-      height: 20px;
+      width: 35px;
+      height: 40px;
       border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
       border-width: 12px;
       padding: 2px;
@@ -96,7 +97,7 @@
     .import-browse:hover {
       border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
     }
-    .import-browse-icon { width: 28px; height: 28px; }
+    .import-browse-icon { width: 20px; height: 20px; }
     .import-path-value {
       font-size: 12px;
       color: #aaaaaa;
@@ -244,62 +245,48 @@
           </column>
         </column>
       </column>
-      <column class="backdrop" if="{{deleteModal}}" style="position:absolute;left:0px;top:0px;width:1280px;height:720px">
-        <column id="delete-modal" class="modal-frame" style="position:absolute;left:440px;top:220px;width:400px" align="center" gap="8">
-          <label class="modal-title" text="{{deleteTitle}}" />
-          <label text="{{t:versions.deleteWarning}}" />
-          <row align="center" gap="20">
-            <button class="modal-btn" onclick="versions.delete.cancel">
-              <label text="{{t:common.cancel}}"/>
-            </button>
-            <button class="modal-btn modal-btn-danger" onclick="versions.delete.confirm">
-              <label text="{{t:common.delete}}"/>
-            </button>
+      <modal id="versions-delete-modal"
+             open="{{deleteModal}}"
+             title="{{deleteTitle}}"
+             message="{{t:versions.deleteWarning}}"
+             button-order="cancel-first"
+             confirm-label="{{t:common.delete}}"
+             cancel-label="{{t:common.cancel}}"
+             confirm="versions.delete.confirm"
+             cancel="versions.delete.cancel"
+             danger="true" />
+      <modal id="versions-link-add-modal"
+             confirm-id="versions-link-add-confirm"
+             open="{{linkAddModal}}"
+             title="{{linkAddTitle}}"
+             message="{{linkAddNameLabel}}"
+             detail="{{linkAddIdLabel}}"
+             confirm-label="{{linkAddConfirmLabel}}"
+             cancel-label="{{t:common.cancel}}"
+             confirm="versions.linkAdd.confirm"
+             cancel="versions.linkAdd.cancel" />
+      <modal id="versions-import-modal"
+             confirm-id="versions-import-submit"
+             open="{{importModal}}"
+             width="400px"
+             padding="12px"
+             title="{{importTitle}}"
+             confirm-label="{{importSubmitLabel}}"
+             confirm="versions.import.submit"
+             cancel="versions.import.cancel">
+        <column width="100%" gap="6">
+          <textinput id="versions-import-name" class="import-input" value="{{importName}}" label="{{t:modals.customTu.tuName}}" onsubmit="versions.import.name" />
+          <textinput id="versions-import-desc" class="import-input" value="{{importDesc}}" label="{{t:modals.customTu.description}}" onsubmit="versions.import.desc" />
+          <row gap="6" align="center">
+            <textinput id="versions-import-url" class="import-input2" value="{{importUrl}}" label="{{t:modals.customTu.downloadUrl}}" onsubmit="versions.import.url" />
+            <column align="center"><row height="20px"/><button id="versions-import-browse" class="import-browse" onclick="versions.import.browse">
+              <image class="import-browse-icon" src="/images/Folder_Icon.png" />
+            </button></column>
           </row>
+          <label if="{{importPath}}" class="import-path-value" text="{{importPath}}" />
+          <label if="{{importError}}" class="error-label" text="{{importError}}" />
         </column>
-      </column>
-      <column class="backdrop" if="{{linkAddModal}}" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" align="center" justify="center" onclick="versions.linkAdd.cancel">
-        <column id="versions-link-add-modal" class="options-bg" style="width:480px;padding:16px" align="center" gap="8" onclick="versions.linkAdd.block">
-          <label class="modal-title" text="{{linkAddTitle}}" />
-          <label class="modal-subtitle" text="{{linkAddNameLabel}}" />
-          <label class="modal-subtitle" text="{{linkAddIdLabel}}" />
-          <column align="center" gap="4">
-            <button id="versions-link-add-confirm" class="modal-btn" onclick="versions.linkAdd.confirm">
-              <label text="{{linkAddConfirmLabel}}"/>
-            </button>
-            <button class="modal-btn" onclick="versions.linkAdd.cancel">
-              <label text="{{t:common.cancel}}"/>
-            </button>
-          </column>
-        </column>
-      </column>
-      <column class="backdrop" if="{{importModal}}" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" onclick="versions.import.cancel">
-        <column id="versions-import-modal" class="options-bg" style="position:absolute;left:440px;top:120px;width:400px" padding="12" align="center" gap="8" onclick="versions.import.block">
-          <label class="modal-title" text="{{importTitle}}" />
-          <column width="100%" gap="6">
-            <textinput id="versions-import-name" class="import-input" value="{{importName}}" label="{{t:modals.customTu.tuName}}" onsubmit="versions.import.name" />
-            <textinput id="versions-import-desc" class="import-input" value="{{importDesc}}" label="{{t:modals.customTu.description}}" onsubmit="versions.import.desc" />
-            <row width="100%" gap="6" align="center">
-              <column flex="1">
-                <textinput id="versions-import-url" class="import-input" value="{{importUrl}}" label="{{t:modals.customTu.downloadUrl}}" onsubmit="versions.import.url" />
-              </column>
-              <button id="versions-import-browse" class="import-browse" onclick="versions.import.browse">
-                <image class="import-browse-icon" src="/images/Folder_Icon.png" />
-              </button>
-            </row>
-            <label if="{{importPath}}" class="import-path-value" text="{{importPath}}" />
-            <label if="{{importError}}" class="error-label" text="{{importError}}" />
-          </column>
-          <row align="center" gap="20">
-            <button class="modal-btn" onclick="versions.import.cancel">
-              <label text="{{t:common.cancel}}"/>
-            </button>
-            <button id="versions-import-submit" class="modal-btn" onclick="versions.import.submit">
-              <label text="{{importSubmitLabel}}"/>
-            </button>
-          </row>
-        </column>
-      </column>
+      </modal>
     </column>
   </view>
 </ui>

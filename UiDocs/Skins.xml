@@ -143,7 +143,7 @@
       font-size: 14px;
       text-shadow: #3f3f3f 1px 1px;
     }
-    .modal-input { width: 100%; font-size: 18px; }
+    .modal-input { width: 360px; font-size: 18px; }
   </style>
   <template name="SkinRow">
     <row class="skin-row {{activeClass}}" onclick="{{action}}" align="stretch" gap="12px">
@@ -228,38 +228,37 @@
           <label text="{{t:common.back}}"/>
         </button>
       </column>
-      <column if="{{importOpen}}" class="backdrop" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" align="center" justify="center">
-        <column id="skins-import-modal" class="modal-frame" width="440px" align="center" gap="10">
-          <label class="modal-title" text="{{importLabel}}"/>
-          <column if="{{importRoot}}" width="100%" gap="10" align="center">
-            <button class="modal-btn-wide" onclick="skins.import.file">
-              <label text="{{t:skins.fromFile}}"/>
-            </button>
-            <button class="modal-btn-wide" onclick="skins.import.username">
-              <label text="{{t:skins.fromUsername}}"/>
-            </button>
-          </column>
-          <column if="{{importUsernameMode}}" width="100%" gap="10">
-            <textinput class="modal-input" value="{{usernameValue}}" onsubmit="skins.username"/>
-            <label if="{{importError}}" class="error-label" text="{{importError}}"/>
-            <button class="modal-btn-wide {{importingClass}}" onclick="skins.import.fetch">
-              <label text="{{fetchLabel}}"/>
-            </button>
-          </column>
-          <column if="{{importModelMode}}" width="100%" gap="10" align="center">
-            <label class="choose-label" text="{{t:skins.chooseModelType}}"/>
-            <button class="modal-btn-wide" onclick="skins.import.normal">
-              <label text="{{t:skins.normalWideArms}}"/>
-            </button>
-            <button class="modal-btn-wide" onclick="skins.import.slim">
-              <label text="{{t:skins.slimThinArms}}"/>
-            </button>
-          </column>
-          <button class="modal-btn" onclick="skins.import.back">
-            <label text="{{t:common.cancel}}"/>
+      <modal id="skins-import-modal"
+             open="{{importOpen}}"
+             width="440px"
+             padding="12px"
+             title="{{importLabel}}"
+             cancel-label="{{t:common.cancel}}"
+             cancel="skins.import.back">
+        <column if="{{importRoot}}" width="380px" gap="10" align="center">
+          <button class="modal-btn-wide" onclick="skins.import.file">
+            <label text="{{t:skins.fromFile}}"/>
+          </button>
+          <button class="modal-btn-wide" onclick="skins.import.username">
+            <label text="{{t:skins.fromUsername}}"/>
           </button>
         </column>
-      </column>
+        <column if="{{importUsernameMode}}" align="center" width="380px" gap="10">
+          <textinput class="modal-input" align="center" value="{{usernameValue}}" onsubmit="skins.username"/>
+          <label if="{{importError}}" class="error-label" text="{{importError}}"/>
+          <button class="modal-btn-wide {{importingClass}}" onclick="skins.import.fetch">
+            <label text="{{fetchLabel}}"/>
+          </button>
+        </column>
+        <column if="{{importModelMode}}" width="380px" gap="10" align="center">
+          <button class="modal-btn-wide" onclick="skins.import.normal">
+            <label text="{{t:skins.normalWideArms}}"/>
+          </button>
+          <button class="modal-btn-wide" onclick="skins.import.slim">
+            <label text="{{t:skins.slimThinArms}}"/>
+          </button>
+        </column>
+      </modal>
     </column>
   </view>
 </ui>
