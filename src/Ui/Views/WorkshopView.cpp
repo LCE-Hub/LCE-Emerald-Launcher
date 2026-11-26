@@ -101,6 +101,65 @@ bool category_matches(const instances::WorkshopPackage &package,
   return std::find(package.category.begin(), package.category.end(), tab) !=
          package.category.end();
 }
+
+bool package_has_category(const instances::WorkshopPackage &package,
+                          const std::string &category) {
+  return std::find(package.category.begin(), package.category.end(), category) !=
+         package.category.end();
+}
+
+struct TargetMatch {
+  const instances::WorkshopPackage *package = nullptr;
+  std::string tab;
+};
+
+TargetMatch find_target(const instances::WorkshopCatalog &catalog,
+                        const std::string &id, const std::string &type) {
+  const auto find_in = [&id](
+                           const std::vector<instances::WorkshopPackage> &list)
+      -> const instances::WorkshopPackage * {
+    for (const instances::WorkshopPackage &package : list) {
+      if (package.id == id) {
+        return &package;
+      }
+    }
+    return nullptr;
+  };
+  if (type == "version") {
+    if (const instances::WorkshopPackage *package = find_in(catalog.versions)) {
+      return TargetMatch{package, "Versions"};
+    }
+  } else if (type == "lceonline" || type == "plugin") {
+    if (const instances::WorkshopPackage *package = find_in(catalog.servers)) {
+      return TargetMatch{package, "Server"};
+    }
+    for (const instances::WorkshopPackage &package : catalog.packages) {
+      if (package.id == id &&
+          package_has_category(package, type == "plugin" ? "Plugin"
+                                                         : "LCEOnline")) {
+        return TargetMatch{&package, "Server"};
+      }
+    }
+  }
+  for (const instances::WorkshopPackage &package : catalog.packages) {
+    if (package.id != id) {
+      continue;
+    }
+    for (const char *tab : {"Skin", "Texture", "World", "Mod", "DLC"}) {
+      if (package_has_category(package, tab)) {
+        return TargetMatch{&package, tab};
+      }
+    }
+    return TargetMatch{&package, "Skin"};
+  }
+  if (const instances::WorkshopPackage *package = find_in(catalog.versions)) {
+    return TargetMatch{package, "Versions"};
+  }
+  if (const instances::WorkshopPackage *package = find_in(catalog.servers)) {
+    return TargetMatch{package, "Server"};
+  }
+  return {};
+}
 } // namespace
 
 WorkshopView::WorkshopView() = default;
@@ -115,6 +174,13 @@ void WorkshopView::on_enter() {
   install_open_ = false;
   uninstall_open_ = false;
   pending_queue_.clear();
+  pending_target_.reset();
+  pending_target_type_.clear();
+}
+
+void WorkshopView::set_target(const std::string &id, const std::string &type) {
+  pending_target_ = id;
+  pending_target_type_ = type;
 }
 
 Json WorkshopView::data(const UiServices &services) const {
@@ -122,6 +188,32 @@ Json WorkshopView::data(const UiServices &services) const {
   data["loading"] = true;
   data["hasError"] = false;
   data["error"] = "";
+  if (services.workshop == nullptr) {
+    return data;
+  }
+  const instances::WorkshopCatalog catalog = services.workshop->catalog();
+  const std::vector<instances::InstalledPackageEntry> installed_entries =
+      services.workshop->installed();
+  if (!catalog.loading && catalog.error.empty() &&
+      pending_target_.has_value()) {
+    const TargetMatch match =
+        find_target(catalog, *pending_target_, pending_target_type_);
+    if (match.package != nullptr) {
+      tab_ = match.tab;
+      server_category_ = "all";
+      selected_id_ = match.package->id;
+      install_target_.clear();
+      uninstall_target_.clear();
+      deps_open_ = false;
+      install_open_ = false;
+      uninstall_open_ = false;
+      if (services.focus_scope) {
+        services.focus_scope("workshop-modal");
+      }
+    }
+    pending_target_.reset();
+    pending_target_type_.clear();
+  }
   data["tab"] = tab_;
   data["search"] = search_;
   data["items"] = Json::array();
@@ -182,12 +274,6 @@ Json WorkshopView::data(const UiServices &services) const {
                   : translate(services, "workshop.enterKeywords",
                               "ENTER KEYWORDS...");
 
-  if (services.workshop == nullptr) {
-    return data;
-  }
-  const instances::WorkshopCatalog catalog = services.workshop->catalog();
-  const std::vector<instances::InstalledPackageEntry> installed_entries =
-      services.workshop->installed();
   data["loading"] = catalog.loading;
   data["hasError"] = !catalog.error.empty();
   data["error"] = translate(services, "workshop.failedToLoadRegistry",

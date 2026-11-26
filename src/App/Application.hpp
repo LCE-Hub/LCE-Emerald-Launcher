@@ -18,12 +18,14 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 struct SDL_Window;
 struct SDL_Renderer;
 struct SDL_Gamepad;
 namespace emerald::ui {
 class VersionsView;
+class WorkshopView;
 }
 namespace emerald::app {
 class Application {
@@ -34,10 +36,11 @@ public:
   Application &operator=(const Application &) = delete;
   Application(Application &&) = delete;
   Application &operator=(Application &&) = delete;
-  int run();
+  int run(const std::vector<std::string_view>& args);
 
 private:
-  bool initialize();
+  bool initialize(const std::vector<std::string_view>& args);
+  void handle_hyperlink(std::string_view url);
   void shutdown();
   void handle_event(const SDL_Event &event);
   void render();
@@ -56,6 +59,7 @@ private:
   lce::LceOnlineService lce_online_;
   std::unique_ptr<lazuli::UiSystem> ui_;
   ui::VersionsView *versions_view_ = nullptr;
+  ui::WorkshopView *workshop_view_ = nullptr;
   ui::UiServices ui_services_;
   ui::ClickVfx click_vfx_;
   std::vector<SDL_Gamepad *> gamepads_;

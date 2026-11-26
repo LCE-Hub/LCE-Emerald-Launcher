@@ -169,7 +169,9 @@
     "invalidDirectory": "Directive invalide",
     "selectEmptyDirectory": "Selectioner une directive vide pour l'installation.",
     "deleteTitle": "Supprimer {{name}}?",
-    "deleteWarning": "Attention: Toutes vos sauvegardes et mondes pour cette version vont être supprimés pour toujours!"
+    "deleteWarning": "Attention: Toutes vos sauvegardes et mondes pour cette version vont être supprimés pour toujours!",
+    "addLinkTitle": "Ajouter une version personnalisée ?",
+    "addLinkConfirm": "Ajouter"
   },
   "lceOnline": {
     "hostGame": "Héberger le jeu",

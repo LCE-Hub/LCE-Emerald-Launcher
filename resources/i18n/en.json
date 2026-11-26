@@ -169,7 +169,9 @@
     "invalidDirectory": "Invalid Directory",
     "selectEmptyDirectory": "Please select an empty directory for installation.",
     "deleteTitle": "Delete {{name}}?",
-    "deleteWarning": "Warning: All your saves and worlds for this version will be permanently deleted!"
+    "deleteWarning": "Warning: All your saves and worlds for this version will be permanently deleted!",
+    "addLinkTitle": "Add custom version?",
+    "addLinkConfirm": "Add"
   },
   "lceOnline": {
     "hostGame": "Host Game",

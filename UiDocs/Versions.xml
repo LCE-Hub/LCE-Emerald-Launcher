@@ -69,9 +69,10 @@
       border-width: 12px;
       font-size: 18px;
     }
-    .modal-title { color: #ffff55; font-size: 22px; }
+    .modal-title { color: #424242; font-size: 22px; text-shadow: #000000 0px 0px; }
+    .modal-subtitle { color: #424242; font-size: 16px; text-shadow: #000000 0px 0px; }
     .modal-btn {
-      width: 140px;
+      width: 420px;
       height: 40px;
       font-size: 18px;
       color: #ffffff;
@@ -255,6 +256,21 @@
               <label text="{{t:common.delete}}"/>
             </button>
           </row>
+        </column>
+      </column>
+      <column class="backdrop" if="{{linkAddModal}}" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" align="center" justify="center" onclick="versions.linkAdd.cancel">
+        <column id="versions-link-add-modal" class="options-bg" style="width:480px;padding:16px" align="center" gap="8" onclick="versions.linkAdd.block">
+          <label class="modal-title" text="{{linkAddTitle}}" />
+          <label class="modal-subtitle" text="{{linkAddNameLabel}}" />
+          <label class="modal-subtitle" text="{{linkAddIdLabel}}" />
+          <column align="center" gap="4">
+            <button id="versions-link-add-confirm" class="modal-btn" onclick="versions.linkAdd.confirm">
+              <label text="{{linkAddConfirmLabel}}"/>
+            </button>
+            <button class="modal-btn" onclick="versions.linkAdd.cancel">
+              <label text="{{t:common.cancel}}"/>
+            </button>
+          </column>
         </column>
       </column>
       <column class="backdrop" if="{{importModal}}" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" onclick="versions.import.cancel">

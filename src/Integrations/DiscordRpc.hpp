@@ -1,11 +1,14 @@
 #pragma once
 #include "Config/ConfigStore.hpp"
+#include "discord_ipc_cpp/ipc_types.hpp"
 #include <atomic>
 #include <cstdint>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
+#include <unordered_map>
 namespace discord_ipc_cpp {
 class DiscordIPCClient;
 }
@@ -25,6 +28,7 @@ struct DiscordState {
   int download_percent = 0;
   int downloading_count = 0;
   int joined_clients = 0;
+  discord_ipc_cpp::ipc_types::RichPresence currentrpc;
 };
 
 class DiscordRpc {
@@ -43,7 +47,9 @@ private:
   void run();
   bool ensure_started();
   void stop_client();
-  void refresh(const DiscordState &state);
+  std::string asset_url(const std::string &logo);
+  std::string upload_logo(const std::string &path);
+  void refresh(DiscordState &state);
   std::unique_ptr<discord_ipc_cpp::DiscordIPCClient> client_;
   bool started_ = false;
   uint64_t start_time_ = 0;
@@ -53,5 +59,8 @@ private:
   std::atomic<bool> enabled_{true};
   std::mutex state_mutex_;
   DiscordState pending_state_;
+  DiscordState currentstate_;
+  std::optional<std::string> proxy_;
+  std::unordered_map<std::string, std::string> uploaded_logos_;
 };
 } // namespace emerald::integrations

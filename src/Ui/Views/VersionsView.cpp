@@ -26,6 +26,7 @@ constexpr const char *kArgsSchemaFile = "Arguments.Schema.json";
 constexpr const char *kGearMenuScope = "gear-menu";
 constexpr const char *kDeleteModalScope = "delete-modal";
 constexpr const char *kImportModalScope = "versions-import-modal";
+constexpr const char *kLinkAddModalScope = "versions-link-add-modal";
 constexpr const char *kEditionRowPrefix = "edition-";
 constexpr const char *kAddInstanceId = "add-instance";
 constexpr int kMenuFirstRowTop = 244;
@@ -111,6 +112,21 @@ Json VersionsView::data(const UiServices &services) const {
   data["importUrl"] = import_url_;
   data["importPath"] = import_path_;
   data["importError"] = import_error_;
+  data["linkAddModal"] = link_add_modal_;
+  data["linkAddTitle"] =
+      translate(services, "versions.addLinkTitle", "Add custom version?");
+  data["linkAddConfirmLabel"] =
+      translate(services, "versions.addLinkConfirm", "Add");
+  const std::string link_name =
+      link_add_edition_.has_value() ? link_add_edition_->name : std::string();
+  const std::string link_id =
+      link_add_edition_.has_value() ? link_add_edition_->id : std::string();
+  const std::string link_url =
+      link_add_edition_.has_value() ? link_add_edition_->url : std::string();
+  data["linkAddNameLabel"] =
+      translate(services, "modals.customTu.tuName", "TU Name") + ": " +
+      link_name;
+  data["linkAddIdLabel"] = "ID: " + link_id;
   Json items = Json::array();
   Json danger_items = Json::array();
   data["menuItems"] = Json::array();
@@ -447,6 +463,68 @@ void VersionsView::close_import_modal(UiServices &services) {
   }
 }
 
+void VersionsView::close_link_add_modal(UiServices &services) {
+  if (!link_add_modal_) {
+    return;
+  }
+  link_add_modal_ = false;
+  link_add_edition_.reset();
+  if (services.focus_scope) {
+    services.focus_scope("");
+  }
+  if (services.focus_element) {
+    services.focus_element(kAddInstanceId);
+  }
+}
+
+bool VersionsView::commit_custom_edition(UiServices &services,
+                                         const config::CustomEdition &edition,
+                                         bool set_profile) {
+  if (services.config == nullptr || edition.id.empty() || edition.name.empty()) {
+    return false;
+  }
+  auto &custom_editions = services.config->data().custom_editions;
+  if (!custom_editions.has_value()) {
+    custom_editions = std::vector<config::CustomEdition>{};
+  }
+  bool replaced = false;
+  for (config::CustomEdition &existing : *custom_editions) {
+    if (existing.id != edition.id) {
+      continue;
+    }
+    existing = edition;
+    replaced = true;
+    break;
+  }
+  if (!replaced) {
+    custom_editions->push_back(edition);
+  }
+  if (set_profile) {
+    services.config->data().profile = edition.id;
+    skins::SkinUiState::instance().sync_needed = true;
+  }
+  services.config->save();
+  return true;
+}
+
+void VersionsView::request_add_from_link(UiServices &services,
+                                         const config::CustomEdition &edition) {
+  close_menu(services);
+  close_delete_modal(services);
+  close_import_modal(services);
+  link_add_edition_ = edition;
+  link_add_modal_ = true;
+  if (services.focus_scope) {
+    services.focus_scope(kLinkAddModalScope);
+  }
+  if (services.focus_element) {
+    services.focus_element("versions-link-add-confirm");
+  }
+  if (services.audio != nullptr) {
+    services.audio->play_press();
+  }
+}
+
 bool VersionsView::save_import_modal(UiServices &services) {
   if (import_name_.empty()) {
     import_error_ = translate(services, "modals.customTu.nameRequired",
@@ -486,29 +564,9 @@ bool VersionsView::save_import_modal(UiServices &services) {
   if (!import_path_.empty()) {
     edition.path = import_path_;
   }
-  auto &custom_editions = services.config->data().custom_editions;
-  if (!custom_editions.has_value()) {
-    custom_editions = std::vector<config::CustomEdition>{};
+  if (!commit_custom_edition(services, edition, !import_editing_)) {
+    return true;
   }
-  if (import_editing_) {
-    bool replaced = false;
-    for (config::CustomEdition &existing : *custom_editions) {
-      if (existing.id != id) {
-        continue;
-      }
-      existing = std::move(edition);
-      replaced = true;
-      break;
-    }
-    if (!replaced) {
-      custom_editions->push_back(std::move(edition));
-    }
-  } else {
-    custom_editions->push_back(std::move(edition));
-    services.config->data().profile = id;
-    skins::SkinUiState::instance().sync_needed = true;
-  }
-  services.config->save();
   close_import_modal(services);
   if (services.audio != nullptr) {
     services.audio->play_press();
@@ -708,6 +766,34 @@ bool VersionsView::action(std::string_view name, UiServices &services) {
     return save_import_modal(services);
   }
 
+  if (action == "versions.linkAdd.block") {
+    return true;
+  }
+
+  if (action == "versions.linkAdd.cancel") {
+    close_link_add_modal(services);
+    if (services.audio != nullptr) {
+      services.audio->play_back();
+    }
+    return true;
+  }
+
+  if (action == "versions.linkAdd.confirm") {
+    const std::optional<config::CustomEdition> edition = link_add_edition_;
+    close_link_add_modal(services);
+    if (!edition.has_value()) {
+      return true;
+    }
+    if (!commit_custom_edition(services, *edition, true)) {
+      return true;
+    }
+    status_ = "Added " + edition->name;
+    if (services.audio != nullptr) {
+      services.audio->play_press();
+    }
+    return true;
+  }
+
   if (verb == "versions.delete") {
     close_menu(services);
     delete_pending_id_ = argument;
@@ -748,6 +834,13 @@ bool VersionsView::action(std::string_view name, UiServices &services) {
 }
 
 bool VersionsView::on_escape(UiServices &services) {
+  if (link_add_modal_) {
+    close_link_add_modal(services);
+    if (services.audio != nullptr) {
+      services.audio->play_back();
+    }
+    return true;
+  }
   if (import_modal_) {
     close_import_modal(services);
     if (services.audio != nullptr) {

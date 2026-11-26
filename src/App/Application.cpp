@@ -2,12 +2,14 @@
 #include "Core/EmbeddedAssets.hpp"
 #include "Core/Log.hpp"
 #include "Core/Paths.hpp"
+#include "Launch/Servers.hpp"
 #include "Migration/Migration.hpp"
 #include "Skins/SkinElements.hpp"
 #include "Skins/SkinSync.hpp"
 #include "Skins/SkinUiState.hpp"
 #include "Ui/AppViews.hpp"
 #include "Ui/Views/VersionsView.hpp"
+#include "Ui/Views/WorkshopView.hpp"
 #include "lazuli/Log.hpp"
 #include "Ui/EditionResolver.hpp"
 #include "Platform/AndroidBridge.hpp"
@@ -16,6 +18,7 @@
 #include <filesystem>
 #include <format>
 #include <optional>
+#include <string_view>
 #include <vector>
 namespace emerald::app {
 namespace {
@@ -61,11 +64,107 @@ std::filesystem::path resolve_root(const char *env, const char *name) {
   }
   return bundle_root() / name;
 }
+
+int hex_value(char character) {
+  if (character >= '0' && character <= '9') {
+    return character - '0';
+  }
+  if (character >= 'a' && character <= 'f') {
+    return character - 'a' + 10;
+  }
+  if (character >= 'A' && character <= 'F') {
+    return character - 'A' + 10;
+  }
+  return -1;
+}
+
+std::string url_decode(std::string_view value, bool plus_as_space = false) {
+  std::string decoded;
+  decoded.reserve(value.size());
+  for (std::size_t index = 0; index < value.size(); ++index) {
+    if (value[index] == '%' && index + 2 < value.size()) {
+      const int high = hex_value(value[index + 1]);
+      const int low = hex_value(value[index + 2]);
+      if (high >= 0 && low >= 0) {
+        decoded.push_back(static_cast<char>((high << 4) | low));
+        index += 2;
+        continue;
+      }
+    }
+    decoded.push_back(plus_as_space && value[index] == '+' ? ' ' : value[index]);
+  }
+  return decoded;
+}
+
+std::vector<std::string> split_on(std::string_view value, char delimiter) {
+  std::vector<std::string> parts;
+  std::size_t begin = 0;
+  while (begin <= value.size()) {
+    const std::size_t end = value.find(delimiter, begin);
+    const std::size_t length =
+        end == std::string_view::npos ? std::string_view::npos : end - begin;
+    parts.emplace_back(value.substr(begin, length));
+    if (end == std::string_view::npos) {
+      break;
+    }
+    begin = end + 1;
+  }
+  return parts;
+}
+
+struct Hyperlink {
+  std::vector<std::string> parts;
+  std::string query;
+};
+
+std::optional<Hyperlink> parse_hyperlink(std::string_view url) {
+  constexpr std::string_view scheme = "emerald://";
+  if (!url.starts_with(scheme)) {
+    return std::nullopt;
+  }
+  std::string_view rest = url.substr(scheme.size());
+  const std::size_t fragment = rest.find('#');
+  if (fragment != std::string_view::npos) {
+    rest = rest.substr(0, fragment);
+  }
+  Hyperlink link;
+  const std::size_t query = rest.find('?');
+  if (query != std::string_view::npos) {
+    link.query = std::string(rest.substr(query + 1));
+    rest = rest.substr(0, query);
+  }
+  for (const std::string &part : split_on(rest, '/')) {
+    if (part.empty()) {
+      continue;
+    }
+    link.parts.push_back(url_decode(part));
+  }
+  if (link.parts.empty()) {
+    return std::nullopt;
+  }
+  return link;
+}
+
+std::optional<std::string> query_value(std::string_view query,
+                                       std::string_view key) {
+  for (const std::string &pair : split_on(query, '&')) {
+    const std::size_t equals = pair.find('=');
+    if (url_decode(std::string_view(pair).substr(0, equals)) !=
+        std::string(key)) {
+      continue;
+    }
+    if (equals == std::string::npos) {
+      return std::string();
+    }
+    return url_decode(std::string_view(pair).substr(equals + 1), true);
+  }
+  return std::nullopt;
+}
 } // namespace
 
 Application::Application() = default;
 Application::~Application() { shutdown(); }
-bool Application::initialize() {
+bool Application::initialize(const std::vector<std::string_view>& args) {
   SDL_SetAppMetadata("Emerald Legacy Launcher", EMERALD_VERSION,
                      "com.emerald.legacy");
   platform::android_prepare_runtime_files();
@@ -160,7 +259,7 @@ bool Application::initialize() {
   ui_ = std::make_unique<lazuli::UiSystem>(renderer_, ui_docs_root, public_root,
                                            resource_root / "i18n");
   ui_->set_status_text(EMERALD_VERSION_TEXT);
-  ui::register_views(*ui_, &versions_view_);
+  ui::register_views(*ui_, &versions_view_, &workshop_view_);
   ui::UiServices &services = ui_services_;
   services.config = &config_;
   services.playtime = &playtime_;
@@ -289,9 +388,93 @@ bool Application::initialize() {
     return false;
   }
   ui_->set_language(config_.data().language.value_or("en"));
-  ui_->navigate("home");
+  //neo: note: dont args[0] without checking length first.. it segfaults lol
+  if (!args.empty() && args.size() > 0) { //neo: im very scared of segfaults.
+      if (args.at(0).starts_with("emerald://")) {
+          core::info(std::format(":: started from hyperlink\n->\t{}", args.at(0)));
+          handle_hyperlink(args.at(0));
+      }
+      for (const std::string_view arg : args) {
+          if (arg == "--version") { core::info(std::format("--------------------\nEmerald Launcher " EMERALD_VERSION_TEXT "\nEmbedded Build ID: {}\nA project by the LCE Hub.", core::embedded::build_id())); shutdown(); return false;}
+      }
+  }
+  if (ui_->current_view().empty()) {
+    ui_->navigate("home");
+  }
   audio_.start_music();
   return true;
+}
+
+void Application::handle_hyperlink(std::string_view url) {
+  const std::optional<Hyperlink> link = parse_hyperlink(url);
+  if (!link.has_value()) {
+    return;
+  }
+  const std::string &action = link->parts[0];
+  if (action == "launch") {
+    if (link->parts.size() >= 2) {
+      std::string instance_id = link->parts[1];
+      if (instance_id == "neolegacy") instance_id = "legacy_evolved"; //neo: piebot said so hehehehehe
+      launch_.start(instance_id, {});
+      return;
+    }
+    ui_->navigate("home");
+    launch_.start(config_.data().profile.value_or("legacy_evolved"),
+                  launch::partnership_servers());
+    return;
+  }
+  if (action == "lceonline" && link->parts.size() >= 2) {
+    ui_->navigate("lceonline");
+    if (link->parts[1] == "addfriend") {
+      const std::optional<std::string> username =
+          query_value(link->query, "username");
+      if (username.has_value() && !username->empty()) {
+        lce_online_.send_request(*username);
+      }
+    }
+    return;
+  }
+  if (action == "workshop" && link->parts.size() >= 2) {
+    ui_->navigate("workshop");
+    if (workshop_view_ != nullptr) {
+      std::string type = query_value(link->query, "type").value_or("");
+      if (type.empty()) {
+        for (const char *candidate :
+             {"normal", "bytebukkit", "plugin", "version"}) {
+          if (query_value(link->query, candidate).has_value()) {
+            type = candidate;
+            break;
+          }
+        }
+      }
+      workshop_view_->set_target(link->parts[1], type);
+    }
+    return;
+  }
+  if (action == "versions" && link->parts.size() >= 2 &&
+      link->parts[1] == "add") {
+    const std::optional<std::string> name_value =
+        query_value(link->query, "name");
+    const std::optional<std::string> id_value = query_value(link->query, "id");
+    const std::optional<std::string> url_value = query_value(link->query, "url");
+    ui_->navigate("versions");
+    if (name_value.has_value() && !name_value->empty() && id_value.has_value() &&
+        !id_value->empty() && url_value.has_value() &&
+        url_value->starts_with("http")) {
+      config::CustomEdition edition;
+      edition.id = *id_value;
+      edition.name = *name_value;
+      edition.desc =
+          ui_->translate("modals.customTu.defaultDesc", "Custom imported TU");
+      edition.url = *url_value;
+      if (versions_view_ != nullptr) {
+        versions_view_->request_add_from_link(ui_services_, edition);
+        ui_->invalidate();
+      }
+    }
+    return;
+  }
+  ui_->navigate(action == "main" ? "home" : action);
 }
 
 void Application::shutdown() {
@@ -563,8 +746,8 @@ void Application::render() {
   ui_->render();
 }
 
-int Application::run() {
-  if (!initialize()) {
+int Application::run(const std::vector<std::string_view>& args) {
+  if (!initialize(args)) {
     shutdown();
     return 1;
   }
