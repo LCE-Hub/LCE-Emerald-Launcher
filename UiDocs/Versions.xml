@@ -1,0 +1,569 @@
+<ui xmlns="emerald" version="1">
+  <import href="Common/Buttons.xml"/>
+  <import href="Common/TitleImage.xml"/>
+  <style>
+    .options-bg {
+      border-image: url(/images/options_background.png) 4 fill / 12px;
+      border-width: 12px;
+    }
+    .version-recess {
+      border-image: url(/images/versionrecess.png) 12 30 30 12 fill / 12px 30px 30px 12px;
+      border-width: 12px;
+    }
+    .edition-row {
+      padding: 0;
+      gap: 12px;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+      color: #ffffff;
+    }
+    .edition-row:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+    }
+    .selected {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .edition-logo {
+      width: 48px;
+      height: 48px;
+    }
+    .edition-name {
+      font-size: 20px;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .badge-custom {
+      font-size: 10px;
+      padding: 1.5px;
+      background: #777777;
+      color: #222222;
+    }
+    .action-btn {
+      width: 40px;
+      height: 40px;
+      background-image: /images/checkbox.png;
+      padding: 4px;
+    }
+    .action-btn:hover {
+      background-image: /images/checkbox_highlighted.png;
+    }
+    .action-icon {
+      width: 32px;
+      height: 32px;
+    }
+    .gear-btn-open {
+      background-image: /images/checkbox_highlighted.png;
+    }
+    .desc-bg {
+      border-image: url(/images/helpbg.png) 7 16 16 7 fill / 7px 16px 16px 7px;
+      border-width: 12px;
+    }
+    .desc-label {
+      font-size: 20px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .backdrop { background: rgba(0, 0, 0, 0.8); }
+    .modal-frame {
+      border-image: url(/images/frame_background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+      font-size: 18px;
+    }
+    .modal-title { color: #424242; font-size: 22px; text-shadow: #000000 0px 0px; }
+    .modal-subtitle { color: #424242; font-size: 16px; text-shadow: #000000 0px 0px; }
+    .modal-btn {
+      width: 420px;
+      height: 40px;
+      font-size: 18px;
+      color: #ffffff;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .modal-btn:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .modal-btn-sel {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .modal-btn-danger { color: #ff5555; }
+    .modal-btn-danger:hover { color: #ff8080; }
+    .import-input { width: 340px; font-size: 16px; color: #ffffff;align:center; }
+    .import-input2 { width: 300px; font-size: 16px; color: #ffffff;align:center; }
+    .import-browse {
+      width: 35px;
+      height: 40px;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+      padding: 2px;
+    }
+    .import-browse:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+    }
+    .import-browse-icon { width: 20px; height: 20px; }
+    .import-path-value {
+      font-size: 12px;
+      color: #aaaaaa;
+      text-shadow: #000000 1px 1px;
+    }
+    .error-label {
+      font-size: 14px;
+      color: #ff8080;
+      text-shadow: #3f3f3f 1px 1px;
+    }
+    .add-instance-btn {
+      width: 97.9%;
+      height: 40px;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+      color: #ffffff;
+      padding: 4px;
+    }
+    .add-instance-btn:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .add-instance-label { font-size: 16px; }
+    .gear-menu-shell {
+      background: #4b4b4b;
+    }
+    .gear-menu {
+      background: #1b1b1b;
+      padding: 6px;
+      gap: 2px;
+    }
+    .gear-menu-title {
+      font-size: 16px;
+      color: #ffff55;
+      text-shadow: #000000 1px 1px;
+    }
+    .gear-menu-sep {
+      width: 100%;
+      height: 1px;
+      background: #3a3a3a;
+    }
+    .gear-menu-item {
+      width: 100%;
+      height: 32px;
+      gap: 10px;
+      color: #dddddd;
+      text-shadow: #000000 1px 1px;
+    }
+    .gear-menu-item:hover {
+      background: #3c3c3c;
+      color: #ffff55;
+    }
+    .gear-menu-item-danger { color: #ff6b6b; }
+    .gear-menu-item-danger:hover {
+      background: #4a2222;
+      color: #ff9d9d;
+    }
+    .gear-menu-icon {
+      width: 20px;
+      height: 20px;
+    }
+    .gear-menu-label {
+      font-size: 14px;
+    }
+    .option-row {
+      background: #2a2a2a;
+      padding: 4px;
+    }
+    .option-disabled { color: #777777; }
+    .dlc-entry {
+      width: 100%;
+      height: 28px;
+      padding: 4px;
+      gap: 6px;
+      background: #2a2a2a;
+      color: #dddddd;
+    }
+    .dlc-entry:hover { background: #3c3c3c; color: #ffff55; }
+    .dlc-entry-selected { background: #333333; color: #ffff55; }
+    .channel-entry { width: 100%; height: 28px; color: #dddddd; }
+    .channel-entry:hover { background: #3c3c3c; color: #ffff55; }
+    .channel-entry-selected { color: #ffff55; }
+    .playtime-row {
+      width: 100%;
+      height: 28px;
+      padding: 4px;
+      background: #2a2a2a;
+    }
+  </style>
+  <template name="EditionRow">
+    <row id="{{rowId}}" class="edition-row {{rowClass}} {{addRowClass}}" onclick="{{rowAction}}" align="{{rowAlign}}" justify="{{rowJustify}}">
+      <image if="{{isEdition}}" class="edition-logo" src="{{logo}}" fit="contain" align="center" />
+      <column if="{{isEdition}}" gap="4" align="center" flex="1">
+        <row gap="8" align="start">
+          <label class="edition-name" text="{{name}}" />
+          <label if="{{isCustom}}" class="badge-custom" text="{{t:versions.custom}}" />
+        </row>
+      </column>
+      <row if="{{isEdition}}" gap="8" align="center">
+        <button if="{{showInstall}}" class="action-btn" onclick="versions.install:{{id}}">
+          <image class="action-icon" src="/images/Download_Icon.png" />
+        </button>
+        <button if="{{downloading}}" class="action-btn" onclick="versions.cancel:{{id}}">
+          <image class="action-icon" src="/images/Trash_Bin_Icon.png" />
+        </button>
+        <button class="action-btn {{gearClass}}" onclick="versions.settings:{{id}}">
+          <image if="{{updateAvailable}}" class="action-icon" src="/images/Update_Icon.png" />
+          <image if="{{showGear}}" class="action-icon" src="/images/gear.png" />
+        </button>
+      </row>
+      <label if="{{isAdd}}" class="add-instance-label" text="+ Import Instance"/>
+    </row>
+  </template>
+  <view id="versions">
+    <tooltip icon="A">{{t:common.select}}</tooltip>
+    <tooltip icon="B" action="@back">{{t:common.back}}</tooltip>
+    <tooltip icon="Y" action="versions.import.open">{{t:modals.customTu.importTitle}}</tooltip>
+    <column width="1280px" height="720px" align="center" padding="40">
+      <use template="TitleImage"/>
+      <column height="20px"/>
+      <column class="options-bg" padding="4" width="1024px" height="372px" align="center">
+        <scroll class="version-recess" width="100%" height="100%" id="edition-list" hide-partial="true">
+          <column gap="4" width="97.9%" foreach="{{editions}}" as="edition">
+            <use template="EditionRow"
+              id="{{edition.id}}"
+              name="{{edition.name}}"
+              isAdd="{{edition.isAdd}}"
+              isEdition="{{edition.isEdition}}"
+              rowId="{{edition.rowId}}"
+              rowAction="{{edition.rowAction}}"
+              rowAlign="{{edition.rowAlign}}"
+              rowJustify="{{edition.rowJustify}}"
+              addRowClass="{{edition.addRowClass}}"
+              logo="{{edition.logo}}"
+              isCustom="{{edition.isCustom}}"
+              notInstalled="{{edition.notInstalled}}"
+              showInstall="{{edition.showInstall}}"
+              showGear="{{edition.showGear}}"
+              updateAvailable="{{edition.updateAvailable}}"
+              downloading="{{edition.downloading}}"
+              downloadPercentText="{{edition.downloadPercentText}}"
+              rowClass="{{edition.rowClass}}"
+              gearClass="{{edition.gearClass}}" />
+          </column>
+        </scroll>
+      </column>
+      <column height="8px"/>
+      <column class="desc-bg" width="1024px" height="60px" align="center">
+        <label class="desc-label" text="{{selectedDesc}}" />
+      </column>
+      <column class="backdrop" if="{{settingsMenu}}" style="position:absolute;left:0px;top:0px;width:1280px;height:720px" onclick="versions.menu.close">
+        <column class="gear-menu-shell" style="position:absolute;left:841px;top:{{menuTop}}px;width:250px" padding="2px">
+          <column id="gear-menu" class="gear-menu" gap="2px">
+            <label class="gear-menu-title" text="{{menuTitle}}" />
+            <column class="gear-menu-sep" />
+            <column foreach="{{menuItems}}" as="item" gap="2px">
+              <row class="gear-menu-item {{item.itemClass}}" onclick="{{item.action}}" gap="10px">
+                <image class="gear-menu-icon" src="{{item.icon}}" fit="contain" align="center" />
+                <label class="gear-menu-label" text="{{item.label}}" align="center" />
+              </row>
+            </column>
+            <column class="gear-menu-sep" />
+            <column foreach="{{menuDangerItems}}" as="item" gap="2px">
+              <row class="gear-menu-item {{item.itemClass}}" onclick="{{item.action}}" gap="10px">
+                <image class="gear-menu-icon" src="{{item.icon}}" fit="contain" align="center" />
+                <label class="gear-menu-label" text="{{item.label}}" align="center" />
+              </row>
+            </column>
+          </column>
+        </column>
+      </column>
+      <modal id="versions-delete-modal"
+             open="{{deleteModal}}"
+             title="{{deleteTitle}}"
+             message="{{t:versions.deleteWarning}}"
+             button-order="cancel-first"
+             confirm-label="{{t:common.delete}}"
+             cancel-label="{{t:common.cancel}}"
+             confirm="versions.delete.confirm"
+             cancel="versions.delete.cancel"
+             danger="true" />
+      <modal id="versions-link-add-modal"
+             confirm-id="versions-link-add-confirm"
+             open="{{linkAddModal}}"
+             title="{{linkAddTitle}}"
+             message="{{linkAddNameLabel}}"
+             detail="{{linkAddIdLabel}}"
+             confirm-label="{{linkAddConfirmLabel}}"
+             cancel-label="{{t:common.cancel}}"
+             confirm="versions.linkAdd.confirm"
+             cancel="versions.linkAdd.cancel" />
+      <modal id="versions-import-modal"
+             confirm-id="versions-import-submit"
+             open="{{importModal}}"
+             width="400px"
+             padding="12px"
+             title="{{importTitle}}"
+             confirm-label="{{importSubmitLabel}}"
+             confirm="versions.import.submit"
+             cancel="versions.import.cancel">
+        <column width="100%" gap="6">
+          <textinput id="versions-import-name" class="import-input" value="{{importName}}" label="{{t:modals.customTu.tuName}}" onsubmit="versions.import.name" />
+          <textinput id="versions-import-desc" class="import-input" value="{{importDesc}}" label="{{t:modals.customTu.description}}" onsubmit="versions.import.desc" />
+          <row gap="6" align="center">
+            <textinput id="versions-import-url" class="import-input2" value="{{importUrl}}" label="{{t:modals.customTu.downloadUrl}}" onsubmit="versions.import.url" />
+            <column align="center"><row height="20px"/><button id="versions-import-browse" class="import-browse" onclick="versions.import.browse">
+              <image class="import-browse-icon" src="/images/Folder_Icon.png" />
+            </button></column>
+          </row>
+          <label if="{{importPath}}" class="import-path-value" text="{{importPath}}" />
+          <label if="{{importError}}" class="error-label" text="{{importError}}" />
+        </column>
+      </modal>
+      <modal id="versions-set-uid-modal"
+             open="{{setUidModal}}"
+             width="440px"
+             padding="12px"
+             title="{{t:modals.setUid.title}}"
+             message="{{setUidTargetName}}"
+             confirm-id="versions-set-uid-save"
+             cancel-id="versions-set-uid-cancel"
+             confirm-label="{{t:modals.setUid.save}}"
+             cancel-label="{{t:modals.setUid.cancel}}"
+             confirm="versions.setUid.save"
+             cancel="versions.setUid.cancel">
+        <column width="100%" gap="6" align="center">
+          <row gap="6" align="center">
+            <button if="{{setUidManual}}" id="versions-set-uid-manual" class="modal-btn modal-btn-sel" width="185px" onclick="versions.setUid.mode:manual">
+              <label text="{{t:modals.setUid.manual}}" />
+            </button>
+            <button if="{{setUidCopy}}" id="versions-set-uid-manual" class="modal-btn" width="185px" onclick="versions.setUid.mode:manual">
+              <label text="{{t:modals.setUid.manual}}" />
+            </button>
+            <button if="{{setUidCopy}}" id="versions-set-uid-copy" class="modal-btn modal-btn-sel" width="185px" onclick="versions.setUid.mode:copy">
+              <label text="{{t:modals.setUid.copy}}" />
+            </button>
+            <button if="{{setUidManual}}" id="versions-set-uid-copy" class="modal-btn" width="185px" onclick="versions.setUid.mode:copy">
+              <label text="{{t:modals.setUid.copy}}" />
+            </button>
+          </row>
+          <textinput if="{{setUidManual}}" id="versions-set-uid-value" class="import-input" width="380px" value="{{setUidValue}}" label="{{t:modals.setUid.enterUid}}" onsubmit="versions.setUid.value" />
+          <column if="{{setUidCopy}}" width="100%" gap="4" align="center">
+            <label class="modal-subtitle" text="{{t:modals.setUid.selectInstance}}" />
+            <label if="{{setUidSourceName}}" class="import-path-value" text="{{setUidSourceName}}" />
+            <label if="{{setUidNoInstances}}" class="error-label" text="{{t:modals.setUid.noInstances}}" />
+            <scroll width="100%" height="128px">
+              <column foreach="{{setUidInstances}}" as="candidate" gap="2">
+                <button class="modal-btn" width="380px" onclick="{{candidate.action}}">
+                  <label text="{{candidate.label}}" />
+                </button>
+              </column>
+            </scroll>
+          </column>
+          <label if="{{setUidError}}" class="error-label" text="{{setUidError}}" />
+        </column>
+      </modal>
+      <modal id="versions-import-world-modal"
+             open="{{importWorldModal}}"
+             width="460px"
+             padding="12px"
+             title="{{importWorldTitle}}"
+             message="{{importWorldInto}}"
+             cancel-id="versions-import-world-cancel"
+             cancel-label="{{t:modals.importWorld.cancel}}"
+             cancel="versions.importWorld.cancel">
+        <column width="100%" gap="6" align="center">
+          <column if="{{importWorldIdle}}" width="100%" gap="6" align="center">
+            <button id="versions-import-world-ms" class="modal-btn" width="400px" onclick="versions.importWorld.ms">
+              <label text="{{t:modals.importWorld.selectMsFile}}" />
+            </button>
+            <label class="modal-subtitle" text="{{t:modals.importWorld.convertConsolePrompt}}" />
+            <row gap="6" align="center">
+              <button class="modal-btn" width="198px" onclick="versions.importWorld.xbox">
+                <label text="{{t:modals.importWorld.xbox360}}" />
+              </button>
+              <button class="modal-btn" width="198px" onclick="versions.importWorld.ps3">
+                <label text="{{t:modals.importWorld.ps3Folder}}" />
+              </button>
+            </row>
+            <label class="modal-subtitle" text="{{t:modals.importWorld.javaConversionPrompt}}" />
+            <button class="modal-btn" align="center" width="400px" onclick="versions.importWorld.javaToLce">
+              <label text="{{t:modals.importWorld.javaToLce}}" />
+            </button>
+          </column>
+          <label if="{{importWorldStatus}}" class="modal-subtitle" text="{{importWorldStatus}}" />
+          <label if="{{importWorldError}}" class="error-label" text="{{importWorldError}}" />
+        </column>
+      </modal>
+      <modal id="versions-invalid-directory-modal"
+             open="{{invalidDirectoryModal}}"
+             width="420px"
+             padding="12px"
+             title="{{invalidDirectoryTitle}}"
+             message="{{invalidDirectoryMessage}}"
+             confirm-id="versions-invalid-directory-ok"
+             confirm-label="{{invalidDirectoryOk}}"
+             confirm="versions.invalidDirectory.ok" />
+      <modal id="versions-options-modal"
+             open="{{optionsModal}}"
+             width="520px"
+             padding="12px"
+             title="{{optionsTitle}}"
+             message="{{optionsName}}"
+             confirm-id="versions-options-save"
+             cancel-id="versions-options-cancel"
+             confirm-label="{{optionsSave}}"
+             cancel-label="{{optionsCancel}}"
+             confirm="versions.options.save"
+             confirm-if="{{optionsHasRows}}"
+             cancel="versions.options.cancel">
+        <column width="100%" gap="6" align="center">
+          <label if="{{optionsError}}" class="error-label" text="{{optionsError}}" />
+          <row width="100%" gap="6" align="center">
+            <button id="versions-options-reset" class="modal-btn" width="140px" onclick="versions.options.reset">
+              <label text="{{optionsReset}}" />
+            </button>
+          </row>
+          <scroll width="100%" height="300px">
+            <column foreach="{{optionsRows}}" as="option" gap="6">
+              <column class="option-row" width="100%" gap="3">
+                <row width="100%" gap="8">
+                  <label text="{{option.title}}" />
+                  <label if="{{option.group}}" class="import-path-value" text="{{option.group}}" />
+                </row>
+                <label if="{{option.description}}" class="modal-subtitle" text="{{option.description}}" />
+                <row if="{{option.isBoolean}}" width="100%" gap="6">
+                  <button class="modal-btn" width="140px" onclick="{{option.toggleAction}}">
+                    <label text="{{option.checked}}" />
+                  </button>
+                </row>
+                <textinput if="{{option.isText}}" id="{{option.inputId}}" class="import-input" width="420px" value="{{option.value}}" onsubmit="{{option.valueAction}}" />
+                <column if="{{option.isChoice}}" width="100%" gap="2">
+                  <column foreach="{{option.choices}}" as="choice" gap="2">
+                    <button class="modal-btn" width="420px" onclick="{{choice.action}}">
+                      <label text="{{choice.label}}" />
+                    </button>
+                  </column>
+                </column>
+              </column>
+            </column>
+          </scroll>
+        </column>
+      </modal>
+      <modal id="versions-dlc-modal"
+             open="{{dlcModal}}"
+             width="480px"
+             padding="12px"
+             title="{{dlcTitle}}"
+             message="{{dlcName}}"
+             confirm-id="versions-dlc-download"
+             cancel-id="versions-dlc-close"
+             confirm-label="{{dlcDownloadText}}"
+             cancel-label="{{dlcClose}}"
+             confirm="versions.dlc.download"
+             confirm-if="{{dlcCanDownload}}"
+             cancel="versions.dlc.close"
+             cancel-if="{{dlcCanClose}}">
+        <column width="100%" gap="6" align="center">
+          <label if="{{dlcLoading}}" class="modal-subtitle" text="{{dlcLoading}}" />
+          <label if="{{dlcError}}" class="error-label" text="{{dlcError}}" />
+          <label if="{{dlcShowNoneFound}}" class="modal-subtitle" text="{{dlcNoneFound}}" />
+          <row if="{{dlcCanAllNone}}" width="100%" gap="6" align="center">
+            <button class="modal-btn" width="190px" onclick="versions.dlc.all">
+              <label text="{{dlcAll}}" />
+            </button>
+            <button class="modal-btn" width="190px" onclick="versions.dlc.none">
+              <label text="{{dlcNone}}" />
+            </button>
+          </row>
+          <scroll width="100%" height="240px">
+            <column foreach="{{dlcEntries}}" as="dlc" gap="2">
+              <row class="dlc-entry {{dlc.itemClass}}" onclick="{{dlc.action}}" gap="6">
+                <label width="20px" text="{{dlc.mark}}" />
+                <label flex="1" text="{{dlc.name}}" />
+                <label if="{{dlc.done}}" text="{{dlc.progressText}}" />
+              </row>
+            </column>
+          </scroll>
+          <label if="{{dlcDownloading}}" class="modal-subtitle" text="{{dlcDownloadedText}}" />
+        </column>
+      </modal>
+      <modal id="versions-channel-modal"
+             open="{{channelModal}}"
+             width="360px"
+             padding="10px"
+             title="{{channelTitle}}"
+             message="{{channelName}}"
+             cancel-id="versions-channel-close"
+             cancel-label="{{channelClose}}"
+             cancel="versions.channel.close">
+        <column id="versions-channel-menu" class="gear-menu" width="100%" gap="2">
+          <column foreach="{{channelEntries}}" as="channel" gap="2">
+            <row class="gear-menu-item channel-entry {{channel.itemClass}}" onclick="{{channel.action}}">
+              <label class="gear-menu-label" text="{{channel.label}}" />
+            </row>
+          </column>
+        </column>
+      </modal>
+      <modal id="versions-customize-modal"
+             open="{{customizeModal}}"
+             width="440px"
+             padding="12px"
+             title="{{customizeTitle}}"
+             message="{{customizeName}}"
+             confirm-id="versions-customize-save"
+             cancel-id="versions-customize-cancel"
+             confirm-label="{{customizeSave}}"
+             cancel-label="{{customizeCancel}}"
+             confirm="versions.customize.save"
+             cancel="versions.customize.cancel">
+        <column width="100%" gap="6" align="center">
+          <label class="modal-subtitle" text="{{customizeTitleImageLabel}}" />
+          <row width="100%" gap="6" align="center">
+            <button id="versions-customize-title-pick" class="modal-btn" width="240px" onclick="versions.customize.pick:titleImage">
+              <label text="{{customizeTitleButton}}" />
+            </button>
+            <button if="{{customizeHasTitle}}" class="modal-btn" width="140px" onclick="versions.customize.reset.title">
+              <label text="{{customizeReset}}" />
+            </button>
+          </row>
+          <label if="{{customizeHasTitle}}" class="import-path-value" text="{{customizeTitleValue}}" />
+          <label class="modal-subtitle" text="{{customizePanoramaLabel}}" />
+          <row width="100%" gap="6" align="center">
+            <button id="versions-customize-panorama-pick" class="modal-btn" width="240px" onclick="versions.customize.pick:panorama">
+              <label text="{{customizePanoramaButton}}" />
+            </button>
+            <button if="{{customizeHasPanorama}}" class="modal-btn" width="140px" onclick="versions.customize.reset.panorama">
+              <label text="{{customizeReset}}" />
+            </button>
+          </row>
+          <label if="{{customizeHasPanorama}}" class="import-path-value" text="{{customizePanoramaValue}}" />
+          <label if="{{customizeError}}" class="error-label" text="{{customizeError}}" />
+        </column>
+      </modal>
+      <modal id="versions-playtime-modal"
+             open="{{playtimeModal}}"
+             width="400px"
+             padding="12px"
+             title="{{playtimeTitle}}"
+             message="{{playtimeName}}"
+             cancel-id="versions-playtime-close"
+             cancel-label="{{playtimeClose}}"
+             cancel="versions.playtime.close">
+        <column width="100%" gap="6" align="center">
+          <label if="{{playtimeLoadingVisible}}" class="modal-subtitle" text="{{playtimeLoading}}" />
+          <label if="{{playtimeFailedVisible}}" class="error-label" text="{{playtimeFailed}}" />
+          <column if="{{playtimeLoaded}}" width="100%" gap="4" align="center">
+            <row class="playtime-row" gap="8">
+              <label flex="1" text="{{playtimeTotalLabel}}" />
+              <label text="{{playtimeTotal}}" />
+            </row>
+            <row class="playtime-row" gap="8">
+              <label flex="1" text="{{playtimeWeekLabel}}" />
+              <label text="{{playtimeWeek}}" />
+            </row>
+            <row class="playtime-row" gap="8">
+              <label flex="1" text="{{playtimeTodayLabel}}" />
+              <label text="{{playtimeToday}}" />
+            </row>
+          </column>
+        </column>
+      </modal>
+    </column>
+  </view>
+</ui>

@@ -1,0 +1,126 @@
+<ui xmlns="emerald" version="1">
+  <style>
+    .overlay-panel {
+      border-image: url(/images/options_background.png) 4 fill / 12px;
+      border-width: 12px;
+      font-size: 14px;
+      color: #333333;
+    }
+    .dl-header {
+      padding: 0 12px 4px 12px;
+    }
+    .dl-title {
+      font-size: 20px;
+      color: #333333;
+    }
+    .dl-list {
+      border-image: url(/images/empty.png) 30 30 30 30 fill / 30px 30px 30px 30px;
+      border-width: 12px;
+      padding: 8px 0;
+      gap: 6px;
+    }
+    .dl-entry {
+      border-image: url(/images/options_background.png) 4 fill / 12px;
+      border-width: 12px;
+      gap: 4px;
+    }    .dl-icon {
+      width: 24px;
+      height: 24px;
+      background-image: /images/empty.png;
+    }
+    .dl-name {
+      font-size: 14px;
+      color: #333333;
+      width: 264px;
+    }
+    .dl-pct {
+      font-size: 14px;
+      color: #333333;
+      width: 28px;
+      margin-right: 4px;
+      text-align: end;
+    }
+    .dl-track {
+      background: #666666;
+      padding: 1px;
+    }
+    .dl-fill {
+      background: #00ff61;
+    }
+    .toast-row {
+      border-image: url(/images/options_background.png) 4 fill / 12px;
+      border-width: 12px;
+      gap: 12px;
+      padding: 4px;
+    }
+    .toast-icon {
+      width: 54px;
+      height: 54px;
+      background-image: /images/empty.png;
+    }
+    .toast-text {
+      margin-top: 6px;
+      width: 282px;
+    }
+    .toast-title {
+      font-size: 20px;
+      color: #333333;
+      width: 282px;
+    }
+    .toast-msg {
+      font-size: 13px;
+      color: #333333;
+      width: 282px;
+    }
+  </style>
+  <template name="DownloadEntry">
+    <column class="dl-entry">
+      <row align="center" gap="4px" width="100%">
+        <column class="dl-icon">
+          <image width="24px" height="24px" fit="contain" src="{{icon}}" />
+        </column>
+        <label class="dl-name" text="{{name}}" />
+        <column flex="1" />
+        <label class="dl-pct" text="{{percentText}}%" />
+      </row>
+      <row class="dl-track" height="14px" align="stretch">
+        <column class="dl-fill" width="{{percent}}%" height="12px" />
+      </row>
+    </column>
+  </template>
+  <template name="ToastEntry">
+    <row class="toast-row" onclick="overlay.toasts.click:{{id}}" align="stretch">
+      <column class="toast-icon" height="54px" width="54px" padding="11px">
+        <image width="32px" height="32px" fit="contain" src="{{icon}}" />
+      </column>
+      <column class="toast-text">
+        <label class="toast-title" text="{{title}}" />
+        <label class="toast-msg" text="{{message}}" />
+      </column>
+    </row>
+  </template>
+  <view id="overlay">
+    <column id="download-panel" class="overlay-panel" style="position:absolute;left:848px;top:16px;width:400px" if="{{showDownloads}}">
+      <column class="dl-header">
+        <label class="dl-title" text="{{t:download.title}}" />
+      </column>
+      <scroll class="dl-list" width="100%" max-height="260px" hide-partial="true">
+        <column width="100%" gap="6px" foreach="{{downloads}}" as="dl">
+          <use template="DownloadEntry"
+            id="{{dl.id}}"
+            name="{{dl.name}}"
+            icon="{{dl.icon}}"
+            percent="{{dl.percent}}"
+            percentText="{{dl.percentText}}" />
+        </column>
+      </scroll>
+    </column>
+    <column class="toast-container" style="position:absolute;left:868px;top:16px;width:380px" gap="8px" if="{{showToasts}}" foreach="{{toasts}}" as="toast">
+      <use template="ToastEntry"
+        id="{{toast.id}}"
+        title="{{toast.title}}"
+        message="{{toast.message}}"
+        icon="{{toast.icon}}" />
+    </column>
+  </view>
+</ui>

@@ -1,0 +1,205 @@
+<ui xmlns="emerald" version="1">
+  <import href="Common/TitleImage.xml"/>
+  <import href="Common/Slider.xml"/>
+  <import href="Common/TextInput.xml"/>
+  <style>
+    .settings-root { align: center; }
+    .settings-main-btn {
+      width: 480px;
+      height: 42px;
+      font-size: 20px;
+      color: #ffffff;
+      text-shadow: #3f3f3f 2px 2px;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .settings-main-btn:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+    .settings-main-label {
+      color: #ffffff;
+      font-size: 20px;
+      text-shadow: #3f3f3f 2px 2px;
+    }
+    .settings-panel-bg {
+      border-image: url("/images/options_background.png") 4 fill;
+      border-width: 12px;
+    }
+    .settings-row-btn {
+      width: 600px;
+      height: 42px;
+      font-size: 20px;
+      color: #333333;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .settings-row-btn:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+
+    .settings-toggle {
+      width: 600px;
+      height: 42px;
+      font-size: 20px;
+      color: #333333;
+      border-width: 12px;
+    }
+    .settings-toggle:hover {
+      color: #ffff55;
+    }
+
+    .settings-row-btn.settings-cat {
+      font-size: 23px;
+      color: #ffffff;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .settings-row-btn.settings-cat:hover { color: #ffff55; }
+    .settings-row-btn.row-red { color: #ff5555; }
+    .settings-row-btn.row-red:hover { color: #ff8080; }
+    .settings-row-label {
+      color: #ffffff;
+      font-size: 20px;
+    }
+    .settings-toggle:hover .settings-checkbox-base {
+      background-image: /images/checkbox_highlighted.png;
+    }
+    .settings-checkmark {
+      position: absolute;
+      left: 1px;
+      top: -3px;
+      width: 26px;
+      height: 26px;
+    }
+
+    .backdrop { background: rgba(0, 0, 0, 0.8); }
+    .modal-frame {
+      border-image: url(/images/frame_background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+      font-size: 18px;
+    }
+    .modal-title { color: #ffff55; font-size: 22px; }
+    .modal-desc { color: #aaaaaa; font-size: 13px; }
+    .modal-btn {
+      width: 140px;
+      height: 40px;
+      font-size: 18px;
+      color: #ffffff;
+      border-image: url(/images/Button_Background.png) 13 13 13 13 fill / 13px;
+      border-width: 12px;
+    }
+    .modal-btn:hover {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
+  </style>
+  <view id="settings">
+    <tooltip icon="A">{{t:common.select}}</tooltip>
+    <tooltip icon="B" action="@back">{{t:common.back}}</tooltip>
+    <column class="settings-root" align="center" width="100%" height="100%" padding="40">
+    <use template="TitleImage"/>
+    <column height="40px" />
+      <column if="{{mainLayout}}" align="center" gap="8" width="100%" height="100%">
+        <column id="settings-main-list" foreach="{{items}}" as="item" gap="6" align="center" width="480px">
+          <button if="{{item.isButton}}" class="settings-main-btn {{item.rowClass}}" onclick="{{item.onclick}}" width="480px" height="42px">
+            <label class="settings-main-label" text="{{item.label}}"/>
+          </button>
+          <row if="{{item.isToggle}}" class="settings-main-btn" onclick="{{item.onclick}}" width="480px" height="42px" gap="0">
+            <label class="settings-main-label" text="{{item.label}}" flex="1" align="center"/>
+            <image src="{{item.checkSrc}}" width="24px" height="24px" align="center"/>
+          </row>
+        </column>
+      </column>
+      <column if="{{panelLayout}}" class="settings-panel-bg" align="center">
+        <scroll width="600px" max-height="520px">
+          <column id="settings-panel-rows" foreach="{{items}}" as="item" gap="4" align="center" width="600px">
+            <button if="{{item.isButton}}" class="settings-row-btn {{item.rowClass}}" onclick="{{item.onclick}}" width="600px" height="42px">
+              <label class="settings-row-label" text="{{item.label}}"/>
+            </button>
+            <row if="{{item.isToggle}}" class="settings-toggle" onclick="{{item.onclick}}" width="600px" height="42px" gap="0">
+              <row class="settings-checkbox" width="24px" height="24px">
+                <image class="settings-checkbox-base" src="/images/checkbox.png" width="24px" height="24px" align="center"/>
+                <image if="{{item.checked}}" class="settings-checkmark" src="/images/check.png"/>
+              </row>
+              <column width="4px"/>
+              <label text="{{item.label}}" flex="1" align="center"/>
+            </row>
+            <use template="Slider" if="{{item.isSlider}}" label="{{item.label}}" value="{{item.value}}" onchange="{{item.onchange}}"/>
+            <use template="TextInput" if="{{item.isText}}" label="{{item.label}}" value="{{item.value}}" onsubmit="{{item.onsubmit}}"/>
+          </column>
+        </scroll>
+      </column>
+      <modal id="settings-args-modal"
+             open="{{argsModal}}"
+             width="400px"
+             padding="12px"
+             button-order="cancel-first"
+             title="{{t:settings.extraLaunchArgs}}"
+             message="{{extraArgsDesc}}"
+             confirm-label="{{saveLabel}}"
+             cancel-label="{{cancelLabel}}"
+             confirm="settings.modal.save:args"
+             cancel="settings.modal.cancel">
+        <use template="TextInput" value="{{argsValue}}" width="360px"/>
+      </modal>
+      <modal id="settings-prefix-modal"
+             open="{{prefixModal}}"
+             width="400px"
+             padding="12px"
+             button-order="cancel-first"
+             title="{{t:settings.launchPrefix}}"
+             message="{{launchPrefixDesc}}"
+             confirm-label="{{saveLabel}}"
+             cancel-label="{{cancelLabel}}"
+             confirm="settings.modal.save:prefix"
+             cancel="settings.modal.cancel">
+        <use template="TextInput" value="{{prefixValue}}"/>
+      </modal>
+
+      <modal id="settings-env-modal"
+             open="{{envModal}}"
+             width="400px"
+             padding="12px"
+             button-order="cancel-first"
+             title="{{t:settings.launchEnvVars}}"
+             message="{{launchEnvVarsDesc}}"
+             confirm-label="{{saveLabel}}"
+             cancel-label="{{cancelLabel}}"
+             confirm="settings.modal.save:envVars"
+             cancel="settings.modal.cancel">
+        <use template="TextInput" value="{{envValue}}" multiline="true"/>
+      </modal>
+
+      <modal id="settings-reset-modal"
+             open="{{resetModal}}"
+             width="400px"
+             padding="12px"
+             button-order="cancel-first"
+             title="{{t:settings.reset.title}}"
+             message="{{t:settings.reset.confirm}}"
+             confirm-label="{{okLabel}}"
+             cancel-label="{{cancelLabel}}"
+             confirm="settings.reset:ok"
+             cancel="settings.reset:cancel" />
+
+      <modal id="settings-reset-final-modal"
+             open="{{resetFinalModal}}"
+             width="400px"
+             padding="12px"
+             button-order="cancel-first"
+             title="{{t:settings.reset.confirmTitle}}"
+             confirm-label="{{okLabel}}"
+             cancel-label="{{cancelLabel}}"
+             confirm="settings.reset:final"
+             cancel="settings.reset:cancel">
+        <label class="modal-desc" text="{{t:settings.reset.clearAllSettings}}"/>
+        <label class="modal-desc" text="{{t:settings.reset.resetUsername}}"/>
+        <label class="modal-desc" text="{{t:settings.reset.showSetupAgain}}"/>
+        <label class="modal-desc" text="{{t:settings.reset.requireReconfiguration}}"/>
+        <label class="modal-desc" text="{{t:settings.reset.cannotBeUndone}}"/>
+      </modal>
+    </column>
+  </view>
+</ui>

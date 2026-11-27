@@ -1,0 +1,91 @@
+import java.util.Properties
+
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('app/key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+}
+
+android {
+    namespace 'com.emerald.legacy'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.emerald.legacy'
+        minSdk 26
+        targetSdk 28
+        versionCode 2000000
+        versionName '2.0.0' //neo: please please dont forget to update this to match cmake, as well as version code
+        manifestPlaceholders['usesCleartextTraffic'] = 'false'
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            proguardFiles(
+                *fileTree('.') { include '**/*.pro' }.toList(),
+                getDefaultProguardFile('proguard-android-optimize.txt')
+            )
+        }
+        debug {
+            manifestPlaceholders['usesCleartextTraffic'] = 'true'
+            debuggable true
+            jniDebuggable true
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    lint {
+        disable += 'ExpiredTargetSdkVersion'
+    }
+
+    packaging {
+        jniLibs {
+            keepDebugSymbols += '**/arm64-v8a/*.so'
+            pickFirsts += ['**/libc++_shared.so']
+        }
+        resources {
+            excludes += ['META-INF/LICENSE*', 'META-INF/NOTICE*']
+        }
+    }
+}
+
+dependencies {
+    implementation project(':diamondruntime')
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.activity:activity-ktx:1.10.1'
+    implementation 'com.google.android.material:material:1.12.0'
+}
