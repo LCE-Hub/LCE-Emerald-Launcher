@@ -1,6 +1,9 @@
 > [!IMPORTANT]
 > This branch is for **Project Radium**, a rewrite of the Emerald Launcher in C++ with SDL3 and [it's own UI system, Lazuli.](https://github.com/LCE-Hub/Lazuli).
 
+> [!IMPORTANT]
+> This project does **NOT** tolerate Generative AI usage in any of the code and/or assets.
+
 <div align="center">
   <img height="150" src="https://raw.githubusercontent.com/LCE-Hub/LCE-Emerald-Launcher/refs/heads/main/public/images/icon.png" alt="LCE Emerald Launcher Logo">
   <h1>LCE Emerald Launcher</h1>
