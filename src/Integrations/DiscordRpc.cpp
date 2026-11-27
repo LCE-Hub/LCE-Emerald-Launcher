@@ -298,10 +298,13 @@ void DiscordRpc::refresh(DiscordState &state) {
   presence.buttons = std::vector<Button>{
       Button{"Discord", "https://discord.com/invite/lce-hub-1492416855124480153"},
       Button{"Get Emerald", "https://github.com/LCE-Hub/LCE-Emerald-Launcher"}};
+  std::vector<int> rpcpartysize{0, 0}, currentrpcpartysize{0, 0};
+  if (presence.party.has_value()) rpcpartysize = presence.party->size.value();
+  if (currentstate_.currentrpc.party.has_value()) currentrpcpartysize = currentstate_.currentrpc.party->size.value();
   if (currentstate_.currentrpc.details == presence.details &&
       currentstate_.currentrpc.assets.has_value() &&
-      currentstate_.currentrpc.assets->large_image == presence.assets->large_image && currentstate_.currentrpc.party->size == presence.party->size) return;
-  if (core::verbose()) core::info(std::format(":: [DiscordRpc] {} ({},{}) -> {} ({},{})", currentstate_.currentrpc.details.value_or("<meow>"), currentstate_.currentrpc.party->size.value_or({0,0})[0], currentstate_.currentrpc.party->size.value_or({0,0})[1], presence.details.value_or("<meow>"), presence.party->size.value_or({0,0})[0], presence.party->size.value_or({0,0})[0]));
+      currentstate_.currentrpc.assets->large_image == presence.assets->large_image && currentrpcpartysize == rpcpartysize) return;
+  if (core::verbose()) core::info(std::format(":: [DiscordRpc] {} ({},{}) -> {} ({},{})", currentstate_.currentrpc.details.value_or("<meow>"), currentrpcpartysize[0], currentrpcpartysize[1], presence.details.value_or("<meow>"), rpcpartysize[0], rpcpartysize[1]));
   currentstate_.currentrpc = presence;
   client_->set_presence(presence);
 }
