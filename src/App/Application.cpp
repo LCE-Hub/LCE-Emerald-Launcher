@@ -605,6 +605,26 @@ void Application::render() {
   if (versions_view_ != nullptr && versions_view_->consume_folder_pick()) {
     ui_->invalidate();
   }
+  if (versions_view_ != nullptr && versions_view_->consume_world_pick(ui_services_)) {
+    ui_->invalidate();
+  }
+  if (versions_view_ != nullptr && versions_view_->consume_backup_pick(ui_services_)) {
+    ui_->invalidate();
+  }
+  if (versions_view_ != nullptr &&
+      versions_view_->consume_custom_path_pick(ui_services_)) {
+    ui_->invalidate();
+  }
+  if (versions_view_ != nullptr && versions_view_->consume_restore_pick(ui_services_)) {
+    ui_->invalidate();
+  }
+  if (versions_view_ != nullptr && versions_view_->consume_customize_pick()) {
+    ui_->invalidate();
+  }
+  if (versions_view_ != nullptr &&
+      versions_view_->consume_dlc_download(ui_services_)) {
+    ui_->invalidate();
+  }
   if (skins::SkinUiState::instance().consume_picks(config_, public_root_)) {
     ui_->invalidate();
   }

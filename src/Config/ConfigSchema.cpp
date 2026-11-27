@@ -205,6 +205,11 @@ Json to_json(const AppConfig &config) {
   } else {
     object["customPaths"] = nullptr;
   }
+  if (config.channel_selections.has_value()) {
+    object["channelSelections"] = *config.channel_selections;
+  } else {
+    object["channelSelections"] = nullptr;
+  }
   json_set(object, "profile", config.profile);
   json_set(object, "animationsEnabled", config.animations_enabled);
   json_set(object, "vfxEnabled", config.vfx_enabled);
@@ -286,6 +291,12 @@ AppConfig from_json(const Json &object_value) {
   if (object.contains("customPaths") && object["customPaths"].is_object()) {
     config.custom_paths =
         object["customPaths"]
+            .get<std::unordered_map<std::string, std::string>>();
+  }
+  if (object.contains("channelSelections") &&
+      object["channelSelections"].is_object()) {
+    config.channel_selections =
+        object["channelSelections"]
             .get<std::unordered_map<std::string, std::string>>();
   }
   config.profile = json_optional<std::string>(object, "profile");

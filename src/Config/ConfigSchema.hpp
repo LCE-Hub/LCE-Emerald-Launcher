@@ -68,6 +68,7 @@ struct AppConfig {
   std::optional<std::unordered_map<std::string, CustomizationEntry>>
       customizations;
   std::optional<std::unordered_map<std::string, std::string>> custom_paths;
+  std::optional<std::unordered_map<std::string, std::string>> channel_selections;
   std::optional<std::string> profile;
   std::optional<bool> animations_enabled;
   std::optional<bool> vfx_enabled;

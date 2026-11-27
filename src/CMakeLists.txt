@@ -65,6 +65,7 @@ set(EMERALD_CORE_SOURCES
     Playtime/PlaytimeStore.cpp
     State/StateStore.cpp
     Migration/Migration.cpp
+    Integrations/SteamShortcuts.cpp
 )
 
 if(WIN32)

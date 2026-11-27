@@ -21,6 +21,40 @@ std::vector<std::string> path_segments(const std::string &path) {
   return segments;
 }
 
+std::string url_encode(const std::string &value) {
+  constexpr char hex[] = "0123456789ABCDEF";
+  std::string encoded;
+  encoded.reserve(value.size());
+  for (const char raw : value) {
+    const unsigned char character = static_cast<unsigned char>(raw);
+    const bool safe =
+        (character >= 'a' && character <= 'z') ||
+        (character >= 'A' && character <= 'Z') ||
+        (character >= '0' && character <= '9') || character == '-' ||
+        character == '_' || character == '.' || character == '~';
+    if (safe) {
+      encoded.push_back(raw);
+    } else {
+      encoded.push_back('%');
+      encoded.push_back(hex[character >> 4]);
+      encoded.push_back(hex[character & 0x0F]);
+    }
+  }
+  return encoded;
+}
+
+std::string url_encode_path(const std::string &path) {
+  const std::vector<std::string> segments = path_segments(path);
+  std::string encoded;
+  for (std::size_t index = 0; index < segments.size(); ++index) {
+    if (index > 0) {
+      encoded.push_back('/');
+    }
+    encoded += url_encode(segments[index]);
+  }
+  return encoded;
+}
+
 bool parse_json_entries(const Json &json, std::vector<GitEntry> &out) {
   if (!json.is_array()) {
     return false;
@@ -91,25 +125,25 @@ std::string git_api_url(const GitRepoRef &ref, const std::string &path,
     while (!trimmed.empty() && trimmed.front() == '/') {
       trimmed.erase(trimmed.begin());
     }
-    api_path = "/" + trimmed;
+    api_path = "/" + url_encode_path(trimmed);
   }
 
   if (ref.is_github) {
     return "https://api.github.com/repos/" + ref.owner + "/" + ref.repo +
-           "/contents" + api_path + "?ref=" + branch;
+           "/contents" + api_path + "?ref=" + url_encode(branch);
   }
   return "https://" + ref.host + "/api/v1/repos/" + ref.owner + "/" + ref.repo +
-         "/contents" + api_path + "?ref=" + branch;
+         "/contents" + api_path + "?ref=" + url_encode(branch);
 }
 
 std::string git_raw_url(const GitRepoRef &ref, const std::string &branch,
                         const std::string &path) {
   if (ref.is_github) {
     return "https://raw.githubusercontent.com/" + ref.owner + "/" + ref.repo +
-           "/" + branch + "/" + path;
+           "/" + url_encode(branch) + "/" + url_encode_path(path);
   }
   return "https://" + ref.host + "/" + ref.owner + "/" + ref.repo +
-         "/raw/branch/" + branch + "/" + path;
+         "/raw/branch/" + url_encode(branch) + "/" + url_encode_path(path);
 }
 
 bool DlcService::list_directory(const std::string &repo_url,

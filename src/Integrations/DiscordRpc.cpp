@@ -282,7 +282,7 @@ void DiscordRpc::refresh(DiscordState &state) {
   if (state.running && !state.username.empty()) {
     Party party;
     party.id = "emerald_" + state.username;
-    party.size = {1, state.joined_clients > 0 ? state.joined_clients : 1};
+    party.size = {1, state.joined_clients > 0 ? state.joined_clients +1 /*neo: +1 because it can just stay 1 which is the current player; thus it being incorrect */ : 1};
     presence.party = party;
   }
 
@@ -300,8 +300,8 @@ void DiscordRpc::refresh(DiscordState &state) {
       Button{"Get Emerald", "https://github.com/LCE-Hub/LCE-Emerald-Launcher"}};
   if (currentstate_.currentrpc.details == presence.details &&
       currentstate_.currentrpc.assets.has_value() &&
-      currentstate_.currentrpc.assets->large_image == presence.assets->large_image) return;
-  if (core::verbose()) core::info(std::format(":: [DiscordRpc] {} -> {}", currentstate_.currentrpc.details.value_or("<meow>"), presence.details.value_or("<meow>")));
+      currentstate_.currentrpc.assets->large_image == presence.assets->large_image && currentstate_.currentrpc.party->size == presence.party->size) return;
+  if (core::verbose()) core::info(std::format(":: [DiscordRpc] {} ({},{}) -> {} ({},{})", currentstate_.currentrpc.details.value_or("<meow>"), currentstate_.currentrpc.party->size.value_or({0,0})[0], currentstate_.currentrpc.party->size.value_or({0,0})[1], presence.details.value_or("<meow>"), presence.party->size.value_or({0,0})[0], presence.party->size.value_or({0,0})[0]));
   currentstate_.currentrpc = presence;
   client_->set_presence(presence);
 }

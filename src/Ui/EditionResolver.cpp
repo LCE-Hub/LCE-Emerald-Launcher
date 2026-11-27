@@ -37,6 +37,48 @@ void apply_instance_images(const config::AppConfig &config,
   }
 }
 
+std::string url_for_branch(const std::string &url,
+                           const std::string &branch) {
+  constexpr std::string_view marker = "/releases/download/";
+  const std::size_t start = url.find(marker);
+  if (start == std::string::npos) {
+    return url;
+  }
+  const std::size_t segment = start + marker.size();
+  const std::size_t end = url.find('/', segment);
+  if (end == std::string::npos) {
+    return url;
+  }
+  return url.substr(0, segment) + branch + url.substr(end);
+}
+
+void apply_channel_selections(const config::AppConfig &config,
+                              std::vector<instances::Edition> &editions) {
+  if (!config.channel_selections.has_value()) {
+    return;
+  }
+  for (instances::Edition &edition : editions) {
+    bool is_base = false;
+    for (const instances::Edition &base : instances::base_editions()) {
+      if (base.id == edition.id) {
+        is_base = true;
+        break;
+      }
+    }
+    if (!is_base) {
+      continue;
+    }
+    const auto found = config.channel_selections->find(edition.id);
+    if (found == config.channel_selections->end() ||
+        found->second.empty() || found->second == "Stable") {
+      continue;
+    }
+    edition.id = edition.id + "_" + found->second;
+    edition.name = edition.name + " " + found->second;
+    edition.url = url_for_branch(edition.url, found->second);
+  }
+}
+
 std::vector<instances::Edition>
 custom_editions_from(const config::AppConfig &config) {
   std::vector<instances::Edition> editions;
@@ -83,6 +125,7 @@ std::vector<instances::Edition>
 resolve_config_editions(const config::AppConfig &config) {
   std::vector<instances::Edition> editions = instances::resolve_editions(
       custom_editions_from(config), overrides_from(config));
+  apply_channel_selections(config, editions);
   apply_instance_images(config, editions);
   return editions;
 }

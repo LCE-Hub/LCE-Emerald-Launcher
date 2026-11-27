@@ -141,9 +141,9 @@
     .modal-btn-flex { flex: 1; }
     .modal-actions { width: 100%; gap: 12px; align: center; justify: center; }
     .modal-input { width: 360px; font-size: 18px; }
-    .modal-row { width: 100%; height: 48px; align: center; gap: 12px; padding: 0px 12px; }
-    .modal-row:hover { background: rgba(0, 0, 0, 0.2); }
-    .selected { background: rgba(0, 0, 0, 0.2); }
+    .modal-row { width: 100%; height: 48px; align: center; gap: 12px; padding: 0px 12px; background: #2a2a2a; }
+    .modal-row:hover { background: #3c3c3c; }
+    .selected { background: #333333; }
     .selected .modal-row-name { color: #ffff55; }
     .modal-row-name { font-size: 18px; color: #ffffff; text-shadow: #3f3f3f 1px 1px; }
     .modal-row-logo { width: 32px; height: 32px; }
@@ -314,7 +314,7 @@
              width="400px"
              padding="12px"
              gap="16px"
-             title="{{t:lceOnline.error}}"
+             title="{{t:lceOnline.info}}"
              message="{{error}}"
              confirm-label="{{t:lceOnline.ok}}"
              confirm="lceonline.error.ok" />

@@ -83,6 +83,10 @@
       border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
       color: #ffff55;
     }
+    .modal-btn-sel {
+      border-image: url(/images/button_highlighted.png) 13 13 13 13 fill / 13px;
+      color: #ffff55;
+    }
     .modal-btn-danger { color: #ff5555; }
     .modal-btn-danger:hover { color: #ff8080; }
     .import-input { width: 340px; font-size: 16px; color: #ffffff;align:center; }
@@ -161,6 +165,30 @@
     }
     .gear-menu-label {
       font-size: 14px;
+    }
+    .option-row {
+      background: #2a2a2a;
+      padding: 4px;
+    }
+    .option-disabled { color: #777777; }
+    .dlc-entry {
+      width: 100%;
+      height: 28px;
+      padding: 4px;
+      gap: 6px;
+      background: #2a2a2a;
+      color: #dddddd;
+    }
+    .dlc-entry:hover { background: #3c3c3c; color: #ffff55; }
+    .dlc-entry-selected { background: #333333; color: #ffff55; }
+    .channel-entry { width: 100%; height: 28px; color: #dddddd; }
+    .channel-entry:hover { background: #3c3c3c; color: #ffff55; }
+    .channel-entry-selected { color: #ffff55; }
+    .playtime-row {
+      width: 100%;
+      height: 28px;
+      padding: 4px;
+      background: #2a2a2a;
     }
   </style>
   <template name="EditionRow">
@@ -285,6 +313,255 @@
           </row>
           <label if="{{importPath}}" class="import-path-value" text="{{importPath}}" />
           <label if="{{importError}}" class="error-label" text="{{importError}}" />
+        </column>
+      </modal>
+      <modal id="versions-set-uid-modal"
+             open="{{setUidModal}}"
+             width="440px"
+             padding="12px"
+             title="{{t:modals.setUid.title}}"
+             message="{{setUidTargetName}}"
+             confirm-id="versions-set-uid-save"
+             cancel-id="versions-set-uid-cancel"
+             confirm-label="{{t:modals.setUid.save}}"
+             cancel-label="{{t:modals.setUid.cancel}}"
+             confirm="versions.setUid.save"
+             cancel="versions.setUid.cancel">
+        <column width="100%" gap="6" align="center">
+          <row gap="6" align="center">
+            <button if="{{setUidManual}}" id="versions-set-uid-manual" class="modal-btn modal-btn-sel" width="185px" onclick="versions.setUid.mode:manual">
+              <label text="{{t:modals.setUid.manual}}" />
+            </button>
+            <button if="{{setUidCopy}}" id="versions-set-uid-manual" class="modal-btn" width="185px" onclick="versions.setUid.mode:manual">
+              <label text="{{t:modals.setUid.manual}}" />
+            </button>
+            <button if="{{setUidCopy}}" id="versions-set-uid-copy" class="modal-btn modal-btn-sel" width="185px" onclick="versions.setUid.mode:copy">
+              <label text="{{t:modals.setUid.copy}}" />
+            </button>
+            <button if="{{setUidManual}}" id="versions-set-uid-copy" class="modal-btn" width="185px" onclick="versions.setUid.mode:copy">
+              <label text="{{t:modals.setUid.copy}}" />
+            </button>
+          </row>
+          <textinput if="{{setUidManual}}" id="versions-set-uid-value" class="import-input" width="380px" value="{{setUidValue}}" label="{{t:modals.setUid.enterUid}}" onsubmit="versions.setUid.value" />
+          <column if="{{setUidCopy}}" width="100%" gap="4" align="center">
+            <label class="modal-subtitle" text="{{t:modals.setUid.selectInstance}}" />
+            <label if="{{setUidSourceName}}" class="import-path-value" text="{{setUidSourceName}}" />
+            <label if="{{setUidNoInstances}}" class="error-label" text="{{t:modals.setUid.noInstances}}" />
+            <scroll width="100%" height="128px">
+              <column foreach="{{setUidInstances}}" as="candidate" gap="2">
+                <button class="modal-btn" width="380px" onclick="{{candidate.action}}">
+                  <label text="{{candidate.label}}" />
+                </button>
+              </column>
+            </scroll>
+          </column>
+          <label if="{{setUidError}}" class="error-label" text="{{setUidError}}" />
+        </column>
+      </modal>
+      <modal id="versions-import-world-modal"
+             open="{{importWorldModal}}"
+             width="460px"
+             padding="12px"
+             title="{{importWorldTitle}}"
+             message="{{importWorldInto}}"
+             cancel-id="versions-import-world-cancel"
+             cancel-label="{{t:modals.importWorld.cancel}}"
+             cancel="versions.importWorld.cancel">
+        <column width="100%" gap="6" align="center">
+          <column if="{{importWorldIdle}}" width="100%" gap="6" align="center">
+            <button id="versions-import-world-ms" class="modal-btn" width="400px" onclick="versions.importWorld.ms">
+              <label text="{{t:modals.importWorld.selectMsFile}}" />
+            </button>
+            <label class="modal-subtitle" text="{{t:modals.importWorld.convertConsolePrompt}}" />
+            <row gap="6" align="center">
+              <button class="modal-btn" width="198px" onclick="versions.importWorld.xbox">
+                <label text="{{t:modals.importWorld.xbox360}}" />
+              </button>
+              <button class="modal-btn" width="198px" onclick="versions.importWorld.ps3">
+                <label text="{{t:modals.importWorld.ps3Folder}}" />
+              </button>
+            </row>
+            <label class="modal-subtitle" text="{{t:modals.importWorld.javaConversionPrompt}}" />
+            <button class="modal-btn" align="center" width="400px" onclick="versions.importWorld.javaToLce">
+              <label text="{{t:modals.importWorld.javaToLce}}" />
+            </button>
+          </column>
+          <label if="{{importWorldStatus}}" class="modal-subtitle" text="{{importWorldStatus}}" />
+          <label if="{{importWorldError}}" class="error-label" text="{{importWorldError}}" />
+        </column>
+      </modal>
+      <modal id="versions-invalid-directory-modal"
+             open="{{invalidDirectoryModal}}"
+             width="420px"
+             padding="12px"
+             title="{{invalidDirectoryTitle}}"
+             message="{{invalidDirectoryMessage}}"
+             confirm-id="versions-invalid-directory-ok"
+             confirm-label="{{invalidDirectoryOk}}"
+             confirm="versions.invalidDirectory.ok" />
+      <modal id="versions-options-modal"
+             open="{{optionsModal}}"
+             width="520px"
+             padding="12px"
+             title="{{optionsTitle}}"
+             message="{{optionsName}}"
+             confirm-id="versions-options-save"
+             cancel-id="versions-options-cancel"
+             confirm-label="{{optionsSave}}"
+             cancel-label="{{optionsCancel}}"
+             confirm="versions.options.save"
+             confirm-if="{{optionsHasRows}}"
+             cancel="versions.options.cancel">
+        <column width="100%" gap="6" align="center">
+          <label if="{{optionsError}}" class="error-label" text="{{optionsError}}" />
+          <row width="100%" gap="6" align="center">
+            <button id="versions-options-reset" class="modal-btn" width="140px" onclick="versions.options.reset">
+              <label text="{{optionsReset}}" />
+            </button>
+          </row>
+          <scroll width="100%" height="300px">
+            <column foreach="{{optionsRows}}" as="option" gap="6">
+              <column class="option-row" width="100%" gap="3">
+                <row width="100%" gap="8">
+                  <label text="{{option.title}}" />
+                  <label if="{{option.group}}" class="import-path-value" text="{{option.group}}" />
+                </row>
+                <label if="{{option.description}}" class="modal-subtitle" text="{{option.description}}" />
+                <row if="{{option.isBoolean}}" width="100%" gap="6">
+                  <button class="modal-btn" width="140px" onclick="{{option.toggleAction}}">
+                    <label text="{{option.checked}}" />
+                  </button>
+                </row>
+                <textinput if="{{option.isText}}" id="{{option.inputId}}" class="import-input" width="420px" value="{{option.value}}" onsubmit="{{option.valueAction}}" />
+                <column if="{{option.isChoice}}" width="100%" gap="2">
+                  <column foreach="{{option.choices}}" as="choice" gap="2">
+                    <button class="modal-btn" width="420px" onclick="{{choice.action}}">
+                      <label text="{{choice.label}}" />
+                    </button>
+                  </column>
+                </column>
+              </column>
+            </column>
+          </scroll>
+        </column>
+      </modal>
+      <modal id="versions-dlc-modal"
+             open="{{dlcModal}}"
+             width="480px"
+             padding="12px"
+             title="{{dlcTitle}}"
+             message="{{dlcName}}"
+             confirm-id="versions-dlc-download"
+             cancel-id="versions-dlc-close"
+             confirm-label="{{dlcDownloadText}}"
+             cancel-label="{{dlcClose}}"
+             confirm="versions.dlc.download"
+             confirm-if="{{dlcCanDownload}}"
+             cancel="versions.dlc.close"
+             cancel-if="{{dlcCanClose}}">
+        <column width="100%" gap="6" align="center">
+          <label if="{{dlcLoading}}" class="modal-subtitle" text="{{dlcLoading}}" />
+          <label if="{{dlcError}}" class="error-label" text="{{dlcError}}" />
+          <label if="{{dlcShowNoneFound}}" class="modal-subtitle" text="{{dlcNoneFound}}" />
+          <row if="{{dlcCanAllNone}}" width="100%" gap="6" align="center">
+            <button class="modal-btn" width="190px" onclick="versions.dlc.all">
+              <label text="{{dlcAll}}" />
+            </button>
+            <button class="modal-btn" width="190px" onclick="versions.dlc.none">
+              <label text="{{dlcNone}}" />
+            </button>
+          </row>
+          <scroll width="100%" height="240px">
+            <column foreach="{{dlcEntries}}" as="dlc" gap="2">
+              <row class="dlc-entry {{dlc.itemClass}}" onclick="{{dlc.action}}" gap="6">
+                <label width="20px" text="{{dlc.mark}}" />
+                <label flex="1" text="{{dlc.name}}" />
+                <label if="{{dlc.done}}" text="{{dlc.progressText}}" />
+              </row>
+            </column>
+          </scroll>
+          <label if="{{dlcDownloading}}" class="modal-subtitle" text="{{dlcDownloadedText}}" />
+        </column>
+      </modal>
+      <modal id="versions-channel-modal"
+             open="{{channelModal}}"
+             width="360px"
+             padding="10px"
+             title="{{channelTitle}}"
+             message="{{channelName}}"
+             cancel-id="versions-channel-close"
+             cancel-label="{{channelClose}}"
+             cancel="versions.channel.close">
+        <column id="versions-channel-menu" class="gear-menu" width="100%" gap="2">
+          <column foreach="{{channelEntries}}" as="channel" gap="2">
+            <row class="gear-menu-item channel-entry {{channel.itemClass}}" onclick="{{channel.action}}">
+              <label class="gear-menu-label" text="{{channel.label}}" />
+            </row>
+          </column>
+        </column>
+      </modal>
+      <modal id="versions-customize-modal"
+             open="{{customizeModal}}"
+             width="440px"
+             padding="12px"
+             title="{{customizeTitle}}"
+             message="{{customizeName}}"
+             confirm-id="versions-customize-save"
+             cancel-id="versions-customize-cancel"
+             confirm-label="{{customizeSave}}"
+             cancel-label="{{customizeCancel}}"
+             confirm="versions.customize.save"
+             cancel="versions.customize.cancel">
+        <column width="100%" gap="6" align="center">
+          <label class="modal-subtitle" text="{{customizeTitleImageLabel}}" />
+          <row width="100%" gap="6" align="center">
+            <button id="versions-customize-title-pick" class="modal-btn" width="240px" onclick="versions.customize.pick:titleImage">
+              <label text="{{customizeTitleButton}}" />
+            </button>
+            <button if="{{customizeHasTitle}}" class="modal-btn" width="140px" onclick="versions.customize.reset.title">
+              <label text="{{customizeReset}}" />
+            </button>
+          </row>
+          <label if="{{customizeHasTitle}}" class="import-path-value" text="{{customizeTitleValue}}" />
+          <label class="modal-subtitle" text="{{customizePanoramaLabel}}" />
+          <row width="100%" gap="6" align="center">
+            <button id="versions-customize-panorama-pick" class="modal-btn" width="240px" onclick="versions.customize.pick:panorama">
+              <label text="{{customizePanoramaButton}}" />
+            </button>
+            <button if="{{customizeHasPanorama}}" class="modal-btn" width="140px" onclick="versions.customize.reset.panorama">
+              <label text="{{customizeReset}}" />
+            </button>
+          </row>
+          <label if="{{customizeHasPanorama}}" class="import-path-value" text="{{customizePanoramaValue}}" />
+          <label if="{{customizeError}}" class="error-label" text="{{customizeError}}" />
+        </column>
+      </modal>
+      <modal id="versions-playtime-modal"
+             open="{{playtimeModal}}"
+             width="400px"
+             padding="12px"
+             title="{{playtimeTitle}}"
+             message="{{playtimeName}}"
+             cancel-id="versions-playtime-close"
+             cancel-label="{{playtimeClose}}"
+             cancel="versions.playtime.close">
+        <column width="100%" gap="6" align="center">
+          <label if="{{playtimeLoadingVisible}}" class="modal-subtitle" text="{{playtimeLoading}}" />
+          <label if="{{playtimeFailedVisible}}" class="error-label" text="{{playtimeFailed}}" />
+          <column if="{{playtimeLoaded}}" width="100%" gap="4" align="center">
+            <row class="playtime-row" gap="8">
+              <label flex="1" text="{{playtimeTotalLabel}}" />
+              <label text="{{playtimeTotal}}" />
+            </row>
+            <row class="playtime-row" gap="8">
+              <label flex="1" text="{{playtimeWeekLabel}}" />
+              <label text="{{playtimeWeek}}" />
+            </row>
+            <row class="playtime-row" gap="8">
+              <label flex="1" text="{{playtimeTodayLabel}}" />
+              <label text="{{playtimeToday}}" />
+            </row>
+          </column>
         </column>
       </modal>
     </column>
