@@ -66,6 +66,7 @@ bool ConfigStore::import_from_string(std::string_view contents,
   }
 
   config_ = from_json(parsed);
+  apply_legacy_defaults(config_);
   document_ = parsed;
   save();
   return true;
